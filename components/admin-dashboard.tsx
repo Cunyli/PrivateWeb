@@ -18,7 +18,7 @@ interface Picture {
   title: string
   subtitle: string
   description: string
-  image_url: string
+  image_url?: string
 }
 
 export function AdminDashboard() {

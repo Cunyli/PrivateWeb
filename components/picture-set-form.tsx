@@ -40,45 +40,18 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     setIsSubmitting(true)
 
     try {
-      let coverUrl = ""
-      if (cover) {
-        const { data, error } = await supabase.storage.from("covers").upload(`${Date.now()}-${cover.name}`, cover)
-
-        if (error) throw error
-
-        const { data: publicUrlData } = supabase.storage.from("covers").getPublicUrl(data.path)
-
-        coverUrl = publicUrlData.publicUrl
-      }
-
       const newPictureSet: PictureSet = {
         title,
         subtitle,
         description,
-        cover_image_url: coverUrl,
-        pictures: await Promise.all(
-          pictures.map(async (picture) => {
-            let imageUrl = ""
-            if (picture.cover) {
-              const { data, error } = await supabase.storage
-                .from("pictures")
-                .upload(`${Date.now()}-${picture.cover.name}`, picture.cover)
-
-              if (error) throw error
-
-              const { data: publicUrlData } = supabase.storage.from("pictures").getPublicUrl(data.path)
-
-              imageUrl = publicUrlData.publicUrl
-            }
-
-            return {
-              title: picture.title,
-              subtitle: picture.subtitle,
-              description: picture.description,
-              image_url: imageUrl,
-            }
-          }),
-        ),
+        cover_image_url: "", // Skip actual cover upload
+        pictures: pictures.map((picture) => ({
+          title: picture.title,
+          subtitle: picture.subtitle,
+          description: picture.description,
+          image_url: "", // Skip actual picture upload
+          cover: null,
+        })),
       }
 
       onSubmit(newPictureSet)

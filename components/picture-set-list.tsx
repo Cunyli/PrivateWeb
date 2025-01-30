@@ -1,6 +1,15 @@
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+interface PictureSet {
+  id: string
+  title: string
+  subtitle?: string
+  description?: string
+  cover?: string
+  pictures?: any[]
+}
+
 interface PictureSetListProps {
   pictureSets: PictureSet[]
 }
@@ -23,7 +32,9 @@ export function PictureSetList({ pictureSets }: PictureSetListProps) {
               )}
               <p className="text-sm text-gray-500">{set.subtitle}</p>
               <p className="mt-2">{set.description}</p>
-              <p className="mt-2 text-sm text-gray-500">{set.pictures.length} pictures</p>
+              <p className="mt-2 text-sm text-gray-500">
+                {set.pictures ? `${set.pictures.length} pictures` : "No pictures"}
+              </p>
             </CardContent>
           </Card>
         ))}
