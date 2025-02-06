@@ -35,31 +35,84 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
   const [pictures, setPictures] = useState<Picture[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Helper: convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Remove prefix "data:*/*;base64," if needed
+        const base64 = (reader.result as string).split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Helper: upload file via API and return image URL
+  const uploadFile = async (file: File, objectName: string): Promise<string> => {
+    const base64Data = await fileToBase64(file);
+    const res = await fetch("/api/upload-to-r2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileData: base64Data,
+        objectName,
+        contentType: file.type,
+      }),
+    });
+    if (!res.ok) throw new Error("Upload failed");
+    // Use fixed public URL base and object's path
+    return `https://pub-aa03052e73cc405b9b70dc0fc8aeb455.r2.dev/${objectName}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const newPictureSet: PictureSet = {
+      // Upload cover image if selected
+      let cover_image_url = "";
+      if (cover) {
+        // Add "picture/" folder prefix
+        const objectName = `picture/cover-${Date.now()}-${cover.name}`;
+        cover_image_url = await uploadFile(cover, objectName);
+      }
+
+      // Process pictures: upload each file if available
+      const processedPictures = await Promise.all(
+        pictures.map(async (picture, idx) => {
+          let image_url = "";
+          if (picture.cover instanceof File) {
+            // Add "picture/" folder prefix for picture files
+            const objectName = `picture/picture-${Date.now()}-${idx}-${picture.cover.name}`;
+            image_url = await uploadFile(picture.cover, objectName);
+          }
+          // Return picture object with the uploaded image_url
+          return {
+            title: picture.title,
+            subtitle: picture.subtitle,
+            description: picture.description,
+            cover: null,
+            image_url,
+          };
+        })
+      );
+
+      const newPictureSet = {
         title,
         subtitle,
         description,
-        cover_image_url: "", // Skip actual cover upload
-        pictures: pictures.map((picture) => ({
-          title: picture.title,
-          subtitle: picture.subtitle,
-          description: picture.description,
-          image_url: "", // Skip actual picture upload
-          cover: null,
-        })),
-      }
+        cover_image_url,
+        pictures: processedPictures,
+      };
 
-      onSubmit(newPictureSet)
-      resetForm()
+      onSubmit(newPictureSet);
+      resetForm();
     } catch (error) {
-      console.error("Error submitting picture set:", error)
+      console.error("Error submitting picture set:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
