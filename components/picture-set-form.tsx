@@ -35,34 +35,27 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
   const [pictures, setPictures] = useState<Picture[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Helper: convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        // Remove prefix "data:*/*;base64," if needed
-        const base64 = (reader.result as string).split(",")[1];
-        resolve(base64);
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
+  // Removed: fileToBase64 helper function
 
-  // Helper: upload file via API and return image URL
+  // Updated: upload file via signed URL
   const uploadFile = async (file: File, objectName: string): Promise<string> => {
-    const base64Data = await fileToBase64(file);
     const res = await fetch("/api/upload-to-r2", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        fileData: base64Data,
         objectName,
         contentType: file.type,
       }),
     });
-    if (!res.ok) throw new Error("Upload failed");
-    // Use fixed public URL base and object's path
+    if (!res.ok) throw new Error("Failed to get signed URL");
+    const { uploadUrl } = await res.json();
+    const fileBuffer = await file.arrayBuffer();
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: fileBuffer,
+    });
+    if (!uploadRes.ok) throw new Error("File upload failed");
     return `https://pub-aa03052e73cc405b9b70dc0fc8aeb455.r2.dev/${objectName}`;
   };
 
