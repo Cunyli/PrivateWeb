@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // S3 client configuration using env variables
 const s3 = new S3Client({
@@ -13,21 +14,20 @@ const s3 = new S3Client({
 
 export async function POST(request: NextRequest) {
   try {
-    const { fileData, objectName, contentType } = await request.json();
-    if (!fileData || !objectName) {
-      return NextResponse.json({ error: "Missing fileData or objectName" }, { status: 400 });
+    const { objectName, contentType } = await request.json();
+    if (!objectName) {
+      return NextResponse.json({ error: "Missing objectName" }, { status: 400 });
     }
-    const buffer = Buffer.from(fileData, "base64");
-    // ...existing code...
-    const uploadParams = {
+
+    const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
       Key: objectName,
-      Body: buffer,
       ContentType: contentType || "application/octet-stream",
-    };
-    await s3.send(new PutObjectCommand(uploadParams));
-    return NextResponse.json({ message: `✅ 上传成功：${objectName}` });
+    });
+
+    const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    return NextResponse.json({ uploadUrl: signedUrl });
   } catch (error) {
-    return NextResponse.json({ error: `❌ 上传失败：${error}` }, { status: 500 });
+    return NextResponse.json({ error: `❌ Failed to create signed URL: ${error}` }, { status: 500 });
   }
 }
