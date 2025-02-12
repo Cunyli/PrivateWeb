@@ -27,7 +27,7 @@ export function PortfolioGrid() {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-16">
-      <h1 className="text-4xl font-light text-center mb-16">WORKS</h1>
+      <h1 className="text-4xl font-light text-center mb-16">Galleries</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {pictureSets.map((item) => (
           <Link
