@@ -61,7 +61,7 @@ export function PortfolioCarousel({ images }: PortfolioCarouselProps) {
                   src={image.url || "/placeholder.svg"}
                   alt={image.alt}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   priority={index === 0}
                 />
               </div>
