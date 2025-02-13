@@ -55,14 +55,14 @@ export function AdminDashboard() {
 
       const pictureSetId = pictureSetData[0].id
 
-      // Insert the pictures
+      // Insert all pictures using image_url from the form
       for (const picture of newPictureSet.pictures) {
         const { error: pictureError } = await supabase.from("pictures").insert({
           picture_set_id: pictureSetId,
           title: picture.title,
           subtitle: picture.subtitle,
           description: picture.description,
-          image_url: picture.image_url,
+          image_url: picture.image_url, // use image_url
         })
 
         if (pictureError) throw pictureError

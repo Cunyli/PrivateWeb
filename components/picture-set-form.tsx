@@ -27,6 +27,35 @@ interface PictureSetFormProps {
   onSubmit: (pictureSet: PictureSet) => void
 }
 
+// Updated helper function with crossOrigin support
+async function compressImage(file: File, quality: number = 0.88): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous"; // Allow cross-origin usage for local file
+    image.src = URL.createObjectURL(file);
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Canvas context not available"));
+        return;
+      }
+      context.drawImage(image, 0, 0);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Compression failed"));
+          return;
+        }
+        const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), { type: "image/webp" });
+        resolve(compressedFile);
+      }, "image/webp", quality);
+    };
+    image.onerror = (err) => reject(err);
+  });
+}
+
 export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
   const [title, setTitle] = useState("")
   const [subtitle, setSubtitle] = useState("")
@@ -34,8 +63,6 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
   const [cover, setCover] = useState<File | null>(null)
   const [pictures, setPictures] = useState<Picture[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Removed: fileToBase64 helper function
 
   // Updated: upload file via signed URL
   const uploadFile = async (file: File, objectName: string): Promise<string> => {
@@ -64,30 +91,29 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     setIsSubmitting(true);
 
     try {
-      // Upload cover image if selected
       let cover_image_url = "";
       if (cover) {
-        // Add "picture/" folder prefix
-        const objectName = `picture/cover-${Date.now()}-${cover.name}`;
-        cover_image_url = await uploadFile(cover, objectName);
+        // Compress cover image to WebP before upload
+        const compressedCover = await compressImage(cover, 0.88);
+        const objectName = `picture/cover-${Date.now()}-${compressedCover.name}`;
+        cover_image_url = await uploadFile(compressedCover, objectName);
       }
 
-      // Process pictures: upload each file if available
+      // Process pictures: compress and upload each file if available
       const processedPictures = await Promise.all(
         pictures.map(async (picture, idx) => {
           let image_url = "";
           if (picture.cover instanceof File) {
-            // Add "picture/" folder prefix for picture files
-            const objectName = `picture/picture-${Date.now()}-${idx}-${picture.cover.name}`;
-            image_url = await uploadFile(picture.cover, objectName);
+            const compressedPicture = await compressImage(picture.cover, 0.88);
+            const objectName = `picture/picture-${Date.now()}-${idx}-${compressedPicture.name}`;
+            image_url = await uploadFile(compressedPicture, objectName);
           }
-          // Return picture object with the uploaded image_url
           return {
             title: picture.title,
             subtitle: picture.subtitle,
             description: picture.description,
             cover: null,
-            image_url,
+            image_url, // use image_url key for database insertion
           };
         })
       );
