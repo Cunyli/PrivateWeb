@@ -3,10 +3,30 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { PortfolioCarousel } from "./portfolio-carousel"
-import type { PortfolioDetailProps } from "../types/portfolio"
+import { useState } from "react"
+import { Carousel } from "@/components/carousel"
+import { ImageDetails } from "@/components/image-details"
+
+interface ImageItem {
+  url: string
+  alt: string
+  title: string
+  titleCn: string
+  description: string
+}
+
+interface PortfolioDetailProps {
+  item: ImageItem[]
+}
 
 export function PortfolioDetail({ item }: PortfolioDetailProps) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const currentImage = item[currentIndex]
+  
+  const handleImageChange = (index: number) => {
+    setCurrentIndex(index)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -24,14 +44,14 @@ export function PortfolioDetail({ item }: PortfolioDetailProps) {
         </Link>
         <div className="grid lg:grid-cols-10 gap-8 lg:gap-16">
           <div className="lg:col-span-7">
-            <PortfolioCarousel images={item.images} />
+            <Carousel 
+              images={item} 
+              currentIndex={currentIndex}
+              onChangeImage={handleImageChange}
+            />
           </div>
           <div className="lg:col-span-3 space-y-6">
-            <div>
-              <h1 className="text-4xl font-light mb-2 tracking-wide">{item.title}</h1>
-              <p className="text-xl text-gray-600 font-light">{item.titleCn}</p>
-            </div>
-            {item.description && <p className="text-gray-800 leading-relaxed text-lg font-light">{item.description}</p>}
+            <ImageDetails image={currentImage} />
           </div>
         </div>
       </div>

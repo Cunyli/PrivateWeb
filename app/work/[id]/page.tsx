@@ -14,22 +14,18 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
     notFound()
   }
 
-  // Use the first picture for the main item details.
-  const firstPicture = pictures[0]
-
-  // Map pictures to portfolio images
+  // Map pictures to portfolio images with individual details
   const images = pictures.map((pic) => ({
     url: pic.image_url || "/placeholder.svg",
     alt: pic.title,
+    title: pic.title,
+    titleCn: pic.subtitle,
+    description: pic.description,
   }))
 
-  const item = {
-    title: firstPicture.title,
-    titleCn: firstPicture.subtitle,
-    description: firstPicture.description,
-    images,
-  }
+  // Pass only the images array, details to be handled per image in the carousel
+  // const item = { images 
 
-  return <PortfolioDetail item={item} />
+  return <PortfolioDetail item={images} />
 }
 
