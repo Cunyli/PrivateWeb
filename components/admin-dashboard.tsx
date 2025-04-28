@@ -4,22 +4,8 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/utils/supabase"
 import { PictureSetForm } from "./picture-set-form"
 import { PictureSetList } from "./picture-set-list"
-
-interface PictureSet {
-  id?: string
-  title: string
-  subtitle: string
-  description: string
-  cover_image_url: string
-  pictures: Picture[]
-}
-
-interface Picture {
-  title: string
-  subtitle: string
-  description: string
-  image_url?: string
-}
+import type { PictureSet } from "@/lib/pictureSet.types"
+import type { Picture } from "@/lib/pictureSet.types"
 
 export function AdminDashboard() {
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
@@ -38,7 +24,13 @@ export function AdminDashboard() {
     }
   }
 
-  const handleAddPictureSet = async (newPictureSet: PictureSet) => {
+  // Update the handleAddPictureSet function to properly handle the form data:
+
+  const handleAddPictureSet = async (
+    newPictureSet: Omit<PictureSet, "id" | "created_at" | "updated_at" | "pictures"> & {
+      pictures: Omit<Picture, "id" | "picture_set_id" | "order_index" | "created_at" | "updated_at" | "raw_image_url">[]
+    },
+  ) => {
     try {
       // Insert the picture set
       const { data: pictureSetData, error: pictureSetError } = await supabase
@@ -56,13 +48,15 @@ export function AdminDashboard() {
       const pictureSetId = pictureSetData[0].id
 
       // Insert all pictures using image_url from the form
-      for (const picture of newPictureSet.pictures) {
+      for (const [index, picture] of newPictureSet.pictures.entries()) {
         const { error: pictureError } = await supabase.from("pictures").insert({
           picture_set_id: pictureSetId,
+          order_index: index, // Add order_index based on array position
           title: picture.title,
           subtitle: picture.subtitle,
           description: picture.description,
           image_url: picture.image_url, // use image_url
+          raw_image_url: picture.image_url, // Use image_url as raw_image_url is not available
         })
 
         if (pictureError) throw pictureError
@@ -82,4 +76,3 @@ export function AdminDashboard() {
     </div>
   )
 }
-

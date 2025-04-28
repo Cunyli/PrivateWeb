@@ -1,14 +1,15 @@
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PictureSet } from "@/lib/pictureSet.types"
 
-interface PictureSet {
-  id: string
-  title: string
-  subtitle?: string
-  description?: string
-  cover_image_url?: string
-  pictures?: any[]
-}
+// interface PictureSet {
+//   id: string
+//   title: string
+//   subtitle?: string
+//   description?: string
+//   cover_image_url?: string
+//   pictures?: any[]
+// }
 
 interface PictureSetListProps {
   pictureSets: PictureSet[]
