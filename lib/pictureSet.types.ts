@@ -15,7 +15,7 @@ export interface Picture {
   order_index: number;
   created_at: string; // ISO date string
   updated_at: string; // ISO date string
-  raw_image_url: string;
+  raw_image_url?: string;
   image_url: string;
   title: string;
   subtitle: string;

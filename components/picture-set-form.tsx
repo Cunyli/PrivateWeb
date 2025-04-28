@@ -9,15 +9,18 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import imageCompression from "browser-image-compression"
 
-interface PictureSet {
+import type { PictureSet as DBPictureSet, Picture as DBPicture } from "@/lib/pictureSet.types"
+
+// Form state interfaces (what we use during form input)
+interface PictureSetFormData {
   title: string
   subtitle: string
   description: string
   cover_image_url: string
-  pictures: Picture[]
+  pictures: PictureFormData[]
 }
 
-interface Picture {
+interface PictureFormData {
   title: string
   subtitle: string
   description: string
@@ -29,7 +32,14 @@ interface Picture {
 }
 
 interface PictureSetFormProps {
-  onSubmit: (pictureSet: PictureSet) => void
+  onSubmit: (
+    pictureSet: Omit<DBPictureSet, "id" | "created_at" | "updated_at" | "pictures"> & {
+      pictures: Omit<
+        DBPicture,
+        "id" | "picture_set_id" | "order_index" | "created_at" | "updated_at" | "raw_image_url"
+      >[]
+    },
+  ) => void
 }
 
 // Enhanced compression function using browser-image-compression
@@ -74,7 +84,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
   const [cover, setCover] = useState<File | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverOriginalSize, setCoverOriginalSize] = useState<number>(0)
-  const [pictures, setPictures] = useState<Picture[]>([])
+  const [pictures, setPictures] = useState<PictureFormData[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Updated: upload file via signed URL
@@ -121,16 +131,19 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
             const objectName = `picture/picture-${Date.now()}-${idx}-${compressedPicture.name}`
             image_url = await uploadFile(compressedPicture, objectName)
           }
+
+          // Return only the fields needed for the database
           return {
             title: picture.title,
             subtitle: picture.subtitle,
             description: picture.description,
-            cover: null,
             image_url, // use image_url key for database insertion
+            raw_image_url: "", // Add empty raw_image_url to match DB schema
           }
         }),
       )
 
+      // Create the object that matches what the database expects
       const newPictureSet = {
         title,
         subtitle,
@@ -163,7 +176,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     ])
   }
 
-  const handlePictureChange = async (index: number, field: keyof Picture, value: string | File | null) => {
+  const handlePictureChange = async (index: number, field: keyof PictureFormData, value: string | File | null) => {
     const updatedPictures = [...pictures]
 
     // If changing the image file, generate preview
