@@ -1,11 +1,13 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
-import { supabase } from "@/utils/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import imageCompression from "browser-image-compression"
 
 interface PictureSet {
   title: string
@@ -21,55 +23,48 @@ interface Picture {
   description: string
   cover: File | null
   image_url?: string
+  previewUrl?: string
+  originalSize?: number
+  compressedSize?: number
 }
 
 interface PictureSetFormProps {
   onSubmit: (pictureSet: PictureSet) => void
 }
 
-// Updated helper function with crossOrigin support
-async function compressImage(file: File, quality: number = 0.88): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    const objectUrl = URL.createObjectURL(file); // Create object URL for the file
-    image.crossOrigin = "anonymous"; // Allow cross-origin usage for local file
-    image.src = objectUrl;
+// Enhanced compression function using browser-image-compression
+async function compressImage(file: File, quality = 0.9): Promise<File> {
+  try {
+    const options = {
+      maxWidthOrHeight: 1920, // Max width/height in pixels
+      useWebWorker: true, // Use web workers for better performance
+      initialQuality: quality, // Quality setting (0.9 = 90%)
+      fileType: "image/webp", // Convert to WebP for better compression
+    }
 
-    image.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const context = canvas.getContext("2d");
-      if (!context) {
-        URL.revokeObjectURL(objectUrl); // Revoke object URL
-        reject(new Error("Canvas context not available"));
-        return;
-      }
-      context.drawImage(image, 0, 0);
-      canvas.toBlob(
-        (blob) => {
-          URL.revokeObjectURL(objectUrl); // Revoke object URL
-          if (!blob) {
-            reject(new Error("Compression failed"));
-            return;
-          }
-          const compressedFile = new File(
-            [blob],
-            file.name.replace(/\.[^/.]+$/, ".webp"),
-            { type: "image/webp" }
-          );
-          resolve(compressedFile);
-        },
-        "image/webp",
-        quality
-      );
-    };
+    // Compress the image
+    const compressedFile = await imageCompression(file, options)
 
-    image.onerror = (err) => {
-      URL.revokeObjectURL(objectUrl); // Revoke object URL
-      reject(err);
-    };
-  });
+    // Rename to .webp extension
+    return new File([compressedFile], file.name.replace(/\.[^/.]+$/, ".webp"), { type: "image/webp" })
+  } catch (error) {
+    console.error("Compression error:", error)
+    throw error
+  }
+}
+
+// Helper function to generate image preview and get file size
+async function getImagePreview(file: File): Promise<{ url: string; size: number }> {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      resolve({
+        url: e.target?.result as string,
+        size: file.size,
+      })
+    }
+    reader.readAsDataURL(file)
+  })
 }
 
 export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
@@ -77,6 +72,8 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
   const [subtitle, setSubtitle] = useState("")
   const [description, setDescription] = useState("")
   const [cover, setCover] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [coverOriginalSize, setCoverOriginalSize] = useState<number>(0)
   const [pictures, setPictures] = useState<Picture[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -89,40 +86,40 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
         objectName,
         contentType: file.type,
       }),
-    });
-    if (!res.ok) throw new Error("Failed to get signed URL");
-    const { uploadUrl } = await res.json();
-    const fileBuffer = await file.arrayBuffer();
+    })
+    if (!res.ok) throw new Error("Failed to get signed URL")
+    const { uploadUrl } = await res.json()
+    const fileBuffer = await file.arrayBuffer()
     const uploadRes = await fetch(uploadUrl, {
       method: "PUT",
       headers: { "Content-Type": file.type },
       body: fileBuffer,
-    });
-    if (!uploadRes.ok) throw new Error("File upload failed");
-    return `https://pub-aa03052e73cc405b9b70dc0fc8aeb455.r2.dev/${objectName}`;
-  };
+    })
+    if (!uploadRes.ok) throw new Error("File upload failed")
+    return `https://pub-aa03052e73cc405b9b70dc0fc8aeb455.r2.dev/${objectName}`
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+    e.preventDefault()
+    setIsSubmitting(true)
 
     try {
-      let cover_image_url = "";
+      let cover_image_url = ""
       if (cover) {
         // Compress cover image to WebP before upload
-        const compressedCover = await compressImage(cover, 0.88);
-        const objectName = `picture/cover-${Date.now()}-${compressedCover.name}`;
-        cover_image_url = await uploadFile(compressedCover, objectName);
+        const compressedCover = await compressImage(cover, 0.9)
+        const objectName = `picture/cover-${Date.now()}-${compressedCover.name}`
+        cover_image_url = await uploadFile(compressedCover, objectName)
       }
 
       // Process pictures: compress and upload each file if available
       const processedPictures = await Promise.all(
         pictures.map(async (picture, idx) => {
-          let image_url = "";
+          let image_url = ""
           if (picture.cover instanceof File) {
-            const compressedPicture = await compressImage(picture.cover, 0.88);
-            const objectName = `picture/picture-${Date.now()}-${idx}-${compressedPicture.name}`;
-            image_url = await uploadFile(compressedPicture, objectName);
+            const compressedPicture = await compressImage(picture.cover, 0.9)
+            const objectName = `picture/picture-${Date.now()}-${idx}-${compressedPicture.name}`
+            image_url = await uploadFile(compressedPicture, objectName)
           }
           return {
             title: picture.title,
@@ -130,9 +127,9 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
             description: picture.description,
             cover: null,
             image_url, // use image_url key for database insertion
-          };
-        })
-      );
+          }
+        }),
+      )
 
       const newPictureSet = {
         title,
@@ -140,25 +137,63 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
         description,
         cover_image_url,
         pictures: processedPictures,
-      };
+      }
 
-      onSubmit(newPictureSet);
-      resetForm();
+      onSubmit(newPictureSet)
+      resetForm()
     } catch (error) {
-      console.error("Error submitting picture set:", error);
+      console.error("Error submitting picture set:", error)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
   const handleAddPicture = () => {
-    setPictures([...pictures, { title: "", subtitle: "", description: "", cover: null }])
+    setPictures([
+      ...pictures,
+      {
+        title: "",
+        subtitle: "",
+        description: "",
+        cover: null,
+        previewUrl: undefined,
+        originalSize: 0,
+        compressedSize: 0,
+      },
+    ])
   }
 
-  const handlePictureChange = (index: number, field: keyof Picture, value: string | File | null) => {
+  const handlePictureChange = async (index: number, field: keyof Picture, value: string | File | null) => {
     const updatedPictures = [...pictures]
-    updatedPictures[index] = { ...updatedPictures[index], [field]: value }
+
+    // If changing the image file, generate preview
+    if (field === "cover" && value instanceof File) {
+      const { url, size } = await getImagePreview(value)
+      updatedPictures[index] = {
+        ...updatedPictures[index],
+        [field]: value,
+        previewUrl: url,
+        originalSize: size,
+      }
+    } else {
+      updatedPictures[index] = { ...updatedPictures[index], [field]: value }
+    }
+
     setPictures(updatedPictures)
+  }
+
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setCover(file)
+
+    if (file) {
+      const { url, size } = await getImagePreview(file)
+      setCoverPreview(url)
+      setCoverOriginalSize(size)
+    } else {
+      setCoverPreview(null)
+      setCoverOriginalSize(0)
+    }
   }
 
   const resetForm = () => {
@@ -166,7 +201,15 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     setSubtitle("")
     setDescription("")
     setCover(null)
+    setCoverPreview(null)
+    setCoverOriginalSize(0)
     setPictures([])
+  }
+
+  const formatSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + " B"
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + " KB"
+    else return (bytes / 1048576).toFixed(2) + " MB"
   }
 
   return (
@@ -183,9 +226,24 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="cover">Cover Image</Label>
-        <Input id="cover" type="file" onChange={(e) => setCover(e.target.files?.[0] || null)} accept="image/*" />
+        <Input id="cover" type="file" onChange={handleCoverChange} accept="image/*" />
+
+        {coverPreview && (
+          <div className="mt-2 p-4 border rounded">
+            <p className="text-sm text-gray-500 mb-2">
+              Original size: {formatSize(coverOriginalSize)} • Will be compressed to WebP at 90% quality
+            </p>
+            <div className="relative aspect-video w-full overflow-hidden rounded-md bg-gray-100">
+              <img
+                src={coverPreview || "/placeholder.svg"}
+                alt="Cover preview"
+                className="object-contain w-full h-full"
+              />
+            </div>
+          </div>
+        )}
       </div>
       <div className="space-y-4">
         <Label>Pictures</Label>
@@ -211,6 +269,21 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
               onChange={(e) => handlePictureChange(index, "cover", e.target.files?.[0] || null)}
               accept="image/*"
             />
+
+            {picture.previewUrl && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-500 mb-2">
+                  Original size: {formatSize(picture.originalSize || 0)} • Will be compressed to WebP at 90% quality
+                </p>
+                <div className="relative aspect-video w-full overflow-hidden rounded-md bg-gray-100">
+                  <img
+                    src={picture.previewUrl || "/placeholder.svg"}
+                    alt={`Picture ${index + 1} preview`}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         ))}
         <Button type="button" onClick={handleAddPicture}>
@@ -223,4 +296,3 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     </form>
   )
 }
-
