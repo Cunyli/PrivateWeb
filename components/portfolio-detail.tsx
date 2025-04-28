@@ -64,7 +64,7 @@ export function PortfolioDetail({ images }: PortfolioDetailProps) {
             {/* Left column: Main image and details */}
             <div className="flex flex-col flex-1">
               {/* Main image container */}
-              <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden">
+              <div className="flex-1 flex items-center justify-center  rounded-md overflow-hidden">
                 <Carousel
                   images={images}
                   currentIndex={currentIndex}

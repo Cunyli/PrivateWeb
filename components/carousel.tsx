@@ -60,7 +60,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
             src={images[currentIndex].url || "/placeholder.svg"}
             alt={images[currentIndex].alt || "Portfolio image"}
             fill
-            className="object-contain"
+            className="object-contain corner-lg"
             priority
           />
 
