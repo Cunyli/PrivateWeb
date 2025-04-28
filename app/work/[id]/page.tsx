@@ -17,6 +17,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
   // Map pictures to portfolio images with individual details
   const images = pictures.map((pic) => ({
     url: pic.image_url || "/placeholder.svg",
+    rawUrl: pic.raw_image_url || pic.image_url, // Add the raw image URL
     alt: pic.title,
     title: pic.title,
     titleCn: pic.subtitle,
@@ -24,8 +25,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
   }))
 
   // Pass only the images array, details to be handled per image in the carousel
-  // const item = { images 
+  // const item = { images
 
-  return <PortfolioDetail item={images} />
+  return <PortfolioDetail images={images} />
 }
-
