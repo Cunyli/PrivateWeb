@@ -24,11 +24,10 @@ export function AdminDashboard() {
     }
   }
 
-  // Update the handleAddPictureSet function to properly handle the form data:
-
+  // Update the handleAddPictureSet function to properly handle both image URLs
   const handleAddPictureSet = async (
     newPictureSet: Omit<PictureSet, "id" | "created_at" | "updated_at" | "pictures"> & {
-      pictures: Omit<Picture, "id" | "picture_set_id" | "order_index" | "created_at" | "updated_at" | "raw_image_url">[]
+      pictures: Omit<Picture, "id" | "picture_set_id" | "order_index" | "created_at" | "updated_at">[]
     },
   ) => {
     try {
@@ -47,7 +46,7 @@ export function AdminDashboard() {
 
       const pictureSetId = pictureSetData[0].id
 
-      // Insert all pictures using image_url from the form
+      // Insert all pictures with both image URLs
       for (const [index, picture] of newPictureSet.pictures.entries()) {
         const { error: pictureError } = await supabase.from("pictures").insert({
           picture_set_id: pictureSetId,
@@ -55,8 +54,8 @@ export function AdminDashboard() {
           title: picture.title,
           subtitle: picture.subtitle,
           description: picture.description,
-          image_url: picture.image_url, // use image_url
-          raw_image_url: picture.image_url, // Use image_url as raw_image_url is not available
+          image_url: picture.image_url, // compressed version
+          raw_image_url: picture.raw_image_url, // original version
         })
 
         if (pictureError) throw pictureError

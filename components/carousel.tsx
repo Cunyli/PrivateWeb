@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -5,6 +7,7 @@ import { Button } from "@/components/ui/button"
 
 interface ImageItem {
   url: string
+  rawUrl: string // Add rawUrl for the original image
   alt: string
   title: string
   titleCn: string
@@ -18,6 +21,8 @@ interface CarouselProps {
 }
 
 export function Carousel({ images, currentIndex, onChangeImage }: CarouselProps) {
+  const [isHovering, setIsHovering] = React.useState(false)
+
   const goToPrevious = () => {
     const isFirstImage = currentIndex === 0
     const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1
@@ -30,23 +35,44 @@ export function Carousel({ images, currentIndex, onChangeImage }: CarouselProps)
     onChangeImage(newIndex)
   }
 
+  const handleOpenOriginal = () => {
+    if (images[currentIndex].rawUrl) {
+      window.open(images[currentIndex].rawUrl, "_blank")
+    }
+  }
+
   if (!images || images.length === 0) {
     return <div>No images to display</div>
   }
 
   return (
     <div className="space-y-4">
-      <div className="relative w-full">
+      <div
+        className="relative w-full"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
         <div className="overflow-hidden relative w-full h-[500px]">
           <Image
-            src={images[currentIndex].url}
+            src={images[currentIndex].url || "/placeholder.svg"}
             alt={images[currentIndex].alt || "Portfolio image"}
             fill
             className="object-contain"
             priority
           />
+
+          {/* Download original button - appears on hover */}
+          {isHovering && images[currentIndex].rawUrl && (
+            <Button
+              variant="secondary"
+              onClick={handleOpenOriginal}
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 hover:bg-white shadow-md z-10"
+            >
+              View Original
+            </Button>
+          )}
         </div>
-        
+
         {/* Navigation buttons */}
         <Button
           variant="ghost"
@@ -87,19 +113,6 @@ export function Carousel({ images, currentIndex, onChangeImage }: CarouselProps)
           ))}
         </div>
       </div>
-
-      {/* Dot indicators (optional, can remove if you prefer just thumbnails)
-      <div className="flex justify-center gap-2">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            className={`w-2 h-2 rounded-full ${
-              index === currentIndex ? "bg-black" : "bg-gray-300"
-            }`}
-            onClick={() => onChangeImage(index)}
-          />
-        ))}
-      </div> */}
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { ImageDetails } from "@/components/image-details"
 
 interface ImageItem {
   url: string
+  rawUrl: string // Add rawUrl for the original image
   alt: string
   title: string
   titleCn: string
@@ -16,13 +17,13 @@ interface ImageItem {
 }
 
 interface PortfolioDetailProps {
-  item: ImageItem[]
+  images: ImageItem[]
 }
 
-export function PortfolioDetail({ item }: PortfolioDetailProps) {
+export function PortfolioDetail({ images }: PortfolioDetailProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const currentImage = item[currentIndex]
-  
+  const currentImage = images[currentIndex]
+
   const handleImageChange = (index: number) => {
     setCurrentIndex(index)
   }
@@ -44,11 +45,7 @@ export function PortfolioDetail({ item }: PortfolioDetailProps) {
         </Link>
         <div className="grid lg:grid-cols-10 gap-8 lg:gap-16">
           <div className="lg:col-span-7">
-            <Carousel 
-              images={item} 
-              currentIndex={currentIndex}
-              onChangeImage={handleImageChange}
-            />
+            <Carousel images={images} currentIndex={currentIndex} onChangeImage={handleImageChange} />
           </div>
           <div className="lg:col-span-3 space-y-6">
             <ImageDetails image={currentImage} />
@@ -58,4 +55,3 @@ export function PortfolioDetail({ item }: PortfolioDetailProps) {
     </motion.div>
   )
 }
-
