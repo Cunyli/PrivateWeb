@@ -20,15 +20,18 @@ interface PictureSetFormData {
   pictures: PictureFormData[]
 }
 
+// Update the PictureFormData interface to track both original and compressed files
 interface PictureFormData {
   title: string
   subtitle: string
   description: string
   cover: File | null
   image_url?: string
+  raw_image_url?: string
   previewUrl?: string
   originalSize?: number
   compressedSize?: number
+  compressedFile?: File | null
 }
 
 interface PictureSetFormProps {
@@ -109,6 +112,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     return `https://pub-aa03052e73cc405b9b70dc0fc8aeb455.r2.dev/${objectName}`
   }
 
+  // Update the handleSubmit function to upload both original and compressed images
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -126,19 +130,26 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
       const processedPictures = await Promise.all(
         pictures.map(async (picture, idx) => {
           let image_url = ""
+          let raw_image_url = ""
+
           if (picture.cover instanceof File) {
+            // Upload the original image first
+            const originalObjectName = `picture/original-${Date.now()}-${idx}-${picture.cover.name}`
+            raw_image_url = await uploadFile(picture.cover, originalObjectName)
+
+            // Then upload the compressed version
             const compressedPicture = await compressImage(picture.cover, 0.9)
-            const objectName = `picture/picture-${Date.now()}-${idx}-${compressedPicture.name}`
-            image_url = await uploadFile(compressedPicture, objectName)
+            const compressedObjectName = `picture/compressed-${Date.now()}-${idx}-${compressedPicture.name}`
+            image_url = await uploadFile(compressedPicture, compressedObjectName)
           }
 
-          // Return only the fields needed for the database
+          // Return both URLs for the database
           return {
             title: picture.title,
             subtitle: picture.subtitle,
             description: picture.description,
-            image_url, // use image_url key for database insertion
-            raw_image_url: "", // Add empty raw_image_url to match DB schema
+            image_url, // compressed version
+            raw_image_url, // original version
           }
         }),
       )
@@ -161,6 +172,33 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     }
   }
 
+  // Update the handlePictureChange function to also generate and store the compressed file
+  const handlePictureChange = async (index: number, field: keyof PictureFormData, value: string | File | null) => {
+    const updatedPictures = [...pictures]
+
+    // If changing the image file, generate preview and compressed version
+    if (field === "cover" && value instanceof File) {
+      const { url, size } = await getImagePreview(value)
+
+      // Create the compressed version but don't upload it yet
+      const compressedFile = await compressImage(value, 0.9)
+      const compressedPreview = await getImagePreview(compressedFile)
+
+      updatedPictures[index] = {
+        ...updatedPictures[index],
+        [field]: value,
+        previewUrl: url,
+        originalSize: size,
+        compressedSize: compressedPreview.size,
+        compressedFile: compressedFile,
+      }
+    } else {
+      updatedPictures[index] = { ...updatedPictures[index], [field]: value }
+    }
+
+    setPictures(updatedPictures)
+  }
+
   const handleAddPicture = () => {
     setPictures([
       ...pictures,
@@ -172,27 +210,9 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
         previewUrl: undefined,
         originalSize: 0,
         compressedSize: 0,
+        compressedFile: null,
       },
     ])
-  }
-
-  const handlePictureChange = async (index: number, field: keyof PictureFormData, value: string | File | null) => {
-    const updatedPictures = [...pictures]
-
-    // If changing the image file, generate preview
-    if (field === "cover" && value instanceof File) {
-      const { url, size } = await getImagePreview(value)
-      updatedPictures[index] = {
-        ...updatedPictures[index],
-        [field]: value,
-        previewUrl: url,
-        originalSize: size,
-      }
-    } else {
-      updatedPictures[index] = { ...updatedPictures[index], [field]: value }
-    }
-
-    setPictures(updatedPictures)
   }
 
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -286,7 +306,14 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
             {picture.previewUrl && (
               <div className="mt-2">
                 <p className="text-sm text-gray-500 mb-2">
-                  Original size: {formatSize(picture.originalSize || 0)} • Will be compressed to WebP at 90% quality
+                  Original size: {formatSize(picture.originalSize || 0)}
+                  {picture.compressedSize && (
+                    <>
+                      {" "}
+                      • Compressed size: {formatSize(picture.compressedSize)}(
+                      {((picture.compressedSize / (picture.originalSize || 1)) * 100).toFixed(1)}% of original)
+                    </>
+                  )}
                 </p>
                 <div className="relative aspect-video w-full overflow-hidden rounded-md bg-gray-100">
                   <img
