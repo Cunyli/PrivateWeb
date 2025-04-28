@@ -66,7 +66,7 @@ export function Carousel({ images, currentIndex, onChangeImage }: CarouselProps)
             <Button
               variant="secondary"
               onClick={handleOpenOriginal}
-              className="absolute top-4 right-4 bg-white/80 hover:bg-white shadow-md z-10"
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 hover:bg-white shadow-md z-10"
             >
               View Original
             </Button>
