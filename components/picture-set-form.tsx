@@ -31,28 +31,44 @@ interface PictureSetFormProps {
 async function compressImage(file: File, quality: number = 0.88): Promise<File> {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    const objectUrl = URL.createObjectURL(file); // Create object URL for the file
     image.crossOrigin = "anonymous"; // Allow cross-origin usage for local file
-    image.src = URL.createObjectURL(file);
+    image.src = objectUrl;
+
     image.onload = () => {
       const canvas = document.createElement("canvas");
       canvas.width = image.width;
       canvas.height = image.height;
       const context = canvas.getContext("2d");
       if (!context) {
+        URL.revokeObjectURL(objectUrl); // Revoke object URL
         reject(new Error("Canvas context not available"));
         return;
       }
       context.drawImage(image, 0, 0);
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error("Compression failed"));
-          return;
-        }
-        const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), { type: "image/webp" });
-        resolve(compressedFile);
-      }, "image/webp", quality);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(objectUrl); // Revoke object URL
+          if (!blob) {
+            reject(new Error("Compression failed"));
+            return;
+          }
+          const compressedFile = new File(
+            [blob],
+            file.name.replace(/\.[^/.]+$/, ".webp"),
+            { type: "image/webp" }
+          );
+          resolve(compressedFile);
+        },
+        "image/webp",
+        quality
+      );
     };
-    image.onerror = (err) => reject(err);
+
+    image.onerror = (err) => {
+      URL.revokeObjectURL(objectUrl); // Revoke object URL
+      reject(err);
+    };
   });
 }
 

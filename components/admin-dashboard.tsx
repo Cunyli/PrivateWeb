@@ -4,22 +4,8 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/utils/supabase"
 import { PictureSetForm } from "./picture-set-form"
 import { PictureSetList } from "./picture-set-list"
+import { PictureSet } from "@/lib/pictureSet.types"
 
-interface PictureSet {
-  id?: string
-  title: string
-  subtitle: string
-  description: string
-  cover_image_url: string
-  pictures: Picture[]
-}
-
-interface Picture {
-  title: string
-  subtitle: string
-  description: string
-  image_url?: string
-}
 
 export function AdminDashboard() {
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
