@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import imageCompression from "browser-image-compression"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import type { PictureSet as DBPictureSet, Picture as DBPicture } from "@/lib/pictureSet.types"
 
@@ -17,6 +18,7 @@ interface PictureSetFormData {
   subtitle: string
   description: string
   cover_image_url: string
+  position: string
   pictures: PictureFormData[]
 }
 
@@ -89,6 +91,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
   const [coverOriginalSize, setCoverOriginalSize] = useState<number>(0)
   const [pictures, setPictures] = useState<PictureFormData[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [position, setPosition] = useState<string>("up")
 
   // Updated: upload file via signed URL
   const uploadFile = async (file: File, objectName: string): Promise<string> => {
@@ -160,6 +163,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
         subtitle,
         description,
         cover_image_url,
+        position,
         pictures: processedPictures,
       }
 
@@ -237,6 +241,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     setCoverPreview(null)
     setCoverOriginalSize(0)
     setPictures([])
+    setPosition("up")
   }
 
   const formatSize = (bytes: number): string => {
@@ -258,6 +263,18 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
       <div>
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
+      </div>
+      <div>
+        <Label htmlFor="position">Position</Label>
+        <Select value={position} onValueChange={setPosition}>
+          <SelectTrigger id="position">
+            <SelectValue placeholder="Select position" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="up">Top Row</SelectItem>
+            <SelectItem value="down">Bottom Row</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-2">
         <Label htmlFor="cover">Cover Image</Label>

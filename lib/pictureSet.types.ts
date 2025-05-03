@@ -7,6 +7,7 @@ export interface PictureSet {
   title: string;
   subtitle: string;
   pictures: Picture[];
+  position: string;
 }
 
 export interface Picture {
