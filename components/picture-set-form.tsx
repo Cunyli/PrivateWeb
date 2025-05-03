@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,41 +10,13 @@ import { Textarea } from "@/components/ui/textarea"
 import imageCompression from "browser-image-compression"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-import type { PictureSet as DBPictureSet, Picture as DBPicture } from "@/lib/pictureSet.types"
-
-// Form state interfaces (what we use during form input)
-interface PictureSetFormData {
-  title: string
-  subtitle: string
-  description: string
-  cover_image_url: string
-  position: string
-  pictures: PictureFormData[]
-}
-
-// Update the PictureFormData interface to track both original and compressed files
-interface PictureFormData {
-  title: string
-  subtitle: string
-  description: string
-  cover: File | null
-  image_url?: string
-  raw_image_url?: string
-  previewUrl?: string
-  originalSize?: number
-  compressedSize?: number
-  compressedFile?: File | null
-}
+import type { PictureSet } from "@/lib/pictureSet.types"
+import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
 
 interface PictureSetFormProps {
-  onSubmit: (
-    pictureSet: Omit<DBPictureSet, "id" | "created_at" | "updated_at" | "pictures"> & {
-      pictures: Omit<
-        DBPicture,
-        "id" | "picture_set_id" | "order_index" | "created_at" | "updated_at" | "raw_image_url"
-      >[]
-    },
-  ) => void
+  onSubmit: (pictureSet: PictureSetSubmitData, pictureSetId?: number) => void
+  editingPictureSet?: PictureSet | null
+  onCancel?: () => void
 }
 
 // Enhanced compression function using browser-image-compression
@@ -82,16 +54,57 @@ async function getImagePreview(file: File): Promise<{ url: string; size: number 
   })
 }
 
-export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
+export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: PictureSetFormProps) {
   const [title, setTitle] = useState("")
   const [subtitle, setSubtitle] = useState("")
   const [description, setDescription] = useState("")
   const [cover, setCover] = useState<File | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverOriginalSize, setCoverOriginalSize] = useState<number>(0)
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("")
   const [pictures, setPictures] = useState<PictureFormData[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [position, setPosition] = useState<string>("up")
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingId, setEditingId] = useState<number | undefined>(undefined)
+
+  // Load data when editing an existing picture set
+  useEffect(() => {
+    if (editingPictureSet) {
+      setIsEditMode(true)
+      setEditingId(editingPictureSet.id)
+      setTitle(editingPictureSet.title || "")
+      setSubtitle(editingPictureSet.subtitle || "")
+      setDescription(editingPictureSet.description || "")
+      setCoverImageUrl(editingPictureSet.cover_image_url || "")
+      setCoverPreview(editingPictureSet.cover_image_url || null)
+
+      // Make sure to set the position correctly
+      setPosition(editingPictureSet.position || "up")
+      console.log("Setting position to:", editingPictureSet.position || "up")
+
+      // Load existing pictures
+      if (editingPictureSet.pictures && editingPictureSet.pictures.length > 0) {
+        const formattedPictures = editingPictureSet.pictures.map((pic) => ({
+          id: pic.id,
+          title: pic.title || "",
+          subtitle: pic.subtitle || "",
+          description: pic.description || "",
+          cover: null,
+          image_url: pic.image_url || "",
+          raw_image_url: pic.raw_image_url || "",
+          previewUrl: pic.image_url || undefined,
+        }))
+        setPictures(formattedPictures)
+      } else {
+        setPictures([])
+      }
+    } else {
+      setIsEditMode(false)
+      setEditingId(undefined)
+      resetForm()
+    }
+  }, [editingPictureSet])
 
   // Updated: upload file via signed URL
   const uploadFile = async (file: File, objectName: string): Promise<string> => {
@@ -121,7 +134,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     setIsSubmitting(true)
 
     try {
-      let cover_image_url = ""
+      let cover_image_url = coverImageUrl
       if (cover) {
         // Compress cover image to WebP before upload
         const compressedCover = await compressImage(cover, 0.9)
@@ -132,8 +145,8 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
       // Process pictures: compress and upload each file if available
       const processedPictures = await Promise.all(
         pictures.map(async (picture, idx) => {
-          let image_url = ""
-          let raw_image_url = ""
+          let image_url = picture.image_url || ""
+          let raw_image_url = picture.raw_image_url || ""
 
           if (picture.cover instanceof File) {
             // Upload the original image first
@@ -146,29 +159,34 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
             image_url = await uploadFile(compressedPicture, compressedObjectName)
           }
 
-          // Return both URLs for the database
+          // Return only the properties needed for database submission
           return {
+            id: picture.id,
             title: picture.title,
             subtitle: picture.subtitle,
             description: picture.description,
-            image_url, // compressed version
-            raw_image_url, // original version
+            image_url,
+            raw_image_url,
           }
         }),
       )
 
       // Create the object that matches what the database expects
-      const newPictureSet = {
+      const newPictureSet: PictureSetSubmitData = {
         title,
         subtitle,
         description,
         cover_image_url,
-        position,
+        position, // Make sure position is included
         pictures: processedPictures,
       }
 
-      onSubmit(newPictureSet)
-      resetForm()
+      console.log("Submitting picture set with position:", position)
+      onSubmit(newPictureSet, editingId)
+
+      if (!isEditMode) {
+        resetForm()
+      }
     } catch (error) {
       console.error("Error submitting picture set:", error)
     } finally {
@@ -219,6 +237,12 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     ])
   }
 
+  const handleRemovePicture = (index: number) => {
+    const updatedPictures = [...pictures]
+    updatedPictures.splice(index, 1)
+    setPictures(updatedPictures)
+  }
+
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
     setCover(file)
@@ -227,6 +251,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
       const { url, size } = await getImagePreview(file)
       setCoverPreview(url)
       setCoverOriginalSize(size)
+      setCoverImageUrl("") // Clear the existing URL since we're uploading a new file
     } else {
       setCoverPreview(null)
       setCoverOriginalSize(0)
@@ -240,6 +265,7 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
     setCover(null)
     setCoverPreview(null)
     setCoverOriginalSize(0)
+    setCoverImageUrl("")
     setPictures([])
     setPosition("up")
   }
@@ -252,6 +278,15 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold">{isEditMode ? "Edit Picture Set" : "Create New Picture Set"}</h2>
+        {isEditMode && onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel Edit
+          </Button>
+        )}
+      </div>
+
       <div>
         <Label htmlFor="title">Title</Label>
         <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -278,13 +313,8 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="cover">Cover Image</Label>
-        <Input id="cover" type="file" onChange={handleCoverChange} accept="image/*" />
-
         {coverPreview && (
-          <div className="mt-2 p-4 border rounded">
-            <p className="text-sm text-gray-500 mb-2">
-              Original size: {formatSize(coverOriginalSize)} • Will be compressed to WebP at 90% quality
-            </p>
+          <div className="mt-2 mb-4 p-4 border rounded">
             <div className="relative aspect-video w-full overflow-hidden rounded-md bg-gray-100">
               <img
                 src={coverPreview || "/placeholder.svg"}
@@ -292,13 +322,30 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
                 className="object-contain w-full h-full"
               />
             </div>
+            {coverOriginalSize > 0 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Original size: {formatSize(coverOriginalSize)} • Will be compressed to WebP at 90% quality
+              </p>
+            )}
           </div>
         )}
+        <Input id="cover" type="file" onChange={handleCoverChange} accept="image/*" />
       </div>
       <div className="space-y-4">
-        <Label>Pictures</Label>
+        <div className="flex justify-between items-center">
+          <Label>Pictures</Label>
+          <Button type="button" onClick={handleAddPicture} size="sm">
+            Add Picture
+          </Button>
+        </div>
         {pictures.map((picture, index) => (
           <div key={index} className="space-y-2 p-4 border rounded">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-medium">Picture {index + 1}</h3>
+              <Button type="button" variant="destructive" size="sm" onClick={() => handleRemovePicture(index)}>
+                Remove
+              </Button>
+            </div>
             <Input
               placeholder="Title"
               value={picture.title}
@@ -314,24 +361,9 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
               value={picture.description}
               onChange={(e) => handlePictureChange(index, "description", e.target.value)}
             />
-            <Input
-              type="file"
-              onChange={(e) => handlePictureChange(index, "cover", e.target.files?.[0] || null)}
-              accept="image/*"
-            />
 
             {picture.previewUrl && (
-              <div className="mt-2">
-                <p className="text-sm text-gray-500 mb-2">
-                  Original size: {formatSize(picture.originalSize || 0)}
-                  {picture.compressedSize && (
-                    <>
-                      {" "}
-                      • Compressed size: {formatSize(picture.compressedSize)}(
-                      {((picture.compressedSize / (picture.originalSize || 1)) * 100).toFixed(1)}% of original)
-                    </>
-                  )}
-                </p>
+              <div className="mt-2 mb-4">
                 <div className="relative aspect-video w-full overflow-hidden rounded-md bg-gray-100">
                   <img
                     src={picture.previewUrl || "/placeholder.svg"}
@@ -339,16 +371,31 @@ export function PictureSetForm({ onSubmit }: PictureSetFormProps) {
                     className="object-contain w-full h-full"
                   />
                 </div>
+                {picture.originalSize && picture.originalSize > 0 && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Original size: {formatSize(picture.originalSize || 0)}
+                    {picture.compressedSize && (
+                      <>
+                        {" "}
+                        • Compressed size: {formatSize(picture.compressedSize)}(
+                        {((picture.compressedSize / (picture.originalSize || 1)) * 100).toFixed(1)}% of original)
+                      </>
+                    )}
+                  </p>
+                )}
               </div>
             )}
+
+            <Input
+              type="file"
+              onChange={(e) => handlePictureChange(index, "cover", e.target.files?.[0] || null)}
+              accept="image/*"
+            />
           </div>
         ))}
-        <Button type="button" onClick={handleAddPicture}>
-          Add Picture
-        </Button>
       </div>
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Submitting..." : "Submit Picture Set"}
+        {isSubmitting ? "Submitting..." : isEditMode ? "Update Picture Set" : "Submit Picture Set"}
       </Button>
     </form>
   )
