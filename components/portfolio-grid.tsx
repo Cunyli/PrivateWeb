@@ -1,7 +1,7 @@
 // components/PortfolioGrid.tsx
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -20,6 +20,7 @@ export function PortfolioGrid() {
 
     if (error) {
       console.error("Error fetching picture sets:", error)
+      setPictureSets([])
     } else {
       setPictureSets(data || [])
     }
@@ -30,16 +31,19 @@ export function PortfolioGrid() {
     fetchPictureSets()
   }, [])
 
-  // Filter picture sets by position
+  // 分组
   const upPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "up")
   const downPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "down")
 
-  // Split "up" position sets into two rows
+  // 将 down 列表打乱顺序一次
+  const shuffledDown = useMemo(() => [...downPictureSets].sort(() => Math.random() - 0.5), [downPictureSets])
+
+  // 把 up 分两行
   const mid = Math.ceil(upPictureSets.length / 2)
   const firstRow = upPictureSets.slice(0, mid)
   const secondRow = upPictureSets.slice(mid)
 
-  // Auto-scrolling effect
+  // 自动滚动
   useEffect(() => {
     const top = topRowRef.current
     const bottom = bottomRowRef.current
@@ -70,33 +74,30 @@ export function PortfolioGrid() {
   }, [upPictureSets])
 
   return (
-    <div className="w-full mx-auto px-0 py-16">
-      <h1 className="text-4xl font-light text-center mb-16">Lijie's Galleries</h1>
+    <div className="w-full mx-auto px-4 py-16 flex flex-col min-h-screen">
+      <h1 className="text-4xl font-light text-center mb-16">Lijie&apos;s Galleries</h1>
 
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="animate-pulse">Loading galleries...</div>
         </div>
       ) : (
-        <div className="flex flex-col gap-12">
-          {/* "Up" position items - two rows with auto-scrolling */}
+        <div className="flex flex-col gap-12 flex-1">
+          {/* ——— 上：两行自动滚动 (保持原始大小) ——— */}
           {upPictureSets.length > 0 && (
             <div className="space-y-3">
-              {/* First row: left to right */}
+              {/* 第一行（左→右） */}
               {firstRow.length > 0 && (
                 <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-3 w-full">
-                  {/* Duplicate items for infinite scrolling effect */}
                   {[...firstRow, ...firstRow].map((item, i) => {
-                    // Calculate width based on position in the array
-                    // This creates a varied width pattern similar to the example
                     const widthClass =
-                      i % 5 === 0 || i % 5 === 4 ? "w-[20%]" : i % 5 === 1 || i % 5 === 3 ? "w-[30%]" : "w-[25%]"
+                      i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
 
                     return (
                       <Link
                         key={`${item.id}-${i}`}
                         href={`/work/${item.id}`}
-                        className={`group relative aspect-[4/3] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
+                        className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
                       >
                         <Image
                           src={item.cover_image_url || "/placeholder.svg"}
@@ -114,21 +115,18 @@ export function PortfolioGrid() {
                 </div>
               )}
 
-              {/* Second row: right to left */}
+              {/* 第二行（右→左） */}
               {secondRow.length > 0 && (
                 <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-3 w-full">
-                  {/* Duplicate items for infinite scrolling effect */}
                   {[...secondRow, ...secondRow].map((item, i) => {
-                    // Calculate width based on position in the array
-                    // This creates a varied width pattern similar to the example
                     const widthClass =
-                      i % 5 === 0 || i % 5 === 4 ? "w-[25%]" : i % 5 === 1 || i % 5 === 3 ? "w-[20%]" : "w-[30%]"
+                      i % 5 === 0 || i % 5 === 4 ? "w-[20%]" : i % 5 === 1 || i % 5 === 3 ? "w-[15%]" : "w-[25%]"
 
                     return (
                       <Link
                         key={`${item.id}-${i}`}
                         href={`/work/${item.id}`}
-                        className={`group relative aspect-[4/3] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
+                        className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
                       >
                         <Image
                           src={item.cover_image_url || "/placeholder.svg"}
@@ -148,24 +146,23 @@ export function PortfolioGrid() {
             </div>
           )}
 
-          {/* "Down" position items - centered grid */}
-          {downPictureSets.length > 0 && (
-            <div className="mt-12 flex justify-center px-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl w-full">
-                {downPictureSets.map((item) => (
+          {/* ——— 下：三列 Masonry 布局 (缩小 5/6) ——— */}
+          {shuffledDown.length > 0 && (
+            <div className="mt-12 flex justify-center">
+              <div className="w-full max-w-7xl columns-3 gap-4 transform scale-[0.833] origin-center">
+                {shuffledDown.map((item) => (
                   <Link
                     key={item.id}
                     href={`/work/${item.id}`}
-                    className="group relative aspect-[16/9] overflow-hidden bg-gray-100"
+                    className="block mb-4 break-inside-avoid group relative overflow-hidden"
                   >
-                    <Image
+                    <img
                       src={item.cover_image_url || "/placeholder.svg"}
                       alt={item.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-auto object-cover"
                     />
                     <motion.div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4 text-center">
-                      <h2 className="text-2xl font-light mb-2">{item.title}</h2>
+                      <h2 className="text-2xl font-light mb-1">{item.title}</h2>
                       <p className="text-sm opacity-80">{item.subtitle}</p>
                     </motion.div>
                   </Link>
@@ -175,6 +172,13 @@ export function PortfolioGrid() {
           )}
         </div>
       )}
+
+      {/* Copyright footer */}
+      <footer className="mt-auto pt-8 pb-4 text-center">
+        <p className="text-gray-500">
+          Copyright © <span className="text-black">Lijie Li</span>
+        </p>
+      </footer>
     </div>
   )
 }
