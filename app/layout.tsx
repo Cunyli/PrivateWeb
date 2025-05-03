@@ -1,21 +1,30 @@
+// app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from '@vercel/analytics/react'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: "Lijie's Portfolio",
+  description: 'Pictures, life, and more',
+  icons: {
+    icon: '/icon.jpeg',
+    shortcut: '/icon.jpeg',
+    apple: '/icon.jpeg',
+  },
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en">
-      <body>{children}</body>
-      <Analytics/>
+      <head />
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }
