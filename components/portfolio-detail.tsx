@@ -17,9 +17,12 @@ interface ImageItem {
 
 interface PortfolioDetailProps {
   images: ImageItem[]
+  title?: string
+  subtitle?: string
+  description?: string
 }
 
-export function PortfolioDetail({ images }: PortfolioDetailProps) {
+export function PortfolioDetail({ images, title, subtitle, description }: PortfolioDetailProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const currentImage = images[currentIndex]
 
@@ -46,8 +49,8 @@ export function PortfolioDetail({ images }: PortfolioDetailProps) {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <div className="max-w-[2000px] w-full mx-auto px-4 py-4 lg:px-8 xl:px-16 flex flex-col h-screen">
-        {/* Header with back button */}
-        <header className="mb-4">
+        {/* Header with back button and title */}
+        <header className="mb-4 flex justify-between items-center">
           <Link
             href="/"
             className="inline-flex items-center text-sm text-gray-600 hover:text-black transition-colors duration-200"
@@ -55,6 +58,13 @@ export function PortfolioDetail({ images }: PortfolioDetailProps) {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Works
           </Link>
+
+          {title && (
+            <div className="text-right">
+              <h1 className="text-xl font-medium">{title}</h1>
+              {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
+            </div>
+          )}
         </header>
 
         {/* Main content area - using flex layout */}
@@ -64,7 +74,7 @@ export function PortfolioDetail({ images }: PortfolioDetailProps) {
             {/* Left column: Main image and details */}
             <div className="flex flex-col flex-1">
               {/* Main image container */}
-              <div className="flex-1 flex items-center justify-center  rounded-md overflow-hidden">
+              <div className="flex-1 flex items-center justify-center rounded-md overflow-hidden">
                 <Carousel
                   images={images}
                   currentIndex={currentIndex}
@@ -102,6 +112,13 @@ export function PortfolioDetail({ images }: PortfolioDetailProps) {
               </div>
             </div>
           </div>
+
+          {/* Portfolio description */}
+          {description && (
+            <div className="mt-6 pb-4">
+              <p className="text-gray-700">{description}</p>
+            </div>
+          )}
         </main>
       </div>
     </div>

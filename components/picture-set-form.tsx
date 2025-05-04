@@ -61,6 +61,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   // 如果在编辑模式，初始化表单数据
   useEffect(() => {
     if (editingPictureSet) {
+      console.log("Initializing form with editing picture set:", editingPictureSet.id)
       setIsEditMode(true)
       setEditingId(editingPictureSet.id)
       setTitle(editingPictureSet.title || "")
@@ -69,6 +70,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setCoverImageUrl(editingPictureSet.cover_image_url || "")
       setCoverPreview(editingPictureSet.cover_image_url || null)
       setPosition(editingPictureSet.position || "up")
+
+      // Log the pictures we're loading
+      console.log(`Loading ${editingPictureSet.pictures?.length || 0} pictures for editing`)
 
       const formatted = (editingPictureSet.pictures || []).map((pic) => ({
         id: pic.id,
@@ -147,6 +151,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         pictures: processed,
       }
 
+      console.log(`Submitting form with ${processed.length} pictures`)
+
       onSubmit(payload, editingId)
       if (!isEditMode) resetForm()
     } catch (err) {
@@ -178,13 +184,24 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   }
 
   const handleAddPicture = () => {
+    console.log("Adding new picture to form")
     setPictures((p) => [
       ...p,
-      { title: "", subtitle: "", description: "", cover: null, previewUrl: undefined, originalSize: 0, compressedSize: 0, compressedFile: null },
+      {
+        title: "",
+        subtitle: "",
+        description: "",
+        cover: null,
+        previewUrl: undefined,
+        originalSize: 0,
+        compressedSize: 0,
+        compressedFile: null,
+      },
     ])
   }
 
   const handleRemovePicture = (i: number) => {
+    console.log(`Removing picture at index ${i}`)
     const arr = [...pictures]
     arr.splice(i, 1)
     setPictures(arr)
@@ -216,31 +233,38 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     setPosition("up")
   }
 
-  const formatSize = (b: number) => (b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(2) + " KB" : (b / 1048576).toFixed(2) + " MB")
+  const formatSize = (b: number) =>
+    b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(2) + " KB" : (b / 1048576).toFixed(2) + " MB"
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">{isEditMode ? "Edit Picture Set" : "Create New Picture Set"}</h2>
-        {isEditMode && onCancel && <Button variant="outline" onClick={onCancel}>Cancel Edit</Button>}
+        {isEditMode && onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel Edit
+          </Button>
+        )}
       </div>
       {/* 标题/副标题/描述/位置 */}
       <div>
         <Label htmlFor="title">Title</Label>
-        <Input id="title" value={title} onChange={e => setTitle(e.target.value)} required />
+        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
       </div>
       <div>
         <Label htmlFor="subtitle">Subtitle</Label>
-        <Input id="subtitle" value={subtitle} onChange={e => setSubtitle(e.target.value)} />
+        <Input id="subtitle" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
       </div>
       <div>
         <Label htmlFor="description">Description</Label>
-        <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} />
+        <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
       <div>
         <Label htmlFor="position">Position</Label>
         <Select value={position} onValueChange={setPosition}>
-          <SelectTrigger id="position"><SelectValue placeholder="Select position" /></SelectTrigger>
+          <SelectTrigger id="position">
+            <SelectValue placeholder="Select position" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="up">Top Row</SelectItem>
             <SelectItem value="down">Bottom Row</SelectItem>
@@ -254,7 +278,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         {coverPreview && (
           <div className="mt-2 mb-4 p-4 border rounded">
             <div className="relative aspect-video w-1/2 overflow-hidden rounded-md bg-gray-100">
-              <img src={coverPreview} alt="Cover preview" className="object-contain w-full h-full" />
+              <img
+                src={coverPreview || "/placeholder.svg"}
+                alt="Cover preview"
+                className="object-contain w-full h-full"
+              />
             </div>
             {coverOriginalSize > 0 && (
               <p className="text-sm text-gray-500 mt-2">
@@ -269,38 +297,68 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       {/* 多张图片列表 */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <Label>Pictures</Label>
-          <Button size="sm" onClick={handleAddPicture}>Add Picture</Button>
+          <Label>Pictures ({pictures.length})</Label>
+          <Button type="button" size="sm" onClick={handleAddPicture}>
+            Add Picture
+          </Button>
         </div>
         {pictures.map((pic, idx) => (
           <div key={idx} className="space-y-2 p-4 border rounded">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="font-medium">Picture {idx + 1}</h3>
-              <Button variant="destructive" size="sm" onClick={() => handleRemovePicture(idx)}>Remove</Button>
+              <h3 className="font-medium">
+                Picture {idx + 1} {pic.id ? `(ID: ${pic.id})` : "(New)"}
+              </h3>
+              <Button type="button" variant="destructive" size="sm" onClick={() => handleRemovePicture(idx)}>
+                Remove
+              </Button>
             </div>
 
-            <Input placeholder="Title" value={pic.title} onChange={e => handlePictureChange(idx, "title", e.target.value)} />
-            <Input placeholder="Subtitle" value={pic.subtitle} onChange={e => handlePictureChange(idx, "subtitle", e.target.value)} />
-            <Textarea placeholder="Description" value={pic.description} onChange={e => handlePictureChange(idx, "description", e.target.value)} />
+            <Input
+              placeholder="Title"
+              value={pic.title}
+              onChange={(e) => handlePictureChange(idx, "title", e.target.value)}
+            />
+            <Input
+              placeholder="Subtitle"
+              value={pic.subtitle}
+              onChange={(e) => handlePictureChange(idx, "subtitle", e.target.value)}
+            />
+            <Textarea
+              placeholder="Description"
+              value={pic.description}
+              onChange={(e) => handlePictureChange(idx, "description", e.target.value)}
+            />
 
             {/* 图片预览（宽度减半） */}
             {pic.previewUrl && (
               <div className="mt-2 mb-4">
                 <div className="relative aspect-video w-1/2 overflow-hidden rounded-md bg-gray-100">
-                  <img src={pic.previewUrl} alt={`Picture ${idx + 1}`} className="object-contain w-full h-full" />
+                  <img
+                    src={pic.previewUrl || "/placeholder.svg"}
+                    alt={`Picture ${idx + 1}`}
+                    className="object-contain w-full h-full"
+                  />
                 </div>
                 {pic.originalSize! > 0 && (
                   <p className="text-sm text-gray-500 mt-2">
                     Original size: {formatSize(pic.originalSize!)}
                     {pic.compressedSize && (
-                      <> • Compressed size: {formatSize(pic.compressedSize)} ({((pic.compressedSize / pic.originalSize!) * 100).toFixed(1)}%)</>
+                      <>
+                        {" "}
+                        • Compressed size: {formatSize(pic.compressedSize)} (
+                        {((pic.compressedSize / pic.originalSize!) * 100).toFixed(1)}%)
+                      </>
                     )}
                   </p>
                 )}
               </div>
             )}
 
-            <Input type="file" accept="image/*" onChange={e => handlePictureChange(idx, "cover", e.target.files?.[0] || null)} />
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handlePictureChange(idx, "cover", e.target.files?.[0] || null)}
+            />
           </div>
         ))}
       </div>

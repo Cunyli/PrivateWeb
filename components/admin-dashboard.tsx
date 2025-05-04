@@ -14,6 +14,7 @@ export function AdminDashboard() {
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
   const [editingPictureSet, setEditingPictureSet] = useState<PictureSet | null>(null)
   const [activeTab, setActiveTab] = useState("list")
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetchPictureSets()
@@ -21,6 +22,9 @@ export function AdminDashboard() {
 
   const fetchPictureSets = async () => {
     try {
+      setIsLoading(true)
+      console.log("Fetching picture sets...")
+
       // First fetch the picture sets
       const { data: setsData, error: setsError } = await supabase
         .from("picture_sets")
@@ -37,14 +41,22 @@ export function AdminDashboard() {
         return
       }
 
+      console.log(`Found ${setsData?.length || 0} picture sets`)
+
       // Then fetch pictures for each set
       const sets = await Promise.all(
         (setsData || []).map(async (set) => {
-          const { data: picturesData } = await supabase
+          const { data: picturesData, error: picturesError } = await supabase
             .from("pictures")
             .select("*")
             .eq("picture_set_id", set.id)
             .order("order_index", { ascending: true })
+
+          if (picturesError) {
+            console.error(`Error fetching pictures for set ${set.id}:`, picturesError)
+          }
+
+          console.log(`Set ${set.id} has ${picturesData?.length || 0} pictures`)
 
           return {
             ...set,
@@ -54,6 +66,12 @@ export function AdminDashboard() {
       )
 
       setPictureSets(sets)
+
+      // If we're currently editing a picture set, update the editing state with fresh data
+      if (editingPictureSet) {
+        const updatedEditingSet = sets.find((set) => set.id === editingPictureSet.id) || null
+        setEditingPictureSet(updatedEditingSet)
+      }
     } catch (error) {
       console.error("Error in fetchPictureSets:", error)
       toast({
@@ -61,6 +79,8 @@ export function AdminDashboard() {
         description: "An unexpected error occurred while loading data",
         variant: "destructive",
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -251,8 +271,8 @@ export function AdminDashboard() {
         })
       }
 
-      // Refresh the picture sets
-      fetchPictureSets()
+      // Refresh the picture sets to update the UI
+      await fetchPictureSets()
     } catch (error) {
       console.error("Error in handleSubmitPictureSet:", error)
       toast({
@@ -307,7 +327,7 @@ export function AdminDashboard() {
       })
 
       // Refresh the picture sets
-      fetchPictureSets()
+      await fetchPictureSets()
     } catch (error) {
       console.error("Error in handleDeletePictureSet:", error)
       toast({
@@ -319,9 +339,36 @@ export function AdminDashboard() {
   }
 
   // Handle editing a picture set
-  const handleEditPictureSet = (pictureSet: PictureSet) => {
-    setEditingPictureSet(pictureSet)
-    setActiveTab("form")
+  const handleEditPictureSet = async (pictureSet: PictureSet) => {
+    try {
+      // Fetch the latest data for this picture set to ensure we have the most up-to-date information
+      const { data: freshPictureSet, error } = await supabase
+        .from("picture_sets")
+        .select("*, pictures(*)")
+        .eq("id", pictureSet.id)
+        .single()
+
+      if (error) {
+        console.error("Error fetching picture set for editing:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load picture set data for editing",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Set the editing state with the fresh data
+      setEditingPictureSet(freshPictureSet)
+      setActiveTab("form")
+    } catch (error) {
+      console.error("Error in handleEditPictureSet:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    }
   }
 
   // Handle canceling edit mode
@@ -340,7 +387,13 @@ export function AdminDashboard() {
           <TabsTrigger value="form">{editingPictureSet ? "Edit Picture Set" : "Add New Picture Set"}</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
-          <PictureSetList pictureSets={pictureSets} onEdit={handleEditPictureSet} onDelete={handleDeletePictureSet} />
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <p>Loading picture sets...</p>
+            </div>
+          ) : (
+            <PictureSetList pictureSets={pictureSets} onEdit={handleEditPictureSet} onDelete={handleDeletePictureSet} />
+          )}
         </TabsContent>
         <TabsContent value="form">
           <PictureSetForm
