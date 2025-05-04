@@ -6,8 +6,8 @@ import { PictureSetForm } from "./picture-set-form"
 import { PictureSetList } from "./picture-set-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "@/components/ui/use-toast"
-import type { PictureSet } from "@/lib/pictureSet.types"
-import type { PictureSetSubmitData } from "@/lib/form-types"
+import type { PictureSet, Picture } from "@/lib/pictureSet.types"
+import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
 import { deleteFileFromR2 } from "@/utils/r2-helpers"
 
 export function AdminDashboard() {
@@ -84,18 +84,148 @@ export function AdminDashboard() {
     }
   }
 
+  // Helper function to delete a file from R2 with proper error handling and logging
+  const safeDeleteFromR2 = async (url: string | null | undefined): Promise<boolean> => {
+    if (!url) {
+      console.log("No URL provided to safeDeleteFromR2, skipping")
+      return true // Nothing to delete
+    }
+
+    try {
+      console.log(`Attempting to delete file from R2: ${url}`)
+
+      // Directly call deleteFileFromR2 with the URL
+      const success = await deleteFileFromR2(url)
+
+      if (success) {
+        console.log(`Successfully deleted file from R2: ${url}`)
+      } else {
+        console.error(`Failed to delete file from R2: ${url}`)
+      }
+
+      return success
+    } catch (error) {
+      console.error(`Error in safeDeleteFromR2 for URL (${url}):`, error)
+      return false
+    }
+  }
+
+  // Helper function to compare pictures and find ones to delete
+  const findPicturesToDelete = (
+    existingPictures: Picture[] | null | undefined,
+    updatedPictures: PictureFormData[],
+  ): Picture[] => {
+    if (!existingPictures || existingPictures.length === 0) {
+      return []
+    }
+
+    // Get IDs of pictures in the updated set
+    const updatedIds = updatedPictures.filter((p) => p.id !== undefined).map((p) => p.id as number)
+
+    // Find pictures that exist in the database but not in the updated set
+    return existingPictures.filter((p) => !updatedIds.includes(p.id))
+  }
+
   // Handle adding or updating a picture set
   const handleSubmitPictureSet = async (newPictureSet: PictureSetSubmitData, pictureSetId?: number) => {
     try {
       console.log("Submitting picture set with position:", newPictureSet.position)
+      console.log(`Picture set has ${newPictureSet.pictures.length} pictures`)
 
       if (pictureSetId) {
+        // EDITING EXISTING PICTURE SET
+        console.log(`Editing existing picture set with ID: ${pictureSetId}`)
+
         // Get the existing picture set to compare and handle file deletions
-        const { data: existingSet } = await supabase
+        const { data: existingSet, error: fetchError } = await supabase
           .from("picture_sets")
           .select("cover_image_url")
           .eq("id", pictureSetId)
           .single()
+
+        if (fetchError) {
+          console.error(`Error fetching picture set ${pictureSetId}:`, fetchError)
+          toast({
+            title: "Error",
+            description: "Failed to fetch picture set data",
+            variant: "destructive",
+          })
+          return
+        }
+
+        // Get existing pictures
+        const { data: existingPictures, error: picturesError } = await supabase
+          .from("pictures")
+          .select("*")
+          .eq("picture_set_id", pictureSetId)
+
+        if (picturesError) {
+          console.error(`Error fetching pictures for set ${pictureSetId}:`, picturesError)
+          toast({
+            title: "Error",
+            description: "Failed to fetch picture data",
+            variant: "destructive",
+          })
+          return
+        }
+
+        console.log(`Found ${existingPictures?.length || 0} existing pictures in database`)
+
+        // Find pictures to delete (in existing but not in updated)
+        const picturesToDelete = findPicturesToDelete(existingPictures, newPictureSet.pictures)
+        const idsToDelete = picturesToDelete.map((p) => p.id)
+
+        console.log(`Found ${picturesToDelete.length} pictures to delete:`, idsToDelete)
+
+        // Delete removed pictures from R2 storage first
+        for (const picture of picturesToDelete) {
+          console.log(`Processing deletion for picture ${picture.id}`)
+
+          // Delete compressed image
+          if (picture.image_url) {
+            console.log(`Deleting compressed image: ${picture.image_url}`)
+            const imageDeleted = await safeDeleteFromR2(picture.image_url)
+            console.log(`Deleted compressed image for picture ${picture.id}: ${imageDeleted ? "Success" : "Failed"}`)
+          } else {
+            console.log(`No compressed image URL for picture ${picture.id}`)
+          }
+
+          // Delete raw image
+          if (picture.raw_image_url) {
+            console.log(`Deleting raw image: ${picture.raw_image_url}`)
+            const rawDeleted = await safeDeleteFromR2(picture.raw_image_url)
+            console.log(`Deleted raw image for picture ${picture.id}: ${rawDeleted ? "Success" : "Failed"}`)
+          } else {
+            console.log(`No raw image URL for picture ${picture.id}`)
+          }
+        }
+
+        // Then delete from database
+        if (idsToDelete.length > 0) {
+          console.log(`Deleting ${idsToDelete.length} pictures from database:`, idsToDelete)
+          const { error: deleteError } = await supabase.from("pictures").delete().in("id", idsToDelete)
+
+          if (deleteError) {
+            console.error("Error deleting pictures from database:", deleteError)
+            toast({
+              title: "Error",
+              description: "Failed to delete pictures from database",
+              variant: "destructive",
+            })
+          } else {
+            console.log(`Successfully deleted ${idsToDelete.length} pictures from database`)
+          }
+        }
+
+        // If cover image was changed, delete the old one from R2
+        if (
+          existingSet &&
+          existingSet.cover_image_url &&
+          existingSet.cover_image_url !== newPictureSet.cover_image_url
+        ) {
+          console.log(`Cover image changed. Deleting old cover: ${existingSet.cover_image_url}`)
+          await safeDeleteFromR2(existingSet.cover_image_url)
+        }
 
         // Update existing picture set
         const { error: updateError } = await supabase
@@ -119,52 +249,6 @@ export function AdminDashboard() {
           return
         }
 
-        // If cover image was changed, delete the old one from R2
-        if (
-          existingSet &&
-          existingSet.cover_image_url &&
-          existingSet.cover_image_url !== newPictureSet.cover_image_url
-        ) {
-          await deleteFileFromR2(existingSet.cover_image_url)
-        }
-
-        // Handle pictures - this is more complex as we need to:
-        // 1. Update existing pictures
-        // 2. Add new pictures
-        // 3. Remove deleted pictures
-
-        // Get existing pictures
-        const { data: existingPictures } = await supabase
-          .from("pictures")
-          .select("*")
-          .eq("picture_set_id", pictureSetId)
-
-        const existingIds = existingPictures?.map((p) => p.id) || []
-        const updatedIds = newPictureSet.pictures.filter((p) => p.id).map((p) => p.id as number)
-
-        // Find pictures to delete (in existing but not in updated)
-        const picturesToDelete = existingPictures?.filter((p) => !updatedIds.includes(p.id)) || []
-        const idsToDelete = picturesToDelete.map((p) => p.id)
-
-        // Delete removed pictures from R2 storage first
-        for (const picture of picturesToDelete) {
-          if (picture.image_url) {
-            await deleteFileFromR2(picture.image_url)
-          }
-          if (picture.raw_image_url) {
-            await deleteFileFromR2(picture.raw_image_url)
-          }
-        }
-
-        // Then delete from database
-        if (idsToDelete.length > 0) {
-          const { error: deleteError } = await supabase.from("pictures").delete().in("id", idsToDelete)
-
-          if (deleteError) {
-            console.error("Error deleting pictures:", deleteError)
-          }
-        }
-
         // Update or insert pictures
         for (const [index, picture] of newPictureSet.pictures.entries()) {
           if (picture.id) {
@@ -185,20 +269,28 @@ export function AdminDashboard() {
               .eq("id", picture.id)
 
             if (pictureUpdateError) {
-              console.error("Error updating picture:", pictureUpdateError)
+              console.error(`Error updating picture ${picture.id}:`, pictureUpdateError)
+              continue
             }
 
             // Delete old images if they were replaced
             if (existingPicture) {
               if (existingPicture.image_url && existingPicture.image_url !== picture.image_url) {
-                await deleteFileFromR2(existingPicture.image_url)
+                console.log(
+                  `Image URL changed for picture ${picture.id}. Deleting old image: ${existingPicture.image_url}`,
+                )
+                await safeDeleteFromR2(existingPicture.image_url)
               }
               if (existingPicture.raw_image_url && existingPicture.raw_image_url !== picture.raw_image_url) {
-                await deleteFileFromR2(existingPicture.raw_image_url)
+                console.log(
+                  `Raw image URL changed for picture ${picture.id}. Deleting old raw image: ${existingPicture.raw_image_url}`,
+                )
+                await safeDeleteFromR2(existingPicture.raw_image_url)
               }
             }
           } else {
             // Insert new picture
+            console.log(`Inserting new picture at index ${index}`)
             const { error: pictureInsertError } = await supabase.from("pictures").insert({
               picture_set_id: pictureSetId,
               order_index: index,
@@ -210,7 +302,7 @@ export function AdminDashboard() {
             })
 
             if (pictureInsertError) {
-              console.error("Error inserting picture:", pictureInsertError)
+              console.error("Error inserting new picture:", pictureInsertError)
             }
           }
         }
@@ -224,6 +316,9 @@ export function AdminDashboard() {
         setEditingPictureSet(null)
         setActiveTab("list")
       } else {
+        // CREATING NEW PICTURE SET
+        console.log("Creating new picture set")
+
         // Insert new picture set
         const { data: pictureSetData, error: pictureSetError } = await supabase
           .from("picture_sets")
@@ -247,9 +342,11 @@ export function AdminDashboard() {
         }
 
         const pictureSetId = pictureSetData[0].id
+        console.log(`Created new picture set with ID: ${pictureSetId}`)
 
         // Insert all pictures
         for (const [index, picture] of newPictureSet.pictures.entries()) {
+          console.log(`Inserting picture at index ${index}`)
           const { error: pictureError } = await supabase.from("pictures").insert({
             picture_set_id: pictureSetId,
             order_index: index,
@@ -261,7 +358,7 @@ export function AdminDashboard() {
           })
 
           if (pictureError) {
-            console.error("Error inserting picture:", pictureError)
+            console.error(`Error inserting picture at index ${index}:`, pictureError)
           }
         }
 
@@ -286,40 +383,79 @@ export function AdminDashboard() {
   // Handle deleting a picture set
   const handleDeletePictureSet = async (id: number) => {
     try {
+      console.log(`Deleting picture set with ID: ${id}`)
+
       // First get the picture set and its pictures to delete files from R2
-      const { data: pictureSet } = await supabase.from("picture_sets").select("*, pictures(*)").eq("id", id).single()
+      const { data: pictureSet, error: fetchError } = await supabase
+        .from("picture_sets")
+        .select("*, pictures(*)")
+        .eq("id", id)
+        .single()
 
-      if (pictureSet) {
-        // Delete cover image from R2
-        if (pictureSet.cover_image_url) {
-          await deleteFileFromR2(pictureSet.cover_image_url)
-        }
+      if (fetchError) {
+        console.error(`Error fetching picture set ${id} for deletion:`, fetchError)
+        toast({
+          title: "Error",
+          description: "Failed to fetch picture set data for deletion",
+          variant: "destructive",
+        })
+        return
+      }
 
-        // Delete all picture images from R2
-        if (pictureSet.pictures && pictureSet.pictures.length > 0) {
-          for (const picture of pictureSet.pictures) {
-            if (picture.image_url) {
-              await deleteFileFromR2(picture.image_url)
-            }
-            if (picture.raw_image_url) {
-              await deleteFileFromR2(picture.raw_image_url)
-            }
+      if (!pictureSet) {
+        console.error(`Picture set ${id} not found for deletion`)
+        toast({
+          title: "Error",
+          description: "Picture set not found",
+          variant: "destructive",
+        })
+        return
+      }
+
+      console.log(`Found picture set with ${pictureSet.pictures?.length || 0} pictures`)
+
+      // Delete cover image from R2
+      if (pictureSet.cover_image_url) {
+        console.log(`Deleting cover image: ${pictureSet.cover_image_url}`)
+        const coverDeleted = await safeDeleteFromR2(pictureSet.cover_image_url)
+        console.log(`Cover image deletion ${coverDeleted ? "successful" : "failed"}`)
+      }
+
+      // Delete all picture images from R2
+      if (pictureSet.pictures && pictureSet.pictures.length > 0) {
+        console.log(`Deleting ${pictureSet.pictures.length} pictures from R2`)
+
+        for (const picture of pictureSet.pictures) {
+          // Delete compressed image
+          if (picture.image_url) {
+            console.log(`Deleting compressed image for picture ${picture.id}: ${picture.image_url}`)
+            const imageDeleted = await safeDeleteFromR2(picture.image_url)
+            console.log(`Deleted compressed image for picture ${picture.id}: ${imageDeleted ? "Success" : "Failed"}`)
+          }
+
+          // Delete raw image
+          if (picture.raw_image_url) {
+            console.log(`Deleting raw image for picture ${picture.id}: ${picture.raw_image_url}`)
+            const rawDeleted = await safeDeleteFromR2(picture.raw_image_url)
+            console.log(`Deleted raw image for picture ${picture.id}: ${rawDeleted ? "Success" : "Failed"}`)
           }
         }
       }
 
       // Then delete from database (pictures will be deleted via CASCADE)
-      const { error } = await supabase.from("picture_sets").delete().eq("id", id)
+      const { error: deleteError } = await supabase.from("picture_sets").delete().eq("id", id)
 
-      if (error) {
-        console.error("Error deleting picture set:", error)
+      if (deleteError) {
+        console.error("Error deleting picture set from database:", deleteError)
         toast({
           title: "Error",
-          description: "Failed to delete picture set",
+          description: "Failed to delete picture set from database",
           variant: "destructive",
         })
         return
       }
+
+      console.log(`Successfully deleted picture set ${id} from database`)
 
       toast({
         title: "Success",
@@ -332,7 +468,7 @@ export function AdminDashboard() {
       console.error("Error in handleDeletePictureSet:", error)
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred during deletion",
         variant: "destructive",
       })
     }
@@ -341,6 +477,8 @@ export function AdminDashboard() {
   // Handle editing a picture set
   const handleEditPictureSet = async (pictureSet: PictureSet) => {
     try {
+      console.log(`Preparing to edit picture set ${pictureSet.id}`)
+
       // Fetch the latest data for this picture set to ensure we have the most up-to-date information
       const { data: freshPictureSet, error } = await supabase
         .from("picture_sets")
@@ -357,6 +495,10 @@ export function AdminDashboard() {
         })
         return
       }
+
+      console.log(
+        `Loaded fresh data for picture set ${pictureSet.id} with ${freshPictureSet.pictures?.length || 0} pictures`,
+      )
 
       // Set the editing state with the fresh data
       setEditingPictureSet(freshPictureSet)
