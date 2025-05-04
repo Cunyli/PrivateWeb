@@ -16,26 +16,30 @@ export function PortfolioGrid() {
 
   const fetchPictureSets = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from("picture_sets")
-      .select("*")
-      .order("created_at", { ascending: false })
+    try {
+      console.log("Fetching picture sets for portfolio grid")
+      const { data, error } = await supabase.from("picture_sets").select("*").order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching picture sets:", error)
-      setPictureSets([])
-    } else {
-      setPictureSets(data || [])
+      if (error) {
+        console.error("Error fetching picture sets:", error)
+        setPictureSets([])
+      } else {
+        console.log(`Found ${data?.length || 0} picture sets`)
+        setPictureSets(data || [])
+      }
+    } catch (error) {
+      console.error("Error in fetchPictureSets:", error)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
     fetchPictureSets()
   }, [])
 
-  const upPictureSets = pictureSets.filter(s => s.position?.trim().toLowerCase() === "up")
-  const downPictureSets = pictureSets.filter(s => s.position?.trim().toLowerCase() === "down")
+  const upPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "up")
+  const downPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "down")
   const shuffledDown = useMemo(() => [...downPictureSets].sort(() => Math.random() - 0.5), [downPictureSets])
 
   const mid = Math.ceil(upPictureSets.length / 2)
@@ -80,16 +84,12 @@ export function PortfolioGrid() {
               <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-3 w-full">
                 {[...firstRow, ...firstRow].map((item, i) => {
                   const widthClass =
-                    i % 5 === 0 || i % 5 === 4
-                      ? "w-[15%]"
-                      : i % 5 === 1 || i % 5 === 3
-                      ? "w-[25%]"
-                      : "w-[20%]"
+                    i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
 
                   return (
                     <Link
                       key={`${item.id}-${i}`}
-                      href={`/work/${item.id}`}
+                      href={`/work/${item.id}?t=${Date.now()}`}
                       className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
                     >
                       <Image
@@ -99,7 +99,6 @@ export function PortfolioGrid() {
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                       />
 
-                      {/* <- 修改点：给遮罩层加上 group-hover:opacity-0 */}
                       <motion.div
                         className="
                           absolute inset-0
@@ -121,16 +120,12 @@ export function PortfolioGrid() {
               <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-3 w-full">
                 {[...secondRow, ...secondRow].map((item, i) => {
                   const widthClass =
-                    i % 5 === 0 || i % 5 === 4
-                      ? "w-[20%]"
-                      : i % 5 === 1 || i % 5 === 3
-                      ? "w-[15%]"
-                      : "w-[25%]"
+                    i % 5 === 0 || i % 5 === 4 ? "w-[20%]" : i % 5 === 1 || i % 5 === 3 ? "w-[15%]" : "w-[25%]"
 
                   return (
                     <Link
                       key={`${item.id}-${i}`}
-                      href={`/work/${item.id}`}
+                      href={`/work/${item.id}?t=${Date.now()}`}
                       className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
                     >
                       <Image
@@ -140,7 +135,6 @@ export function PortfolioGrid() {
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                       />
 
-                      {/* <- 同样加上 group-hover:opacity-0 */}
                       <motion.div
                         className="
                           absolute inset-0
@@ -165,10 +159,10 @@ export function PortfolioGrid() {
           {shuffledDown.length > 0 && (
             <div className="mt-12 flex justify-center">
               <div className="w-full max-w-7xl columns-3 gap-4 transform scale-[0.833] origin-center">
-                {shuffledDown.map(item => (
+                {shuffledDown.map((item) => (
                   <Link
                     key={item.id}
-                    href={`/work/${item.id}`}
+                    href={`/work/${item.id}?t=${Date.now()}`}
                     className="group block mb-4 break-inside-avoid relative overflow-hidden"
                   >
                     <img
@@ -177,7 +171,6 @@ export function PortfolioGrid() {
                       className="w-full h-auto object-cover"
                     />
 
-                    {/* <- 同理给这里的遮罩层加上 group-hover:opacity-0 */}
                     <motion.div
                       className="
                         absolute inset-0
