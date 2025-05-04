@@ -4,13 +4,15 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { supabase } from "@/utils/supabase"
+import { ArrowUp } from "lucide-react"
 import type { PictureSet } from "@/lib/pictureSet.types"
 
 export function PortfolioGrid() {
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
   const [loading, setLoading] = useState(true)
+  const [showScrollToTop, setShowScrollToTop] = useState(false)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
 
@@ -36,6 +38,16 @@ export function PortfolioGrid() {
 
   useEffect(() => {
     fetchPictureSets()
+  }, [])
+
+  // Monitor scroll position to show/hide scroll to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollToTop(window.scrollY > 300)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   const upPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "up")
@@ -67,6 +79,10 @@ export function PortfolioGrid() {
     const id = setInterval(tick, 30)
     return () => clearInterval(id)
   }, [upPictureSets])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   return (
     <div className="w-full mx-auto px-4 py-16 flex flex-col min-h-screen">
@@ -192,11 +208,38 @@ export function PortfolioGrid() {
         </div>
       )}
 
-      <footer className="mt-auto pt-8 pb-4 text-center">
+      <footer className="mt-auto pt-8 pb-4 text-center space-y-4">
         <p className="text-gray-500">
-          Copyright © <span className="text-black">Lijie Li</span>
+          Copyright ©{" "}
+          <Link href="https://www.instagram.com/cunyli_lijie/" target="_blank" className="text-black hover:underline">
+            Lijie Li
+          </Link>
         </p>
+
+        <div className="max-w-2xl mx-auto space-y-2 text-sm text-gray-600">
+          <p>本站所有照片均受版权保护，未经作者书面许可，禁止以任何形式转载、复制或传播。</p>
+          <p>
+            All photos on this site are protected by copyright. They may not be reproduced, copied, or distributed in
+            any form without the author's written permission.
+          </p>
+        </div>
       </footer>
+
+      {/* Scroll to top button */}
+      <AnimatePresence>
+        {showScrollToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 z-50 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
+            aria-label="Scroll to top"
+          >
+            <ArrowUp className="h-6 w-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

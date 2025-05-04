@@ -2,11 +2,12 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Plus, ArrowUp } from "lucide-react"
 import imageCompression from "browser-image-compression"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -57,6 +58,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [position, setPosition] = useState<string>("up")
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
+  const [showScrollToTop, setShowScrollToTop] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+  const picturesContainerRef = useRef<HTMLDivElement>(null)
 
   // 如果在编辑模式，初始化表单数据
   useEffect(() => {
@@ -91,6 +95,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       resetForm()
     }
   }, [editingPictureSet])
+
+  // Monitor scroll position to show/hide scroll to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (formRef.current) {
+        const scrollTop = formRef.current.scrollTop || document.documentElement.scrollTop
+        setShowScrollToTop(scrollTop > 300)
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   // 获取 R2 签名后上传
   const uploadFile = async (file: File, objectName: string): Promise<string> => {
@@ -198,6 +215,17 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         compressedFile: null,
       },
     ])
+
+    // Scroll to the newly added picture after a short delay
+    setTimeout(() => {
+      if (picturesContainerRef.current) {
+        const pictureElements = picturesContainerRef.current.querySelectorAll(".picture-item")
+        if (pictureElements.length > 0) {
+          const lastPicture = pictureElements[pictureElements.length - 1]
+          lastPicture.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }
+    }, 100)
   }
 
   const handleRemovePicture = (i: number) => {
@@ -233,11 +261,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     setPosition("up")
   }
 
+  const scrollToTop = () => {
+    if (formRef.current) {
+      formRef.current.scrollTo({ top: 0, behavior: "smooth" })
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+  }
+
   const formatSize = (b: number) =>
     b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(2) + " KB" : (b / 1048576).toFixed(2) + " MB"
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 relative">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">{isEditMode ? "Edit Picture Set" : "Create New Picture Set"}</h2>
         {isEditMode && onCancel && (
@@ -295,15 +331,16 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       </div>
 
       {/* 多张图片列表 */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
+      <div className="space-y-4" ref={picturesContainerRef}>
+        <div className="sticky top-4 z-10 bg-white py-2 border-b flex justify-between items-center">
           <Label>Pictures ({pictures.length})</Label>
-          <Button type="button" size="sm" onClick={handleAddPicture}>
-            Add Picture
+          <Button type="button" onClick={handleAddPicture} className="flex items-center gap-1">
+            <Plus className="h-4 w-4" /> Add Picture
           </Button>
         </div>
+
         {pictures.map((pic, idx) => (
-          <div key={idx} className="space-y-2 p-4 border rounded">
+          <div key={idx} className="space-y-2 p-4 border rounded picture-item">
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-medium">
                 Picture {idx + 1} {pic.id ? `(ID: ${pic.id})` : "(New)"}
@@ -361,11 +398,40 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             />
           </div>
         ))}
+
+        {/* Action buttons at the bottom */}
+        {/* Floating Add Picture button at the bottom */}
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Submitting..." : isEditMode ? "Update Picture Set" : "Submit Picture Set"}
-      </Button>
+      {/* Action buttons at the bottom */}
+      <div className="sticky bottom-0 bg-white py-4 border-t z-10 space-y-2">
+        {/* Add Picture button above the submit button */}
+        <Button
+          type="button"
+          onClick={handleAddPicture}
+          className="w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add Picture
+        </Button>
+
+        {/* Submit button */}
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? "Submitting..." : isEditMode ? "Update Picture Set" : "Submit Picture Set"}
+        </Button>
+      </div>
+
+      {/* Scroll to top button */}
+      {showScrollToTop && (
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="fixed bottom-8 left-8 z-20 rounded-full shadow-lg"
+          onClick={scrollToTop}
+        >
+          <ArrowUp className="h-5 w-5" />
+        </Button>
+      )}
     </form>
   )
 }
