@@ -57,8 +57,8 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
         {/* Image wrapper */}
         <div className="w-full h-full flex items-center justify-center relative">
           <Image
-            src={images[currentIndex].url || "/placeholder.svg"}
-            alt={images[currentIndex].alt || "Portfolio image"}
+            src={process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].url || "/placeholder.svg"}
+            alt={process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].alt || "Portfolio image"}
             fill
             className="object-contain corner-lg"
             priority

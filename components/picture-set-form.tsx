@@ -125,7 +125,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       body: buf,
     })
     if (!uploadRes.ok) throw new Error("File upload failed")
-    return `https://pub-aa03052e73cc405b9b70dc0fc8aeb455.r2.dev/${objectName}`
+    return `/${objectName}`
   }
 
   // 提交表单：上传封面 + 各张图片 (原图 + 压缩图)

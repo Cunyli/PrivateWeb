@@ -109,7 +109,7 @@ export function PortfolioGrid() {
                       className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
                     >
                       <Image
-                        src={item.cover_image_url || "/placeholder.svg"}
+                        src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
                         alt={item.title}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -182,7 +182,7 @@ export function PortfolioGrid() {
                     className="group block mb-4 break-inside-avoid relative overflow-hidden"
                   >
                     <img
-                      src={item.cover_image_url || "/placeholder.svg"}
+                      src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
                       alt={item.title}
                       className="w-full h-auto object-cover"
                     />

@@ -102,7 +102,7 @@ export function PortfolioDetail({ images, title, subtitle, description }: Portfo
                       }`}
                     >
                       <img
-                        src={image.url || "/placeholder.svg"}
+                        src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
                         alt={`Thumbnail ${index + 1}`}
                         className="object-cover w-full h-full"
                       />

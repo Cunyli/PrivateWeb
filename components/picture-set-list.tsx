@@ -26,6 +26,7 @@ interface PictureSetListProps {
 export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pictureSetToDelete, setPictureSetToDelete] = useState<number | null>(null)
+  
 
   const handleDeleteClick = (id: number) => {
     setPictureSetToDelete(id)
@@ -58,7 +59,7 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
                 {set.cover_image_url && (
                   <div className="relative w-full h-48 mb-4">
                     <Image
-                      src={set.cover_image_url || "/placeholder.svg"}
+                      src={process.env.NEXT_PUBLIC_BUCKET_URL+set.cover_image_url || "/placeholder.svg"}
                       alt={set.title}
                       fill
                       className="object-cover rounded"
