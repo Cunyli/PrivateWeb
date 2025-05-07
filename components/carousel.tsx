@@ -38,7 +38,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
 
   const handleOpenOriginal = () => {
     if (images[currentIndex].rawUrl) {
-      window.open(images[currentIndex].rawUrl, "_blank")
+      window.open(process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].rawUrl, "_blank")
     }
   }
 
@@ -65,7 +65,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
           />
 
           {/* Download original button - appears on hover */}
-          {isHovering && images[currentIndex].rawUrl && (
+          {isHovering && process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].rawUrl && (
             <Button
               variant="secondary"
               onClick={handleOpenOriginal}
@@ -109,7 +109,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
                 }`}
               >
                 <Image
-                  src={image.url || "/placeholder.svg"}
+                  src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
                   alt={`Thumbnail ${index + 1}`}
                   width={96}
                   height={54}
