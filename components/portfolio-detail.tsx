@@ -24,6 +24,7 @@ interface PortfolioDetailProps {
 
 export function PortfolioDetail({ images, title, subtitle, description }: PortfolioDetailProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [showThumbnails, setShowThumbnails] = useState(false)
   const currentImage = images[currentIndex]
 
   const handleImageChange = (index: number) => {
@@ -72,7 +73,7 @@ export function PortfolioDetail({ images, title, subtitle, description }: Portfo
           {/* Image gallery section */}
           <div className="flex flex-1 gap-4 overflow-hidden">
             {/* Left column: Main image and details */}
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col pr-2" style={{ width: 'calc(100% - 1.5rem)' }}>
               {/* Main image container */}
               <div className="flex-1 flex items-center justify-center rounded-md overflow-hidden">
                 <Carousel
@@ -87,27 +88,74 @@ export function PortfolioDetail({ images, title, subtitle, description }: Portfo
               <div className="mt-4">
                 <ImageDetails image={currentImage} />
               </div>
+
+              {/* Mobile thumbnails section */}
+              <div className="lg:hidden mt-4">
+                <button 
+                  onClick={() => setShowThumbnails(!showThumbnails)}
+                  className="text-sm text-gray-600 hover:text-black transition-colors duration-200 mb-3 flex items-center"
+                >
+                  {showThumbnails ? 'Hide' : 'Show'} Gallery ({images.length})
+                  <span className={`ml-2 transform transition-transform duration-200 ${showThumbnails ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                
+                {showThumbnails && (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto">
+                    {images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleImageChange(index)}
+                        className={`aspect-square overflow-hidden rounded-md border-2 transition-all duration-200 ${
+                          index === currentIndex ? "border-black ring-2 ring-black ring-opacity-20" : "border-transparent hover:border-gray-300"
+                        }`}
+                      >
+                        <img
+                          src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="object-cover w-full h-full"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Right column: Thumbnails grid */}
-            <div className="w-1/5 hidden lg:block">
-              <div className="h-full overflow-y-auto custom-scrollbar pr-2">
-                <div className="grid grid-cols-2 gap-2">
-                  {images.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleImageChange(index)}
-                      className={`aspect-square overflow-hidden rounded-md border-2 transition-colors duration-200 ${
-                        index === currentIndex ? "border-black" : "border-transparent"
-                      }`}
-                    >
-                      <img
-                        src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="object-cover w-full h-full"
-                      />
-                    </button>
-                  ))}
+            {/* Right column: Collapsible Thumbnails grid */}
+            <div className="relative hidden lg:block group">
+              {/* Collapsed trigger area */}
+              <div className="w-6 h-full bg-gray-50 hover:bg-gray-100 transition-all duration-300 rounded-l-md cursor-pointer flex items-center justify-center group-hover:w-80 group-hover:bg-white group-hover:shadow-lg group-hover:border-l group-hover:border-gray-200 group-hover:rounded-l-none">
+                {/* Collapsed state indicator */}
+                <div className="group-hover:hidden flex flex-col items-center space-y-2">
+                  <div className="w-1 h-8 bg-gray-400 rounded-full"></div>
+                  <div className="w-0.5 h-4 bg-gray-300 rounded-full"></div>
+                  <div className="w-0.5 h-2 bg-gray-300 rounded-full"></div>
+                </div>
+                
+                {/* Expanded state content */}
+                <div className="hidden group-hover:block w-full h-full p-4">
+                  <div className="h-full overflow-y-auto custom-scrollbar">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">Gallery ({images.length})</h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {images.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleImageChange(index)}
+                          className={`aspect-square overflow-hidden rounded-md border-2 transition-all duration-200 ${
+                            index === currentIndex ? "border-black ring-2 ring-black ring-opacity-20" : "border-transparent hover:border-gray-300"
+                          }`}
+                        >
+                          <img
+                            src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
+                            alt={`Thumbnail ${index + 1}`}
+                            className="object-cover w-full h-full"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
