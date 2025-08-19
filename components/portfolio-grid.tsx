@@ -13,8 +13,30 @@ export function PortfolioGrid() {
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
   const [loading, setLoading] = useState(true)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
+  const [shuffledDownSets, setShuffledDownSets] = useState<PictureSet[]>([])
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
+
+  // 使用固定种子的洗牌函数，确保结果稳定
+  const stableShuffleArray = (array: PictureSet[], seed: string): PictureSet[] => {
+    const shuffled = [...array]
+    // 使用字符串作为种子生成确定性的随机数
+    let hash = 0
+    for (let i = 0; i < seed.length; i++) {
+      const char = seed.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // 转换为32位整数
+    }
+    
+    // Fisher-Yates洗牌算法，使用确定性随机数
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      hash = (hash * 9301 + 49297) % 233280 // 线性同余生成器
+      const j = hash % (i + 1)
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    
+    return shuffled
+  }
 
   const fetchPictureSets = async () => {
     setLoading(true)
@@ -25,9 +47,16 @@ export function PortfolioGrid() {
       if (error) {
         console.error("Error fetching picture sets:", error)
         setPictureSets([])
+        setShuffledDownSets([])
       } else {
         console.log(`Found ${data?.length || 0} picture sets`)
         setPictureSets(data || [])
+        
+        // 生成固定的洗牌结果
+        const downSets = (data || []).filter((s) => s.position?.trim().toLowerCase() === "down")
+        const seed = downSets.map(s => s.id).join('-') // 使用ID组合作为种子
+        const shuffled = stableShuffleArray(downSets, seed)
+        setShuffledDownSets(shuffled)
       }
     } catch (error) {
       console.error("Error in fetchPictureSets:", error)
@@ -51,8 +80,8 @@ export function PortfolioGrid() {
   }, [])
 
   const upPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "up")
-  const downPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "down")
-  const shuffledDown = useMemo(() => [...downPictureSets].sort(() => Math.random() - 0.5), [downPictureSets])
+  // 直接使用状态中的洗牌结果，不再进行额外洗牌
+  const downPictureSets = shuffledDownSets
 
   const mid = Math.ceil(upPictureSets.length / 2)
   const firstRow = upPictureSets.slice(0, mid)
@@ -172,10 +201,10 @@ export function PortfolioGrid() {
           )}
 
           {/* 下部 Masonry - 移动端优化 */}
-          {shuffledDown.length > 0 && (
+          {downPictureSets.length > 0 && (
             <div className="mt-6 sm:mt-12 flex justify-center">
               <div className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center">
-                {shuffledDown.map((item) => (
+                {downPictureSets.map((item) => (
                   <Link
                     key={item.id}
                     href={`/work/${item.id}?t=${Date.now()}`}
