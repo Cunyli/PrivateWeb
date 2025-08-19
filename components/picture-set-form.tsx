@@ -72,7 +72,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setSubtitle(editingPictureSet.subtitle || "")
       setDescription(editingPictureSet.description || "")
       setCoverImageUrl(editingPictureSet.cover_image_url || "")
-      setCoverPreview(editingPictureSet.cover_image_url || null)
+      setCoverPreview(editingPictureSet.cover_image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${editingPictureSet.cover_image_url}` : null)
       setPosition(editingPictureSet.position || "up")
 
       // Log the pictures we're loading
@@ -86,7 +86,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         cover: null,
         image_url: pic.image_url || "",
         raw_image_url: pic.raw_image_url || "",
-        previewUrl: pic.image_url || undefined,
+        previewUrl: pic.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${pic.image_url}` : undefined,
       }))
       setPictures(formatted)
     } else {
