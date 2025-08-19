@@ -85,19 +85,19 @@ export function PortfolioGrid() {
   }
 
   return (
-    <div className="w-full mx-auto px-4 py-16 flex flex-col min-h-screen">
-      <h1 className="text-4xl font-light text-center mb-16">Lijie&apos;s Galleries</h1>
+    <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
+      <h1 className="text-2xl sm:text-4xl font-light text-center mb-8 sm:mb-16">Lijie&apos;s Galleries</h1>
 
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="animate-pulse">Loading galleries...</div>
         </div>
       ) : (
-        <div className="flex flex-col gap-12 flex-1">
-          {/* 上部两行自动滚动 */}
+        <div className="flex flex-col gap-6 sm:gap-12 flex-1">
+          {/* 上部两行自动滚动 - 移动端优化 */}
           {firstRow.length > 0 && (
-            <div className="space-y-3">
-              <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-3 w-full">
+            <div className="space-y-2 sm:space-y-3">
+              <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
                 {[...firstRow, ...firstRow].map((item, i) => {
                   const widthClass =
                     i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
@@ -106,7 +106,7 @@ export function PortfolioGrid() {
                     <Link
                       key={`${item.id}-${i}`}
                       href={`/work/${item.id}?t=${Date.now()}`}
-                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
+                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100`}
                     >
                       <Image
                         src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
@@ -125,15 +125,15 @@ export function PortfolioGrid() {
                           flex flex-col items-center justify-center text-white p-4 text-center
                         "
                       >
-                        <h2 className="text-2xl font-light mb-2">{item.title}</h2>
-                        <p className="text-sm opacity-80">{item.subtitle}</p>
+                        <h2 className="text-xl sm:text-2xl font-light mb-2 hidden sm:block">{item.title}</h2>
+                        <p className="text-sm opacity-80 hidden sm:block">{item.subtitle}</p>
                       </motion.div>
                     </Link>
                   )
                 })}
               </div>
 
-              <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-3 w-full">
+              <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
                 {[...secondRow, ...secondRow].map((item, i) => {
                   const widthClass =
                     i % 5 === 0 || i % 5 === 4 ? "w-[20%]" : i % 5 === 1 || i % 5 === 3 ? "w-[15%]" : "w-[25%]"
@@ -142,7 +142,7 @@ export function PortfolioGrid() {
                     <Link
                       key={`${item.id}-${i}`}
                       href={`/work/${item.id}?t=${Date.now()}`}
-                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[200px] overflow-hidden bg-gray-100`}
+                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100`}
                     >
                       <Image
                         src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
@@ -161,8 +161,8 @@ export function PortfolioGrid() {
                           flex flex-col items-center justify-center text-white p-4 text-center
                         "
                       >
-                        <h2 className="text-2xl font-light mb-2">{item.title}</h2>
-                        <p className="text-sm opacity-80">{item.subtitle}</p>
+                        <h2 className="text-xl sm:text-2xl font-light mb-2 hidden sm:block">{item.title}</h2>
+                        <p className="text-sm opacity-80 hidden sm:block">{item.subtitle}</p>
                       </motion.div>
                     </Link>
                   )
@@ -171,15 +171,15 @@ export function PortfolioGrid() {
             </div>
           )}
 
-          {/* 下部 Masonry 缩小 5/6 */}
+          {/* 下部 Masonry - 移动端优化 */}
           {shuffledDown.length > 0 && (
-            <div className="mt-12 flex justify-center">
-              <div className="w-full max-w-7xl columns-3 gap-4 transform scale-[0.833] origin-center">
+            <div className="mt-6 sm:mt-12 flex justify-center">
+              <div className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center">
                 {shuffledDown.map((item) => (
                   <Link
                     key={item.id}
                     href={`/work/${item.id}?t=${Date.now()}`}
-                    className="group block mb-4 break-inside-avoid relative overflow-hidden"
+                    className="group block mb-2 sm:mb-4 break-inside-avoid relative overflow-hidden"
                   >
                     <img
                       src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
@@ -194,11 +194,11 @@ export function PortfolioGrid() {
                         opacity-100
                         transition-opacity duration-200
                         group-hover:opacity-0
-                        flex flex-col items-center justify-center text-white p-4 text-center
+                        flex flex-col items-center justify-center text-white p-2 sm:p-4 text-center
                       "
                     >
-                      <h2 className="text-2xl font-light mb-1">{item.title}</h2>
-                      <p className="text-sm opacity-80">{item.subtitle}</p>
+                      <h2 className="text-lg sm:text-2xl font-light mb-1 hidden sm:block">{item.title}</h2>
+                      <p className="text-xs sm:text-sm opacity-80 hidden sm:block">{item.subtitle}</p>
                     </motion.div>
                   </Link>
                 ))}
