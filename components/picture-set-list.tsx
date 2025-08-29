@@ -45,37 +45,37 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Uploaded Picture Sets</h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {pictureSets.map((set) => {
+        {pictureSets.map((set, index) => {
           const count = (set.pictures?.length || 0) + (set.cover_image_url ? 1 : 0)
           return (
-            <Card key={set.id} className="group">
+            <Card key={set.id} className="group smooth-hover gpu-accelerated" style={{ animationDelay: `${index * 100}ms` }}>
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span>{set.title}</span>
+                  <span className="smooth-transition group-hover:text-blue-600">{set.title}</span>
                   <span className="text-sm font-normal text-gray-500">Position: {set.position || "up"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {set.cover_image_url && (
-                  <div className="relative w-full h-48 mb-4">
+                  <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg">
                     <Image
                       src={process.env.NEXT_PUBLIC_BUCKET_URL+set.cover_image_url || "/placeholder.svg"}
                       alt={set.title}
                       fill
-                      className="object-cover rounded"
+                      className="object-cover rounded smooth-transition group-hover:scale-105"
                     />
                   </div>
                 )}
-                <p className="text-sm text-gray-500">{set.subtitle}</p>
-                <p className="mt-2 line-clamp-2">{set.description}</p>
+                <p className="text-sm text-gray-500 smooth-transition group-hover:text-gray-700">{set.subtitle}</p>
+                <p className="mt-2 line-clamp-2 smooth-transition group-hover:text-gray-800">{set.description}</p>
                 <p className="mt-2 text-sm text-gray-500">{count > 0 ? `${count} pictures` : "No pictures"}</p>
               </CardContent>
-              <CardFooter className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <CardFooter className="opacity-0 group-hover:opacity-100 smooth-transition transform translate-y-2 group-hover:translate-y-0">
                 <div className="flex justify-end w-full gap-2">
-                  <Button variant="outline" size="sm" onClick={() => onEdit(set)}>
+                  <Button variant="outline" size="sm" onClick={() => onEdit(set)} className="smooth-hover">
                     <Edit className="h-4 w-4 mr-1" /> Edit
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(set.id)}>
+                  <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(set.id)} className="smooth-hover">
                     <Trash2 className="h-4 w-4 mr-1" /> Delete
                   </Button>
                 </div>

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { PortfolioDetail } from "@/components/portfolio-detail"
+import PortfolioDetail from "@/components/portfolio-detail"
 import { supabase } from "@/utils/supabase"
 
 export const revalidate = 0 // Disable caching for this route
@@ -45,6 +45,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
 
   return (
     <PortfolioDetail
+      id={params.id}
       images={images}
       title={pictureSet?.title}
       subtitle={pictureSet?.subtitle}
