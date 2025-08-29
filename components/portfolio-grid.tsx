@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
 import { supabase } from "@/utils/supabase"
 import { ArrowUp } from "lucide-react"
 import type { PictureSet } from "@/lib/pictureSet.types"
@@ -135,101 +134,123 @@ export function PortfolioGrid() {
                     <Link
                       key={`${item.id}-${i}`}
                       href={`/work/${item.id}?t=${Date.now()}`}
-                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100`}
+                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                     >
                       <Image
                         src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
                         alt={item.title}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
                       />
 
-                      <motion.div
+                      <div
                         className="
                           absolute inset-0
                           bg-black/60
                           opacity-100
-                          transition-opacity duration-200
+                          transition-opacity duration-300 ease-out
                           group-hover:opacity-0
                           flex flex-col items-center justify-center text-white p-4 text-center
                         "
                       >
-                        <h2 className="text-xl sm:text-2xl font-light mb-2 hidden sm:block">{item.title}</h2>
-                        <p className="text-sm opacity-80 hidden sm:block">{item.subtitle}</p>
-                      </motion.div>
+                        <h2 
+                          className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
+                        >
+                          {item.title}
+                        </h2>
+                        <p 
+                          className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
+                        >
+                          {item.subtitle}
+                        </p>
+                      </div>
                     </Link>
                   )
                 })}
               </div>
 
-              <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
-                {[...secondRow, ...secondRow].map((item, i) => {
-                  const widthClass =
-                    i % 5 === 0 || i % 5 === 4 ? "w-[20%]" : i % 5 === 1 || i % 5 === 3 ? "w-[15%]" : "w-[25%]"
+              {/* 第二行 */}
+              {secondRow.length > 0 && (
+                <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
+                  {[...secondRow, ...secondRow].map((item, i) => {
+                    const widthClass =
+                      i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
 
-                  return (
-                    <Link
-                      key={`${item.id}-${i}`}
-                      href={`/work/${item.id}?t=${Date.now()}`}
-                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100`}
-                    >
-                      <Image
-                        src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
-                        alt={item.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-
-                      <motion.div
-                        className="
-                          absolute inset-0
-                          bg-black/60
-                          opacity-100
-                          transition-opacity duration-200
-                          group-hover:opacity-0
-                          flex flex-col items-center justify-center text-white p-4 text-center
-                        "
+                    return (
+                      <Link
+                        key={`${item.id}-${i}`}
+                        href={`/work/${item.id}?t=${Date.now()}`}
+                        className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                       >
-                        <h2 className="text-xl sm:text-2xl font-light mb-2 hidden sm:block">{item.title}</h2>
-                        <p className="text-sm opacity-80 hidden sm:block">{item.subtitle}</p>
-                      </motion.div>
-                    </Link>
-                  )
-                })}
-              </div>
+                        <Image
+                          src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
+                          alt={item.title}
+                          fill
+                          className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                        />
+
+                        <div
+                          className="
+                            absolute inset-0
+                            bg-black/60
+                            opacity-100
+                            transition-opacity duration-300 ease-out
+                            group-hover:opacity-0
+                            flex flex-col items-center justify-center text-white p-4 text-center
+                          "
+                        >
+                          <h2 
+                            className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
+                          >
+                            {item.title}
+                          </h2>
+                          <p 
+                            className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
+                          >
+                            {item.subtitle}
+                          </p>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
 
-          {/* 下部 Masonry - 移动端优化 */}
+          {/* 下部Masonry布局 */}
           {downPictureSets.length > 0 && (
-            <div className="mt-6 sm:mt-12 flex justify-center">
+            <div className="flex justify-center">
               <div className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center">
-                {downPictureSets.map((item) => (
-                  <Link
+                {downPictureSets.map((item, index) => (
+                  <div
                     key={item.id}
-                    href={`/work/${item.id}?t=${Date.now()}`}
-                    className="group block mb-2 sm:mb-4 break-inside-avoid relative overflow-hidden"
+                    className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
+                    style={{ 
+                      opacity: 1,
+                      animationDelay: `${index * 100}ms`
+                    }}
                   >
-                    <img
-                      src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
-                      alt={item.title}
-                      className="w-full h-auto object-cover"
-                    />
-
-                    <motion.div
-                      className="
-                        absolute inset-0
-                        bg-black/60
-                        opacity-100
-                        transition-opacity duration-200
-                        group-hover:opacity-0
-                        flex flex-col items-center justify-center text-white p-2 sm:p-4 text-center
-                      "
+                    <Link
+                      href={`/work/${item.id}?t=${Date.now()}`}
+                      className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
                     >
-                      <h2 className="text-lg sm:text-2xl font-light mb-1 hidden sm:block">{item.title}</h2>
-                      <p className="text-xs sm:text-sm opacity-80 hidden sm:block">{item.subtitle}</p>
-                    </motion.div>
-                  </Link>
+                      <Image
+                        src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
+                        alt={item.title}
+                        width={600}
+                        height={800}
+                        className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                      />
+                      
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
+                        <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
+                          <h3 className="text-lg font-medium mb-1">{item.title}</h3>
+                          <p className="text-sm opacity-80">{item.subtitle}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
                 ))}
               </div>
             </div>
@@ -237,38 +258,15 @@ export function PortfolioGrid() {
         </div>
       )}
 
-      <footer className="mt-auto pt-8 pb-4 text-center space-y-4">
-        <p className="text-gray-500">
-          Copyright ©{" "}
-          <Link href="https://www.instagram.com/cunyli_lijie/" target="_blank" className="text-black hover:underline">
-            Lijie Li
-          </Link>
-        </p>
-
-        <div className="max-w-2xl mx-auto space-y-2 text-sm text-gray-600">
-          <p>本站所有照片均受版权保护，未经作者书面许可，禁止以任何形式转载、复制或传播。</p>
-          <p>
-            All photos on this site are protected by copyright. They may not be reproduced, copied, or distributed in
-            any form without the author's written permission.
-          </p>
-        </div>
-      </footer>
-
       {/* Scroll to top button */}
-      <AnimatePresence>
-        {showScrollToTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp className="h-6 w-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {showScrollToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-50 bg-black text-white p-3 rounded-full transition-all duration-300 ease-out hover:bg-gray-800 hover:scale-110 shadow-lg"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
     </div>
   )
 }

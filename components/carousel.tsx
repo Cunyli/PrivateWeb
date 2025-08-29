@@ -22,8 +22,6 @@ interface CarouselProps {
 }
 
 export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true }: CarouselProps) {
-  const [isHovering, setIsHovering] = React.useState(false)
-
   const goToPrevious = () => {
     const isFirstImage = currentIndex === 0
     const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1
@@ -50,26 +48,24 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
     <div className="flex flex-col w-full h-full">
       {/* Main image container */}
       <div
-        className="flex-1 flex items-center justify-center w-full"
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        className="flex-1 flex items-center justify-center w-full relative group"
       >
         {/* Image wrapper */}
         <div className="w-full h-full flex items-center justify-center relative">
           <Image
             src={process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].url || "/placeholder.svg"}
-            alt={process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].alt || "Portfolio image"}
+            alt={images[currentIndex].alt || "Portfolio image"}
             fill
-            className="object-contain corner-lg"
+            className="object-contain corner-lg smooth-transition"
             priority
           />
 
           {/* Download original button - appears on hover */}
-          {isHovering && process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].rawUrl && (
+          {images[currentIndex].rawUrl && (
             <Button
               variant="secondary"
               onClick={handleOpenOriginal}
-              className="absolute bottom-4 right-4 bg-white/80 hover:bg-white shadow-md z-10"
+              className="absolute bottom-4 right-4 bg-white/80 hover:bg-white shadow-md z-10 opacity-0 group-hover:opacity-100 smooth-transition transform translate-y-2 group-hover:translate-y-0"
             >
               <Download className="h-4 w-4 mr-2" />
               View Original
@@ -80,7 +76,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/75 rounded-full p-2"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/75 rounded-full p-2 opacity-0 group-hover:opacity-100 smooth-transition transform -translate-x-2 group-hover:translate-x-0"
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-6 w-6" />
@@ -88,7 +84,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/75 rounded-full p-2"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/75 rounded-full p-2 opacity-0 group-hover:opacity-100 smooth-transition transform translate-x-2 group-hover:translate-x-0"
             onClick={goToNext}
           >
             <ChevronRight className="h-6 w-6" />
@@ -104,8 +100,8 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
               <button
                 key={index}
                 onClick={() => onChangeImage(index)}
-                className={`flex-none w-24 aspect-[16/9] overflow-hidden rounded-md border-2 transition-colors duration-200 ${
-                  index === currentIndex ? "border-black" : "border-transparent"
+                className={`flex-none w-24 aspect-[16/9] overflow-hidden rounded-md border-2 smooth-transition hover:scale-105 gpu-accelerated ${
+                  index === currentIndex ? "border-black ring-2 ring-black ring-opacity-20 scale-105" : "border-transparent hover:border-gray-300"
                 }`}
               >
                 <Image
@@ -113,7 +109,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
                   alt={`Thumbnail ${index + 1}`}
                   width={96}
                   height={54}
-                  className="object-cover w-full h-full"
+                  className="object-cover w-full h-full smooth-transition hover:scale-110"
                 />
               </button>
             ))}
