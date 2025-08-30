@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus, ArrowUp } from "lucide-react"
 import imageCompression from "browser-image-compression"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ImageAnalysisComponent } from "@/components/image-analysis"
 
 import type { PictureSet } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
@@ -365,6 +366,18 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               value={pic.description}
               onChange={(e) => handlePictureChange(idx, "description", e.target.value)}
             />
+
+            {/* AI 分析组件 - 只在有图片时显示 */}
+            {pic.previewUrl && (
+              <div className="mt-4">
+                <ImageAnalysisComponent
+                  imageUrl={pic.previewUrl}
+                  onResultUpdate={(field, result) => {
+                    handlePictureChange(idx, field, result)
+                  }}
+                />
+              </div>
+            )}
 
             {/* 图片预览（宽度减半） */}
             {pic.previewUrl && (
