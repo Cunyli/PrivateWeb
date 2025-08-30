@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function POST(request: NextRequest) {
   try {
-    const { imageUrl, analysisType = 'description' } = await request.json()
+    const { imageUrl, analysisType = 'description', customPrompt } = await request.json()
 
     if (!imageUrl) {
       return NextResponse.json(
@@ -22,14 +22,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 获取模型
+    // 获取模型 - 可选模型列表：
+    // 'gemini-1.5-flash'     - 速度快，成本低，适合日常使用
+    // 'gemini-1.5-pro'       - 质量高，功能强，成本较高
+    // 'gemini-2.0-flash-exp' - Gemini 2.0 Flash 实验版本，最新功能
+    // 'gemini-exp-1206'      - Gemini 2.0 实验版本
+    // 注意: Gemini 2.5 模型目前可能需要特殊访问权限或尚未公开发布
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
-    // 根据分析类型设置不同的提示词
+    // 根据分析类型设置不同的提示词，如果有自定义prompt则优先使用
     let prompt = ''
-    switch (analysisType) {
-      case 'title':
-        prompt = `请为这张摄影作品生成一个简洁优雅的标题。要求：
+    
+    if (customPrompt) {
+      // 使用自定义 prompt
+      prompt = customPrompt
+    } else {
+      // 使用默认 prompt
+      switch (analysisType) {
+        case 'title':
+          prompt = `请为这张摄影作品生成一个简洁优雅的标题。要求：
 1. 体现图片的主要内容和情感
 2. 语言优美且富有诗意
 3. 长度控制在8-15个字符
@@ -37,7 +48,7 @@ export async function POST(request: NextRequest) {
 5. 可以是中文或英文
 
 只返回标题文字，不要添加引号或其他说明。`
-        break
+          break
       case 'subtitle':
         prompt = `请为这张摄影作品生成一个副标题。要求：
 1. 补充主标题的信息
@@ -92,6 +103,7 @@ export async function POST(request: NextRequest) {
         break
       default:
         prompt = '请简单描述这张图片的内容。'
+      }
     }
 
     // 获取图片数据
