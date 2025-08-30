@@ -13,7 +13,8 @@ export function useImageAnalysis() {
 
   const analyzeImage = async (
     imageUrl: string, 
-    analysisType: 'title' | 'subtitle' | 'complete' | 'description' | 'tags' | 'technical' = 'description'
+    analysisType: 'title' | 'subtitle' | 'complete' | 'description' | 'tags' | 'technical' = 'description',
+    customPrompt?: string
   ): Promise<AnalysisResult> => {
     setIsAnalyzing(true)
     
@@ -25,7 +26,8 @@ export function useImageAnalysis() {
         },
         body: JSON.stringify({
           imageUrl,
-          analysisType
+          analysisType,
+          ...(customPrompt && { customPrompt })
         })
       })
 
