@@ -182,23 +182,33 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
   // 文件选中后生成预览并压缩
   const handlePictureChange = async (i: number, field: keyof PictureFormData, val: string | File | null) => {
-    const arr = [...pictures]
     if (field === "cover" && val instanceof File) {
       const { url, size } = await getImagePreview(val)
       const comp = await compressImage(val, 0.9)
       const previewComp = await getImagePreview(comp)
-      arr[i] = {
-        ...arr[i],
-        cover: val,
-        previewUrl: url,
-        originalSize: size,
-        compressedSize: previewComp.size,
-        compressedFile: comp,
-      }
+      
+      setPictures(prev => {
+        const arr = [...prev]
+        arr[i] = {
+          ...arr[i],
+          cover: val,
+          previewUrl: url,
+          originalSize: size,
+          compressedSize: previewComp.size,
+          compressedFile: comp,
+        }
+        return arr
+      })
     } else {
-      arr[i] = { ...arr[i], [field]: val }
+      // 使用函数式更新避免竞态条件
+      setPictures(prev => {
+        const arr = [...prev]
+        arr[i] = { ...arr[i], [field]: val }
+        console.log(`更新图片 ${i} 的 ${field}:`, val)
+        console.log('更新后的图片数据:', arr[i])
+        return arr
+      })
     }
-    setPictures(arr)
   }
 
   const handleAddPicture = () => {

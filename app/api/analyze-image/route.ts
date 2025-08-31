@@ -133,8 +133,55 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Gemini API error:', error)
+    
+    // 检查是否是配额限制错误
+    if (error instanceof Error) {
+      const errorMessage = error.message
+      
+      // 429 Too Many Requests - 配额用完
+      if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('Too Many Requests')) {
+        return NextResponse.json(
+          { 
+            error: 'API 配额已用完', 
+            details: '今日 Gemini API 调用次数已达上限（50次），请明天再试或升级到付费版本。',
+            code: 'QUOTA_EXCEEDED'
+          },
+          { status: 429 }
+        )
+      }
+      
+      // 401 Unauthorized - API Key 问题
+      if (errorMessage.includes('401') || errorMessage.includes('API key')) {
+        return NextResponse.json(
+          { 
+            error: 'API Key 错误', 
+            details: 'Gemini API Key 无效或已过期，请检查配置。',
+            code: 'INVALID_API_KEY'
+          },
+          { status: 401 }
+        )
+      }
+      
+      // 400 Bad Request - 请求格式错误
+      if (errorMessage.includes('400')) {
+        return NextResponse.json(
+          { 
+            error: '请求格式错误', 
+            details: '图片格式不支持或请求参数有误。',
+            code: 'BAD_REQUEST'
+          },
+          { status: 400 }
+        )
+      }
+    }
+    
+    // 其他未知错误
     return NextResponse.json(
-      { error: 'Failed to analyze image', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: '分析失败', 
+        details: error instanceof Error ? error.message : '未知错误，请稍后重试。',
+        code: 'UNKNOWN_ERROR'
+      },
       { status: 500 }
     )
   }
