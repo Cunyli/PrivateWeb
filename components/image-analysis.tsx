@@ -23,6 +23,15 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
     technical?: string
     custom?: string
   }>({})
+  const [errors, setErrors] = useState<{
+    title?: string
+    subtitle?: string
+    description?: string
+    complete?: string
+    tags?: string
+    technical?: string
+    custom?: string
+  }>({})
   const [copiedStates, setCopiedStates] = useState<{
     title?: boolean
     subtitle?: boolean
@@ -33,93 +42,68 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
   }>({})
   const [customPrompt, setCustomPrompt] = useState('')
 
-  const handleAnalyze = async (type: 'title' | 'subtitle' | 'complete' | 'description' | 'tags' | 'technical', customPromptText?: string) => {
-    const result = await analyzeImage(imageUrl, type, customPromptText)
+  // 新的一键生成函数 - 直接调用单独生成的函数
+  const handleCompleteGeneration = async () => {
+    console.log('开始一键生成，依次调用单独生成函数...')
+    
+    try {
+      // 清除错误
+      setErrors(prev => ({ ...prev, complete: undefined }))
+      
+      // 1. 生成标题
+      console.log('第1步：生成标题')
+      await handleAnalyze('title')
+      
+      // 等待更长时间确保状态更新完成
+      console.log('等待标题更新完成...')
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // 2. 生成副标题  
+      console.log('第2步：生成副标题')
+      await handleAnalyze('subtitle')
+      
+      // 等待更长时间确保状态更新完成
+      console.log('等待副标题更新完成...')
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // 3. 生成描述
+      console.log('第3步：生成描述')
+      await handleAnalyze('description')
+      
+      console.log('一键生成完成！')
+    } catch (error) {
+      console.error('一键生成失败:', error)
+      setErrors(prev => ({ ...prev, complete: '一键生成失败，请重试' }))
+    }
+  }
+
+  const handleAnalyze = async (type: 'title' | 'subtitle' | 'description' | 'tags' | 'technical' | 'custom', customPromptText?: string) => {
+    // 清除之前的错误
+    setErrors(prev => ({ ...prev, [type]: undefined }))
+    
+    const result = await analyzeImage(imageUrl, type === 'custom' ? 'description' : type, customPromptText)
     if (result.success) {
-      if (type === 'complete') {
-        // 解析完整分析结果 - 更健壮的解析逻辑
-        const text = result.result.trim()
-        const parsedResults: any = {}
-        
-        console.log('AI 返回的完整结果:', text)
-        
-        // 使用正则表达式更精确地提取内容（修复兼容性问题）
-        const titleMatch = text.match(/标题[：:][\s]*([^\n]+)/i)
-        const subtitleMatch = text.match(/副标题[：:][\s]*([^\n]+)/i)
-        const descriptionMatch = text.match(/描述[：:][\s]*([\s\S]*?)$/i)
-        
-        if (titleMatch) {
-          parsedResults.title = titleMatch[1].trim()
-          console.log('提取到标题:', parsedResults.title)
-        }
-        
-        if (subtitleMatch) {
-          parsedResults.subtitle = subtitleMatch[1].trim()
-          console.log('提取到副标题:', parsedResults.subtitle)
-        }
-        
-        if (descriptionMatch) {
-          parsedResults.description = descriptionMatch[1].trim()
-          console.log('提取到描述:', parsedResults.description)
-        }
-        
-        // 如果正则匹配失败，尝试按行解析
-        if (!titleMatch && !subtitleMatch && !descriptionMatch) {
-          console.log('正则匹配失败，尝试按行解析')
-          const lines = text.split('\n').filter(line => line.trim())
-          
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim()
-            if (line.match(/^标题/)) {
-              parsedResults.title = line.replace(/^标题[：:]/, '').trim()
-            } else if (line.match(/^副标题/)) {
-              parsedResults.subtitle = line.replace(/^副标题[：:]/, '').trim()
-            } else if (line.match(/^描述/)) {
-              parsedResults.description = line.replace(/^描述[：:]/, '').trim()
-            }
+      // 统一处理：更新本地状态
+      setResults(prev => ({
+        ...prev,
+        [type]: result.result
+      }))
+      
+      // 延时通知父组件，确保本地状态更新完成
+      setTimeout(() => {
+        if (type === 'title' || type === 'subtitle' || type === 'description' || type === 'custom') {
+          console.log(`通知更新${type}:`, result.result)
+          // custom 类型也映射到 description 字段
+          const fieldType = type === 'custom' ? 'description' : type
+          if (fieldType === 'title' || fieldType === 'subtitle' || fieldType === 'description') {
+            onResultUpdate?.(fieldType, result.result)
           }
         }
-        
-        console.log('最终解析结果:', parsedResults)
-        
-        // 更新本地状态
-        setResults(prev => ({
-          ...prev,
-          ...parsedResults
-        }))
-        
-        // 分别通知父组件更新每个字段
-        setTimeout(() => {
-          if (parsedResults.title) {
-            console.log('通知更新标题:', parsedResults.title)
-            onResultUpdate?.('title', parsedResults.title)
-          }
-        }, 100)
-        
-        setTimeout(() => {
-          if (parsedResults.subtitle) {
-            console.log('通知更新副标题:', parsedResults.subtitle)
-            onResultUpdate?.('subtitle', parsedResults.subtitle)
-          }
-        }, 200)
-        
-        setTimeout(() => {
-          if (parsedResults.description) {
-            console.log('通知更新描述:', parsedResults.description)
-            onResultUpdate?.('description', parsedResults.description)
-          }
-        }, 300)
-      } else {
-        setResults(prev => ({
-          ...prev,
-          [type]: result.result
-        }))
-        
-        // 通知父组件更新对应字段
-        if (type === 'title' || type === 'subtitle' || type === 'description') {
-          onResultUpdate?.(type, result.result)
-        }
-      }
+      }, 100) // 添加小延时确保状态更新完成
+    } else {
+      // 处理错误情况
+      console.error(`AI 分析失败 (${type}):`, result.error)
+      setErrors(prev => ({ ...prev, [type]: result.error || '分析失败，请重试' }))
     }
   }
 
@@ -175,7 +159,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           <TabsContent value="complete" className="space-y-4">
             <div className="flex flex-col gap-4">
               <Button
-                onClick={() => handleAnalyze('complete')}
+                onClick={handleCompleteGeneration}
                 disabled={isAnalyzing}
                 className="w-full"
                 size="lg"
@@ -192,6 +176,15 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                   </>
                 )}
               </Button>
+              
+              {errors.complete && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <span className="font-medium">分析失败</span>
+                  </div>
+                  <p className="mt-1 text-sm text-red-600">{errors.complete}</p>
+                </div>
+              )}
               
               {(results.title || results.subtitle || results.description) && (
                 <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
@@ -321,6 +314,16 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               </Button>
             </div>
             
+            {(errors.title || errors.subtitle) && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2 text-red-700">
+                  <span className="font-medium">分析失败</span>
+                </div>
+                {errors.title && <p className="mt-1 text-sm text-red-600">标题生成失败: {errors.title}</p>}
+                {errors.subtitle && <p className="mt-1 text-sm text-red-600">副标题生成失败: {errors.subtitle}</p>}
+              </div>
+            )}
+            
             {results.title && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -395,6 +398,16 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                   </>
                 )}
               </Button>
+              
+              {errors.description && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <span className="font-medium">分析失败</span>
+                  </div>
+                  <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                </div>
+              )}
+              
               {results.description && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -688,13 +701,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               </div>
               
               <Button
-                onClick={async () => {
-                  const result = await analyzeImage(imageUrl, 'description', customPrompt)
-                  if (result.success) {
-                    setResults(prev => ({ ...prev, custom: result.result }))
-                    onResultUpdate?.('description', result.result)
-                  }
-                }}
+                onClick={() => handleAnalyze('custom', customPrompt)}
                 disabled={isAnalyzing || !customPrompt.trim()}
                 className="w-full"
               >
@@ -710,6 +717,15 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                   </>
                 )}
               </Button>
+              
+              {errors.custom && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <span className="font-medium">分析失败</span>
+                  </div>
+                  <p className="mt-1 text-sm text-red-600">{errors.custom}</p>
+                </div>
+              )}
               
               {results.custom && (
                 <div className="space-y-2">

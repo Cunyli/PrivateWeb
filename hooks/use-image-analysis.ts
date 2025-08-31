@@ -5,6 +5,7 @@ export interface AnalysisResult {
   analysisType: 'title' | 'subtitle' | 'complete' | 'description' | 'tags' | 'technical'
   result: string
   error?: string
+  code?: string // 错误代码
 }
 
 export function useImageAnalysis() {
@@ -34,7 +35,18 @@ export function useImageAnalysis() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Analysis failed')
+        // 根据错误代码提供更友好的错误信息
+        let userFriendlyMessage = data.details || data.error || 'Analysis failed'
+        
+        if (data.code === 'QUOTA_EXCEEDED') {
+          userFriendlyMessage = 'AI 分析功能今日配额已用完，请明天再试'
+        } else if (data.code === 'INVALID_API_KEY') {
+          userFriendlyMessage = 'AI 服务配置错误，请联系管理员'
+        } else if (data.code === 'BAD_REQUEST') {
+          userFriendlyMessage = '图片格式不支持，请更换图片'
+        }
+        
+        throw new Error(userFriendlyMessage)
       }
 
       setLastResult(data)
@@ -44,7 +56,8 @@ export function useImageAnalysis() {
         success: false,
         analysisType,
         result: '',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        code: 'FETCH_ERROR'
       }
       setLastResult(errorResult)
       return errorResult
