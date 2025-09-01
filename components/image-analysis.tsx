@@ -155,286 +155,116 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-purple-500" />
-          Gemini 图片分析
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* 一键生成 */}
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200 mb-6">
-          <Button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleCompleteGeneration()
-            }}
-            disabled={!imageUrl || isLoading.title || isLoading.subtitle || isLoading.description}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-3"
-          >
-            {isLoading.title || isLoading.subtitle || isLoading.description ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                生成中...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                一键生成所有字段
-              </>
-            )}
-          </Button>
-          
-          {errors.complete && (
-            <Alert className="mt-3 border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                {errors.complete}
-              </AlertDescription>
-            </Alert>
+    <div className="w-full space-y-3">
+      {/* 一键生成 - 精简版 */}
+      <div className="space-y-2">
+        <Button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleCompleteGeneration()
+          }}
+          disabled={!imageUrl || isLoading.title || isLoading.subtitle || isLoading.description}
+          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 text-sm"
+          size="sm"
+        >
+          {isLoading.title || isLoading.subtitle || isLoading.description ? (
+            <>
+              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+              生成中...
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-3 w-3" />
+              一键生成所有字段
+            </>
           )}
-        </div>
+        </Button>
+        
+        {errors.complete && (
+          <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
+            {errors.complete}
+          </div>
+        )}
+      </div>
 
-        {/* 单独生成按钮 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* 标题生成 */}
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Type className="w-4 h-4 text-blue-500" />
-                标题生成
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  handleAnalyze('title')
-                }}
-                disabled={!imageUrl || isLoading.title}
-                className="w-full"
-                size="sm"
-              >
-                {isLoading.title ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
-                  </>
-                ) : (
-                  <>
-                    <Tag className="w-4 h-4 mr-2" />
-                    生成标题
-                  </>
-                )}
-              </Button>
-              
-              {errors.title && (
-                <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
-                  {errors.title}
-                </div>
-              )}
-              
-              {results.title && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">生成结果：</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        copyToClipboard('title', results.title!)
-                      }}
-                      className="h-6 px-2 text-xs"
-                    >
-                      {copiedStates.title ? (
-                        <>
-                          <Check className="w-3 h-3 mr-1" />
-                          已复制
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3 mr-1" />
-                          复制
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <div className="p-2 bg-blue-50 border border-blue-200 rounded text-sm">
-                    {results.title}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      {/* 单独生成按钮 - 精简版 */}
+      <div className="grid grid-cols-3 gap-2">
+        <Button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleAnalyze('title')
+          }}
+          disabled={!imageUrl || isLoading.title}
+          variant="outline"
+          size="sm"
+          className="text-xs"
+        >
+          {isLoading.title ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <>
+              <Type className="h-3 w-3 mr-1" />
+              标题
+            </>
+          )}
+        </Button>
+        
+        <Button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleAnalyze('subtitle')
+          }}
+          disabled={!imageUrl || isLoading.subtitle}
+          variant="outline"
+          size="sm"
+          className="text-xs"
+        >
+          {isLoading.subtitle ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <>
+              <Type className="h-3 w-3 mr-1" />
+              副标题
+            </>
+          )}
+        </Button>
+        
+        <Button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleAnalyze('description')
+          }}
+          disabled={!imageUrl || isLoading.description}
+          variant="outline"
+          size="sm"
+          className="text-xs"
+        >
+          {isLoading.description ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <>
+              <FileText className="h-3 w-3 mr-1" />
+              描述
+            </>
+          )}
+        </Button>
+      </div>
 
-          {/* 副标题生成 */}
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Type className="w-4 h-4 text-green-500" />
-                副标题生成
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  handleAnalyze('subtitle')
-                }}
-                disabled={!imageUrl || isLoading.subtitle}
-                className="w-full"
-                size="sm"
-              >
-                {isLoading.subtitle ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
-                  </>
-                ) : (
-                  <>
-                    <Tag className="w-4 h-4 mr-2" />
-                    生成副标题
-                  </>
-                )}
-              </Button>
-              
-              {errors.subtitle && (
-                <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
-                  {errors.subtitle}
-                </div>
-              )}
-              
-              {results.subtitle && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">生成结果：</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        copyToClipboard('subtitle', results.subtitle!)
-                      }}
-                      className="h-6 px-2 text-xs"
-                    >
-                      {copiedStates.subtitle ? (
-                        <>
-                          <Check className="w-3 h-3 mr-1" />
-                          已复制
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3 mr-1" />
-                          复制
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <div className="p-2 bg-green-50 border border-green-200 rounded text-sm">
-                    {results.subtitle}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 描述生成 */}
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <FileText className="w-4 h-4 text-purple-500" />
-                描述生成
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  handleAnalyze('description')
-                }}
-                disabled={!imageUrl || isLoading.description}
-                className="w-full"
-                size="sm"
-              >
-                {isLoading.description ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4 mr-2" />
-                    生成描述
-                  </>
-                )}
-              </Button>
-              
-              {errors.description && (
-                <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
-                  {errors.description}
-                </div>
-              )}
-              
-              {results.description && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">生成结果：</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        copyToClipboard('description', results.description!)
-                      }}
-                      className="h-6 px-2 text-xs"
-                    >
-                      {copiedStates.description ? (
-                        <>
-                          <Check className="w-3 h-3 mr-1" />
-                          已复制
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3 mr-1" />
-                          复制
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <div className="p-2 bg-purple-50 border border-purple-200 rounded text-sm">
-                    {results.description}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 高级分析功能 */}
-        <Tabs defaultValue="tags" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="tags">标签提取</TabsTrigger>
-            <TabsTrigger value="technical">技术分析</TabsTrigger>
-            <TabsTrigger value="custom">自定义分析</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="tags" className="space-y-4">
+      {/* 高级分析功能 - 折叠式 */}
+      <details className="border border-gray-200 rounded">
+        <summary className="cursor-pointer p-2 text-sm font-medium bg-gray-50 rounded hover:bg-gray-100">
+          🔧 高级分析工具
+        </summary>
+        <div className="p-2 space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               onClick={(e) => {
@@ -443,67 +273,20 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                 handleAnalyze('tags')
               }}
               disabled={!imageUrl || isLoading.tags}
-              className="w-full"
+              variant="ghost"
+              size="sm"
+              className="text-xs"
             >
               {isLoading.tags ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  分析中...
-                </>
+                <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <>
-                  <Tag className="w-4 h-4 mr-2" />
-                  提取图片标签
+                  <Tag className="h-3 w-3 mr-1" />
+                  标签
                 </>
               )}
             </Button>
             
-            {errors.tags && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-700">
-                  {errors.tags}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {results.tags && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">标签结果：</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      copyToClipboard('tags', results.tags!)
-                    }}
-                  >
-                    {copiedStates.tags ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        已复制
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-2" />
-                        复制
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <Textarea
-                  value={results.tags}
-                  readOnly
-                  className="min-h-[100px] bg-gray-50"
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="technical" className="space-y-4">
             <Button
               type="button"
               onClick={(e) => {
@@ -512,77 +295,29 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                 handleAnalyze('technical')
               }}
               disabled={!imageUrl || isLoading.technical}
-              className="w-full"
+              variant="ghost"
+              size="sm"
+              className="text-xs"
             >
               {isLoading.technical ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  分析中...
-                </>
+                <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <>
-                  <Camera className="w-4 h-4 mr-2" />
-                  技术分析
+                  <Camera className="h-3 w-3 mr-1" />
+                  技术
                 </>
               )}
             </Button>
-            
-            {errors.technical && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-700">
-                  {errors.technical}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {results.technical && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">技术分析：</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      copyToClipboard('technical', results.technical!)
-                    }}
-                  >
-                    {copiedStates.technical ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        已复制
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-2" />
-                        复制
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <Textarea
-                  value={results.technical}
-                  readOnly
-                  className="min-h-[150px] bg-gray-50"
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="custom" className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">自定义分析提示词：</label>
-              <Textarea
-                placeholder="输入你想要的分析内容，例如：分析这张图片的色彩搭配..."
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                className="min-h-[80px]"
-              />
-            </div>
-            
+          </div>
+          
+          {/* 自定义分析 */}
+          <div className="space-y-1">
+            <Input
+              placeholder="自定义分析提示词..."
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              className="text-xs h-8"
+            />
             <Button
               type="button"
               onClick={(e) => {
@@ -591,67 +326,77 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                 handleAnalyze('custom')
               }}
               disabled={!imageUrl || !customPrompt.trim() || isLoading.custom}
-              className="w-full"
+              size="sm"
+              className="w-full text-xs"
             >
               {isLoading.custom ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                   分析中...
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  开始自定义分析
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  自定义分析
                 </>
               )}
             </Button>
-            
-            {errors.custom && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-700">
-                  {errors.custom}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {results.custom && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">分析结果：</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      copyToClipboard('custom', results.custom!)
-                    }}
-                  >
-                    {copiedStates.custom ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        已复制
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-2" />
-                        复制
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <Textarea
-                  value={results.custom}
-                  readOnly
-                  className="min-h-[150px] bg-gray-50"
-                />
+          </div>
+        </div>
+      </details>
+
+      {/* 错误显示 */}
+      {(errors.title || errors.subtitle || errors.description || errors.tags || errors.technical || errors.custom) && (
+        <div className="space-y-1">
+          {errors.title && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">标题: {errors.title}</div>}
+          {errors.subtitle && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">副标题: {errors.subtitle}</div>}
+          {errors.description && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">描述: {errors.description}</div>}
+          {errors.tags && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">标签: {errors.tags}</div>}
+          {errors.technical && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">技术: {errors.technical}</div>}
+          {errors.custom && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">自定义: {errors.custom}</div>}
+        </div>
+      )}
+
+      {/* 结果显示 - 精简版 */}
+      {(results.title || results.subtitle || results.description || results.tags || results.technical || results.custom) && (
+        <details className="border border-green-200 rounded">
+          <summary className="cursor-pointer p-2 text-sm font-medium bg-green-50 rounded hover:bg-green-100">
+            ✅ 生成结果 ({Object.values(results).filter(Boolean).length} 项)
+          </summary>
+          <div className="p-2 space-y-2 max-h-40 overflow-y-auto">
+            {results.title && (
+              <div className="text-xs">
+                <span className="font-medium text-blue-600">标题:</span> {results.title}
               </div>
             )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            {results.subtitle && (
+              <div className="text-xs">
+                <span className="font-medium text-green-600">副标题:</span> {results.subtitle}
+              </div>
+            )}
+            {results.description && (
+              <div className="text-xs">
+                <span className="font-medium text-purple-600">描述:</span> {results.description}
+              </div>
+            )}
+            {results.tags && (
+              <div className="text-xs">
+                <span className="font-medium text-orange-600">标签:</span> {results.tags}
+              </div>
+            )}
+            {results.technical && (
+              <div className="text-xs">
+                <span className="font-medium text-red-600">技术:</span> {results.technical}
+              </div>
+            )}
+            {results.custom && (
+              <div className="text-xs">
+                <span className="font-medium text-gray-600">自定义:</span> {results.custom}
+              </div>
+            )}
+          </div>
+        </details>
+      )}
+    </div>
   )
 }

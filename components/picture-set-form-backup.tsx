@@ -22,7 +22,7 @@ interface PictureSetFormProps {
   onCancel?: () => void
 }
 
-// 压缩图片的函数
+// 压缩图片的函数（不变）
 async function compressImage(file: File, quality = 0.9): Promise<File> {
   const options = {
     maxWidthOrHeight: 1920,
@@ -109,9 +109,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     }
   }
 
-  // 编辑模式初始化
+  // 如果在编辑模式，初始化表单数据
   useEffect(() => {
     if (editingPictureSet) {
+      console.log("Initializing form with editing picture set:", editingPictureSet.id)
       setIsEditMode(true)
       setEditingId(editingPictureSet.id)
       setTitle(editingPictureSet.title || "")
@@ -121,31 +122,33 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setCoverPreview(editingPictureSet.cover_image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${editingPictureSet.cover_image_url}` : null)
       setPosition(editingPictureSet.position || "up")
 
-      if (editingPictureSet.pictures) {
-        setPictures(
-          editingPictureSet.pictures.map((pic) => ({
-            id: pic.id,
-            title: pic.title || "",
-            subtitle: pic.subtitle || "",
-            description: pic.description || "",
-            cover: null,
-            previewUrl: pic.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${pic.image_url}` : undefined,
-            originalSize: 0,
-            compressedSize: undefined,
-            image_url: pic.image_url || "",
-          }))
-        )
-      }
+      // Log the pictures we're loading
+      console.log(`Loading ${editingPictureSet.pictures?.length || 0} pictures for editing`)
+
+      const formatted = (editingPictureSet.pictures || []).map((pic) => ({
+        id: pic.id,
+        title: pic.title || "",
+        subtitle: pic.subtitle || "",
+        description: pic.description || "",
+        cover: null,
+        image_url: pic.image_url || "",
+        raw_image_url: pic.raw_image_url || "",
+        previewUrl: pic.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${pic.image_url}` : undefined,
+      }))
+      setPictures(formatted)
+    } else {
+      setIsEditMode(false)
+      setEditingId(undefined)
+      resetForm()
     }
   }, [editingPictureSet])
 
-  // 滚动监听
+  // Monitor scroll position to show/hide scroll to top button
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowScrollToTop(true)
-      } else {
-        setShowScrollToTop(false)
+      if (formRef.current) {
+        const scrollTop = formRef.current.scrollTop || document.documentElement.scrollTop
+        setShowScrollToTop(scrollTop > 300)
       }
     }
 
@@ -153,27 +156,111 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
+  // 获取 R2 签名后上传
+  const uploadFile = async (file: File, objectName: string): Promise<string> => {
+    const res = await fetch("/api/upload-to-r2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ objectName, contentType: file.type }),
+    })
+    if (!res.ok) throw new Error("Failed to get signed URL")
+    const { uploadUrl } = await res.json()
+    const buf = await file.arrayBuffer()
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: buf,
+    })
+    if (!uploadRes.ok) throw new Error("File upload failed")
+    return `/${objectName}`
   }
 
-  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      try {
-        const { url, size } = await getImagePreview(file)
-        setCoverPreview(url)
-        setCoverOriginalSize(size)
-        setCover(file)
-      } catch (error) {
-        console.error("Error loading cover image:", error)
+  // 提交表单：上传封面 + 各张图片 (原图 + 压缩图)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      let cover_image_url = coverImageUrl
+      if (cover) {
+        const compressed = await compressImage(cover, 0.9)
+        cover_image_url = await uploadFile(compressed, `picture/cover-${Date.now()}-${compressed.name}`)
       }
+
+      const processed = await Promise.all(
+        pictures.map(async (pic, idx) => {
+          let image_url = pic.image_url || ""
+          let raw_image_url = pic.raw_image_url || ""
+          if (pic.cover instanceof File) {
+            raw_image_url = await uploadFile(pic.cover, `picture/original-${Date.now()}-${idx}-${pic.cover.name}`)
+            const comp = await compressImage(pic.cover, 0.9)
+            image_url = await uploadFile(comp, `picture/compressed-${Date.now()}-${idx}-${comp.name}`)
+          }
+          return {
+            id: pic.id,
+            title: pic.title,
+            subtitle: pic.subtitle,
+            description: pic.description,
+            image_url,
+            raw_image_url,
+          }
+        }),
+      )
+
+      const payload: PictureSetSubmitData = {
+        title,
+        subtitle,
+        description,
+        cover_image_url,
+        position,
+        pictures: processed,
+      }
+
+      console.log(`Submitting form with ${processed.length} pictures`)
+
+      onSubmit(payload, editingId)
+      if (!isEditMode) resetForm()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // 文件选中后生成预览并压缩
+  const handlePictureChange = async (i: number, field: keyof PictureFormData, val: string | File | null) => {
+    if (field === "cover" && val instanceof File) {
+      const { url, size } = await getImagePreview(val)
+      const comp = await compressImage(val, 0.9)
+      const previewComp = await getImagePreview(comp)
+      
+      setPictures(prev => {
+        const arr = [...prev]
+        arr[i] = {
+          ...arr[i],
+          cover: val,
+          previewUrl: url,
+          originalSize: size,
+          compressedSize: previewComp.size,
+          compressedFile: comp,
+        }
+        return arr
+      })
+    } else {
+      // 使用函数式更新避免竞态条件
+      setPictures(prev => {
+        const arr = [...prev]
+        arr[i] = { ...arr[i], [field]: val }
+        console.log(`更新图片 ${i} 的 ${field}:`, val)
+        console.log('更新后的图片数据:', arr[i])
+        return arr
+      })
     }
   }
 
   const handleAddPicture = () => {
-    setPictures([
-      ...pictures,
+    console.log("Adding new picture to form")
+    setPictures((p) => [
+      ...p,
       {
         title: "",
         subtitle: "",
@@ -181,74 +268,61 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         cover: null,
         previewUrl: undefined,
         originalSize: 0,
-        compressedSize: undefined,
-        image_url: "",
+        compressedSize: 0,
+        compressedFile: null,
       },
     ])
-  }
 
-  const handleRemovePicture = (index: number) => {
-    setPictures(pictures.filter((_, i) => i !== index))
-  }
-
-  const handlePictureChange = (index: number, field: string, value: any) => {
-    setPictures((prevPictures) =>
-      prevPictures.map((pic, i) => {
-        if (i !== index) return pic
-
-        if (field === "cover" && value instanceof File) {
-          getImagePreview(value).then(({ url, size }) => {
-            setPictures((current) =>
-              current.map((p, idx) => (idx === index ? { ...p, previewUrl: url, originalSize: size } : p))
-            )
-          })
-          return { ...pic, cover: value }
+    // Scroll to the newly added picture after a short delay
+    setTimeout(() => {
+      if (picturesContainerRef.current) {
+        const pictureElements = picturesContainerRef.current.querySelectorAll(".picture-item")
+        if (pictureElements.length > 0) {
+          const lastPicture = pictureElements[pictureElements.length - 1]
+          lastPicture.scrollIntoView({ behavior: "smooth", block: "center" })
         }
-
-        return { ...pic, [field]: value }
-      })
-    )
+      }
+    }, 100)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+  const handleRemovePicture = (i: number) => {
+    console.log(`Removing picture at index ${i}`)
+    const arr = [...pictures]
+    arr.splice(i, 1)
+    setPictures(arr)
+  }
 
-    try {
-      const pictureSetData: PictureSetSubmitData = {
-        title,
-        subtitle,
-        description,
-        position,
-        cover_image_url: coverImageUrl,
-        pictures: await Promise.all(
-          pictures.map(async (pic) => {
-            let compressedFile = pic.cover
-            if (pic.cover) {
-              compressedFile = await compressImage(pic.cover)
-              const compressedSize = compressedFile.size
-              setPictures((current) =>
-                current.map((p, idx) => (p === pic ? { ...p, compressedSize } : p))
-              )
-            }
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null
+    setCover(f)
+    if (f) {
+      const { url, size } = await getImagePreview(f)
+      setCoverPreview(url)
+      setCoverOriginalSize(size)
+      setCoverImageUrl("")
+    } else {
+      setCoverPreview(null)
+      setCoverOriginalSize(0)
+    }
+  }
 
-            return {
-              id: pic.id,
-              title: pic.title,
-              subtitle: pic.subtitle,
-              description: pic.description,
-              cover: compressedFile,
-              image_url: pic.image_url,
-            }
-          })
-        ),
-      }
+  const resetForm = () => {
+    setTitle("")
+    setSubtitle("")
+    setDescription("")
+    setCover(null)
+    setCoverPreview(null)
+    setCoverOriginalSize(0)
+    setCoverImageUrl("")
+    setPictures([])
+    setPosition("up")
+  }
 
-      onSubmit(pictureSetData, editingId)
-    } catch (error) {
-      console.error("Error submitting form:", error)
-    } finally {
-      setIsSubmitting(false)
+  const scrollToTop = () => {
+    if (formRef.current) {
+      formRef.current.scrollTo({ top: 0, behavior: "smooth" })
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
@@ -265,7 +339,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           </Button>
         )}
       </div>
-
       {/* 标题/副标题/描述/位置 */}
       <div className="grid grid-cols-2 gap-6">
         {/* 左侧：表单字段 */}
@@ -353,10 +426,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 <img
                   src={coverPreview || "/placeholder.svg"}
                   alt="Cover preview"
-                  className="w-full max-h-80 object-contain"
-                  style={{
-                    aspectRatio: 'auto'
-                  }}
+                  className="w-full h-auto object-contain"
                 />
               </div>
               {coverOriginalSize > 0 && (
@@ -366,15 +436,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               )}
             </div>
           )}
-          <div className="relative">
-            <Input 
-              id="cover" 
-              type="file" 
-              accept="image/*" 
-              onChange={handleCoverChange}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm text-gray-500 py-2.5"
-            />
-          </div>
+          <Input id="cover" type="file" accept="image/*" onChange={handleCoverChange} />
         </div>
       </div>
 
@@ -416,16 +478,23 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
       {/* 多张图片列表 */}
       <div className="space-y-8" ref={picturesContainerRef}>
-        {/* 简化的标题 */}
-        {pictures.length > 0 && (
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
+        <div className="sticky top-4 z-10 bg-white/95 backdrop-blur-sm py-3 px-4 border rounded-lg shadow-sm flex justify-between items-center">
+          <div className="flex items-center gap-3">
             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
             <Label className="text-lg font-semibold text-gray-800">图片集合</Label>
             <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-sm font-medium">
               {pictures.length} 张图片
             </span>
           </div>
-        )}
+          <Button 
+            type="button" 
+            onClick={handleAddPicture} 
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          >
+            <Plus className="h-4 w-4" /> 
+            添加图片
+          </Button>
+        </div>
 
         {pictures.length === 0 && (
           <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
@@ -434,7 +503,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 <Plus className="h-6 w-6 text-gray-400" />
               </div>
               <p className="text-gray-500">还没有添加图片</p>
-              <p className="text-sm text-gray-400">点击下方按钮开始添加图片到集合中</p>
+              <Button 
+                type="button" 
+                onClick={handleAddPicture}
+                variant="outline"
+                className="mt-2"
+              >
+                添加第一张图片
+              </Button>
             </div>
           </div>
         )}
@@ -469,7 +545,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               </Button>
             </div>
 
-            <div className="p-6 pt-16">
+            <div className="p-6 pt-16">{/* 增加顶部padding为标识留空间 */}
+            <div className="p-6 pt-16">{/* 增加顶部padding为标识留空间 */}
               <div className="grid grid-cols-2 gap-8">
                 {/* 左侧：表单字段 */}
                 <div className="space-y-5">
@@ -550,14 +627,12 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold text-gray-700">上传图片</Label>
-                    <div className="relative">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handlePictureChange(idx, "cover", e.target.files?.[0] || null)}
-                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm text-gray-500 cursor-pointer py-2.5"
-                      />
-                    </div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handlePictureChange(idx, "cover", e.target.files?.[0] || null)}
+                      className="border-gray-300 focus:border-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                    />
                   </div>
                 </div>
 
@@ -571,10 +646,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                           <img
                             src={pic.previewUrl || "/placeholder.svg"}
                             alt={`Picture ${idx + 1}`}
-                            className="w-full max-h-80 object-contain"
-                            style={{
-                              aspectRatio: 'auto'
-                            }}
+                            className="w-full h-auto object-contain"
                           />
                         </div>
                         {pic.originalSize! > 0 && (
@@ -606,61 +678,48 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 </div>
               </div>
 
-              {/* AI 分析组件 - 折叠式设计 */}
-              {pic.previewUrl && (
-                <div className="mt-4 border border-gray-200 rounded-lg">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full p-3 flex items-center justify-between text-left"
-                    onClick={() => setShowPictureAIAnalysis(prev => ({
-                      ...prev,
-                      [idx]: !prev[idx]
-                    }))}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>🤖</span>
-                      <span className="font-medium">AI 分析 - Picture {idx + 1}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        智能生成
-                      </span>
-                    </div>
-                    <span className={`transform transition-transform ${showPictureAIAnalysis[idx] ? 'rotate-180' : ''}`}>
-                      ▼
+            {/* AI 分析组件 - 折叠式设计 */}
+            {pic.previewUrl && (
+              <div className="mt-4 border border-gray-200 rounded-lg">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full p-3 flex items-center justify-between text-left"
+                  onClick={() => setShowPictureAIAnalysis(prev => ({
+                    ...prev,
+                    [idx]: !prev[idx]
+                  }))}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>🤖</span>
+                    <span className="font-medium">AI 分析 - Picture {idx + 1}</span>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      智能生成
                     </span>
-                  </Button>
-                  
-                  {showPictureAIAnalysis[idx] && (
-                    <div className="px-3 pb-3 border-t border-gray-100">
-                      <ImageAnalysisComponent
-                        imageUrl={pic.previewUrl}
-                        onResultUpdate={(field, result) => {
-                          handlePictureChange(idx, field, result)
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+                  </div>
+                  <span className={`transform transition-transform ${showPictureAIAnalysis[idx] ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </Button>
+                
+                {showPictureAIAnalysis[idx] && (
+                  <div className="px-3 pb-3 border-t border-gray-100">
+                    <ImageAnalysisComponent
+                      imageUrl={pic.previewUrl}
+                      onResultUpdate={(field, result) => {
+                        handlePictureChange(idx, field, result)
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            </div> {/* 关闭p-6 pt-16的div */}
+          </div> {/* 关闭整个picture卡片的div */}
         ))}
-      </div>
+      </div> {/* 关闭pictures容器的div */}
 
-      {/* 添加图片按钮 - 移到底部 */}
-      <div className="flex justify-center py-6">
-        <Button 
-          type="button" 
-          onClick={handleAddPicture} 
-          variant="outline"
-          className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-purple-300 text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200"
-        >
-          <Plus className="h-5 w-5" /> 
-          添加新图片
-        </Button>
-      </div>
-
-      {/* Submit button */}
+      {/* Action buttons at the bottom */}
       <div className="sticky bottom-0 bg-white py-4 border-t z-10 space-y-2">
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Submitting..." : isEditMode ? "Update Picture Set" : "Submit Picture Set"}
