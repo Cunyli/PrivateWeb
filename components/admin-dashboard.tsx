@@ -67,11 +67,8 @@ export function AdminDashboard() {
 
       setPictureSets(sets)
 
-      // If we're currently editing a picture set, update the editing state with fresh data
-      if (editingPictureSet) {
-        const updatedEditingSet = sets.find((set) => set.id === editingPictureSet.id) || null
-        setEditingPictureSet(updatedEditingSet)
-      }
+      // Don't automatically update editing state when fetching data
+      // This prevents unwanted state changes after submit operations
     } catch (error) {
       console.error("Error in fetchPictureSets:", error)
       toast({
@@ -312,9 +309,16 @@ export function AdminDashboard() {
           description: "Picture set updated successfully",
         })
 
-        // Reset edit mode
+        // Reset edit mode first - 立即重置编辑状态
+        const currentEditingPictureSet = editingPictureSet
         setEditingPictureSet(null)
         setActiveTab("list")
+        
+        // Refresh the picture sets to update the UI
+        // 使用 setTimeout 确保状态重置完成后再刷新数据
+        setTimeout(async () => {
+          await fetchPictureSets()
+        }, 0)
       } else {
         // CREATING NEW PICTURE SET
         console.log("Creating new picture set")
@@ -366,10 +370,13 @@ export function AdminDashboard() {
           title: "Success",
           description: "Picture set created successfully",
         })
-      }
 
-      // Refresh the picture sets to update the UI
-      await fetchPictureSets()
+        // 新建成功后也切换到列表视图
+        setActiveTab("list")
+        
+        // Refresh the picture sets to update the UI
+        await fetchPictureSets()
+      }
     } catch (error) {
       console.error("Error in handleSubmitPictureSet:", error)
       toast({
