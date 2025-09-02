@@ -136,6 +136,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           }))
         )
       }
+    } else if (editingPictureSet === null && (isEditMode || editingId !== undefined)) {
+      // 只有当明确从编辑模式切换到非编辑模式时才重置表单
+      setIsEditMode(false)
+      setEditingId(undefined)
+      setTitle("")
+      setSubtitle("")
+      setDescription("")
+      setCover(null)
+      setCoverPreview(null)
+      setCoverOriginalSize(0)
+      setCoverImageUrl("")
+      setPictures([])
+      setPosition("up")
     }
   }, [editingPictureSet])
 
@@ -244,7 +257,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         ),
       }
 
-      onSubmit(pictureSetData, editingId)
+      await onSubmit(pictureSetData, editingId)
+      
+      // 表单重置逻辑由父组件通过 editingPictureSet 的变化来触发
     } catch (error) {
       console.error("Error submitting form:", error)
     } finally {
@@ -347,17 +362,26 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         {/* 右侧：封面预览 */}
         <div className="space-y-2">
           <Label htmlFor="cover">Cover Image</Label>
-          {coverPreview && (
+          {coverPreview ? (
             <div className="mt-2 mb-4">
-              <div className="relative w-full overflow-hidden rounded-md border border-gray-200">
+              <div 
+                className="relative w-full overflow-hidden rounded-md border border-gray-200 cursor-pointer hover:border-blue-400 transition-colors group"
+                onClick={() => document.getElementById('cover-input')?.click()}
+                title="点击更换封面图片"
+              >
                 <img
                   src={coverPreview || "/placeholder.svg"}
                   alt="Cover preview"
-                  className="w-full max-h-80 object-contain"
+                  className="w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"
                   style={{
                     aspectRatio: 'auto'
                   }}
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
+                    点击更换图片
+                  </div>
+                </div>
               </div>
               {coverOriginalSize > 0 && (
                 <p className="text-sm text-gray-500 mt-2">
@@ -365,16 +389,29 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 </p>
               )}
             </div>
+          ) : (
+            <div 
+              className="mt-2 mb-4 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group"
+              onClick={() => document.getElementById('cover-input')?.click()}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 bg-gray-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center transition-colors">
+                  <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">点击上传封面图片</p>
+                  <p className="text-sm text-gray-400">支持 JPG、PNG、WebP 格式</p>
+                </div>
+              </div>
+            </div>
           )}
-          <div className="relative">
-            <Input 
-              id="cover" 
-              type="file" 
-              accept="image/*" 
-              onChange={handleCoverChange}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm text-gray-500 py-2.5"
-            />
-          </div>
+          <input 
+            id="cover-input"
+            type="file" 
+            accept="image/*" 
+            onChange={handleCoverChange}
+            className="hidden"
+          />
         </div>
       </div>
 
@@ -547,18 +584,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                       className="border-gray-300 focus:border-purple-500 focus:ring-purple-500 min-h-[80px]"
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">上传图片</Label>
-                    <div className="relative">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handlePictureChange(idx, "cover", e.target.files?.[0] || null)}
-                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-sm text-gray-500 cursor-pointer py-2.5"
-                      />
-                    </div>
-                  </div>
                 </div>
 
                 {/* 右侧：图片预览 */}
@@ -567,15 +592,24 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     <div className="space-y-3">
                       <Label className="text-sm font-semibold text-gray-700">图片预览</Label>
                       <div className="relative bg-gray-50 rounded-lg p-3">
-                        <div className="relative w-full overflow-hidden rounded-md border border-gray-200 bg-white">
+                        <div 
+                          className="relative w-full overflow-hidden rounded-md border border-gray-200 bg-white cursor-pointer hover:border-blue-400 transition-colors group"
+                          onClick={() => document.getElementById(`picture-input-${idx}`)?.click()}
+                          title="点击更换图片"
+                        >
                           <img
                             src={pic.previewUrl || "/placeholder.svg"}
                             alt={`Picture ${idx + 1}`}
-                            className="w-full max-h-80 object-contain"
+                            className="w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"
                             style={{
                               aspectRatio: 'auto'
                             }}
                           />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
+                              点击更换图片
+                            </div>
+                          </div>
                         </div>
                         {pic.originalSize! > 0 && (
                           <div className="mt-3 p-2 bg-white rounded border border-gray-200">
@@ -596,13 +630,28 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-3">
-                        <Camera className="h-6 w-6 text-gray-400" />
+                    <div className="flex flex-col items-center justify-center h-48">
+                      <div 
+                        className="flex flex-col items-center justify-center h-full w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group"
+                        onClick={() => document.getElementById(`picture-input-${idx}`)?.click()}
+                      >
+                        <div className="w-12 h-12 bg-gray-200 group-hover:bg-blue-100 rounded-full flex items-center justify-center mb-3 transition-colors">
+                          <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
+                        </div>
+                        <p className="text-gray-500 text-sm font-medium">点击上传图片</p>
+                        <p className="text-gray-400 text-xs mt-1">支持 JPG、PNG、WebP 格式</p>
                       </div>
-                      <p className="text-gray-500 text-sm">上传图片后即可预览</p>
                     </div>
                   )}
+                  
+                  {/* 隐藏的文件输入 */}
+                  <input
+                    id={`picture-input-${idx}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePictureChange(idx, "cover", e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
                 </div>
               </div>
 
