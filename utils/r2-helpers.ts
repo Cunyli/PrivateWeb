@@ -7,15 +7,20 @@ export function getObjectKeyFromUrl(url: string): string | null {
   try {
     if (!url) return null
 
-    // Parse the URL to extract the pathname
+    // If already an object key or relative path
+    if (url.startsWith("/")) {
+      const key = url.substring(1)
+      console.log(`Extracted object key "${key}" from relative path`)
+      return key
+    }
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      console.log(`Using provided value as object key: "${url}"`)
+      return url
+    }
+
+    // Parse absolute URL to extract the pathname
     const parsedUrl = new URL(url)
-
-    // For R2 URLs, the object key is the pathname without the leading slash
-    // Example: https://pub-aa03052e73cc405b9b70dc0fc8aeb455.r2.dev/picture/cover-123456.webp
-    // Object key would be: picture/cover-123456.webp
     let objectKey = parsedUrl.pathname
-
-    // Remove the leading slash if present
     if (objectKey.startsWith("/")) {
       objectKey = objectKey.substring(1)
     }

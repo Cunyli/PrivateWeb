@@ -71,6 +71,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [showPictureAIAnalysis, setShowPictureAIAnalysis] = useState<{[key: number]: boolean}>({})
   const formRef = useRef<HTMLFormElement>(null)
   const picturesContainerRef = useRef<HTMLDivElement>(null)
+  const bulkInputRef = useRef<HTMLInputElement>(null)
 
   // AI生成函数
   const generateField = async (field: 'title' | 'subtitle' | 'description') => {
@@ -228,36 +229,82 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     setIsSubmitting(true)
 
     try {
-      const pictureSetData: PictureSetSubmitData = {
+      // upload helper to R2 via signed URL
+      const uploadFile = async (file: File, objectName: string): Promise<string> => {
+        const res = await fetch("/api/upload-to-r2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ objectName, contentType: file.type }),
+        })
+        if (!res.ok) throw new Error("Failed to get signed URL")
+        const { uploadUrl } = await res.json()
+        const buf = await file.arrayBuffer()
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: buf,
+        })
+        if (!uploadRes.ok) throw new Error("File upload failed")
+        // store key path like /picture/xxx
+        return `/${objectName}`
+      }
+
+      // Cover upload (if provided)
+      let coverKey = coverImageUrl
+      if (cover) {
+        const compressedCover = await compressImage(cover)
+        coverKey = await uploadFile(
+          compressedCover,
+          `picture/cover-${Date.now()}-${compressedCover.name}`,
+        )
+      }
+
+      // Pictures: upload raw and compressed if a new file provided
+      const processedPictures = await Promise.all(
+        pictures.map(async (pic, idx) => {
+          let image_url = pic.image_url || ""
+          let raw_image_url = pic.raw_image_url || ""
+
+          if (pic.cover instanceof File) {
+            // upload raw
+            raw_image_url = await uploadFile(
+              pic.cover,
+              `picture/original-${Date.now()}-${idx}-${pic.cover.name}`,
+            )
+            // compress + upload
+            const comp = await compressImage(pic.cover)
+            image_url = await uploadFile(
+              comp,
+              `picture/compressed-${Date.now()}-${idx}-${comp.name}`,
+            )
+            // update UI compressed size (non-blocking)
+            const compressedSize = comp.size
+            setPictures((current) =>
+              current.map((p, i) => (i === idx ? { ...p, compressedSize } : p)),
+            )
+          }
+
+          return {
+            id: pic.id,
+            title: pic.title,
+            subtitle: pic.subtitle,
+            description: pic.description,
+            image_url,
+            raw_image_url,
+          }
+        }),
+      )
+
+      const payload: PictureSetSubmitData = {
         title,
         subtitle,
         description,
         position,
-        cover_image_url: coverImageUrl,
-        pictures: await Promise.all(
-          pictures.map(async (pic) => {
-            let compressedFile = pic.cover
-            if (pic.cover) {
-              compressedFile = await compressImage(pic.cover)
-              const compressedSize = compressedFile.size
-              setPictures((current) =>
-                current.map((p, idx) => (p === pic ? { ...p, compressedSize } : p))
-              )
-            }
-
-            return {
-              id: pic.id,
-              title: pic.title,
-              subtitle: pic.subtitle,
-              description: pic.description,
-              cover: compressedFile,
-              image_url: pic.image_url,
-            }
-          })
-        ),
+        cover_image_url: coverKey,
+        pictures: processedPictures,
       }
 
-      await onSubmit(pictureSetData, editingId)
+      await onSubmit(payload, editingId)
       
       // 表单重置逻辑由父组件通过 editingPictureSet 的变化来触发
     } catch (error) {
@@ -696,8 +743,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         ))}
       </div>
 
-      {/* 添加图片按钮 - 移到底部 */}
-      <div className="flex justify-center py-6">
+      {/* 添加图片按钮 - 支持单个与批量 */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-6">
         <Button 
           type="button" 
           onClick={handleAddPicture} 
@@ -707,6 +754,49 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           <Plus className="h-5 w-5" /> 
           添加新图片
         </Button>
+        <Button
+          type="button"
+          onClick={() => bulkInputRef.current?.click()}
+          variant="outline"
+          className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
+        >
+          <Plus className="h-5 w-5" />
+          批量添加图片
+        </Button>
+        <input
+          ref={bulkInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={async (e) => {
+            const files = Array.from(e.target.files || [])
+            if (files.length === 0) return
+
+            // For each file, create a picture entry with preview
+            const toAdd: PictureFormData[] = []
+            for (const f of files) {
+              try {
+                const { url, size } = await getImagePreview(f)
+                toAdd.push({
+                  title: "",
+                  subtitle: "",
+                  description: "",
+                  cover: f,
+                  previewUrl: url,
+                  originalSize: size,
+                  compressedSize: undefined,
+                  image_url: "",
+                })
+              } catch (err) {
+                console.error("预览生成失败:", err)
+              }
+            }
+            if (toAdd.length > 0) setPictures((prev) => [...prev, ...toAdd])
+            // reset input value to allow re-selecting the same files
+            if (e.target) e.target.value = ""
+          }}
+        />
       </div>
 
       {/* Submit button */}
