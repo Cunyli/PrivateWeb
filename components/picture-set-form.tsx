@@ -67,6 +67,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     subtitle: false,
     description: false
   })
+  // translations
+  const [en, setEn] = useState<{title: string; subtitle: string; description: string}>({ title: "", subtitle: "", description: "" })
+  const [zh, setZh] = useState<{title: string; subtitle: string; description: string}>({ title: "", subtitle: "", description: "" })
+  // simple comma-separated tags input
+  const [tagsText, setTagsText] = useState<string>("")
   const [showAIAnalysis, setShowAIAnalysis] = useState(false)
   const [showPictureAIAnalysis, setShowPictureAIAnalysis] = useState<{[key: number]: boolean}>({})
   const formRef = useRef<HTMLFormElement>(null)
@@ -121,6 +126,18 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setCoverImageUrl(editingPictureSet.cover_image_url || "")
       setCoverPreview(editingPictureSet.cover_image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${editingPictureSet.cover_image_url}` : null)
       setPosition(editingPictureSet.position || "up")
+      // translations and tags (optional on type)
+      setEn({
+        title: editingPictureSet.en?.title || "",
+        subtitle: editingPictureSet.en?.subtitle || "",
+        description: editingPictureSet.en?.description || "",
+      })
+      setZh({
+        title: editingPictureSet.zh?.title || "",
+        subtitle: editingPictureSet.zh?.subtitle || "",
+        description: editingPictureSet.zh?.description || "",
+      })
+      setTagsText((editingPictureSet.tags || []).join(", "))
 
       if (editingPictureSet.pictures) {
         setPictures(
@@ -129,6 +146,16 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title || "",
             subtitle: pic.subtitle || "",
             description: pic.description || "",
+            en: {
+              title: pic.en?.title || "",
+              subtitle: pic.en?.subtitle || "",
+              description: pic.en?.description || "",
+            },
+            zh: {
+              title: pic.zh?.title || "",
+              subtitle: pic.zh?.subtitle || "",
+              description: pic.zh?.description || "",
+            },
             cover: null,
             previewUrl: pic.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${pic.image_url}` : undefined,
             originalSize: 0,
@@ -150,6 +177,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setCoverImageUrl("")
       setPictures([])
       setPosition("up")
+      setEn({ title: "", subtitle: "", description: "" })
+      setZh({ title: "", subtitle: "", description: "" })
+      setTagsText("")
     }
   }, [editingPictureSet])
 
@@ -192,6 +222,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         title: "",
         subtitle: "",
         description: "",
+        en: { title: "", subtitle: "", description: "" },
+        zh: { title: "", subtitle: "", description: "" },
         cover: null,
         previewUrl: undefined,
         originalSize: 0,
@@ -217,6 +249,17 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             )
           })
           return { ...pic, cover: value }
+        }
+
+        // support nested updates like 'en.title' or 'zh.description'
+        if (field.includes('.')) {
+          const [root, key] = field.split('.')
+          if (root === 'en') {
+            return { ...pic, en: { ...(pic.en || {}), [key]: value } }
+          }
+          if (root === 'zh') {
+            return { ...pic, zh: { ...(pic.zh || {}), [key]: value } }
+          }
         }
 
         return { ...pic, [field]: value }
@@ -289,6 +332,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title,
             subtitle: pic.subtitle,
             description: pic.description,
+            en: pic.en,
+            zh: pic.zh,
             image_url,
             raw_image_url,
           }
@@ -302,6 +347,12 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         position,
         cover_image_url: coverKey,
         pictures: processedPictures,
+        en,
+        zh,
+        tags: tagsText
+          .split(",")
+          .map((t) => t.trim())
+          .filter((t) => t.length > 0),
       }
 
       await onSubmit(payload, editingId)
@@ -498,6 +549,42 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         </div>
       )}
 
+      {/* 多语言与标签 */}
+      <div className="grid grid-cols-2 gap-6 border rounded-lg p-4">
+        {/* 英文 */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Label className="text-base font-semibold">English (en)</Label>
+          </div>
+          <Input placeholder="English title" value={en.title}
+                 onChange={(e) => setEn((prev) => ({ ...prev, title: e.target.value }))} />
+          <Input placeholder="English subtitle" value={en.subtitle}
+                 onChange={(e) => setEn((prev) => ({ ...prev, subtitle: e.target.value }))} />
+          <Textarea placeholder="English description" value={en.description}
+                    onChange={(e) => setEn((prev) => ({ ...prev, description: e.target.value }))} />
+        </div>
+
+        {/* 中文 */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Label className="text-base font-semibold">中文 (zh)</Label>
+          </div>
+          <Input placeholder="中文标题" value={zh.title}
+                 onChange={(e) => setZh((prev) => ({ ...prev, title: e.target.value }))} />
+          <Input placeholder="中文副标题" value={zh.subtitle}
+                 onChange={(e) => setZh((prev) => ({ ...prev, subtitle: e.target.value }))} />
+          <Textarea placeholder="中文描述" value={zh.description}
+                    onChange={(e) => setZh((prev) => ({ ...prev, description: e.target.value }))} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-base font-semibold">标签（以逗号分隔）</Label>
+        <Input placeholder="例如：portrait, street, night"
+               value={tagsText}
+               onChange={(e) => setTagsText(e.target.value)} />
+      </div>
+
       {/* 多张图片列表 */}
       <div className="space-y-8" ref={picturesContainerRef}>
         {/* 简化的标题 */}
@@ -630,6 +717,52 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                       onChange={(e) => handlePictureChange(idx, "description", e.target.value)}
                       className="border-gray-300 focus:border-purple-500 focus:ring-purple-500 min-h-[80px]"
                     />
+                  </div>
+
+                  {/* 图片翻译字段 */}
+                  <div className="mt-4 grid grid-cols-2 gap-4 border border-gray-200 rounded-md p-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">English (en)</Label>
+                      <Input
+                        placeholder="English title"
+                        value={pic.en?.title || ''}
+                        onChange={(e) => handlePictureChange(idx, 'en.title', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <Input
+                        placeholder="English subtitle"
+                        value={pic.en?.subtitle || ''}
+                        onChange={(e) => handlePictureChange(idx, 'en.subtitle', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <Textarea
+                        placeholder="English description"
+                        value={pic.en?.description || ''}
+                        onChange={(e) => handlePictureChange(idx, 'en.description', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">中文 (zh)</Label>
+                      <Input
+                        placeholder="中文标题"
+                        value={pic.zh?.title || ''}
+                        onChange={(e) => handlePictureChange(idx, 'zh.title', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <Input
+                        placeholder="中文副标题"
+                        value={pic.zh?.subtitle || ''}
+                        onChange={(e) => handlePictureChange(idx, 'zh.subtitle', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <Textarea
+                        placeholder="中文描述"
+                        value={pic.zh?.description || ''}
+                        onChange={(e) => handlePictureChange(idx, 'zh.description', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
+                      />
+                    </div>
                   </div>
                 </div>
 

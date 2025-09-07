@@ -13,6 +13,8 @@ export function PortfolioGrid() {
   const [loading, setLoading] = useState(true)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
   const [shuffledDownSets, setShuffledDownSets] = useState<PictureSet[]>([])
+  const [lang, setLang] = useState<'auto' | 'en' | 'zh'>('auto')
+  const [transMap, setTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
 
@@ -24,16 +26,19 @@ export function PortfolioGrid() {
     for (let i = 0; i < seed.length; i++) {
       const char = seed.charCodeAt(i)
       hash = ((hash << 5) - hash) + char
-      hash = hash & hash // 转换为32位整数
+      hash |= 0 // 转换为32位整数
     }
-    
-    // Fisher-Yates洗牌算法，使用确定性随机数
+
+    // Fisher-Yates 洗牌（确保索引非负且在范围内）
     for (let i = shuffled.length - 1; i > 0; i--) {
       hash = (hash * 9301 + 49297) % 233280 // 线性同余生成器
-      const j = hash % (i + 1)
-      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+      if (hash < 0) hash += 233280
+      const j = Math.abs(hash) % (i + 1)
+      const tmp = shuffled[i]
+      shuffled[i] = shuffled[j]
+      shuffled[j] = tmp
     }
-    
+
     return shuffled
   }
 
@@ -41,7 +46,10 @@ export function PortfolioGrid() {
     setLoading(true)
     try {
       console.log("Fetching picture sets for portfolio grid")
-      const { data, error } = await supabase.from("picture_sets").select("*").order("created_at", { ascending: false })
+      const { data, error } = await supabase
+        .from("picture_sets")
+        .select("*")
+        .order("created_at", { ascending: false })
 
       if (error) {
         console.error("Error fetching picture sets:", error)
@@ -49,10 +57,44 @@ export function PortfolioGrid() {
         setShuffledDownSets([])
       } else {
         console.log(`Found ${data?.length || 0} picture sets`)
-        setPictureSets(data || [])
+        const sets = data || []
+        setPictureSets(sets)
+
+        // Fetch both en and zh translations for display switching
+        if (sets.length > 0) {
+          const ids = sets.map((s) => s.id)
+          const [{ data: enTrans }, { data: zhTrans }] = await Promise.all([
+            supabase
+              .from('picture_set_translations')
+              .select('picture_set_id, title, subtitle, description, locale')
+              .eq('locale', 'en')
+              .in('picture_set_id', ids),
+            supabase
+              .from('picture_set_translations')
+              .select('picture_set_id, title, subtitle, description, locale')
+              .eq('locale', 'zh')
+              .in('picture_set_id', ids),
+          ])
+          const map: Record<number, { en?: any; zh?: any }> = {}
+          for (const t of enTrans || []) {
+            map[t.picture_set_id] = {
+              ...(map[t.picture_set_id] || {}),
+              en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined },
+            }
+          }
+          for (const t of zhTrans || []) {
+            map[t.picture_set_id] = {
+              ...(map[t.picture_set_id] || {}),
+              zh: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined },
+            }
+          }
+          setTransMap(map)
+        } else {
+          setTransMap({})
+        }
         
         // 生成固定的洗牌结果
-        const downSets = (data || []).filter((s) => s.position?.trim().toLowerCase() === "down")
+        const downSets = (sets || []).filter((s) => s.position?.trim().toLowerCase() === "down")
         const seed = downSets.map(s => s.id).join('-') // 使用ID组合作为种子
         const shuffled = stableShuffleArray(downSets, seed)
         setShuffledDownSets(shuffled)
@@ -112,9 +154,58 @@ export function PortfolioGrid() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
+  // Language preference persistence
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('portfolio_lang') as 'auto'|'en'|'zh'|null
+      if (saved === 'auto' || saved === 'en' || saved === 'zh') setLang(saved)
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try { localStorage.setItem('portfolio_lang', lang) } catch {}
+  }, [lang])
+
+  const getText = (s: PictureSet, key: 'title'|'subtitle'|'description') => {
+    const t = transMap[s.id]
+    if (lang === 'zh') return t?.zh?.[key] || s[key]
+    if (lang === 'en') return t?.en?.[key] || s[key]
+    // auto: prefer zh if available
+    return t?.zh?.[key] || s[key]
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
+
   return (
     <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
-      <h1 className="text-2xl sm:text-4xl font-light text-center mb-8 sm:mb-16">Lijie&apos;s Galleries</h1>
+      <div className="relative mb-6 sm:mb-10">
+        <h1 className="text-2xl sm:text-4xl font-light text-center">Lijie&apos;s Galleries</h1>
+        {/* Floating language switch: globe that reveals options on hover */}
+        <div className="absolute right-0 top-0">
+          <div className="group relative inline-block">
+            <button
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm transition 
+                         ${lang==='zh' ? 'bg-black text-white' : lang==='en' ? 'bg-black text-white' : 'bg-white text-gray-700'}
+                         hover:shadow`}
+              title="Language"
+            >
+              <span aria-hidden>🌐</span>
+            </button>
+            {/* Options dropdown on hover */}
+            <div className="absolute right-0 mt-2 hidden group-hover:flex bg-white/95 backdrop-blur rounded-full shadow-lg p-1 gap-1 z-10">
+              <button
+                onClick={() => setLang('zh')}
+                className={`px-3 py-1.5 rounded-full text-sm transition ${lang==='zh' ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                aria-pressed={lang==='zh'}
+              >中文</button>
+              <button
+                onClick={() => setLang('en')}
+                className={`px-3 py-1.5 rounded-full text-sm transition ${lang==='en' ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                aria-pressed={lang==='en'}
+              >EN</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-20">
@@ -137,7 +228,7 @@ export function PortfolioGrid() {
                       className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                     >
                       <Image
-                        src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
+                        src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
                         alt={item.title}
                         fill
                         className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
@@ -156,12 +247,12 @@ export function PortfolioGrid() {
                         <h2 
                           className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
                         >
-                          {item.title}
+                          {getText(item, 'title')}
                         </h2>
                         <p 
                           className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
                         >
-                          {item.subtitle}
+                          {getText(item, 'subtitle')}
                         </p>
                       </div>
                     </Link>
@@ -183,7 +274,7 @@ export function PortfolioGrid() {
                         className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                       >
                         <Image
-                          src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
+                          src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
                           alt={item.title}
                           fill
                           className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
@@ -236,7 +327,7 @@ export function PortfolioGrid() {
                       className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
                     >
                       <Image
-                        src={process.env.NEXT_PUBLIC_BUCKET_URL+item.cover_image_url || "/placeholder.svg"}
+                        src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
                         alt={item.title}
                         width={600}
                         height={800}
@@ -245,8 +336,8 @@ export function PortfolioGrid() {
                       
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
                         <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
-                          <h3 className="text-lg font-medium mb-1">{item.title}</h3>
-                          <p className="text-sm opacity-80">{item.subtitle}</p>
+                          <h3 className="text-lg font-medium mb-1">{getText(item,'title')}</h3>
+                          <p className="text-sm opacity-80">{getText(item,'subtitle')}</p>
                         </div>
                       </div>
                     </Link>
