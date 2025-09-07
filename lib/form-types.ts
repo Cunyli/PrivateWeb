@@ -3,6 +3,7 @@ import type { PictureSet } from "./pictureSet.types"
 // Define shared form data types to be used across components
 export interface PictureFormData {
   id?: number
+  tempId?: string
   title: string
   subtitle: string
   description: string

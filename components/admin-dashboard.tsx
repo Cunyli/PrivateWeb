@@ -232,6 +232,53 @@ export function AdminDashboard() {
     return { en: enOut, zh: zhOut }
   }
 
+  // Safely reorder pictures by desired IDs order to avoid unique conflicts
+  const reorderPicturesSafely = async (picture_set_id: number, desiredIdsInOrder: number[]) => {
+    try {
+      const { data: dbPics, error: dbErr } = await supabase
+        .from('pictures')
+        .select('id, order_index')
+        .eq('picture_set_id', picture_set_id)
+      if (dbErr) {
+        console.warn('reorderPicturesSafely: fetch failed', dbErr)
+        return
+      }
+      if (!dbPics || dbPics.length === 0) return
+
+      // Log current and desired
+      console.log('Reorder(safe): current DB order:', dbPics.map(p => ({ id: p.id, oi: p.order_index })))
+      console.log('Reorder(safe): desired order IDs:', desiredIdsInOrder)
+
+      // First pass: bump indices to avoid collisions
+      for (const p of dbPics) {
+        const { error: up1 } = await supabase
+          .from('pictures')
+          .update({ order_index: (p.order_index ?? 0) + 1000 })
+          .eq('id', p.id)
+        if (up1) console.warn('Reorder(safe): bump failed for', p.id, up1)
+      }
+
+      // Second pass: set final indices following desired order
+      for (const [idx, id] of desiredIdsInOrder.entries()) {
+        const { error: up2 } = await supabase
+          .from('pictures')
+          .update({ order_index: idx })
+          .eq('id', id)
+        if (up2) console.warn('Reorder(safe): final set failed for', id, up2)
+      }
+
+      // Log final
+      const { data: finalPics } = await supabase
+        .from('pictures')
+        .select('id, order_index')
+        .eq('picture_set_id', picture_set_id)
+        .order('order_index', { ascending: true })
+      if (finalPics) console.log('Reorder(safe): final DB order:', finalPics.map(p => ({ id: p.id, oi: p.order_index })))
+    } catch (e) {
+      console.warn('reorderPicturesSafely error', e)
+    }
+  }
+
   const ensureTagIds = async (names: string[] = [], type: string = 'topic'): Promise<number[]> => {
     const uniq = Array.from(new Set(names.map(n => n.trim()).filter(Boolean)))
     if (uniq.length === 0) return []
@@ -598,6 +645,30 @@ export function AdminDashboard() {
           }
         }
 
+        // Robust reorder: two-pass bump then set to avoid collisions
+        try {
+          // Build desired order by IDs; for new images that were updated (should have id), we will refetch to resolve
+          const { data: dbPicsAll } = await supabase
+            .from('pictures')
+            .select('id, image_url')
+            .eq('picture_set_id', pictureSetId)
+
+          // Map image_url -> id as fallback
+          const urlToId = new Map<string, number>()
+          for (const r of dbPicsAll || []) {
+            if (r.image_url) urlToId.set(r.image_url, r.id)
+          }
+
+          const desiredIds: number[] = []
+          for (const p of newPictureSet.pictures) {
+            if (typeof p.id === 'number') desiredIds.push(p.id)
+            else if (p.image_url && urlToId.has(p.image_url)) desiredIds.push(urlToId.get(p.image_url) as number)
+          }
+          if (desiredIds.length > 0) await reorderPicturesSafely(pictureSetId, desiredIds)
+        } catch (verr) {
+          console.warn('Safe reorder encountered an error:', verr)
+        }
+
         toast({
           title: "Success",
           description: "Picture set updated successfully",
@@ -687,6 +758,26 @@ export function AdminDashboard() {
           if (pictureError) {
             console.error(`Error inserting picture at index ${index}:`, pictureError)
           }
+        }
+
+        // Robust reorder for new set as well
+        try {
+          const { data: dbPicsAll } = await supabase
+            .from('pictures')
+            .select('id, image_url')
+            .eq('picture_set_id', pictureSetId)
+          const urlToId = new Map<string, number>()
+          for (const r of dbPicsAll || []) {
+            if (r.image_url) urlToId.set(r.image_url, r.id)
+          }
+          const desiredIds: number[] = []
+          for (const p of newPictureSet.pictures) {
+            if (typeof p.id === 'number') desiredIds.push(p.id)
+            else if (p.image_url && urlToId.has(p.image_url)) desiredIds.push(urlToId.get(p.image_url) as number)
+          }
+          if (desiredIds.length > 0) await reorderPicturesSafely(pictureSetId, desiredIds)
+        } catch (e) {
+          console.warn('Safe reorder (create) encountered an error:', e)
         }
 
         toast({
@@ -886,7 +977,10 @@ export function AdminDashboard() {
         en: tEn ? { title: tEn.title || '', subtitle: tEn.subtitle || '', description: tEn.description || '' } : undefined,
         zh: tZh ? { title: tZh.title || '', subtitle: tZh.subtitle || '', description: tZh.description || '' } : undefined,
         tags: (tagRows || []).map((r: any) => r.tags?.name).filter(Boolean),
-        pictures: (freshPictureSet.pictures || []).map((p: any) => ({
+        pictures: (freshPictureSet.pictures || [])
+          .slice()
+          .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
+          .map((p: any) => ({
           ...p,
           en: transMap[p.id]?.en,
           zh: transMap[p.id]?.zh,

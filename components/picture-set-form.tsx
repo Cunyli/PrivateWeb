@@ -79,6 +79,38 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const formRef = useRef<HTMLFormElement>(null)
   const picturesContainerRef = useRef<HTMLDivElement>(null)
   const bulkInputRef = useRef<HTMLInputElement>(null)
+  // drag-n-drop reorder refs
+  const dragItem = useRef<number | null>(null)
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
+
+  const movePicture = (from: number, to: number) => {
+    if (from === to) return
+    setPictures((prev) => {
+      const updated = [...prev]
+      const [moved] = updated.splice(from, 1)
+      updated.splice(to, 0, moved)
+      return updated
+    })
+  }
+
+  const handleDragStartThumb = (index: number) => {
+    dragItem.current = index
+    setDraggingIndex(index)
+  }
+
+  const handleDragEnterThumb = (index: number) => {
+    if (dragItem.current === null) return
+    if (dragItem.current === index) return
+    // reorder live while dragging
+    movePicture(dragItem.current, index)
+    dragItem.current = index
+    setDraggingIndex(index)
+  }
+
+  const handleDragEndThumb = () => {
+    dragItem.current = null
+    setDraggingIndex(null)
+  }
 
   // AI生成函数
   const generateField = async (field: 'title' | 'subtitle' | 'description') => {
@@ -269,6 +301,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     setPictures([
       ...pictures,
       {
+        tempId: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         title: "",
         subtitle: "",
         description: "",
@@ -323,6 +356,12 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     setIsSubmitting(true)
 
     try {
+      // Debug: log intended picture order before upload/submit
+      try {
+        const debugOrder = pictures.map((p, i) => ({ idx: i, id: (p as any).id, image_url: p.image_url, title: p.title }))
+        console.log('Submitting pictures order (top->bottom):', debugOrder)
+      } catch {}
+
       // upload helper to R2 via signed URL
       const uploadFile = async (file: File, objectName: string): Promise<string> => {
         const res = await fetch("/api/upload-to-r2", {
@@ -683,7 +722,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
         {pictures.map((pic, idx) => (
           <div 
-            key={idx} 
+            key={(pic as any).id ?? (pic as any).tempId ?? idx} 
             className="relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
           >
             {/* 图片序号标识 */}
@@ -1021,6 +1060,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               try {
                 const { url, size } = await getImagePreview(f)
                 toAdd.push({
+                  tempId: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
                   title: "",
                   subtitle: "",
                   description: "",
@@ -1042,6 +1082,43 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       </div>
 
       {/* Submit button */}
+      {/* Reorder thumbnails */}
+      {pictures.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-medium">图片顺序调整</h3>
+            <span className="text-xs text-gray-500">拖拽缩略图以改变顺序</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {pictures.map((pic, idx) => (
+              <div
+                key={(pic as any).id ?? (pic as any).tempId ?? idx}
+                draggable
+                onDragStart={() => handleDragStartThumb(idx)}
+                onDragEnter={() => handleDragEnterThumb(idx)}
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnd={handleDragEndThumb}
+                className={`relative select-none rounded-md overflow-hidden border bg-white transition-shadow ${draggingIndex === idx ? 'ring-2 ring-blue-400 shadow-lg' : 'hover:shadow'} `}
+                title={(pic.title || '').trim() || `图片 ${idx + 1}`}
+              >
+                <div className="absolute top-1 left-1 z-10">
+                  <div className="px-2 py-0.5 text-[11px] rounded-full bg-black/70 text-white">#{idx + 1}</div>
+                </div>
+                {pic.previewUrl || pic.image_url ? (
+                  <img
+                    src={pic.previewUrl || `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${pic.image_url}`}
+                    alt={`thumb-${idx + 1}`}
+                    className="w-full h-24 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">无预览</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="sticky bottom-0 bg-white py-4 border-t z-10 space-y-2">
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Submitting..." : isEditMode ? "Update Picture Set" : "Submit Picture Set"}
