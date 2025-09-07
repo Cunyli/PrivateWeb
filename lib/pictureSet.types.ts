@@ -8,6 +8,10 @@ export interface PictureSet {
   subtitle: string;
   pictures: Picture[];
   position: string;
+  // optional translated texts and tags for editing convenience
+  en?: { title?: string; subtitle?: string; description?: string };
+  zh?: { title?: string; subtitle?: string; description?: string };
+  tags?: string[];
 }
 
 export interface Picture {
@@ -21,4 +25,8 @@ export interface Picture {
   title: string;
   subtitle: string;
   description: string;
+  // optional per-picture fields (not fully wired)
+  en?: { title?: string; subtitle?: string; description?: string };
+  zh?: { title?: string; subtitle?: string; description?: string };
+  tags?: string[];
 }

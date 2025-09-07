@@ -13,6 +13,10 @@ export interface PictureFormData {
   originalSize?: number
   compressedSize?: number
   compressedFile?: File | null
+  // optional per-picture extensions (not yet wired end-to-end)
+  en?: LocaleTexts
+  zh?: LocaleTexts
+  tags?: string[]
 }
 
 export interface PictureSetFormData {
@@ -22,8 +26,21 @@ export interface PictureSetFormData {
   cover_image_url: string
   position: string
   pictures: PictureFormData[]
+  // translations and tags
+  en?: LocaleTexts
+  zh?: LocaleTexts
+  tags?: string[]
 }
 
 export interface PictureSetSubmitData extends Omit<PictureSet, "id" | "created_at" | "updated_at" | "pictures"> {
   pictures: Omit<PictureFormData, "cover" | "previewUrl" | "originalSize" | "compressedSize" | "compressedFile">[]
+  en?: LocaleTexts
+  zh?: LocaleTexts
+  tags?: string[]
+}
+
+export interface LocaleTexts {
+  title?: string
+  subtitle?: string
+  description?: string
 }

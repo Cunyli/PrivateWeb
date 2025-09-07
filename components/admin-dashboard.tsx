@@ -5,6 +5,8 @@ import { supabase } from "@/utils/supabase"
 import { PictureSetForm } from "./picture-set-form"
 import { PictureSetList } from "./picture-set-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
@@ -15,21 +17,57 @@ export function AdminDashboard() {
   const [editingPictureSet, setEditingPictureSet] = useState<PictureSet | null>(null)
   const [activeTab, setActiveTab] = useState("list")
   const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     fetchPictureSets()
   }, [])
 
-  const fetchPictureSets = async () => {
+  const fetchPictureSets = async (q?: string) => {
     try {
       setIsLoading(true)
       console.log("Fetching picture sets...")
+      const query = (typeof q === 'string' ? q : searchQuery).trim()
 
-      // First fetch the picture sets
-      const { data: setsData, error: setsError } = await supabase
-        .from("picture_sets")
-        .select("*")
-        .order("created_at", { ascending: false })
+      let setsData: any[] | null = null
+      let setsError: any = null
+
+      if (query.length === 0) {
+        // Base list
+        const res = await supabase
+          .from("picture_sets")
+          .select("*")
+          .order("created_at", { ascending: false })
+        setsData = res.data
+        setsError = res.error
+      } else {
+        console.log(`Searching picture_sets for: ${query}`)
+        // Try full-text search first
+        const fts = await supabase
+          .from('picture_sets')
+          .select('*')
+          .textSearch('search_vector', query, { type: 'plain', config: 'english' })
+          .limit(50)
+
+        if (fts.error) {
+          console.warn('FTS search error:', fts.error)
+        }
+
+        if (fts.data && fts.data.length > 0) {
+          setsData = fts.data
+        } else {
+          // Fallback to ILIKE on search_text (handles Chinese)
+          const trgm = await supabase
+            .from('picture_sets')
+            .select('*')
+            .ilike('search_text', `%${query}%`)
+            .limit(50)
+          if (trgm.error) {
+            setsError = trgm.error
+          }
+          setsData = trgm.data
+        }
+      }
 
       if (setsError) {
         console.error("Error fetching picture sets:", setsError)
@@ -79,6 +117,138 @@ export function AdminDashboard() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // --- Helpers: translations and tags for picture_set ---
+  const upsertSetTranslation = async (
+    picture_set_id: number,
+    locale: 'en' | 'zh',
+    t?: { title?: string; subtitle?: string; description?: string }
+  ) => {
+    if (!t) return
+    const payload = {
+      picture_set_id,
+      locale,
+      title: t.title || '',
+      subtitle: t.subtitle || null,
+      description: t.description || null,
+    }
+    const { error } = await supabase
+      .from('picture_set_translations')
+      .upsert(payload, { onConflict: 'picture_set_id,locale' })
+    if (error) throw error
+  }
+
+  const upsertPictureTranslation = async (
+    picture_id: number,
+    locale: 'en' | 'zh',
+    t?: { title?: string; subtitle?: string; description?: string }
+  ) => {
+    if (!t) return
+    const payload = {
+      picture_id,
+      locale,
+      title: t.title || '',
+      subtitle: t.subtitle || null,
+      description: t.description || null,
+    }
+    const { error } = await supabase
+      .from('picture_translations')
+      .upsert(payload, { onConflict: 'picture_id,locale' })
+    if (error) throw error
+  }
+
+  // --- Helpers: auto-translate missing zh fields from English/base ---
+  const translateText = async (text: string, source: 'en'|'zh' = 'en', target: 'en'|'zh' = 'zh'): Promise<string> => {
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, sourceLang: source, targetLang: target }),
+      })
+      if (!res.ok) return ''
+      const data = await res.json()
+      return (data.translated as string) || ''
+    } catch (e) {
+      console.error('translateText error', e)
+      return ''
+    }
+  }
+
+  const autoFillTranslations = async (payload: PictureSetSubmitData) => {
+    // base English candidates from main fields if en not provided
+    const enTitleBase = payload.en?.title ?? payload.title ?? ''
+    const enSubtitleBase = payload.en?.subtitle ?? payload.subtitle ?? ''
+    const enDescBase = payload.en?.description ?? payload.description ?? ''
+
+    // ensure en has values (copy from base if not supplied)
+    const enOut = {
+      title: payload.en?.title ?? enTitleBase ?? '',
+      subtitle: payload.en?.subtitle ?? enSubtitleBase ?? '',
+      description: payload.en?.description ?? enDescBase ?? '',
+    }
+
+    // only translate into zh if missing and we have english text
+    const zhOut = {
+      title: payload.zh?.title ?? '',
+      subtitle: payload.zh?.subtitle ?? '',
+      description: payload.zh?.description ?? '',
+    }
+
+    if (!zhOut.title && enOut.title) zhOut.title = await translateText(enOut.title, 'en', 'zh')
+    if (!zhOut.subtitle && enOut.subtitle) zhOut.subtitle = await translateText(enOut.subtitle, 'en', 'zh')
+    if (!zhOut.description && enOut.description) zhOut.description = await translateText(enOut.description, 'en', 'zh')
+
+    return { en: enOut, zh: zhOut }
+  }
+
+  const autoFillPictureTranslations = async (p: any) => {
+    const enOut = {
+      title: p?.en?.title ?? p?.title ?? '',
+      subtitle: p?.en?.subtitle ?? p?.subtitle ?? '',
+      description: p?.en?.description ?? p?.description ?? '',
+    }
+    const zhOut = {
+      title: p?.zh?.title ?? '',
+      subtitle: p?.zh?.subtitle ?? '',
+      description: p?.zh?.description ?? '',
+    }
+    if (!zhOut.title && enOut.title) zhOut.title = await translateText(enOut.title, 'en', 'zh')
+    if (!zhOut.subtitle && enOut.subtitle) zhOut.subtitle = await translateText(enOut.subtitle, 'en', 'zh')
+    if (!zhOut.description && enOut.description) zhOut.description = await translateText(enOut.description, 'en', 'zh')
+    return { en: enOut, zh: zhOut }
+  }
+
+  const ensureTagIds = async (names: string[] = [], type: string = 'topic'): Promise<number[]> => {
+    const uniq = Array.from(new Set(names.map(n => n.trim()).filter(Boolean)))
+    if (uniq.length === 0) return []
+    // compute simple slugs and upsert on slug unique
+    const toInsert = uniq.map(name => ({
+      name,
+      type,
+      slug: name.toLowerCase().replace(/\s+/g, '-'),
+    }))
+    await supabase.from('tags').upsert(toInsert, { onConflict: 'slug' })
+    const { data, error } = await supabase
+      .from('tags')
+      .select('id, name')
+      .in('name', uniq)
+      .eq('type', type)
+    if (error) throw error
+    return (data || []).map(d => d.id)
+  }
+
+  const setSetTags = async (picture_set_id: number, tagIds: number[]) => {
+    const { data: existing } = await supabase
+      .from('picture_set_taggings')
+      .select('tag_id')
+      .eq('picture_set_id', picture_set_id)
+    const oldIds = new Set((existing || []).map(r => r.tag_id))
+    const newIds = new Set(tagIds)
+    const toAdd = [...newIds].filter(id => !oldIds.has(id)).map(id => ({ picture_set_id, tag_id: id }))
+    const toRemove = [...oldIds].filter(id => !newIds.has(id))
+    if (toAdd.length) await supabase.from('picture_set_taggings').insert(toAdd)
+    if (toRemove.length) await supabase.from('picture_set_taggings').delete().in('tag_id', toRemove).eq('picture_set_id', picture_set_id)
   }
 
   // Helper function to delete a file from R2 with proper error handling and logging
@@ -246,6 +416,17 @@ export function AdminDashboard() {
           return
         }
 
+        // Auto-fill translations (translate missing zh from English), then upsert; and set tags for the set
+        try {
+          const filled = await autoFillTranslations(newPictureSet)
+          await upsertSetTranslation(pictureSetId, 'en', filled.en)
+          await upsertSetTranslation(pictureSetId, 'zh', filled.zh)
+          const tagIds = await ensureTagIds(newPictureSet.tags || [], 'topic')
+          await setSetTags(pictureSetId, tagIds)
+        } catch (e) {
+          console.error('Error updating translations/tags for set:', e)
+        }
+
         // Update or insert pictures
         for (const [index, picture] of newPictureSet.pictures.entries()) {
           if (picture.id) {
@@ -270,6 +451,15 @@ export function AdminDashboard() {
               continue
             }
 
+            // Picture translations (auto-fill zh)
+            try {
+              const filled = await autoFillPictureTranslations(picture)
+              await upsertPictureTranslation(picture.id, 'en', filled.en)
+              await upsertPictureTranslation(picture.id, 'zh', filled.zh)
+            } catch (e) {
+              console.error('Error upserting picture translations (update):', e)
+            }
+
             // Delete old images if they were replaced
             if (existingPicture) {
               if (existingPicture.image_url && existingPicture.image_url !== picture.image_url) {
@@ -288,7 +478,7 @@ export function AdminDashboard() {
           } else {
             // Insert new picture
             console.log(`Inserting new picture at index ${index}`)
-            const { error: pictureInsertError } = await supabase.from("pictures").insert({
+            const { data: insertedPic, error: pictureInsertError } = await supabase.from("pictures").insert({
               picture_set_id: pictureSetId,
               order_index: index,
               title: picture.title,
@@ -296,10 +486,18 @@ export function AdminDashboard() {
               description: picture.description,
               image_url: picture.image_url,
               raw_image_url: picture.raw_image_url,
-            })
+            }).select('id').single()
 
             if (pictureInsertError) {
               console.error("Error inserting new picture:", pictureInsertError)
+            } else if (insertedPic?.id) {
+              try {
+                const filled = await autoFillPictureTranslations(picture)
+                await upsertPictureTranslation(insertedPic.id, 'en', filled.en)
+                await upsertPictureTranslation(insertedPic.id, 'zh', filled.zh)
+              } catch (e) {
+                console.error('Error upserting picture translations (insert):', e)
+              }
             }
           }
         }
@@ -347,6 +545,17 @@ export function AdminDashboard() {
 
         const pictureSetId = pictureSetData[0].id
         console.log(`Created new picture set with ID: ${pictureSetId}`)
+
+        // translations and tags for the set (auto-fill zh)
+        try {
+          const filled = await autoFillTranslations(newPictureSet)
+          await upsertSetTranslation(pictureSetId, 'en', filled.en)
+          await upsertSetTranslation(pictureSetId, 'zh', filled.zh)
+          const tagIds = await ensureTagIds(newPictureSet.tags || [], 'topic')
+          await setSetTags(pictureSetId, tagIds)
+        } catch (e) {
+          console.error('Error inserting translations/tags for set:', e)
+        }
 
         // Insert all pictures
         for (const [index, picture] of newPictureSet.pictures.entries()) {
@@ -507,8 +716,56 @@ export function AdminDashboard() {
         `Loaded fresh data for picture set ${pictureSet.id} with ${freshPictureSet.pictures?.length || 0} pictures`,
       )
 
-      // Set the editing state with the fresh data
-      setEditingPictureSet(freshPictureSet)
+      // Load translations and tags for this set
+      const [{ data: tEn }, { data: tZh }] = await Promise.all([
+        supabase
+          .from('picture_set_translations')
+          .select('*')
+          .eq('picture_set_id', pictureSet.id)
+          .eq('locale', 'en')
+          .maybeSingle(),
+        supabase
+          .from('picture_set_translations')
+          .select('*')
+          .eq('picture_set_id', pictureSet.id)
+          .eq('locale', 'zh')
+          .maybeSingle(),
+      ])
+      const { data: tagRows } = await supabase
+        .from('picture_set_taggings')
+        .select('tag_id, tags(name)')
+        .eq('picture_set_id', pictureSet.id)
+
+      // Load picture translations for all pictures in this set
+      const picIds = (freshPictureSet.pictures || []).map((p: any) => p.id)
+      let transMap: Record<number, { en?: any; zh?: any }> = {}
+      if (picIds.length > 0) {
+        const { data: pTrans } = await supabase
+          .from('picture_translations')
+          .select('*')
+          .in('picture_id', picIds)
+        for (const t of pTrans || []) {
+          const entry = transMap[t.picture_id] || {}
+          if (t.locale === 'en') entry.en = { title: t.title || '', subtitle: t.subtitle || '', description: t.description || '' }
+          if (t.locale === 'zh') entry.zh = { title: t.title || '', subtitle: t.subtitle || '', description: t.description || '' }
+          transMap[t.picture_id] = entry
+        }
+      }
+
+      const enriched = {
+        ...freshPictureSet,
+        en: tEn ? { title: tEn.title || '', subtitle: tEn.subtitle || '', description: tEn.description || '' } : undefined,
+        zh: tZh ? { title: tZh.title || '', subtitle: tZh.subtitle || '', description: tZh.description || '' } : undefined,
+        tags: (tagRows || []).map((r: any) => r.tags?.name).filter(Boolean),
+        pictures: (freshPictureSet.pictures || []).map((p: any) => ({
+          ...p,
+          en: transMap[p.id]?.en,
+          zh: transMap[p.id]?.zh,
+        })),
+      }
+
+      // Set the editing state with the enriched data
+      setEditingPictureSet(enriched as PictureSet)
       setActiveTab("form")
     } catch (error) {
       console.error("Error in handleEditPictureSet:", error)
@@ -529,6 +786,29 @@ export function AdminDashboard() {
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+
+      {/* Search Bar */}
+      <div className="mb-6 flex gap-2">
+        <Input
+          placeholder="Search picture sets (支持英文/中文)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <Button onClick={() => fetchPictureSets(searchQuery)} disabled={isLoading}>
+          Search
+        </Button>
+        {searchQuery && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              setSearchQuery("")
+              fetchPictureSets("")
+            }}
+          >
+            Clear
+          </Button>
+        )}
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
