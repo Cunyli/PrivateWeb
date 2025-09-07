@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/utils/supabase"
 import { ArrowUp } from "lucide-react"
-import type { PictureSet } from "@/lib/pictureSet.types"
+import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 
 export function PortfolioGrid() {
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
@@ -15,6 +15,13 @@ export function PortfolioGrid() {
   const [shuffledDownSets, setShuffledDownSets] = useState<PictureSet[]>([])
   const [lang, setLang] = useState<'auto' | 'en' | 'zh'>('auto')
   const [transMap, setTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [setResults, setSetResults] = useState<PictureSet[] | null>(null)
+  const [pictureResults, setPictureResults] = useState<Picture[] | null>(null)
+  const [pictureTransMap, setPictureTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
 
@@ -106,6 +113,107 @@ export function PortfolioGrid() {
     }
   }
 
+  // Debounced search over sets and pictures
+  useEffect(() => {
+    const q = searchQuery.trim()
+    if (!q) {
+      setSetResults(null)
+      setPictureResults(null)
+      return
+    }
+    let alive = true
+    const t = setTimeout(async () => {
+      setSearchLoading(true)
+      try {
+        // Search sets
+        let sets: any[] = []
+        {
+          const fts = await supabase
+            .from('picture_sets')
+            .select('*')
+            .textSearch('search_vector', q, { type: 'websearch', config: 'english' })
+            .order('updated_at', { ascending: false })
+            .limit(80)
+          if (fts.error) console.warn('Set FTS error:', fts.error)
+          if (fts.data && fts.data.length > 0) {
+            sets = fts.data
+          } else {
+            const terms = q.split(/\s+/).filter(Boolean)
+            let builder: any = supabase.from('picture_sets').select('*')
+            for (const t of terms) builder = builder.ilike('search_text', `%${t}%`)
+            const andRes = await builder.order('updated_at', { ascending: false }).limit(80)
+            if (andRes.error) console.warn('Set ILIKE error:', andRes.error)
+            sets = andRes.data || []
+          }
+        }
+
+        // Search pictures
+        let pics: any[] = []
+        {
+          const fts = await supabase
+            .from('pictures')
+            .select('*')
+            .textSearch('search_vector', q, { type: 'websearch', config: 'english' })
+            .order('updated_at', { ascending: false })
+            .limit(100)
+          if (fts.error) console.warn('Pic FTS error:', fts.error)
+          if (fts.data && fts.data.length > 0) {
+            pics = fts.data
+          } else {
+            const terms = q.split(/\s+/).filter(Boolean)
+            let builder: any = supabase.from('pictures').select('*')
+            for (const t of terms) builder = builder.ilike('search_text', `%${t}%`)
+            const andRes = await builder.order('updated_at', { ascending: false }).limit(100)
+            if (andRes.error) console.warn('Pic ILIKE error:', andRes.error)
+            pics = andRes.data || []
+          }
+        }
+
+        if (!alive) return
+        setSetResults(sets as PictureSet[])
+        setPictureResults(pics as Picture[])
+
+        // Fetch translations for sets in results
+        const setIds = (sets || []).map((s: any) => s.id)
+        if (setIds.length > 0) {
+          const [{ data: enTrans }, { data: zhTrans }] = await Promise.all([
+            supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale','en').in('picture_set_id', setIds),
+            supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale','zh').in('picture_set_id', setIds),
+          ])
+          const map: Record<number, any> = { ...transMap }
+          for (const t of enTrans || []) {
+            map[(t as any).picture_set_id] = { ...(map[(t as any).picture_set_id] || {}), en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+          }
+          for (const t of zhTrans || []) {
+            map[(t as any).picture_set_id] = { ...(map[(t as any).picture_set_id] || {}), zh: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+          }
+          if (alive) setTransMap(map)
+        }
+
+        // Fetch translations for pictures in results
+        const picIds = (pics || []).map((p: any) => p.id)
+        if (picIds.length > 0) {
+          const [{ data: pen }, { data: pzh }] = await Promise.all([
+            supabase.from('picture_translations').select('picture_id, title, subtitle, description').eq('locale','en').in('picture_id', picIds),
+            supabase.from('picture_translations').select('picture_id, title, subtitle, description').eq('locale','zh').in('picture_id', picIds),
+          ])
+          const pmap: Record<number, any> = {}
+          for (const t of pen || []) pmap[(t as any).picture_id] = { ...(pmap[(t as any).picture_id] || {}), en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+          for (const t of pzh || []) pmap[(t as any).picture_id] = { ...(pmap[(t as any).picture_id] || {}), zh: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+          if (alive) setPictureTransMap(pmap)
+        } else {
+          if (alive) setPictureTransMap({})
+        }
+
+      } catch (e) {
+        console.error('Search error', e)
+      } finally {
+        if (alive) setSearchLoading(false)
+      }
+    }, 350)
+    return () => { alive = false; clearTimeout(t) }
+  }, [searchQuery])
+
   useEffect(() => {
     fetchPictureSets()
   }, [])
@@ -129,25 +237,31 @@ export function PortfolioGrid() {
   const secondRow = upPictureSets.slice(mid)
 
   useEffect(() => {
-    const top = topRowRef.current!
-    const bottom = bottomRowRef.current!
     if (!upPictureSets.length) return
+    const top = topRowRef.current
+    const bottom = bottomRowRef.current
+    if (!top || !bottom) return
 
     const tick = () => {
-      if (!top.matches(":hover")) {
-        top.scrollLeft >= top.scrollWidth - top.clientWidth - 5
-          ? top.scrollTo({ left: 0, behavior: "auto" })
-          : top.scrollBy({ left: 1, behavior: "auto" })
+      // refs might become null during unmount
+      if (!topRowRef.current || !bottomRowRef.current) return
+      const t = topRowRef.current
+      const b = bottomRowRef.current
+      if (!t || !b) return
+      if (!t.matches(":hover")) {
+        t.scrollLeft >= t.scrollWidth - t.clientWidth - 5
+          ? t.scrollTo({ left: 0, behavior: "auto" })
+          : t.scrollBy({ left: 1, behavior: "auto" })
       }
-      if (!bottom.matches(":hover")) {
-        bottom.scrollLeft <= 5
-          ? bottom.scrollTo({ left: bottom.scrollWidth - bottom.clientWidth, behavior: "auto" })
-          : bottom.scrollBy({ left: -1, behavior: "auto" })
+      if (!b.matches(":hover")) {
+        b.scrollLeft <= 5
+          ? b.scrollTo({ left: b.scrollWidth - b.clientWidth, behavior: "auto" })
+          : b.scrollBy({ left: -1, behavior: "auto" })
       }
     }
 
-    const id = setInterval(tick, 30)
-    return () => clearInterval(id)
+    const id = window.setInterval(tick, 30)
+    return () => window.clearInterval(id)
   }, [upPictureSets])
 
   const scrollToTop = () => {
@@ -173,39 +287,115 @@ export function PortfolioGrid() {
     return t?.zh?.[key] || s[key]
   }
 
+  const getPicText = (p: Picture, key: 'title'|'subtitle'|'description') => {
+    const t = pictureTransMap[p.id]
+    if (lang === 'zh') return t?.zh?.[key] || (p as any)[key]
+    if (lang === 'en') return t?.en?.[key] || (p as any)[key]
+    return t?.zh?.[key] || (p as any)[key]
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
 
   return (
     <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
-      <div className="relative mb-6 sm:mb-10">
+      <div className="relative mb-4 sm:mb-8">
         <h1 className="text-2xl sm:text-4xl font-light text-center">Lijie&apos;s Galleries</h1>
-        {/* Floating language switch: globe that reveals options on hover */}
-        <div className="absolute right-0 top-0">
-          <div className="group relative inline-block">
-            <button
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm transition 
-                         ${lang==='zh' ? 'bg-black text-white' : lang==='en' ? 'bg-black text-white' : 'bg-white text-gray-700'}
-                         hover:shadow`}
-              title="Language"
-            >
-              <span aria-hidden>🌐</span>
-            </button>
-            {/* Options dropdown on hover */}
-            <div className="absolute right-0 mt-2 hidden group-hover:flex bg-white/95 backdrop-blur rounded-full shadow-lg p-1 gap-1 z-10">
-              <button
-                onClick={() => setLang('zh')}
-                className={`px-3 py-1.5 rounded-full text-sm transition ${lang==='zh' ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-                aria-pressed={lang==='zh'}
-              >中文</button>
-              <button
-                onClick={() => setLang('en')}
-                className={`px-3 py-1.5 rounded-full text-sm transition ${lang==='en' ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-                aria-pressed={lang==='en'}
-              >EN</button>
+        {/* 右上角小图标：点击打开搜索面板；长按/双击不需要 */}
+        <div className="absolute right-0 top-0 flex items-center gap-2">
+          {/* 语言切换：点击直接在中文/英文间切换（不再弹出菜单） */}
+          <button
+            onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')}
+            className={`w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm transition ${lang!=='auto' ? 'bg-black text-white' : 'bg-white text-gray-700'} hover:shadow`}
+            title={`语言：${lang==='zh' ? '中文' : 'EN'}（点击切换）`}
+            aria-label="Toggle language"
+          >
+            <span aria-hidden>🌐</span>
+          </button>
+          {/* 搜索面板触发 */}
+          <button
+            onClick={() => {
+              setSearchOpen(true)
+              setTimeout(() => searchInputRef.current?.focus(), 0)
+            }}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm bg-white text-gray-700 hover:shadow"
+            title="搜索"
+            aria-label="Open search"
+          >
+            🔍
+          </button>
+        </div>
+      </div>
+
+      {/* 轻量搜索面板（覆盖层） */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setSearchOpen(false)}>
+          <div className="absolute inset-x-0 top-16 mx-auto max-w-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b">
+                <input
+                  ref={searchInputRef}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="搜索集合或图片（中文/英文，支持多词 AND）"
+                  className="flex-1 outline-none"
+                />
+                {searchQuery && (
+                  <button className="text-sm text-gray-500 hover:text-gray-700" onClick={() => setSearchQuery("")}>清空</button>
+                )}
+                <button className="text-xl" onClick={() => setSearchOpen(false)} aria-label="Close">×</button>
+              </div>
+              <div className="max-h-[70vh] overflow-auto p-3 sm:p-4">
+                {/* 结果列表：沿用现有结果块 */}
+                <div className="flex flex-col gap-8">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-base font-medium">集合匹配</h2>
+                      {searchLoading && <span className="text-xs text-gray-500">检索中…</span>}
+                    </div>
+                    {(setResults?.length || 0) === 0 ? (
+                      <p className="text-sm text-gray-500">没有匹配的集合</p>
+                    ) : (
+                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+                        {(setResults || []).map((item) => (
+                          <Link key={item.id} href={`/work/${item.id}`} className="group block relative overflow-hidden rounded-md bg-gray-100">
+                            <Image src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"} alt={getText(item,'title')} width={400} height={250} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                            <div className="p-2">
+                              <div className="text-sm font-medium line-clamp-1">{getText(item,'title')}</div>
+                              <div className="text-xs text-gray-500 line-clamp-1">{getText(item,'subtitle')}</div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-base font-medium">图片匹配</h2>
+                      {searchLoading && <span className="text-xs text-gray-500">检索中…</span>}
+                    </div>
+                    {(pictureResults?.length || 0) === 0 ? (
+                      <p className="text-sm text-gray-500">没有匹配的图片</p>
+                    ) : (
+                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+                        {(pictureResults || []).map((p) => (
+                          <Link key={p.id} href={`/work/${p.picture_set_id}`} className="group block relative overflow-hidden rounded-md bg-gray-100">
+                            <Image src={p.image_url ? `${baseUrl}${p.image_url}` : "/placeholder.svg"} alt={getPicText(p,'title')} width={400} height={250} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                            <div className="p-2">
+                              <div className="text-sm font-medium line-clamp-1">{getPicText(p,'title')}</div>
+                              <div className="text-xs text-gray-500 line-clamp-1">{getPicText(p,'subtitle')}</div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-20">

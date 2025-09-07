@@ -65,7 +65,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [isGenerating, setIsGenerating] = useState({
     title: false,
     subtitle: false,
-    description: false
+    description: false,
+    tags: false,
   })
   // translations
   const [en, setEn] = useState<{title: string; subtitle: string; description: string}>({ title: "", subtitle: "", description: "" })
@@ -74,6 +75,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [tagsText, setTagsText] = useState<string>("")
   const [showAIAnalysis, setShowAIAnalysis] = useState(false)
   const [showPictureAIAnalysis, setShowPictureAIAnalysis] = useState<{[key: number]: boolean}>({})
+  const [showPictureTranslations, setShowPictureTranslations] = useState<{[key: number]: boolean}>({})
   const formRef = useRef<HTMLFormElement>(null)
   const picturesContainerRef = useRef<HTMLDivElement>(null)
   const bulkInputRef = useRef<HTMLInputElement>(null)
@@ -115,6 +117,53 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     }
   }
 
+  const generatePictureTags = async (pictureIndex: number) => {
+    const picture = pictures[pictureIndex]
+    const src = picture.previewUrl
+    if (!src) return
+    setIsGenerating(prev => ({ ...prev, tags: true }))
+    try {
+      const result = await analyzeImage(src, 'tags')
+      if (result.success) {
+        const parts = result.result
+          .replace(/\n/g, ',')
+          .split(/[,，;；]/)
+          .map(s => s.trim())
+          .filter(Boolean)
+        const uniq = Array.from(new Set(parts.map(s => s.toLowerCase())))
+        handlePictureChange(pictureIndex, 'tags', uniq)
+      }
+    } catch (e) {
+      console.error('生成图片标签失败:', e)
+    } finally {
+      setIsGenerating(prev => ({ ...prev, tags: false }))
+    }
+  }
+
+  // 生成集合标签（优先使用封面图；没有则用第一张图片）
+  const generateTagsForSet = async () => {
+    const sourceImage = coverPreview || pictures.find(p => p.previewUrl)?.previewUrl
+    if (!sourceImage) return
+    setIsGenerating(prev => ({ ...prev, tags: true }))
+    try {
+      const result = await analyzeImage(sourceImage, 'tags')
+      if (result.success) {
+        // 解析标签，支持中文逗号、英文逗号、分号和换行
+        const parts = result.result
+          .replace(/\n/g, ',')
+          .split(/[,，;；]/)
+          .map(s => s.trim())
+          .filter(Boolean)
+        const uniq = Array.from(new Set(parts.map(s => s.toLowerCase())));
+        setTagsText(uniq.join(', '))
+      }
+    } catch (e) {
+      console.error('生成标签失败', e)
+    } finally {
+      setIsGenerating(prev => ({ ...prev, tags: false }))
+    }
+  }
+
   // 编辑模式初始化
   useEffect(() => {
     if (editingPictureSet) {
@@ -146,6 +195,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title || "",
             subtitle: pic.subtitle || "",
             description: pic.description || "",
+            tags: pic.tags || [],
             en: {
               title: pic.en?.title || "",
               subtitle: pic.en?.subtitle || "",
@@ -222,6 +272,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         title: "",
         subtitle: "",
         description: "",
+        tags: [],
         en: { title: "", subtitle: "", description: "" },
         zh: { title: "", subtitle: "", description: "" },
         cover: null,
@@ -332,6 +383,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title,
             subtitle: pic.subtitle,
             description: pic.description,
+            tags: pic.tags,
             en: pic.en,
             zh: pic.zh,
             image_url,
@@ -369,7 +421,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(2) + " KB" : (b / 1048576).toFixed(2) + " MB"
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 relative">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 relative">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">{isEditMode ? "Edit Picture Set" : "Create New Picture Set"}</h2>
         {isEditMode && onCancel && (
@@ -380,7 +432,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       </div>
 
       {/* 标题/副标题/描述/位置 */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-5">
         {/* 左侧：表单字段 */}
         <div className="space-y-4">
           <div>
@@ -550,7 +602,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       )}
 
       {/* 多语言与标签 */}
-      <div className="grid grid-cols-2 gap-6 border rounded-lg p-4">
+      <div className="grid grid-cols-2 gap-4 border rounded-lg p-3">
         {/* 英文 */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -579,14 +631,33 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       </div>
 
       <div className="space-y-2">
-        <Label className="text-base font-semibold">标签（以逗号分隔）</Label>
-        <Input placeholder="例如：portrait, street, night"
-               value={tagsText}
-               onChange={(e) => setTagsText(e.target.value)} />
+        <div className="flex items-center justify-between">
+          <Label className="text-base font-semibold">标签（以逗号分隔）</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={generateTagsForSet}
+            disabled={isGenerating.tags || (!coverPreview && pictures.length === 0)}
+            title={coverPreview || pictures.length > 0 ? 'AI 生成标签' : '请先添加封面或图片'}
+            className="h-8 px-2"
+          >
+            {isGenerating.tags ? (
+              <span className="text-xs text-gray-500">生成中…</span>
+            ) : (
+              <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI 生成</span>
+            )}
+          </Button>
+        </div>
+        <Input
+          placeholder="例如：portrait, street, night"
+          value={tagsText}
+          onChange={(e) => setTagsText(e.target.value)}
+        />
       </div>
 
       {/* 多张图片列表 */}
-      <div className="space-y-8" ref={picturesContainerRef}>
+      <div className="space-y-6" ref={picturesContainerRef}>
         {/* 简化的标题 */}
         {pictures.length > 0 && (
           <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
@@ -613,7 +684,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         {pictures.map((pic, idx) => (
           <div 
             key={idx} 
-            className="relative bg-white border-2 border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+            className="relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
           >
             {/* 图片序号标识 */}
             <div className="absolute top-4 left-4 z-10">
@@ -640,8 +711,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               </Button>
             </div>
 
-            <div className="p-6 pt-16">
-              <div className="grid grid-cols-2 gap-8">
+            <div className="p-4 pt-14">
+              <div className="grid grid-cols-2 gap-6">
                 {/* 左侧：表单字段 */}
                 <div className="space-y-5">
                   <div className="space-y-2">
@@ -719,50 +790,88 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     />
                   </div>
 
+                  {/* 图片标签 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-semibold text-gray-700">标签（逗号分隔）</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => generatePictureTags(idx)}
+                        disabled={isGenerating.tags || !pic.previewUrl}
+                        className="h-7 px-2"
+                        title={pic.previewUrl ? 'AI 生成图片标签' : '请先选择图片'}
+                      >
+                        {isGenerating.tags ? <span className="text-xs text-gray-500">生成中…</span> : <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI 生成</span>}
+                      </Button>
+                    </div>
+                    <Input
+                      placeholder="如 portrait, night, bokeh"
+                      value={(pic.tags || []).join(', ')}
+                      onChange={(e) => handlePictureChange(idx, 'tags', e.target.value.split(/[,，]/).map(s => s.trim()).filter(Boolean))}
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
                   {/* 图片翻译字段 */}
-                  <div className="mt-4 grid grid-cols-2 gap-4 border border-gray-200 rounded-md p-3">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold text-gray-700">English (en)</Label>
-                      <Input
-                        placeholder="English title"
-                        value={pic.en?.title || ''}
-                        onChange={(e) => handlePictureChange(idx, 'en.title', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <Input
-                        placeholder="English subtitle"
-                        value={pic.en?.subtitle || ''}
-                        onChange={(e) => handlePictureChange(idx, 'en.subtitle', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <Textarea
-                        placeholder="English description"
-                        value={pic.en?.description || ''}
-                        onChange={(e) => handlePictureChange(idx, 'en.description', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold text-gray-700">中文 (zh)</Label>
-                      <Input
-                        placeholder="中文标题"
-                        value={pic.zh?.title || ''}
-                        onChange={(e) => handlePictureChange(idx, 'zh.title', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <Input
-                        placeholder="中文副标题"
-                        value={pic.zh?.subtitle || ''}
-                        onChange={(e) => handlePictureChange(idx, 'zh.subtitle', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <Textarea
-                        placeholder="中文描述"
-                        value={pic.zh?.description || ''}
-                        onChange={(e) => handlePictureChange(idx, 'zh.description', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
-                      />
-                    </div>
+                  {/* 图片翻译字段（默认收起，提升紧凑性） */}
+                  <div className="mt-4 border border-gray-200 rounded-md">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full p-2 flex items-center justify-between text-left"
+                      onClick={() => setShowPictureTranslations(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                    >
+                      <span className="text-sm font-medium">翻译字段</span>
+                      <span className={`transform transition-transform ${showPictureTranslations[idx] ? 'rotate-180' : ''}`}>▼</span>
+                    </Button>
+                    {showPictureTranslations[idx] && (
+                      <div className="grid grid-cols-2 gap-4 px-3 pb-3">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold text-gray-700">English (en)</Label>
+                          <Input
+                            placeholder="English title"
+                            value={pic.en?.title || ''}
+                            onChange={(e) => handlePictureChange(idx, 'en.title', e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <Input
+                            placeholder="English subtitle"
+                            value={pic.en?.subtitle || ''}
+                            onChange={(e) => handlePictureChange(idx, 'en.subtitle', e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <Textarea
+                            placeholder="English description"
+                            value={pic.en?.description || ''}
+                            onChange={(e) => handlePictureChange(idx, 'en.description', e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold text-gray-700">中文 (zh)</Label>
+                          <Input
+                            placeholder="中文标题"
+                            value={pic.zh?.title || ''}
+                            onChange={(e) => handlePictureChange(idx, 'zh.title', e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <Input
+                            placeholder="中文副标题"
+                            value={pic.zh?.subtitle || ''}
+                            onChange={(e) => handlePictureChange(idx, 'zh.subtitle', e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <Textarea
+                            placeholder="中文描述"
+                            value={pic.zh?.description || ''}
+                            onChange={(e) => handlePictureChange(idx, 'zh.description', e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

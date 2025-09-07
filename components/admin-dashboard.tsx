@@ -23,6 +23,14 @@ export function AdminDashboard() {
     fetchPictureSets()
   }, [])
 
+  // Debounced search for robustness
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchPictureSets(searchQuery)
+    }, 350)
+    return () => clearTimeout(t)
+  }, [searchQuery])
+
   const fetchPictureSets = async (q?: string) => {
     try {
       setIsLoading(true)
@@ -37,17 +45,19 @@ export function AdminDashboard() {
         const res = await supabase
           .from("picture_sets")
           .select("*")
+          .order("updated_at", { ascending: false })
           .order("created_at", { ascending: false })
         setsData = res.data
         setsError = res.error
       } else {
         console.log(`Searching picture_sets for: ${query}`)
-        // Try full-text search first
+        // Try English websearch FTS first
         const fts = await supabase
           .from('picture_sets')
           .select('*')
-          .textSearch('search_vector', query, { type: 'plain', config: 'english' })
-          .limit(50)
+          .textSearch('search_vector', query, { type: 'websearch', config: 'english' })
+          .order('updated_at', { ascending: false })
+          .limit(100)
 
         if (fts.error) {
           console.warn('FTS search error:', fts.error)
@@ -56,16 +66,19 @@ export function AdminDashboard() {
         if (fts.data && fts.data.length > 0) {
           setsData = fts.data
         } else {
-          // Fallback to ILIKE on search_text (handles Chinese)
-          const trgm = await supabase
-            .from('picture_sets')
-            .select('*')
-            .ilike('search_text', `%${query}%`)
-            .limit(50)
-          if (trgm.error) {
-            setsError = trgm.error
+          // Fallback: AND all terms against search_text (supports zh + tags)
+          const terms = query.split(/\s+/).filter(Boolean)
+          let builder: any = supabase.from('picture_sets').select('*')
+          for (const t of terms) {
+            builder = builder.ilike('search_text', `%${t}%`)
           }
-          setsData = trgm.data
+          const andRes = await builder
+            .order('updated_at', { ascending: false })
+            .limit(100)
+          if (andRes.error) {
+            setsError = andRes.error
+          }
+          setsData = andRes.data
         }
       }
 
@@ -228,13 +241,20 @@ export function AdminDashboard() {
       type,
       slug: name.toLowerCase().replace(/\s+/g, '-'),
     }))
-    await supabase.from('tags').upsert(toInsert, { onConflict: 'slug' })
+    const up = await supabase.from('tags').upsert(toInsert, { onConflict: 'slug' })
+    if (up.error) {
+      console.error('Upsert tags failed:', up.error)
+      // continue to try select existing tag ids even if upsert failed (e.g., RLS)
+    }
     const { data, error } = await supabase
       .from('tags')
       .select('id, name')
       .in('name', uniq)
       .eq('type', type)
-    if (error) throw error
+    if (error) {
+      console.error('Select tags failed:', error)
+      throw error
+    }
     return (data || []).map(d => d.id)
   }
 
@@ -249,6 +269,19 @@ export function AdminDashboard() {
     const toRemove = [...oldIds].filter(id => !newIds.has(id))
     if (toAdd.length) await supabase.from('picture_set_taggings').insert(toAdd)
     if (toRemove.length) await supabase.from('picture_set_taggings').delete().in('tag_id', toRemove).eq('picture_set_id', picture_set_id)
+  }
+
+  const setPictureTags = async (picture_id: number, tagIds: number[]) => {
+    const { data: existing } = await supabase
+      .from('picture_taggings')
+      .select('tag_id')
+      .eq('picture_id', picture_id)
+    const oldIds = new Set((existing || []).map(r => r.tag_id))
+    const newIds = new Set(tagIds)
+    const toAdd = [...newIds].filter(id => !oldIds.has(id)).map(id => ({ picture_id, tag_id: id }))
+    const toRemove = [...oldIds].filter(id => !newIds.has(id))
+    if (toAdd.length) await supabase.from('picture_taggings').insert(toAdd)
+    if (toRemove.length) await supabase.from('picture_taggings').delete().in('tag_id', toRemove).eq('picture_id', picture_id)
   }
 
   // Helper function to delete a file from R2 with proper error handling and logging
@@ -421,10 +454,28 @@ export function AdminDashboard() {
           const filled = await autoFillTranslations(newPictureSet)
           await upsertSetTranslation(pictureSetId, 'en', filled.en)
           await upsertSetTranslation(pictureSetId, 'zh', filled.zh)
-          const tagIds = await ensureTagIds(newPictureSet.tags || [], 'topic')
+          // Auto-generate set tags if none provided
+          let setTags = newPictureSet.tags || []
+          if (!setTags || setTags.length === 0) {
+            const coverUrl = newPictureSet.cover_image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${newPictureSet.cover_image_url}` : undefined
+            const firstPic = (newPictureSet.pictures || []).find(p => p.image_url)
+            const fallbackUrl = firstPic?.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${firstPic.image_url}` : undefined
+            try {
+              const res = await fetch('/api/analyze-image', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl: coverUrl || fallbackUrl, analysisType: 'tags' })
+              })
+              const data = await res.json()
+              if (res.ok && data?.success) {
+                setTags = Array.from(new Set(String(data.result).replace(/\n/g, ',').split(/[,，;；]/).map((s: string)=>s.trim().toLowerCase()).filter(Boolean)))
+              }
+            } catch {}
+          }
+          const tagIds = await ensureTagIds(setTags || [], 'topic')
           await setSetTags(pictureSetId, tagIds)
         } catch (e) {
           console.error('Error updating translations/tags for set:', e)
+          toast({ title: 'Tag/translation error', description: '保存集合标签或翻译失败，请检查权限或网络。', variant: 'destructive' })
         }
 
         // Update or insert pictures
@@ -458,6 +509,29 @@ export function AdminDashboard() {
               await upsertPictureTranslation(picture.id, 'zh', filled.zh)
             } catch (e) {
               console.error('Error upserting picture translations (update):', e)
+            }
+
+            // Picture tags (auto-generate if missing)
+            try {
+              let pTags = picture.tags || []
+              if (!pTags || pTags.length === 0) {
+                const picUrl = picture.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${picture.image_url}` : undefined
+                try {
+                  const res = await fetch('/api/analyze-image', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageUrl: picUrl, analysisType: 'tags' })
+                  })
+                  const data = await res.json()
+                  if (res.ok && data?.success) {
+                    pTags = Array.from(new Set(String(data.result).replace(/\n/g, ',').split(/[,，;；]/).map((s: string)=>s.trim().toLowerCase()).filter(Boolean)))
+                  }
+                } catch {}
+              }
+              const pTagIds = await ensureTagIds(pTags || [], 'topic')
+              await setPictureTags(picture.id, pTagIds)
+            } catch (e) {
+              console.error('Error updating picture tags:', e)
+              toast({ title: 'Tag error', description: `图片 #${picture.id} 标签保存失败，请检查权限或网络。`, variant: 'destructive' })
             }
 
             // Delete old images if they were replaced
@@ -497,6 +571,28 @@ export function AdminDashboard() {
                 await upsertPictureTranslation(insertedPic.id, 'zh', filled.zh)
               } catch (e) {
                 console.error('Error upserting picture translations (insert):', e)
+              }
+
+              try {
+                let pTags = picture.tags || []
+                if (!pTags || pTags.length === 0) {
+                  const picUrl = picture.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${picture.image_url}` : undefined
+                  try {
+                    const res = await fetch('/api/analyze-image', {
+                      method: 'POST', headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ imageUrl: picUrl, analysisType: 'tags' })
+                    })
+                    const data = await res.json()
+                    if (res.ok && data?.success) {
+                      pTags = Array.from(new Set(String(data.result).replace(/\n/g, ',').split(/[,，;；]/).map((s: string)=>s.trim().toLowerCase()).filter(Boolean)))
+                    }
+                  } catch {}
+                }
+                const pTagIds = await ensureTagIds(pTags || [], 'topic')
+                await setPictureTags(insertedPic.id, pTagIds)
+              } catch (e) {
+                console.error('Error inserting picture tags:', e)
+                toast({ title: 'Tag error', description: `新图片标签保存失败，请检查权限或网络。`, variant: 'destructive' })
               }
             }
           }
@@ -551,10 +647,28 @@ export function AdminDashboard() {
           const filled = await autoFillTranslations(newPictureSet)
           await upsertSetTranslation(pictureSetId, 'en', filled.en)
           await upsertSetTranslation(pictureSetId, 'zh', filled.zh)
-          const tagIds = await ensureTagIds(newPictureSet.tags || [], 'topic')
+          // Auto-generate set tags if none provided
+          let setTags = newPictureSet.tags || []
+          if (!setTags || setTags.length === 0) {
+            const coverUrl = newPictureSet.cover_image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${newPictureSet.cover_image_url}` : undefined
+            const firstPic = (newPictureSet.pictures || []).find(p => p.image_url)
+            const fallbackUrl = firstPic?.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${firstPic.image_url}` : undefined
+            try {
+              const res = await fetch('/api/analyze-image', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl: coverUrl || fallbackUrl, analysisType: 'tags' })
+              })
+              const data = await res.json()
+              if (res.ok && data?.success) {
+                setTags = Array.from(new Set(String(data.result).replace(/\n/g, ',').split(/[,，;；]/).map((s: string)=>s.trim().toLowerCase()).filter(Boolean)))
+              }
+            } catch {}
+          }
+          const tagIds = await ensureTagIds(setTags || [], 'topic')
           await setSetTags(pictureSetId, tagIds)
         } catch (e) {
           console.error('Error inserting translations/tags for set:', e)
+          toast({ title: 'Tag/translation error', description: '保存集合标签或翻译失败，请检查权限或网络。', variant: 'destructive' })
         }
 
         // Insert all pictures
@@ -752,6 +866,21 @@ export function AdminDashboard() {
         }
       }
 
+      // Load picture tags for all pictures in this set
+      let picTagMap: Record<number, string[]> = {}
+      if (picIds.length > 0) {
+        const { data: pTags } = await supabase
+          .from('picture_taggings')
+          .select('picture_id, tags(name)')
+          .in('picture_id', picIds)
+        for (const row of pTags || []) {
+          const name = (row as any).tags?.name
+          const pid = (row as any).picture_id
+          if (!name || !pid) continue
+          picTagMap[pid] = [...(picTagMap[pid] || []), name]
+        }
+      }
+
       const enriched = {
         ...freshPictureSet,
         en: tEn ? { title: tEn.title || '', subtitle: tEn.subtitle || '', description: tEn.description || '' } : undefined,
@@ -761,6 +890,7 @@ export function AdminDashboard() {
           ...p,
           en: transMap[p.id]?.en,
           zh: transMap[p.id]?.zh,
+          tags: picTagMap[p.id] || [],
         })),
       }
 
@@ -788,25 +918,14 @@ export function AdminDashboard() {
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
       {/* Search Bar */}
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex gap-2 items-center">
         <Input
-          placeholder="Search picture sets (支持英文/中文)"
+          placeholder="搜索集合：支持中文/英文，多词自动 AND 匹配"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Button onClick={() => fetchPictureSets(searchQuery)} disabled={isLoading}>
-          Search
-        </Button>
         {searchQuery && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              setSearchQuery("")
-              fetchPictureSets("")
-            }}
-          >
-            Clear
-          </Button>
+          <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>清空</Button>
         )}
       </div>
 
