@@ -331,6 +331,19 @@ export function AdminDashboard() {
     if (toRemove.length) await supabase.from('picture_taggings').delete().in('tag_id', toRemove).eq('picture_id', picture_id)
   }
 
+  // Simple client-side geocode via our API; returns { lat, lon } or null
+  const geocodeByName = async (q?: string): Promise<{ lat: number; lon: number } | null> => {
+    try {
+      if (!q || !q.trim()) return null
+      const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, limit: 1 }) })
+      if (!res.ok) return null
+      const data = await res.json()
+      const g = data?.results?.[0]
+      if (g && typeof g.lat === 'number' && typeof g.lon === 'number') return { lat: g.lat, lon: g.lon }
+    } catch {}
+    return null
+  }
+
   // Helper function to delete a file from R2 with proper error handling and logging
   const safeDeleteFromR2 = async (url: string | null | undefined): Promise<boolean> => {
     if (!url) {
@@ -483,6 +496,9 @@ export function AdminDashboard() {
             description: newPictureSet.description,
             cover_image_url: newPictureSet.cover_image_url,
             position: newPictureSet.position,
+            is_published: newPictureSet.is_published ?? true,
+            primary_category_id: newPictureSet.primary_category_id ?? null,
+            season_id: newPictureSet.season_id ?? null,
           })
           .eq("id", pictureSetId)
 
@@ -494,6 +510,71 @@ export function AdminDashboard() {
             variant: "destructive",
           })
           return
+        }
+
+        // Update sections assignments (multi)
+        try {
+          let desiredSectionIds = Array.from(new Set(newPictureSet.section_ids || []))
+          // also add a section by derived position if no explicit mapping
+          const { data: secs } = await supabase.from('sections').select('id,name')
+          const findBy = (want: 'up'|'down') => {
+            const re = want === 'down' ? /\bdown\b|bottom|下|底/i : /\bup\b|top|上|顶/i
+            return (secs || []).find((s:any)=> re.test(String(s.name||'')))?.id as number | undefined
+          }
+          const pos = (newPictureSet.position||'').trim().toLowerCase()
+          const autoId = pos === 'down' ? findBy('down') : findBy('up')
+          if (autoId && !desiredSectionIds.includes(autoId)) desiredSectionIds = [...desiredSectionIds, autoId]
+
+          const { data: existingAssigns } = await supabase
+            .from('picture_set_section_assignments')
+            .select('section_id')
+            .eq('picture_set_id', pictureSetId)
+          const existingIds = new Set((existingAssigns || []).map((r:any)=>r.section_id))
+          const toAdd = desiredSectionIds.filter(id => !existingIds.has(id)).map(id => ({ picture_set_id: pictureSetId, section_id: id, page_context: 'default', display_order: 0 }))
+          const toRemove = [...existingIds].filter(id => !desiredSectionIds.includes(id))
+          if (toAdd.length) await supabase.from('picture_set_section_assignments').insert(toAdd)
+          if (toRemove.length) await supabase.from('picture_set_section_assignments').delete().eq('picture_set_id', pictureSetId).in('section_id', toRemove)
+        } catch (e) {
+          console.warn('Update sections failed', e)
+        }
+
+        // Upsert primary location if provided (geocode if lat/lng missing)
+        try {
+          const nm = newPictureSet.primary_location_name?.trim()
+          let lat = newPictureSet.primary_location_latitude as number | null
+          let lng = newPictureSet.primary_location_longitude as number | null
+          if (nm && (lat == null || lng == null)) {
+            const g = await geocodeByName(nm)
+            if (g) { lat = g.lat; lng = g.lon }
+          }
+          if (nm && typeof lat === 'number' && typeof lng === 'number') {
+            // find existing identical location or create
+            let locationId: number | undefined
+            const { data: found } = await supabase
+              .from('locations')
+              .select('id')
+              .eq('name', nm)
+              .eq('latitude', lat)
+              .eq('longitude', lng)
+              .maybeSingle()
+            if (found?.id) locationId = found.id
+            else {
+              const { data: created, error: locErr } = await supabase
+                .from('locations')
+                .insert({ name: nm, latitude: lat, longitude: lng })
+                .select('id')
+                .single()
+              if (locErr) throw locErr
+              locationId = created.id
+            }
+            if (locationId) {
+              // ensure only one primary location: delete then insert
+              await supabase.from('picture_set_locations').delete().eq('picture_set_id', pictureSetId)
+              await supabase.from('picture_set_locations').insert({ picture_set_id: pictureSetId, location_id: locationId, is_primary: true })
+            }
+          }
+        } catch (e) {
+          console.warn('Upsert primary location failed', e)
         }
 
         // Auto-fill translations (translate missing zh from English), then upsert; and set tags for the set
@@ -518,8 +599,26 @@ export function AdminDashboard() {
               }
             } catch {}
           }
-          const tagIds = await ensureTagIds(setTags || [], 'topic')
-          await setSetTags(pictureSetId, tagIds)
+          // topic tags
+          const topicTagIds = await ensureTagIds(setTags || [], 'topic')
+          // category tags from selected category IDs
+          let categoryTagIds: number[] = []
+          const selectedCategoryIds = Array.from(new Set(newPictureSet.category_ids || []))
+          if (selectedCategoryIds.length) {
+            const { data: catRows } = await supabase.from('categories').select('id,name').in('id', selectedCategoryIds)
+            const catNames = (catRows || []).map((r:any)=> r.name).filter(Boolean)
+            categoryTagIds = await ensureTagIds(catNames, 'category')
+          }
+          // season tags from selected season IDs
+          let seasonTagIds: number[] = []
+          const selectedSeasonIds = Array.from(new Set(newPictureSet.season_ids || []))
+          if (selectedSeasonIds.length) {
+            const { data: seaRows } = await supabase.from('seasons').select('id,name').in('id', selectedSeasonIds)
+            const seaNames = (seaRows || []).map((r:any)=> r.name).filter(Boolean)
+            seasonTagIds = await ensureTagIds(seaNames, 'season')
+          }
+          const combined = Array.from(new Set([...(topicTagIds||[]), ...(categoryTagIds||[]), ...(seasonTagIds||[])]))
+          await setSetTags(pictureSetId, combined)
         } catch (e) {
           console.error('Error updating translations/tags for set:', e)
           toast({ title: 'Tag/translation error', description: '保存集合标签或翻译失败，请检查权限或网络。', variant: 'destructive' })
@@ -540,6 +639,7 @@ export function AdminDashboard() {
                 description: picture.description,
                 image_url: picture.image_url || undefined,
                 raw_image_url: picture.raw_image_url || undefined,
+                season_id: picture.season_id ?? null,
                 order_index: index,
               })
               .eq("id", picture.id)
@@ -581,6 +681,44 @@ export function AdminDashboard() {
               toast({ title: 'Tag error', description: `图片 #${picture.id} 标签保存失败，请检查权限或网络。`, variant: 'destructive' })
             }
 
+            // Upsert picture primary location (optional; geocode if needed)
+            try {
+              const nm = (picture as any).location_name?.trim()
+              let plat = (picture as any).location_latitude as number | null
+              let plng = (picture as any).location_longitude as number | null
+              if (nm && (plat == null || plng == null)) {
+                const g = await geocodeByName(nm)
+                if (g) { plat = g.lat; plng = g.lon }
+              }
+              if (nm && typeof plat === 'number' && typeof plng === 'number') {
+                let locationId: number | undefined
+                const { data: found } = await supabase
+                  .from('locations')
+                  .select('id')
+                  .eq('name', nm)
+                  .eq('latitude', plat)
+                  .eq('longitude', plng)
+                  .maybeSingle()
+                if (found?.id) locationId = found.id
+                else {
+                  const { data: created, error: locErr } = await supabase
+                    .from('locations')
+                    .insert({ name: nm, latitude: plat, longitude: plng })
+                    .select('id')
+                    .single()
+                  if (locErr) throw locErr
+                  locationId = created.id
+                }
+                if (locationId) {
+                  // replace existing mapping with new primary
+                  await supabase.from('picture_locations').delete().eq('picture_id', picture.id)
+                  await supabase.from('picture_locations').insert({ picture_id: picture.id, location_id: locationId, is_primary: true })
+                }
+              }
+            } catch (e) {
+              console.warn('Upsert picture primary location failed', e)
+            }
+
             // Delete old images if they were replaced
             if (existingPicture) {
               if (existingPicture.image_url && existingPicture.image_url !== picture.image_url) {
@@ -607,6 +745,7 @@ export function AdminDashboard() {
               description: picture.description,
               image_url: picture.image_url,
               raw_image_url: picture.raw_image_url,
+              season_id: picture.season_id ?? null,
             }).select('id').single()
 
             if (pictureInsertError) {
@@ -636,10 +775,46 @@ export function AdminDashboard() {
                   } catch {}
                 }
                 const pTagIds = await ensureTagIds(pTags || [], 'topic')
-                await setPictureTags(insertedPic.id, pTagIds)
+              await setPictureTags(insertedPic.id, pTagIds)
               } catch (e) {
                 console.error('Error inserting picture tags:', e)
                 toast({ title: 'Tag error', description: `新图片标签保存失败，请检查权限或网络。`, variant: 'destructive' })
+              }
+
+              // Picture primary location (optional; geocode if needed)
+              try {
+                const nm = (picture as any).location_name?.trim()
+                let plat = (picture as any).location_latitude as number | null
+                let plng = (picture as any).location_longitude as number | null
+                if (nm && (plat == null || plng == null)) {
+                  const g = await geocodeByName(nm)
+                  if (g) { plat = g.lat; plng = g.lon }
+                }
+                if (nm && typeof plat === 'number' && typeof plng === 'number') {
+                  let locationId: number | undefined
+                  const { data: found } = await supabase
+                    .from('locations')
+                    .select('id')
+                    .eq('name', nm)
+                    .eq('latitude', plat)
+                    .eq('longitude', plng)
+                    .maybeSingle()
+                  if (found?.id) locationId = found.id
+                  else {
+                    const { data: created, error: locErr } = await supabase
+                      .from('locations')
+                      .insert({ name: nm, latitude: plat, longitude: plng })
+                      .select('id')
+                      .single()
+                    if (locErr) throw locErr
+                    locationId = created.id
+                  }
+                  if (locationId) {
+                    await supabase.from('picture_locations').insert({ picture_id: insertedPic.id, location_id: locationId, is_primary: true })
+                  }
+                }
+              } catch (e) {
+                console.warn('Insert picture primary location failed', e)
               }
             }
           }
@@ -697,6 +872,9 @@ export function AdminDashboard() {
             description: newPictureSet.description,
             cover_image_url: newPictureSet.cover_image_url,
             position: newPictureSet.position,
+            is_published: newPictureSet.is_published ?? true,
+            primary_category_id: newPictureSet.primary_category_id ?? null,
+            season_id: newPictureSet.season_id ?? null,
           })
           .select()
 
@@ -712,6 +890,62 @@ export function AdminDashboard() {
 
         const pictureSetId = pictureSetData[0].id
         console.log(`Created new picture set with ID: ${pictureSetId}`)
+
+        // Sections assignments (ensure top/bottom by derived position if missing)
+        try {
+          let desiredSectionIds = Array.from(new Set(newPictureSet.section_ids || []))
+          // try to find top/bottom section IDs
+          const { data: secs } = await supabase.from('sections').select('id,name')
+          const findBy = (want: 'up'|'down') => {
+            const re = want === 'down' ? /\bdown\b|bottom|下|底/i : /\bup\b|top|上|顶/i
+            return (secs || []).find((s:any)=> re.test(String(s.name||'')))?.id as number | undefined
+          }
+          const pos = (newPictureSet.position||'').trim().toLowerCase()
+          const autoId = pos === 'down' ? findBy('down') : findBy('up')
+          if (autoId && !desiredSectionIds.includes(autoId)) desiredSectionIds = [...desiredSectionIds, autoId]
+          if (desiredSectionIds.length) {
+            const rows = desiredSectionIds.map((id:number)=>({ picture_set_id: pictureSetId, section_id: id, page_context: 'default', display_order: 0 }))
+            await supabase.from('picture_set_section_assignments').insert(rows)
+          }
+        } catch (e) {
+          console.warn('Insert sections failed', e)
+        }
+
+        // Primary location (optional; geocode if lat/lng missing)
+        try {
+          const nm = newPictureSet.primary_location_name?.trim()
+          let lat = newPictureSet.primary_location_latitude as number | null
+          let lng = newPictureSet.primary_location_longitude as number | null
+          if (nm && (lat == null || lng == null)) {
+            const g = await geocodeByName(nm)
+            if (g) { lat = g.lat; lng = g.lon }
+          }
+          if (nm && typeof lat === 'number' && typeof lng === 'number') {
+            let locationId: number | undefined
+            const { data: found } = await supabase
+              .from('locations')
+              .select('id')
+              .eq('name', nm)
+              .eq('latitude', lat)
+              .eq('longitude', lng)
+              .maybeSingle()
+            if (found?.id) locationId = found.id
+            else {
+              const { data: created, error: locErr } = await supabase
+                .from('locations')
+                .insert({ name: nm, latitude: lat, longitude: lng })
+                .select('id')
+                .single()
+              if (locErr) throw locErr
+              locationId = created.id
+            }
+            if (locationId) {
+              await supabase.from('picture_set_locations').insert({ picture_set_id: pictureSetId, location_id: locationId, is_primary: true })
+            }
+          }
+        } catch (e) {
+          console.warn('Insert primary location failed', e)
+        }
 
         // translations and tags for the set (auto-fill zh)
         try {
@@ -735,17 +969,33 @@ export function AdminDashboard() {
               }
             } catch {}
           }
-          const tagIds = await ensureTagIds(setTags || [], 'topic')
-          await setSetTags(pictureSetId, tagIds)
+          const topicTagIds = await ensureTagIds(setTags || [], 'topic')
+          // from multi-select categories/seasons, set typed tags
+          let categoryTagIds: number[] = []
+          const selectedCategoryIds = Array.from(new Set(newPictureSet.category_ids || []))
+          if (selectedCategoryIds.length) {
+            const { data: catRows } = await supabase.from('categories').select('id,name').in('id', selectedCategoryIds)
+            const catNames = (catRows || []).map((r:any)=> r.name).filter(Boolean)
+            categoryTagIds = await ensureTagIds(catNames, 'category')
+          }
+          let seasonTagIds: number[] = []
+          const selectedSeasonIds = Array.from(new Set(newPictureSet.season_ids || []))
+          if (selectedSeasonIds.length) {
+            const { data: seaRows } = await supabase.from('seasons').select('id,name').in('id', selectedSeasonIds)
+            const seaNames = (seaRows || []).map((r:any)=> r.name).filter(Boolean)
+            seasonTagIds = await ensureTagIds(seaNames, 'season')
+          }
+          const combined = Array.from(new Set([...(topicTagIds||[]), ...(categoryTagIds||[]), ...(seasonTagIds||[])]))
+          await setSetTags(pictureSetId, combined)
         } catch (e) {
           console.error('Error inserting translations/tags for set:', e)
           toast({ title: 'Tag/translation error', description: '保存集合标签或翻译失败，请检查权限或网络。', variant: 'destructive' })
         }
 
-        // Insert all pictures
+        // Insert all pictures (with season/location support)
         for (const [index, picture] of newPictureSet.pictures.entries()) {
           console.log(`Inserting picture at index ${index}`)
-          const { error: pictureError } = await supabase.from("pictures").insert({
+          const { data: insertedPic, error: pictureError } = await supabase.from("pictures").insert({
             picture_set_id: pictureSetId,
             order_index: index,
             title: picture.title,
@@ -753,10 +1003,47 @@ export function AdminDashboard() {
             description: picture.description,
             image_url: picture.image_url,
             raw_image_url: picture.raw_image_url,
-          })
+            season_id: picture.season_id ?? null,
+          }).select('id').single()
 
           if (pictureError) {
             console.error(`Error inserting picture at index ${index}:`, pictureError)
+          } else if (insertedPic?.id) {
+            // per-picture primary location
+            try {
+              const nm = (picture as any).location_name?.trim()
+              let plat = (picture as any).location_latitude as number | null
+              let plng = (picture as any).location_longitude as number | null
+              if (nm && (plat == null || plng == null)) {
+                const g = await geocodeByName(nm)
+                if (g) { plat = g.lat; plng = g.lon }
+              }
+              if (nm && typeof plat === 'number' && typeof plng === 'number') {
+                let locationId: number | undefined
+                const { data: found } = await supabase
+                  .from('locations')
+                  .select('id')
+                  .eq('name', nm)
+                  .eq('latitude', plat)
+                  .eq('longitude', plng)
+                  .maybeSingle()
+                if (found?.id) locationId = found.id
+                else {
+                  const { data: created, error: locErr } = await supabase
+                    .from('locations')
+                    .insert({ name: nm, latitude: plat, longitude: plng })
+                    .select('id')
+                    .single()
+                  if (locErr) throw locErr
+                  locationId = created.id
+                }
+                if (locationId) {
+                  await supabase.from('picture_locations').insert({ picture_id: insertedPic.id, location_id: locationId, is_primary: true })
+                }
+              }
+            } catch (e) {
+              console.warn('Insert picture location failed (create)', e)
+            }
           }
         }
 
@@ -972,6 +1259,25 @@ export function AdminDashboard() {
         }
       }
 
+      // Load picture primary locations for all pictures
+      let picLocMap: Record<number, { name?: string; latitude?: number | null; longitude?: number | null }> = {}
+      if (picIds.length > 0) {
+        const { data: pLocs } = await supabase
+          .from('picture_locations')
+          .select('picture_id, is_primary, locations(name, latitude, longitude)')
+          .in('picture_id', picIds)
+        for (const row of pLocs || []) {
+          const pid = (row as any).picture_id
+          const loc = (row as any).locations
+          if (!pid || !loc) continue
+          // prefer primary; otherwise any
+          const prev = picLocMap[pid]
+          if (!prev || (row as any).is_primary) {
+            picLocMap[pid] = { name: loc.name, latitude: loc.latitude, longitude: loc.longitude }
+          }
+        }
+      }
+
       const enriched = {
         ...freshPictureSet,
         en: tEn ? { title: tEn.title || '', subtitle: tEn.subtitle || '', description: tEn.description || '' } : undefined,
@@ -985,6 +1291,9 @@ export function AdminDashboard() {
           en: transMap[p.id]?.en,
           zh: transMap[p.id]?.zh,
           tags: picTagMap[p.id] || [],
+          location_name: picLocMap[p.id]?.name,
+          location_latitude: picLocMap[p.id]?.latitude ?? null,
+          location_longitude: picLocMap[p.id]?.longitude ?? null,
         })),
       }
 

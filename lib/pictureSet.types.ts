@@ -8,6 +8,20 @@ export interface PictureSet {
   subtitle: string;
   pictures: Picture[];
   position: string;
+  // new optional fields matching DB extensions
+  is_published?: boolean;
+  primary_category_id?: number | null;
+  season_id?: number | null;
+  // derived/editor-only helpers
+  sections?: string[]; // section identifiers/slugs for quick display and placement (e.g., 'top','bottom','portrait')
+  // editor-facing multi-selects (stored via tags or join tables)
+  category_ids?: number[]
+  season_ids?: number[]
+  primary_location?: {
+    name?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  };
   // optional translated texts and tags for editing convenience
   en?: { title?: string; subtitle?: string; description?: string };
   zh?: { title?: string; subtitle?: string; description?: string };
@@ -25,6 +39,10 @@ export interface Picture {
   title: string;
   subtitle: string;
   description: string;
+  // new optional fields matching DB extensions
+  is_published?: boolean;
+  primary_category_id?: number | null;
+  season_id?: number | null;
   // optional per-picture fields (not fully wired)
   en?: { title?: string; subtitle?: string; description?: string };
   zh?: { title?: string; subtitle?: string; description?: string };
