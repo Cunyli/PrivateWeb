@@ -13,6 +13,7 @@ export function PortfolioGrid() {
   const [loading, setLoading] = useState(true)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
   const [shuffledDownSets, setShuffledDownSets] = useState<PictureSet[]>([])
+  const [derivedUpSets, setDerivedUpSets] = useState<PictureSet[]>([])
   const [lang, setLang] = useState<'auto' | 'en' | 'zh'>('auto')
   const [transMap, setTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
   const [searchQuery, setSearchQuery] = useState("")
@@ -100,11 +101,45 @@ export function PortfolioGrid() {
           setTransMap({})
         }
         
-        // 生成固定的洗牌结果
-        const downSets = (sets || []).filter((s) => s.position?.trim().toLowerCase() === "down")
-        const seed = downSets.map(s => s.id).join('-') // 使用ID组合作为种子
-        const shuffled = stableShuffleArray(downSets, seed)
-        setShuffledDownSets(shuffled)
+        // 根据 Sections 推导上下排（兼容 position）
+        try {
+          const ids = sets.map(s => s.id)
+          const [{ data: assigns }, { data: secs }] = await Promise.all([
+            supabase.from('picture_set_section_assignments').select('picture_set_id, section_id').in('picture_set_id', ids),
+            supabase.from('sections').select('id,name')
+          ])
+          const secNameById: Record<number, string> = {}
+          for (const r of secs || []) secNameById[(r as any).id] = String((r as any).name || '').toLowerCase().trim()
+          const isTop = (n?: string) => !!n && (/\bup\b|top|上|顶/.test(n))
+          const isBottom = (n?: string) => !!n && (/\bdown\b|bottom|下|底/.test(n))
+          const topIds = new Set<number>()
+          const bottomIds = new Set<number>()
+          for (const a of assigns || []) {
+            const sid = (a as any).section_id as number
+            const psid = (a as any).picture_set_id as number
+            const nm = secNameById[sid]
+            if (isTop(nm)) topIds.add(psid)
+            if (isBottom(nm)) bottomIds.add(psid)
+          }
+          // derive lists and merge with legacy position
+          const topSets = sets.filter(s => topIds.has(s.id))
+          const bottomSets = sets.filter(s => bottomIds.has(s.id))
+          const legacyUp = sets.filter(s => (s.position||'').trim().toLowerCase() === 'up' && !topIds.has(s.id))
+          const legacyDown = sets.filter(s => (s.position||'').trim().toLowerCase() === 'down' && !bottomIds.has(s.id))
+          const upCombined = [...topSets, ...legacyUp]
+          const downCombined = [...bottomSets, ...legacyDown]
+          setDerivedUpSets(upCombined)
+          const seed = downCombined.map(s => s.id).join('-')
+          const shuffled = stableShuffleArray(downCombined, seed)
+          setShuffledDownSets(shuffled)
+        } catch (e) {
+          console.warn('Derive up/down by sections failed; fallback to position only', e)
+          const downSets = (sets || []).filter((s) => s.position?.trim().toLowerCase() === "down")
+          const seed = downSets.map(s => s.id).join('-')
+          const shuffled = stableShuffleArray(downSets, seed)
+          setShuffledDownSets(shuffled)
+          setDerivedUpSets(sets.filter((s) => s.position?.trim().toLowerCase() === "up"))
+        }
       }
     } catch (error) {
       console.error("Error in fetchPictureSets:", error)
@@ -228,7 +263,7 @@ export function PortfolioGrid() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const upPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "up")
+  const upPictureSets = derivedUpSets
   // 直接使用状态中的洗牌结果，不再进行额外洗牌
   const downPictureSets = shuffledDownSets
 

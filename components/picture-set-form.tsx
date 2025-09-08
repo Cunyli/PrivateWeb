@@ -12,6 +12,7 @@ import imageCompression from "browser-image-compression"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageAnalysisComponent } from "@/components/image-analysis"
 import { useImageAnalysis } from "@/hooks/use-image-analysis"
+import { supabase } from "@/utils/supabase"
 
 import type { PictureSet } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
@@ -59,6 +60,18 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [pictures, setPictures] = useState<PictureFormData[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [position, setPosition] = useState<string>("up")
+  const [isPublished, setIsPublished] = useState<boolean>(true)
+  const [categoryIds, setCategoryIds] = useState<number[]>([])
+  const [seasonIds, setSeasonIds] = useState<number[]>([])
+  const [sectionIds, setSectionIds] = useState<number[]>([])
+  const [availableCategories, setAvailableCategories] = useState<Array<{id:number; name:string}>>([])
+  const [availableSeasons, setAvailableSeasons] = useState<Array<{id:number; name:string}>>([])
+  const [availableSections, setAvailableSections] = useState<Array<{id:number; name:string}>>([])
+  const [primaryLocationName, setPrimaryLocationName] = useState<string>("")
+  const [primaryLocationLat, setPrimaryLocationLat] = useState<number | "">("")
+  const [primaryLocationLng, setPrimaryLocationLng] = useState<number | "">("")
+  const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
+  const [applySetPropsToPictures, setApplySetPropsToPictures] = useState<boolean>(true)
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -198,6 +211,23 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
   // 编辑模式初始化
   useEffect(() => {
+    // preload vocab tables
+    const loadVocab = async () => {
+      try {
+        const [{ data: cats }, { data: seas }, { data: sects }] = await Promise.all([
+          supabase.from('categories').select('id,name').order('name'),
+          supabase.from('seasons').select('id,name').order('id'),
+          supabase.from('sections').select('id,name,display_order').order('display_order', { ascending: true }),
+        ])
+        setAvailableCategories((cats || []).map((c:any)=>({ id: c.id, name: c.name })))
+        setAvailableSeasons((seas || []).map((s:any)=>({ id: s.id, name: s.name })))
+        setAvailableSections((sects || []).map((s:any)=>({ id: s.id, name: s.name })))
+      } catch (e) {
+        console.warn('Load vocab failed', e)
+      }
+    }
+    loadVocab()
+
     if (editingPictureSet) {
       setIsEditMode(true)
       setEditingId(editingPictureSet.id)
@@ -219,6 +249,76 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         description: editingPictureSet.zh?.description || "",
       })
       setTagsText((editingPictureSet.tags || []).join(", "))
+      setIsPublished(editingPictureSet.is_published ?? true)
+      // Prefill multi-selects for categories & seasons
+      ;(async () => {
+        try {
+          // load typed tags mapped to this set
+          const { data: rows } = await supabase
+            .from('picture_set_taggings')
+            .select('tags(name,type)')
+            .eq('picture_set_id', editingPictureSet.id)
+          const namesByType: Record<string, string[]> = {}
+          for (const r of rows || []) {
+            const t = (r as any).tags?.type
+            const n = (r as any).tags?.name
+            if (!t || !n) continue
+            namesByType[t] = [...(namesByType[t] || []), n]
+          }
+          if (Object.keys(namesByType).length === 0) {
+            // fallback: if no typed tags, seed from primary fields
+            if (editingPictureSet.primary_category_id) setCategoryIds([editingPictureSet.primary_category_id])
+            if (editingPictureSet.season_id) setSeasonIds([editingPictureSet.season_id])
+          } else {
+            // map names back to IDs via available lists
+            const catIds = (namesByType['category'] || []).map(n => (availableCategories.find(c => c.name === n)?.id)).filter(Boolean) as number[]
+            const seaIds = (namesByType['season'] || []).map(n => (availableSeasons.find(s => s.name === n)?.id)).filter(Boolean) as number[]
+            setCategoryIds(Array.from(new Set(catIds)))
+            setSeasonIds(Array.from(new Set(seaIds)))
+          }
+        } catch (e) { console.warn('Load typed tags failed', e) }
+      })()
+      // fetch section assignments
+      ;(async () => {
+        try {
+          const { data: assigns } = await supabase
+            .from('picture_set_section_assignments')
+            .select('section_id')
+            .eq('picture_set_id', editingPictureSet.id)
+          const ids = (assigns || []).map((r:any)=>r.section_id)
+          if (ids.length > 0) {
+            setSectionIds(ids)
+          } else {
+            // If no assignments yet, preselect by legacy position to aid migration
+            try {
+              const { data: secs } = await supabase.from('sections').select('id,name')
+              const getMatch = (want: 'up'|'down') => {
+                const re = want === 'down' ? /\bdown\b|bottom|下|底/i : /\bup\b|top|上|顶/i
+                return (secs || []).find((s:any)=> re.test(String(s.name||'')))?.id as number | undefined
+              }
+              const pos = (editingPictureSet.position||'').trim().toLowerCase()
+              const matchId = pos === 'down' ? getMatch('down') : getMatch('up')
+              if (matchId) setSectionIds([matchId])
+            } catch {}
+          }
+        } catch (e) { console.warn('Load sections failed', e) }
+      })()
+      // fetch primary location
+      ;(async () => {
+        try {
+          const { data: rows } = await supabase
+            .from('picture_set_locations')
+            .select('is_primary, locations(id,name,latitude,longitude)')
+            .eq('picture_set_id', editingPictureSet.id)
+          const locRow = (rows || []).sort((a:any,b:any)=> (b.is_primary?1:0)-(a.is_primary?1:0))[0]
+          const loc = locRow?.locations
+          if (loc) {
+            setPrimaryLocationName(loc.name || '')
+            setPrimaryLocationLat(loc.latitude ?? '')
+            setPrimaryLocationLng(loc.longitude ?? '')
+          }
+        } catch (e) { console.warn('Load primary location failed', e) }
+      })()
 
       if (editingPictureSet.pictures) {
         setPictures(
@@ -227,6 +327,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title || "",
             subtitle: pic.subtitle || "",
             description: pic.description || "",
+            season_id: (pic as any).season_id ?? null,
+            location_name: (pic as any).location_name || '',
+            location_latitude: (pic as any).location_latitude ?? null,
+            location_longitude: (pic as any).location_longitude ?? null,
             tags: pic.tags || [],
             en: {
               title: pic.en?.title || "",
@@ -259,6 +363,13 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setCoverImageUrl("")
       setPictures([])
       setPosition("up")
+      setIsPublished(true)
+      setCategoryIds([])
+      setSeasonIds([])
+      setSectionIds([])
+      setPrimaryLocationName("")
+      setPrimaryLocationLat("")
+      setPrimaryLocationLng("")
       setEn({ title: "", subtitle: "", description: "" })
       setZh({ title: "", subtitle: "", description: "" })
       setTagsText("")
@@ -305,6 +416,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         title: "",
         subtitle: "",
         description: "",
+        season_id: null,
+        location_name: '',
+        location_latitude: null,
+        location_longitude: null,
         tags: [],
         en: { title: "", subtitle: "", description: "" },
         zh: { title: "", subtitle: "", description: "" },
@@ -422,6 +537,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title,
             subtitle: pic.subtitle,
             description: pic.description,
+            season_id: (pic as any).season_id ?? null,
+            location_name: (pic as any).location_name || undefined,
+            location_latitude: (pic as any).location_latitude ?? null,
+            location_longitude: (pic as any).location_longitude ?? null,
             tags: pic.tags,
             en: pic.en,
             zh: pic.zh,
@@ -431,13 +550,49 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         }),
       )
 
+      // Optionally apply set-level season/location to pictures if missing
+      const propagatedPictures = processedPictures.map((p) => {
+        if (!applySetPropsToPictures) return p
+        let season_id = p.season_id
+        if ((season_id == null) && seasonIds.length > 0) season_id = seasonIds[0]
+        let location_name = p.location_name
+        let location_latitude = p.location_latitude
+        let location_longitude = p.location_longitude
+        const hasPicLoc = !!(location_name) || (typeof location_latitude === 'number' && typeof location_longitude === 'number')
+        const hasSetLoc = !!primaryLocationName || (typeof primaryLocationLat === 'number' && typeof primaryLocationLng === 'number')
+        if (!hasPicLoc && hasSetLoc) {
+          location_name = primaryLocationName || undefined
+          location_latitude = typeof primaryLocationLat === 'number' ? primaryLocationLat : null
+          location_longitude = typeof primaryLocationLng === 'number' ? primaryLocationLng : null
+        }
+        return { ...p, season_id, location_name, location_latitude, location_longitude }
+      })
+
+      // Derive position from selected sections (keeps existing layout logic working)
+      const selectedSectionNames = availableSections
+        .filter(s => sectionIds.includes(s.id))
+        .map(s => (s.name || '').toLowerCase().trim())
+      const hasDown = selectedSectionNames.some(n => /\bdown\b|bottom|下|底/.test(n))
+      const hasUp = selectedSectionNames.some(n => /\bup\b|top|上|顶/.test(n))
+      const derivedPosition = hasDown ? 'down' : (hasUp ? 'up' : 'up')
+
       const payload: PictureSetSubmitData = {
         title,
         subtitle,
         description,
-        position,
+        position: derivedPosition,
         cover_image_url: coverKey,
-        pictures: processedPictures,
+        pictures: propagatedPictures,
+        is_published: isPublished,
+        // keep single fields for backward compatibility but prefer multi
+        primary_category_id: categoryIds.length ? categoryIds[0] : null,
+        season_id: seasonIds.length ? seasonIds[0] : null,
+        category_ids: categoryIds,
+        season_ids: seasonIds,
+        section_ids: sectionIds,
+        primary_location_name: primaryLocationName || undefined,
+        primary_location_latitude: typeof primaryLocationLat === 'number' ? primaryLocationLat : null,
+        primary_location_longitude: typeof primaryLocationLng === 'number' ? primaryLocationLng : null,
         en,
         zh,
         tags: tagsText
@@ -470,8 +625,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         )}
       </div>
 
-      {/* 标题/副标题/描述/位置 */}
-      <div className="grid grid-cols-2 gap-5">
+      {/* 标题/副标题/描述 */}
+      <div className="grid grid-cols-2 gap-4">
         {/* 左侧：表单字段 */}
         <div className="space-y-4">
           <div>
@@ -534,17 +689,139 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           
-          <div>
-            <Label htmlFor="position">Position</Label>
-            <Select value={position} onValueChange={setPosition}>
-              <SelectTrigger id="position">
-                <SelectValue placeholder="Select position" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="up">Top Row</SelectItem>
-                <SelectItem value="down">Bottom Row</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Position is now derived from Sections; UI hidden intentionally */}
+          {false && (
+            <div>
+              <Label htmlFor="position">Position</Label>
+              <Select value={position} onValueChange={setPosition}>
+                <SelectTrigger id="position">
+                  <SelectValue placeholder="Select position" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="up">Top Row</SelectItem>
+                  <SelectItem value="down">Bottom Row</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Advanced options (collapsible) */}
+          <div className="border rounded-md">
+            <button type="button" className="w-full text-left px-3 py-2 flex items-center justify-between" onClick={()=>setAdvancedOpen(v=>!v)}>
+              <span className="font-medium">高级选项</span>
+              <span className={`transition-transform ${advancedOpen ? 'rotate-90' : ''}`}>›</span>
+            </button>
+            {advancedOpen && (
+              <div className="p-3 space-y-4 border-t">
+                {/* Publish */}
+                <div className="flex items-center gap-3">
+                  <input id="is_published" type="checkbox" checked={isPublished} onChange={(e)=>setIsPublished(e.target.checked)} />
+                  <Label htmlFor="is_published">Published</Label>
+                </div>
+
+                {/* Categories & Seasons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Categories</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {availableCategories.map(c => {
+                        const checked = categoryIds.includes(c.id)
+                        return (
+                          <label key={c.id} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e)=>{
+                                setCategoryIds(prev => e.target.checked ? Array.from(new Set([...prev, c.id])) : prev.filter(id=>id!==c.id))
+                              }}
+                            />
+                            <span>{c.name}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Seasons</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {availableSeasons.map(s => {
+                        const checked = seasonIds.includes(s.id)
+                        return (
+                          <label key={s.id} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e)=>{
+                                setSeasonIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
+                              }}
+                            />
+                            <span>{s.name}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sections */}
+                <div>
+                  <Label>Sections</Label>
+                  <p className="text-xs text-gray-500 mt-1">用于确定图片集的类型与展示位置（例如选择 Top/Bottom 对应首页上下排）。</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {availableSections.map(s => {
+                      const checked = sectionIds.includes(s.id)
+                      return (
+                        <label key={s.id} className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e)=>{
+                              setSectionIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
+                            }}
+                          />
+                          <span>{s.name}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Primary location inputs */}
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="font-medium">Primary Location (optional)</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={async ()=>{
+                        if (!primaryLocationName.trim()) return
+                        try {
+                          const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: primaryLocationName, limit: 1 }) })
+                          const data = await res.json()
+                          const g = data?.results?.[0]
+                          if (g) {
+                            setPrimaryLocationLat(g.lat)
+                            setPrimaryLocationLng(g.lon)
+                          }
+                        } catch (e) { console.warn('Geocode failed', e) }
+                      }}
+                    >Geocode</Button>
+                  </div>
+                  <Input placeholder="Location name (e.g., 外滩)" value={primaryLocationName} onChange={(e)=>setPrimaryLocationName(e.target.value)} />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input placeholder="Latitude" value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
+                    <Input placeholder="Longitude" value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
+                  </div>
+                </div>
+
+                {/* Apply set props to pictures */}
+                <div className="flex items-center gap-2 pt-1">
+                  <input id="apply_set_props" type="checkbox" checked={applySetPropsToPictures} onChange={(e)=>setApplySetPropsToPictures(e.target.checked)} />
+                  <Label htmlFor="apply_set_props">将集合的季节/地点应用到缺失这些信息的图片</Label>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -853,6 +1130,54 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     />
                   </div>
 
+                  {/* 每张图片的季节与位置 */}
+                  <div className="grid grid-cols-1 gap-3 pt-2 border-t">
+                    <div>
+                      <Label className="text-sm font-semibold text-gray-700">季节</Label>
+                      <Select
+                        value={pic.season_id != null ? String(pic.season_id) : undefined}
+                        onValueChange={(v)=>handlePictureChange(idx, 'season_id', v ? Number(v) : null)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="选择季节" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableSeasons.map(s => (
+                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm font-semibold text-gray-700">地点</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={async ()=>{
+                            const nm = (pic as any).location_name as string | undefined
+                            if (!nm || !nm.trim()) return
+                            try {
+                              const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: nm, limit: 1 }) })
+                              const data = await res.json()
+                              const g = data?.results?.[0]
+                              if (g) {
+                                handlePictureChange(idx, 'location_latitude', g.lat)
+                                handlePictureChange(idx, 'location_longitude', g.lon)
+                              }
+                            } catch (e) { console.warn('Geocode failed', e) }
+                          }}
+                        >地名转坐标</Button>
+                      </div>
+                      <Input placeholder="地点名称（如：外滩）" value={(pic as any).location_name || ''} onChange={(e)=>handlePictureChange(idx, 'location_name', e.target.value)} />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input placeholder="Latitude" value={(pic as any).location_latitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_latitude', e.target.value ? Number(e.target.value) : null)} />
+                        <Input placeholder="Longitude" value={(pic as any).location_longitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_longitude', e.target.value ? Number(e.target.value) : null)} />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* 图片翻译字段 */}
                   {/* 图片翻译字段（默认收起，提升紧凑性） */}
                   <div className="mt-4 border border-gray-200 rounded-md">
@@ -1059,16 +1384,20 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             for (const f of files) {
               try {
                 const { url, size } = await getImagePreview(f)
-                toAdd.push({
-                  tempId: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-                  title: "",
-                  subtitle: "",
-                  description: "",
-                  cover: f,
-                  previewUrl: url,
-                  originalSize: size,
-                  compressedSize: undefined,
-                  image_url: "",
+              toAdd.push({
+                tempId: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+                title: "",
+                subtitle: "",
+                description: "",
+                season_id: null,
+                location_name: '',
+                location_latitude: null,
+                location_longitude: null,
+                cover: f,
+                previewUrl: url,
+                originalSize: size,
+                compressedSize: undefined,
+                image_url: "",
                 })
               } catch (err) {
                 console.error("预览生成失败:", err)
