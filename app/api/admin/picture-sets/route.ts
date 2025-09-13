@@ -2,6 +2,114 @@ import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 export const runtime = 'nodejs'
 
+// --- Translation helpers (server-side bi-directional) ---
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  const port = process.env.PORT || 3000
+  return `http://localhost:${port}`
+}
+
+async function translateText(text: string, target: 'en' | 'zh'): Promise<string> {
+  try {
+    if (!text || !text.trim()) return ''
+    const res = await fetch(`${getBaseUrl()}/api/translate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, sourceLang: 'auto', targetLang: target }),
+    })
+    if (!res.ok) return ''
+    const data = await res.json()
+    return (data.translated as string) || ''
+  } catch {
+    return ''
+  }
+}
+
+const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+
+async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }> {
+  const base = {
+    title: payload.title || '',
+    subtitle: payload.subtitle || '',
+    description: payload.description || '',
+  }
+  const enOut: any = {
+    title: payload.en?.title || '',
+    subtitle: payload.en?.subtitle || '',
+    description: payload.en?.description || '',
+  }
+  const zhOut: any = {
+    title: payload.zh?.title || '',
+    subtitle: payload.zh?.subtitle || '',
+    description: payload.zh?.description || '',
+  }
+
+  for (const key of ['title', 'subtitle', 'description'] as const) {
+    const b = base[key]
+    let enVal = enOut[key] || ''
+    let zhVal = zhOut[key] || ''
+    if (!enVal && !zhVal && b) {
+      if (looksZh(b)) {
+        zhVal = b
+        enVal = await translateText(b, 'en')
+      } else {
+        enVal = b
+        zhVal = await translateText(b, 'zh')
+      }
+    } else if (!enVal && zhVal) {
+      enVal = await translateText(zhVal, 'en')
+    } else if (!zhVal && enVal) {
+      zhVal = await translateText(enVal, 'zh')
+    }
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  return { en: enOut, zh: zhOut }
+}
+
+async function fillPictureTranslationsBi(p: any): Promise<{ en: any; zh: any }> {
+  const base = {
+    title: p.title || '',
+    subtitle: p.subtitle || '',
+    description: p.description || '',
+  }
+  const enOut: any = {
+    title: p.en?.title || '',
+    subtitle: p.en?.subtitle || '',
+    description: p.en?.description || '',
+  }
+  const zhOut: any = {
+    title: p.zh?.title || '',
+    subtitle: p.zh?.subtitle || '',
+    description: p.zh?.description || '',
+  }
+
+  for (const key of ['title', 'subtitle', 'description'] as const) {
+    const b = base[key]
+    let enVal = enOut[key] || ''
+    let zhVal = zhOut[key] || ''
+    if (!enVal && !zhVal && b) {
+      if (looksZh(b)) {
+        zhVal = b
+        enVal = await translateText(b, 'en')
+      } else {
+        enVal = b
+        zhVal = await translateText(b, 'zh')
+      }
+    } else if (!enVal && zhVal) {
+      enVal = await translateText(zhVal, 'en')
+    } else if (!zhVal && enVal) {
+      zhVal = await translateText(enVal, 'zh')
+    }
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  return { en: enOut, zh: zhOut }
+}
+
 // 简化的工具：确保若干 tag 存在并返回它们的 id（按 type + slug 去重）
 async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promise<number[]> {
   const uniq = Array.from(new Set(names.map(n => String(n || '').trim()).filter(Boolean)))
@@ -125,35 +233,22 @@ export async function POST(request: Request) {
         await supabaseAdmin.from('picture_set_categories').insert(rows)
       }
 
-      // set 翻译
-      if (payload.en) {
+      // set 翻译（双向自动补全）
+      try {
+        const filled = await fillSetTranslationsBi(payload)
         await supabaseAdmin
           .from('picture_set_translations')
           .upsert(
-            {
-              picture_set_id,
-              locale: 'en',
-              title: payload.en?.title || '',
-              subtitle: payload.en?.subtitle || null,
-              description: payload.en?.description || null,
-            },
+            { picture_set_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
             { onConflict: 'picture_set_id,locale' },
           )
-      }
-      if (payload.zh) {
         await supabaseAdmin
           .from('picture_set_translations')
           .upsert(
-            {
-              picture_set_id,
-              locale: 'zh',
-              title: payload.zh?.title || '',
-              subtitle: payload.zh?.subtitle || null,
-              description: payload.zh?.description || null,
-            },
+            { picture_set_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
             { onConflict: 'picture_set_id,locale' },
           )
-      }
+      } catch {}
 
       // set 主位置
       const nm = (payload.primary_location_name || '').trim()
@@ -190,35 +285,22 @@ export async function POST(request: Request) {
         const picture_id = picIdByIndex[i]
         if (!picture_id) continue
 
-        // 翻译
-        if (p.en) {
+        // 翻译（双向自动补全）
+        try {
+          const filled = await fillPictureTranslationsBi(p)
           await supabaseAdmin
             .from('picture_translations')
             .upsert(
-              {
-                picture_id,
-                locale: 'en',
-                title: p.en?.title || '',
-                subtitle: p.en?.subtitle || null,
-                description: p.en?.description || null,
-              },
+              { picture_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
               { onConflict: 'picture_id,locale' },
             )
-        }
-        if (p.zh) {
           await supabaseAdmin
             .from('picture_translations')
             .upsert(
-              {
-                picture_id,
-                locale: 'zh',
-                title: p.zh?.title || '',
-                subtitle: p.zh?.subtitle || null,
-                description: p.zh?.description || null,
-              },
+              { picture_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
               { onConflict: 'picture_id,locale' },
             )
-        }
+        } catch {}
 
         // 类型标签：图片自己的 topic tags + per-picture categories；可选传播 set 的 category/season tags
         const pictureTopicTags: string[] = Array.isArray(p.tags) ? p.tags : []

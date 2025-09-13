@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-    const prompt = `Translate the following text from ${sourceLang} to ${targetLang}. 
+    const fromLabel = sourceLang === 'auto' ? 'auto-detected language' : sourceLang
+    const prompt = `Translate the following text from ${fromLabel} to ${targetLang}.
 - Preserve meaning and tone.
 - Return only the translated text with no quotes or extra commentary.
 Text:
@@ -29,4 +30,3 @@ ${text}`
     return NextResponse.json({ error: "Translation failed" }, { status: 500 })
   }
 }
-

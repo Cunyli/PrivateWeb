@@ -125,8 +125,12 @@ export function AdminDashboard() {
     if (error) throw error
   }
 
-  // --- Helpers: auto-translate missing zh fields from English/base ---
-  const translateText = async (text: string, source: 'en'|'zh' = 'en', target: 'en'|'zh' = 'zh'): Promise<string> => {
+  // --- Helpers: auto-translate missing fields with language detection ---
+  const translateText = async (
+    text: string,
+    source: 'en' | 'zh' | 'auto' = 'auto',
+    target: 'en' | 'zh' = 'zh',
+  ): Promise<string> => {
     try {
       const res = await fetch('/api/translate', {
         method: 'POST',
@@ -143,46 +147,96 @@ export function AdminDashboard() {
   }
 
   const autoFillTranslations = async (payload: PictureSetSubmitData) => {
-    // base English candidates from main fields if en not provided
-    const enTitleBase = payload.en?.title ?? payload.title ?? ''
-    const enSubtitleBase = payload.en?.subtitle ?? payload.subtitle ?? ''
-    const enDescBase = payload.en?.description ?? payload.description ?? ''
-
-    // ensure en has values (copy from base if not supplied)
-    const enOut = {
-      title: payload.en?.title ?? enTitleBase ?? '',
-      subtitle: payload.en?.subtitle ?? enSubtitleBase ?? '',
-      description: payload.en?.description ?? enDescBase ?? '',
+    // Base fields
+    const base = {
+      title: payload.title ?? '',
+      subtitle: payload.subtitle ?? '',
+      description: payload.description ?? '',
     }
 
-    // only translate into zh if missing and we have english text
+    const enOut = {
+      title: payload.en?.title ?? '',
+      subtitle: payload.en?.subtitle ?? '',
+      description: payload.en?.description ?? '',
+    }
     const zhOut = {
       title: payload.zh?.title ?? '',
       subtitle: payload.zh?.subtitle ?? '',
       description: payload.zh?.description ?? '',
     }
 
-    if (!zhOut.title && enOut.title) zhOut.title = await translateText(enOut.title, 'en', 'zh')
-    if (!zhOut.subtitle && enOut.subtitle) zhOut.subtitle = await translateText(enOut.subtitle, 'en', 'zh')
-    if (!zhOut.description && enOut.description) zhOut.description = await translateText(enOut.description, 'en', 'zh')
+    // Helper to detect if a string looks Chinese
+    const isZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+
+    // For each field, fill both sides using base and detection
+    for (const key of ['title', 'subtitle', 'description'] as const) {
+      const b = base[key]
+      let enVal = enOut[key] || ''
+      let zhVal = zhOut[key] || ''
+
+      if (!enVal && !zhVal && b) {
+        if (isZh(b)) {
+          zhVal = b
+          enVal = await translateText(b, 'auto', 'en')
+        } else {
+          enVal = b
+          zhVal = await translateText(b, 'auto', 'zh')
+        }
+      } else if (!enVal && zhVal) {
+        enVal = await translateText(zhVal, 'auto', 'en')
+      } else if (!zhVal && enVal) {
+        zhVal = await translateText(enVal, 'auto', 'zh')
+      }
+
+      enOut[key] = enVal
+      zhOut[key] = zhVal
+    }
 
     return { en: enOut, zh: zhOut }
   }
 
   const autoFillPictureTranslations = async (p: any) => {
-    const enOut = {
-      title: p?.en?.title ?? p?.title ?? '',
-      subtitle: p?.en?.subtitle ?? p?.subtitle ?? '',
-      description: p?.en?.description ?? p?.description ?? '',
+    const base = {
+      title: p?.title ?? '',
+      subtitle: p?.subtitle ?? '',
+      description: p?.description ?? '',
     }
-    const zhOut = {
+    const enOut: { title: string; subtitle: string; description: string } = {
+      title: p?.en?.title ?? '',
+      subtitle: p?.en?.subtitle ?? '',
+      description: p?.en?.description ?? '',
+    }
+    const zhOut: { title: string; subtitle: string; description: string } = {
       title: p?.zh?.title ?? '',
       subtitle: p?.zh?.subtitle ?? '',
       description: p?.zh?.description ?? '',
     }
-    if (!zhOut.title && enOut.title) zhOut.title = await translateText(enOut.title, 'en', 'zh')
-    if (!zhOut.subtitle && enOut.subtitle) zhOut.subtitle = await translateText(enOut.subtitle, 'en', 'zh')
-    if (!zhOut.description && enOut.description) zhOut.description = await translateText(enOut.description, 'en', 'zh')
+
+    const isZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+
+    for (const key of ['title', 'subtitle', 'description'] as const) {
+      const b = base[key]
+      let enVal = enOut[key] || ''
+      let zhVal = zhOut[key] || ''
+
+      if (!enVal && !zhVal && b) {
+        if (isZh(b)) {
+          zhVal = b
+          enVal = await translateText(b, 'auto', 'en')
+        } else {
+          enVal = b
+          zhVal = await translateText(b, 'auto', 'zh')
+        }
+      } else if (!enVal && zhVal) {
+        enVal = await translateText(zhVal, 'auto', 'en')
+      } else if (!zhVal && enVal) {
+        zhVal = await translateText(enVal, 'auto', 'zh')
+      }
+
+      enOut[key] = enVal
+      zhOut[key] = zhVal
+    }
+
     return { en: enOut, zh: zhOut }
   }
 
