@@ -4,6 +4,74 @@ import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3"
 import { getObjectKeyFromUrl } from "@/utils/r2-helpers"
 export const runtime = 'nodejs'
 
+// --- Translation helpers (server-side bi-directional) ---
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  const port = process.env.PORT || 3000
+  return `http://localhost:${port}`
+}
+
+async function translateText(text: string, target: 'en' | 'zh'): Promise<string> {
+  try {
+    if (!text || !text.trim()) return ''
+    const res = await fetch(`${getBaseUrl()}/api/translate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, sourceLang: 'auto', targetLang: target }),
+    })
+    if (!res.ok) return ''
+    const data = await res.json()
+    return (data.translated as string) || ''
+  } catch {
+    return ''
+  }
+}
+
+async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }> {
+  const base = { title: payload.title || '', subtitle: payload.subtitle || '', description: payload.description || '' }
+  const enOut: any = { title: payload.en?.title || '', subtitle: payload.en?.subtitle || '', description: payload.en?.description || '' }
+  const zhOut: any = { title: payload.zh?.title || '', subtitle: payload.zh?.subtitle || '', description: payload.zh?.description || '' }
+  const isZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+  for (const key of ['title', 'subtitle', 'description'] as const) {
+    const b = base[key]
+    let enVal = enOut[key] || ''
+    let zhVal = zhOut[key] || ''
+    if (!enVal && !zhVal && b) {
+      if (isZh(b)) { zhVal = b; enVal = await translateText(b, 'en') } else { enVal = b; zhVal = await translateText(b, 'zh') }
+    } else if (!enVal && zhVal) {
+      enVal = await translateText(zhVal, 'en')
+    } else if (!zhVal && enVal) {
+      zhVal = await translateText(enVal, 'zh')
+    }
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+  return { en: enOut, zh: zhOut }
+}
+
+async function fillPictureTranslationsBi(p: any): Promise<{ en: any; zh: any }> {
+  const base = { title: p.title || '', subtitle: p.subtitle || '', description: p.description || '' }
+  const enOut: any = { title: p.en?.title || '', subtitle: p.en?.subtitle || '', description: p.en?.description || '' }
+  const zhOut: any = { title: p.zh?.title || '', subtitle: p.zh?.subtitle || '', description: p.zh?.description || '' }
+  const isZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+  for (const key of ['title', 'subtitle', 'description'] as const) {
+    const b = base[key]
+    let enVal = enOut[key] || ''
+    let zhVal = zhOut[key] || ''
+    if (!enVal && !zhVal && b) {
+      if (isZh(b)) { zhVal = b; enVal = await translateText(b, 'en') } else { enVal = b; zhVal = await translateText(b, 'zh') }
+    } else if (!enVal && zhVal) {
+      enVal = await translateText(zhVal, 'en')
+    } else if (!zhVal && enVal) {
+      zhVal = await translateText(enVal, 'zh')
+    }
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+  return { en: enOut, zh: zhOut }
+}
+
 async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promise<number[]> {
   const uniq = Array.from(new Set(names.map(n => String(n || '').trim()).filter(Boolean)))
   if (uniq.length === 0) return []
@@ -351,6 +419,51 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         const toRemovePC = [...oldPC].filter(id => !newPC.has(id))
         if (toAddPC.length) await supabaseAdmin.from('picture_categories').insert(toAddPC)
         if (toRemovePC.length) await supabaseAdmin.from('picture_categories').delete().eq('picture_id', pid).in('category_id', toRemovePC)
+      }
+    } catch {}
+
+    // 双向翻译：set 与 pictures（根据 base 和已填内容自动补全缺失的 en/zh）
+    try {
+      const filledSet = await fillSetTranslationsBi(payload)
+      await supabaseAdmin
+        .from('picture_set_translations')
+        .upsert(
+          { picture_set_id: idNum, locale: 'en', title: filledSet.en.title || '', subtitle: filledSet.en.subtitle || null, description: filledSet.en.description || null },
+          { onConflict: 'picture_set_id,locale' },
+        )
+      await supabaseAdmin
+        .from('picture_set_translations')
+        .upsert(
+          { picture_set_id: idNum, locale: 'zh', title: filledSet.zh.title || '', subtitle: filledSet.zh.subtitle || null, description: filledSet.zh.description || null },
+          { onConflict: 'picture_set_id,locale' },
+        )
+
+      // 重新获取图片 id 按 order_index 对齐，用于新插入的图片
+      const { data: picsNow } = await supabaseAdmin
+        .from('pictures')
+        .select('id,order_index')
+        .eq('picture_set_id', idNum)
+      const byIdx = new Map<number, number>()
+      for (const r of picsNow || []) byIdx.set((r as any).order_index ?? 0, (r as any).id)
+
+      const arr = Array.isArray(payload.pictures) ? payload.pictures : []
+      for (let i = 0; i < arr.length; i++) {
+        const p = arr[i]
+        const pid = (p?.id as number) || byIdx.get(i)
+        if (!pid) continue
+        const filledP = await fillPictureTranslationsBi(p)
+        await supabaseAdmin
+          .from('picture_translations')
+          .upsert(
+            { picture_id: pid, locale: 'en', title: filledP.en.title || '', subtitle: filledP.en.subtitle || null, description: filledP.en.description || null },
+            { onConflict: 'picture_id,locale' },
+          )
+        await supabaseAdmin
+          .from('picture_translations')
+          .upsert(
+            { picture_id: pid, locale: 'zh', title: filledP.zh.title || '', subtitle: filledP.zh.subtitle || null, description: filledP.zh.description || null },
+            { onConflict: 'picture_id,locale' },
+          )
       }
     } catch {}
 

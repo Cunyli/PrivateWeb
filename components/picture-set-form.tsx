@@ -87,6 +87,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     description: false,
     tags: false,
   })
+  const [isTranslatingAll, setIsTranslatingAll] = useState(false)
+  const [isTranslatingPic, setIsTranslatingPic] = useState<{[idx:number]: boolean}>({})
   // translations
   const [en, setEn] = useState<{title: string; subtitle: string; description: string}>({ title: "", subtitle: "", description: "" })
   const [zh, setZh] = useState<{title: string; subtitle: string; description: string}>({ title: "", subtitle: "", description: "" })
@@ -142,9 +144,22 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     try {
       const result = await analyzeImage(coverPreview, field)
       if (result.success) {
-        if (field === 'title') setTitle(result.result)
-        if (field === 'subtitle') setSubtitle(result.result)
-        if (field === 'description') setDescription(result.result)
+        const val = result.result || ''
+        const looksZh = /[\u4e00-\u9fff]/
+        // 更新基础字段
+        if (field === 'title') setTitle(val)
+        if (field === 'subtitle') setSubtitle(val)
+        if (field === 'description') setDescription(val)
+        // 同步到翻译区：AI 生成视为“可覆盖自动值”，忽略 touched 限制
+        const isZh = looksZh.test(val)
+        if (isZh) {
+          setZh(prev => ({ ...prev, [field]: val }))
+          // 不强行覆盖用户手动输入过的英文，但若当前英文为空则清空保持一致
+          setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
+        } else {
+          setEn(prev => ({ ...prev, [field]: val }))
+          setZh(prev => ({ ...prev, [field]: '' }))
+        }
       }
     } catch (error) {
       console.error(`生成${field}失败:`, error)
@@ -162,6 +177,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     try {
       const result = await analyzeImage(picture.previewUrl, field)
       if (result.success) {
+        // 先取消该字段的 touched，允许 AI 结果覆盖自动值
+        setPicEnTouched(prev => ({
+          ...prev,
+          [pictureIndex]: { ...(prev[pictureIndex] || {}), [field]: false },
+        }))
         handlePictureChange(pictureIndex, field, result.result)
       }
     } catch (error) {
@@ -433,20 +453,128 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           }
         }
 
-        // dynamic autofill english from base fields when not manually touched
+        // dynamic autofill to en/zh from base fields with clear rules
         if (field === 'title' || field === 'subtitle' || field === 'description') {
-          const touched = picEnTouched[index] || {}
           const key = field as 'title' | 'subtitle' | 'description'
-          const shouldAuto = !touched[key]
-          if (shouldAuto) {
-            const newEn = { ...(pic.en || {}), [key]: value }
-            return { ...pic, [field]: value, en: newEn }
+          const looksZh = /[\u4e00-\u9fff]/
+          const touched = picEnTouched[index] || {}
+          const currentEn = { ...(pic.en || {}) }
+          const currentZh = { ...(pic.zh || {}) }
+
+          // If cleared, also clear translations (respect en touched)
+          if (!String(value || '').length) {
+            if (!touched[key]) currentEn[key] = ''
+            currentZh[key] = ''
+            return { ...pic, [field]: '', en: currentEn, zh: currentZh }
+          }
+
+          const isZh = looksZh.test(String(value))
+          if (isZh) {
+            // Base is Chinese: copy to zh, clear en for this key if not touched to avoid stale pinyin/english
+            currentZh[key] = String(value)
+            if (!touched[key]) currentEn[key] = ''
+            return { ...pic, [field]: value, en: currentEn, zh: currentZh }
+          } else {
+            // Base is non-Chinese: copy to en (if not touched), and clear zh to avoid leftover hanzi
+            if (!touched[key]) currentEn[key] = String(value)
+            currentZh[key] = ''
+            return { ...pic, [field]: value, en: currentEn, zh: currentZh }
           }
         }
 
         return { ...pic, [field]: value }
       })
     )
+  }
+
+  // --- Translation helpers ---
+  const translateText = async (text: string, source: 'zh'|'en'|'auto' = 'zh', target: 'zh'|'en' = 'en'): Promise<string> => {
+    try {
+      if (!text || !text.trim()) return ''
+      const res = await fetch('/api/translate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, sourceLang: source, targetLang: target })
+      })
+      if (!res.ok) return ''
+      const data = await res.json()
+      return (data.translated as string) || ''
+    } catch { return '' }
+  }
+
+  const autoTranslatePicture = async (idx: number) => {
+    const pic = pictures[idx]
+    if (!pic) return
+    setIsTranslatingPic(prev => ({ ...prev, [idx]: true }))
+    try {
+      const toEn: any = { ...(pic.en || {}) }
+      const toZh: any = { ...(pic.zh || {}) }
+      const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+      for (const key of ['title','subtitle','description'] as const) {
+        const baseVal = String((pic as any)[key] || '')
+        const enVal = String((toEn as any)[key] || '')
+        const zhVal = String((toZh as any)[key] || '')
+        if (!enVal && zhVal) {
+          const t = await translateText(zhVal, 'auto', 'en')
+          if (t) (toEn as any)[key] = t
+        } else if (!zhVal && enVal) {
+          const t = await translateText(enVal, 'auto', 'zh')
+          if (t) (toZh as any)[key] = t
+        } else if (!enVal && !zhVal && baseVal) {
+          if (looksZh(baseVal)) {
+            (toZh as any)[key] = baseVal
+            const t = await translateText(baseVal, 'auto', 'en')
+            if (t) (toEn as any)[key] = t
+          } else {
+            (toEn as any)[key] = baseVal
+            const t = await translateText(baseVal, 'auto', 'zh')
+            if (t) (toZh as any)[key] = t
+          }
+        }
+      }
+      setPictures(prev => prev.map((p, i) => i === idx ? { ...p, en: toEn, zh: toZh } : p))
+      // 不标记为 touched，方便后续再次点击可覆盖自动翻译结果（只在用户手动编辑时才标记）
+    } finally {
+      setIsTranslatingPic(prev => ({ ...prev, [idx]: false }))
+    }
+  }
+
+  const autoTranslateAll = async () => {
+    setIsTranslatingAll(true)
+    try {
+      const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+      const nextEn = { ...en }
+      const nextZh = { ...zh }
+      for (const key of ['title','subtitle','description'] as const) {
+        const baseVal = String((key === 'title' ? title : key === 'subtitle' ? subtitle : description) || '')
+        const enVal = String(nextEn[key] || '')
+        const zhVal = String(nextZh[key] || '')
+        if (!enVal && zhVal) {
+          const t = await translateText(zhVal, 'auto', 'en')
+          if (t) nextEn[key] = t
+        } else if (!zhVal && enVal) {
+          const t = await translateText(enVal, 'auto', 'zh')
+          if (t) nextZh[key] = t
+        } else if (!enVal && !zhVal && baseVal) {
+          if (looksZh(baseVal)) {
+            nextZh[key] = baseVal
+            const t = await translateText(baseVal, 'auto', 'en')
+            if (t) nextEn[key] = t
+          } else {
+            nextEn[key] = baseVal
+            const t = await translateText(baseVal, 'auto', 'zh')
+            if (t) nextZh[key] = t
+          }
+        }
+      }
+      setEn(nextEn)
+      setZh(nextZh)
+
+      for (let i = 0; i < pictures.length; i++) {
+        await autoTranslatePicture(i)
+      }
+    } finally {
+      setIsTranslatingAll(false)
+    }
   }
 
   // dynamic autofill for set-level translations: follow base fields until user manually edits en.*
@@ -916,9 +1044,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 <ImageAnalysisComponent
                   imageUrl={coverPreview}
                   onResultUpdate={(field, result) => {
-                    if (field === 'title') setTitle(result)
-                    if (field === 'subtitle') setSubtitle(result)
-                    if (field === 'description') setDescription(result)
+                    const val = result || ''
+                    const looksZh = /[\u4e00-\u9fff]/
+                    if (field === 'title') setTitle(val)
+                    if (field === 'subtitle') setSubtitle(val)
+                    if (field === 'description') setDescription(val)
+                    const isZh = looksZh.test(val)
+                    if (isZh) {
+                      setZh(prev => ({ ...prev, [field]: val }))
+                      setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
+                    } else {
+                      setEn(prev => ({ ...prev, [field]: val }))
+                      setZh(prev => ({ ...prev, [field]: '' }))
+                    }
                   }}
                 />
               </div>
@@ -926,6 +1064,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
             {/* Translations */}
             <div className="grid grid-cols-2 gap-4 border rounded-lg p-3">
+              <div className="col-span-2 flex justify-end">
+                <Button type="button" size="sm" variant="outline" onClick={autoTranslateAll} disabled={isTranslatingAll}>
+                  {isTranslatingAll ? 'Translating…' : 'Auto-translate set + pictures (bi-directional)'}
+                </Button>
+              </div>
               {/* English */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -1241,6 +1384,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     </Button>
                     {showPictureTranslations[idx] && (
                       <div className="grid grid-cols-2 gap-4 px-3 pb-3">
+                        <div className="col-span-2 flex justify-end">
+                          <Button type="button" size="sm" variant="outline" onClick={() => autoTranslatePicture(idx)} disabled={!!isTranslatingPic[idx]}>
+                            {isTranslatingPic[idx] ? 'Translating…' : 'Auto-translate for this picture'}
+                          </Button>
+                        </div>
                         <div className="space-y-2">
                           <Label className="text-sm font-semibold text-gray-700">English (en)</Label>
                           <Input
