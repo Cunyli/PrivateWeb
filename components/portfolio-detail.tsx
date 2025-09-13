@@ -48,21 +48,21 @@ export default function PortfolioDetail({
     setCurrentIndex(index)
   }
 
-  // 智能预加载策略：页面加载后立即开始预加载图片
+  // Smart preloading strategy: start preloading after page load
   useEffect(() => {
     if (images && images.length > 0) {
-      // 检测网络连接质量
+      // Detect network conditions
       const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
       const isSlowConnection = connection && (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g');
       
-      // 首先加载当前图片和相邻图片（高优先级）
+      // Load current and adjacent images first (high priority)
       const priorityIndices = [
         currentIndex,
         (currentIndex - 1 + images.length) % images.length,
         (currentIndex + 1) % images.length,
       ];
 
-      // 立即开始加载优先级图片
+      // Start loading prioritized images immediately
       priorityIndices.forEach(index => {
         if (!preloadedImages.has(index) && images[index]?.url) {
           const img = new window.Image();
@@ -76,10 +76,10 @@ export default function PortfolioDetail({
         }
       });
 
-      // 延迟加载其他图片，根据网络状况调整
+      // Lazy load other images based on network quality
       const loadRemainingImages = () => {
-        const batchSize = isSlowConnection ? 2 : 4; // 慢网络时减少并发数
-        const delay = isSlowConnection ? 200 : 100; // 慢网络时增加延迟
+        const batchSize = isSlowConnection ? 2 : 4; // reduce concurrency on slow network
+        const delay = isSlowConnection ? 200 : 100; // add delay on slow network
         
         let batchIndex = 0;
         const remainingIndices = images
@@ -113,30 +113,30 @@ export default function PortfolioDetail({
         loadBatch();
       };
 
-      // 根据网络状况调整开始时间
+      // Adjust start time based on network
       const startDelay = isSlowConnection ? 1000 : 300;
       const timer = setTimeout(loadRemainingImages, startDelay);
       return () => clearTimeout(timer);
     }
   }, [images, currentIndex, preloadedImages]);
 
-  // 侧边栏悬停时立即加载所有缩略图
+  // Preload all thumbnails when sidebar is hovered
   useEffect(() => {
     if (sidebarHovered && images && images.length > 0) {
-      console.log('侧边栏展开中，立即加载所有缩略图...');
+      console.log('Sidebar expanding, preloading all thumbnails...');
       
-      // 计算需要加载的图片数量
+      // Compute number of images to load
       const unloadedImages = images.filter((_, index) => !preloadedImages.has(index));
       const totalToLoad = unloadedImages.length;
       
       if (totalToLoad > 0) {
-        // 在侧边栏展开的0.8秒内完成所有加载
-        const loadDuration = 800; // 毫秒
-        const interval = Math.max(10, Math.floor(loadDuration / totalToLoad)); // 最小间隔10ms
+        // Load all within ~0.8s while sidebar expands
+        const loadDuration = 800; // ms
+        const interval = Math.max(10, Math.floor(loadDuration / totalToLoad)); // min 10ms
         
         images.forEach((image, index) => {
           if (!preloadedImages.has(index) && image.url) {
-            // 计算这张图片的加载延迟
+            // Compute delay for this image
             const loadDelay = (index % totalToLoad) * interval;
             
             setTimeout(() => {
@@ -144,13 +144,13 @@ export default function PortfolioDetail({
               img.onload = () => {
                 setPreloadedImages(prev => {
                   const newSet = new Set(prev).add(index);
-                  console.log(`缩略图 ${index + 1}/${images.length} 加载完成 (${newSet.size}/${images.length})`);
+                  console.log(`Thumb ${index + 1}/${images.length} loaded (${newSet.size}/${images.length})`);
                   return newSet;
                 });
               };
               img.onerror = () => {
                 setPreloadedImages(prev => new Set(prev).add(index));
-                console.log(`缩略图 ${index + 1} 加载失败，跳过`);
+                console.log(`Thumb ${index + 1} failed, skip`);
               };
               img.src = process.env.NEXT_PUBLIC_BUCKET_URL + image.url;
             }, loadDelay);

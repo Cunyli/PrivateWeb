@@ -19,6 +19,8 @@ export interface PictureFormData {
   location_name?: string
   location_latitude?: number | null
   location_longitude?: number | null
+  // per-picture categories (editor convenience; stored as typed tags)
+  picture_category_ids?: number[]
   // optional per-picture extensions (not yet wired end-to-end)
   en?: LocaleTexts
   zh?: LocaleTexts
@@ -48,6 +50,13 @@ export interface PictureSetFormData {
   en?: LocaleTexts
   zh?: LocaleTexts
   tags?: string[]
+  // propagation flags
+  apply_set_props_to_pictures?: boolean
+  override_existing_picture_props?: boolean
+  propagate_categories_to_pictures?: boolean
+  // simplified flags
+  fill_missing_from_set?: boolean
+  autogen_titles_subtitles?: boolean
 }
 
 export interface PictureSetSubmitData extends Omit<PictureSet, "id" | "created_at" | "updated_at" | "pictures"> {
@@ -55,6 +64,15 @@ export interface PictureSetSubmitData extends Omit<PictureSet, "id" | "created_a
   en?: LocaleTexts
   zh?: LocaleTexts
   tags?: string[]
+  section_ids?: number[]
+  primary_location_name?: string
+  primary_location_latitude?: number | null
+  primary_location_longitude?: number | null
+  apply_set_props_to_pictures?: boolean
+  override_existing_picture_props?: boolean
+  propagate_categories_to_pictures?: boolean
+  fill_missing_from_set?: boolean
+  autogen_titles_subtitles?: boolean
 }
 
 export interface LocaleTexts {

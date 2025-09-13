@@ -51,70 +51,70 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
   }>({})
   const [customPrompt, setCustomPrompt] = useState('')
 
-  // 一键生成所有字段
+  // One-click generation for all fields
   const handleCompleteGeneration = async () => {
-    console.log('开始一键生成...')
+    console.log('Start one-click generation...')
     
     try {
-      // 清除错误并设置加载状态
+      // Clear errors and set loading states
       setErrors(prev => ({ ...prev, complete: undefined }))
       setIsLoading(prev => ({ ...prev, title: true, subtitle: true, description: true }))
       
-      // 并行调用三个API
-      console.log('并行调用三个生成API...')
+      // Call three APIs in parallel
+      console.log('Parallel API calls for generation...')
       const [titleResult, subtitleResult, descriptionResult] = await Promise.all([
         analyzeImage(imageUrl, 'title'),
         analyzeImage(imageUrl, 'subtitle'),
         analyzeImage(imageUrl, 'description')
       ])
       
-      // 检查结果并更新状态
+      // Check results and update state
       const updates: Record<string, string> = {}
       
       if (titleResult.success) {
         updates.title = titleResult.result
       } else {
-        setErrors(prev => ({ ...prev, title: titleResult.error || '标题生成失败' }))
+        setErrors(prev => ({ ...prev, title: titleResult.error || 'Failed to generate title' }))
       }
       
       if (subtitleResult.success) {
         updates.subtitle = subtitleResult.result
       } else {
-        setErrors(prev => ({ ...prev, subtitle: subtitleResult.error || '副标题生成失败' }))
+        setErrors(prev => ({ ...prev, subtitle: subtitleResult.error || 'Failed to generate subtitle' }))
       }
       
       if (descriptionResult.success) {
         updates.description = descriptionResult.result
       } else {
-        setErrors(prev => ({ ...prev, description: descriptionResult.error || '描述生成失败' }))
+        setErrors(prev => ({ ...prev, description: descriptionResult.error || 'Failed to generate description' }))
       }
       
-      // 一次性更新所有结果
+      // Commit updates at once
       setResults(prev => ({ ...prev, ...updates }))
       
-      // 延时通知父组件所有更新
+      // Notify parent with a slight delay
       setTimeout(() => {
         Object.entries(updates).forEach(([field, value]) => {
           if (field === 'title' || field === 'subtitle' || field === 'description') {
-            console.log(`通知更新${field}:`, value)
+            console.log(`Notify update ${field}:`, value)
             onResultUpdate?.(field as 'title' | 'subtitle' | 'description', value)
           }
         })
       }, 25)
       
-      console.log('一键生成完成！')
+      console.log('One-click generation completed!')
     } catch (error) {
-      console.error('一键生成失败:', error)
-      setErrors(prev => ({ ...prev, complete: '一键生成失败，请重试' }))
+      console.error('One-click generation failed:', error)
+      setErrors(prev => ({ ...prev, complete: 'Generation failed. Please try again.' }))
     } finally {
-      // 清除加载状态
+      // Clear loading flags
       setIsLoading(prev => ({ ...prev, title: false, subtitle: false, description: false }))
     }
   }
 
   const handleAnalyze = async (type: 'title' | 'subtitle' | 'description' | 'tags' | 'technical' | 'custom') => {
     try {
-      // 清除错误
+      // Clear previous error
       setErrors(prev => ({ ...prev, [type]: undefined }))
       setIsLoading(prev => ({ ...prev, [type]: true }))
       
@@ -124,19 +124,19 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       if (result.success) {
         setResults(prev => ({ ...prev, [type]: result.result }))
         
-        // 如果是必填字段，通知父组件
+        // Notify parent if a required field
         if (type === 'title' || type === 'subtitle' || type === 'description') {
           setTimeout(() => {
-            console.log(`单独通知更新${type}:`, result.result)
+            console.log(`Notify single update ${type}:`, result.result)
             onResultUpdate?.(type, result.result)
           }, 25)
         }
       } else {
-        setErrors(prev => ({ ...prev, [type]: result.error || '分析失败' }))
+        setErrors(prev => ({ ...prev, [type]: result.error || 'Analysis failed' }))
       }
     } catch (error) {
-      console.error(`分析${type}失败:`, error)
-      setErrors(prev => ({ ...prev, [type]: '分析失败，请重试' }))
+      console.error(`Analysis failed: ${type}`, error)
+      setErrors(prev => ({ ...prev, [type]: 'Analysis failed. Please try again.' }))
     } finally {
       setIsLoading(prev => ({ ...prev, [type]: false }))
     }
@@ -150,13 +150,13 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
         setCopiedStates(prev => ({ ...prev, [type]: false }))
       }, 2000)
     } catch (error) {
-      console.error('复制失败:', error)
+      console.error('Copy failed:', error)
     }
   }
 
   return (
     <div className="w-full space-y-3">
-      {/* 一键生成 - 精简版 */}
+      {/* One-click generation (compact) */}
       <div className="space-y-2">
         <Button
           type="button"
@@ -172,12 +172,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           {isLoading.title || isLoading.subtitle || isLoading.description ? (
             <>
               <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-              生成中...
+              Generating...
             </>
           ) : (
             <>
               <Sparkles className="mr-2 h-3 w-3" />
-              一键生成所有字段
+              Generate all fields
             </>
           )}
         </Button>
@@ -189,7 +189,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
         )}
       </div>
 
-      {/* 单独生成按钮 - 精简版 */}
+      {/* Individual generation buttons (compact) */}
       <div className="grid grid-cols-3 gap-2">
         <Button
           type="button"
@@ -208,7 +208,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           ) : (
             <>
               <Type className="h-3 w-3 mr-1" />
-              标题
+              Title
             </>
           )}
         </Button>
@@ -230,7 +230,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           ) : (
             <>
               <Type className="h-3 w-3 mr-1" />
-              副标题
+              Subtitle
             </>
           )}
         </Button>
@@ -252,16 +252,16 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           ) : (
             <>
               <FileText className="h-3 w-3 mr-1" />
-              描述
+              Description
             </>
           )}
         </Button>
       </div>
 
-      {/* 高级分析功能 - 折叠式 */}
+      {/* Advanced analysis (collapsible) */}
       <details className="border border-gray-200 rounded">
         <summary className="cursor-pointer p-2 text-sm font-medium bg-gray-50 rounded hover:bg-gray-100">
-          🔧 高级分析工具
+          🔧 Advanced analysis tools
         </summary>
         <div className="p-2 space-y-2">
           <div className="grid grid-cols-2 gap-2">
@@ -282,7 +282,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               ) : (
                 <>
                   <Tag className="h-3 w-3 mr-1" />
-                  标签
+                  Tags
                 </>
               )}
             </Button>
@@ -304,16 +304,16 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               ) : (
                 <>
                   <Camera className="h-3 w-3 mr-1" />
-                  技术
+                  Technical
                 </>
               )}
             </Button>
           </div>
           
-          {/* 自定义分析 */}
+          {/* Custom analysis */}
           <div className="space-y-1">
             <Input
-              placeholder="自定义分析提示词..."
+              placeholder="Custom analysis prompt..."
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
               className="text-xs h-8"
@@ -332,12 +332,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {isLoading.custom ? (
                 <>
                   <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  分析中...
+                  Analyzing...
                 </>
               ) : (
                 <>
                   <Sparkles className="h-3 w-3 mr-1" />
-                  自定义分析
+                  Run custom analysis
                 </>
               )}
             </Button>
@@ -345,53 +345,53 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
         </div>
       </details>
 
-      {/* 错误显示 */}
+      {/* Errors */}
       {(errors.title || errors.subtitle || errors.description || errors.tags || errors.technical || errors.custom) && (
         <div className="space-y-1">
-          {errors.title && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">标题: {errors.title}</div>}
-          {errors.subtitle && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">副标题: {errors.subtitle}</div>}
-          {errors.description && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">描述: {errors.description}</div>}
-          {errors.tags && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">标签: {errors.tags}</div>}
-          {errors.technical && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">技术: {errors.technical}</div>}
-          {errors.custom && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">自定义: {errors.custom}</div>}
+          {errors.title && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Title: {errors.title}</div>}
+          {errors.subtitle && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Subtitle: {errors.subtitle}</div>}
+          {errors.description && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Description: {errors.description}</div>}
+          {errors.tags && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Tags: {errors.tags}</div>}
+          {errors.technical && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Technical: {errors.technical}</div>}
+          {errors.custom && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Custom: {errors.custom}</div>}
         </div>
       )}
 
-      {/* 结果显示 - 精简版 */}
+      {/* Results (compact) */}
       {(results.title || results.subtitle || results.description || results.tags || results.technical || results.custom) && (
         <details className="border border-green-200 rounded">
           <summary className="cursor-pointer p-2 text-sm font-medium bg-green-50 rounded hover:bg-green-100">
-            ✅ 生成结果 ({Object.values(results).filter(Boolean).length} 项)
+            ✅ Generated results ({Object.values(results).filter(Boolean).length} items)
           </summary>
           <div className="p-2 space-y-2 max-h-40 overflow-y-auto">
             {results.title && (
               <div className="text-xs">
-                <span className="font-medium text-blue-600">标题:</span> {results.title}
+                <span className="font-medium text-blue-600">Title:</span> {results.title}
               </div>
             )}
             {results.subtitle && (
               <div className="text-xs">
-                <span className="font-medium text-green-600">副标题:</span> {results.subtitle}
+                <span className="font-medium text-green-600">Subtitle:</span> {results.subtitle}
               </div>
             )}
             {results.description && (
               <div className="text-xs">
-                <span className="font-medium text-purple-600">描述:</span> {results.description}
+                <span className="font-medium text-purple-600">Description:</span> {results.description}
               </div>
             )}
             {results.tags && (
               <div className="text-xs">
-                <span className="font-medium text-orange-600">标签:</span> {results.tags}
+                <span className="font-medium text-orange-600">Tags:</span> {results.tags}
               </div>
             )}
             {results.technical && (
               <div className="text-xs">
-                <span className="font-medium text-red-600">技术:</span> {results.technical}
+                <span className="font-medium text-red-600">Technical:</span> {results.technical}
               </div>
             )}
             {results.custom && (
               <div className="text-xs">
-                <span className="font-medium text-gray-600">自定义:</span> {results.custom}
+                <span className="font-medium text-gray-600">Custom:</span> {results.custom}
               </div>
             )}
           </div>

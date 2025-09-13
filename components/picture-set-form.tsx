@@ -70,8 +70,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [primaryLocationName, setPrimaryLocationName] = useState<string>("")
   const [primaryLocationLat, setPrimaryLocationLat] = useState<number | "">("")
   const [primaryLocationLng, setPrimaryLocationLng] = useState<number | "">("")
-  const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
   const [applySetPropsToPictures, setApplySetPropsToPictures] = useState<boolean>(true)
+  const [overrideExistingPictureProps, setOverrideExistingPictureProps] = useState<boolean>(false)
+  const [propagateCategoriesToPictures, setPropagateCategoriesToPictures] = useState<boolean>(false)
+  const [showAITrans, setShowAITrans] = useState<boolean>(false)
+  // simplified flags per your request
+  const [fillMissingFromSet, setFillMissingFromSet] = useState<boolean>(true)
+  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(false)
+  const [showPictureTagsEditor, setShowPictureTagsEditor] = useState<{[key:number]: boolean}>({})
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -89,6 +95,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [showAIAnalysis, setShowAIAnalysis] = useState(false)
   const [showPictureAIAnalysis, setShowPictureAIAnalysis] = useState<{[key: number]: boolean}>({})
   const [showPictureTranslations, setShowPictureTranslations] = useState<{[key: number]: boolean}>({})
+  // translation autofill touching flags
+  const [enTouched, setEnTouched] = useState<{title:boolean; subtitle:boolean; description:boolean}>({ title: false, subtitle: false, description: false })
+  const [picEnTouched, setPicEnTouched] = useState<{[idx:number]: { title?: boolean; subtitle?: boolean; description?: boolean }}>({})
   const formRef = useRef<HTMLFormElement>(null)
   const picturesContainerRef = useRef<HTMLDivElement>(null)
   const bulkInputRef = useRef<HTMLInputElement>(null)
@@ -214,14 +223,13 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     // preload vocab tables
     const loadVocab = async () => {
       try {
-        const [{ data: cats }, { data: seas }, { data: sects }] = await Promise.all([
-          supabase.from('categories').select('id,name').order('name'),
-          supabase.from('seasons').select('id,name').order('id'),
-          supabase.from('sections').select('id,name,display_order').order('display_order', { ascending: true }),
-        ])
-        setAvailableCategories((cats || []).map((c:any)=>({ id: c.id, name: c.name })))
-        setAvailableSeasons((seas || []).map((s:any)=>({ id: s.id, name: s.name })))
-        setAvailableSections((sects || []).map((s:any)=>({ id: s.id, name: s.name })))
+        const res = await fetch('/api/admin/vocab')
+        const data = await res.json()
+        if (res.ok) {
+          setAvailableCategories((data?.categories || []).map((c:any)=>({ id: c.id, name: c.name })))
+          setAvailableSeasons((data?.seasons || []).map((s:any)=>({ id: s.id, name: s.name })))
+          setAvailableSections((data?.sections || []).map((s:any)=>({ id: s.id, name: s.name })))
+        }
       } catch (e) {
         console.warn('Load vocab failed', e)
       }
@@ -238,10 +246,17 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setCoverPreview(editingPictureSet.cover_image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${editingPictureSet.cover_image_url}` : null)
       setPosition(editingPictureSet.position || "up")
       // translations and tags (optional on type)
+      // Prefill en from DB; if missing, fall back to base fields
       setEn({
-        title: editingPictureSet.en?.title || "",
-        subtitle: editingPictureSet.en?.subtitle || "",
-        description: editingPictureSet.en?.description || "",
+        title: editingPictureSet.en?.title || editingPictureSet.title || "",
+        subtitle: editingPictureSet.en?.subtitle || editingPictureSet.subtitle || "",
+        description: editingPictureSet.en?.description || editingPictureSet.description || "",
+      })
+      // Mark touched for en fields only if DB provided a non-empty translation
+      setEnTouched({
+        title: !!(editingPictureSet.en?.title && editingPictureSet.en.title.trim()),
+        subtitle: !!(editingPictureSet.en?.subtitle && editingPictureSet.en.subtitle.trim()),
+        description: !!(editingPictureSet.en?.description && editingPictureSet.en.description.trim()),
       })
       setZh({
         title: editingPictureSet.zh?.title || "",
@@ -250,79 +265,25 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       })
       setTagsText((editingPictureSet.tags || []).join(", "))
       setIsPublished(editingPictureSet.is_published ?? true)
-      // Prefill multi-selects for categories & seasons
-      ;(async () => {
-        try {
-          // load typed tags mapped to this set
-          const { data: rows } = await supabase
-            .from('picture_set_taggings')
-            .select('tags(name,type)')
-            .eq('picture_set_id', editingPictureSet.id)
-          const namesByType: Record<string, string[]> = {}
-          for (const r of rows || []) {
-            const t = (r as any).tags?.type
-            const n = (r as any).tags?.name
-            if (!t || !n) continue
-            namesByType[t] = [...(namesByType[t] || []), n]
-          }
-          if (Object.keys(namesByType).length === 0) {
-            // fallback: if no typed tags, seed from primary fields
-            if (editingPictureSet.primary_category_id) setCategoryIds([editingPictureSet.primary_category_id])
-            if (editingPictureSet.season_id) setSeasonIds([editingPictureSet.season_id])
-          } else {
-            // map names back to IDs via available lists
-            const catIds = (namesByType['category'] || []).map(n => (availableCategories.find(c => c.name === n)?.id)).filter(Boolean) as number[]
-            const seaIds = (namesByType['season'] || []).map(n => (availableSeasons.find(s => s.name === n)?.id)).filter(Boolean) as number[]
-            setCategoryIds(Array.from(new Set(catIds)))
-            setSeasonIds(Array.from(new Set(seaIds)))
-          }
-        } catch (e) { console.warn('Load typed tags failed', e) }
-      })()
-      // fetch section assignments
-      ;(async () => {
-        try {
-          const { data: assigns } = await supabase
-            .from('picture_set_section_assignments')
-            .select('section_id')
-            .eq('picture_set_id', editingPictureSet.id)
-          const ids = (assigns || []).map((r:any)=>r.section_id)
-          if (ids.length > 0) {
-            setSectionIds(ids)
-          } else {
-            // If no assignments yet, preselect by legacy position to aid migration
-            try {
-              const { data: secs } = await supabase.from('sections').select('id,name')
-              const getMatch = (want: 'up'|'down') => {
-                const re = want === 'down' ? /\bdown\b|bottom|下|底/i : /\bup\b|top|上|顶/i
-                return (secs || []).find((s:any)=> re.test(String(s.name||'')))?.id as number | undefined
-              }
-              const pos = (editingPictureSet.position||'').trim().toLowerCase()
-              const matchId = pos === 'down' ? getMatch('down') : getMatch('up')
-              if (matchId) setSectionIds([matchId])
-            } catch {}
-          }
-        } catch (e) { console.warn('Load sections failed', e) }
-      })()
-      // fetch primary location
-      ;(async () => {
-        try {
-          const { data: rows } = await supabase
-            .from('picture_set_locations')
-            .select('is_primary, locations(id,name,latitude,longitude)')
-            .eq('picture_set_id', editingPictureSet.id)
-          const locRow = (rows || []).sort((a:any,b:any)=> (b.is_primary?1:0)-(a.is_primary?1:0))[0]
-          const loc = locRow?.locations
-          if (loc) {
-            setPrimaryLocationName(loc.name || '')
-            setPrimaryLocationLat(loc.latitude ?? '')
-            setPrimaryLocationLng(loc.longitude ?? '')
-          }
-        } catch (e) { console.warn('Load primary location failed', e) }
-      })()
+      // 预填分类与季节：直接用后端返回字段，避免客户端读取 RLS 表
+      if (Array.isArray((editingPictureSet as any).category_ids) && (editingPictureSet as any).category_ids.length) {
+        setCategoryIds([...(editingPictureSet as any).category_ids])
+      } else if (editingPictureSet.primary_category_id) {
+        setCategoryIds([editingPictureSet.primary_category_id])
+      }
+      if (editingPictureSet.season_id) setSeasonIds([editingPictureSet.season_id])
+      // 预填 sections（由后端详情提供）
+      if (Array.isArray((editingPictureSet as any).section_ids)) {
+        setSectionIds([...(editingPictureSet as any).section_ids])
+      }
+      // 预填主位置（由后端详情提供）
+      if ((editingPictureSet as any).primary_location_name) setPrimaryLocationName((editingPictureSet as any).primary_location_name)
+      if ((editingPictureSet as any).primary_location_latitude != null) setPrimaryLocationLat((editingPictureSet as any).primary_location_latitude)
+      if ((editingPictureSet as any).primary_location_longitude != null) setPrimaryLocationLng((editingPictureSet as any).primary_location_longitude)
 
       if (editingPictureSet.pictures) {
-        setPictures(
-          editingPictureSet.pictures.map((pic) => ({
+        const initialTouched: {[idx:number]: { title?: boolean; subtitle?: boolean; description?: boolean }} = {}
+        const mapped = editingPictureSet.pictures.map((pic, idx) => ({
             id: pic.id,
             title: pic.title || "",
             subtitle: pic.subtitle || "",
@@ -331,11 +292,12 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             location_name: (pic as any).location_name || '',
             location_latitude: (pic as any).location_latitude ?? null,
             location_longitude: (pic as any).location_longitude ?? null,
+            picture_category_ids: (pic as any).picture_category_ids || [],
             tags: pic.tags || [],
             en: {
-              title: pic.en?.title || "",
-              subtitle: pic.en?.subtitle || "",
-              description: pic.en?.description || "",
+              title: pic.en?.title || pic.title || "",
+              subtitle: pic.en?.subtitle || pic.subtitle || "",
+              description: pic.en?.description || pic.description || "",
             },
             zh: {
               title: pic.zh?.title || "",
@@ -348,7 +310,16 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             compressedSize: undefined,
             image_url: pic.image_url || "",
           }))
-        )
+        // initialize touched map: mark true if DB provided non-empty en.*
+        editingPictureSet.pictures.forEach((p, i) => {
+          initialTouched[i] = {
+            title: !!(p.en?.title && p.en.title.trim()),
+            subtitle: !!(p.en?.subtitle && p.en.subtitle.trim()),
+            description: !!(p.en?.description && p.en.description.trim()),
+          }
+        })
+        setPictures(mapped)
+        setPicEnTouched(initialTouched)
       }
     } else if (editingPictureSet === null && (isEditMode || editingId !== undefined)) {
       // 只有当明确从编辑模式切换到非编辑模式时才重置表单
@@ -420,6 +391,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         location_name: '',
         location_latitude: null,
         location_longitude: null,
+        picture_category_ids: [],
         tags: [],
         en: { title: "", subtitle: "", description: "" },
         zh: { title: "", subtitle: "", description: "" },
@@ -461,10 +433,35 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           }
         }
 
+        // dynamic autofill english from base fields when not manually touched
+        if (field === 'title' || field === 'subtitle' || field === 'description') {
+          const touched = picEnTouched[index] || {}
+          const key = field as 'title' | 'subtitle' | 'description'
+          const shouldAuto = !touched[key]
+          if (shouldAuto) {
+            const newEn = { ...(pic.en || {}), [key]: value }
+            return { ...pic, [field]: value, en: newEn }
+          }
+        }
+
         return { ...pic, [field]: value }
       })
     )
   }
+
+  // dynamic autofill for set-level translations: follow base fields until user manually edits en.*
+  useEffect(() => {
+    if (!enTouched.title) setEn((prev) => ({ ...prev, title }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title])
+  useEffect(() => {
+    if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtitle])
+  useEffect(() => {
+    if (!enTouched.description) setEn((prev) => ({ ...prev, description }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [description])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -541,6 +538,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             location_name: (pic as any).location_name || undefined,
             location_latitude: (pic as any).location_latitude ?? null,
             location_longitude: (pic as any).location_longitude ?? null,
+            picture_category_ids: (pic as any).picture_category_ids || [],
             tags: pic.tags,
             en: pic.en,
             zh: pic.zh,
@@ -551,19 +549,25 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       )
 
       // Optionally apply set-level season/location to pictures if missing
-      const propagatedPictures = processedPictures.map((p) => {
-        if (!applySetPropsToPictures) return p
+      const propagatedPictures = processedPictures.map((p, idx) => {
+        // Backward flags preserved; prefer simplified flag for behavior
+        const allowApply = applySetPropsToPictures || fillMissingFromSet
+        if (!allowApply) return p
         let season_id = p.season_id
-        if ((season_id == null) && seasonIds.length > 0) season_id = seasonIds[0]
+        if (seasonIds.length === 1) {
+          if (overrideExistingPictureProps || season_id == null) season_id = seasonIds[0]
+        }
         let location_name = p.location_name
         let location_latitude = p.location_latitude
         let location_longitude = p.location_longitude
         const hasPicLoc = !!(location_name) || (typeof location_latitude === 'number' && typeof location_longitude === 'number')
         const hasSetLoc = !!primaryLocationName || (typeof primaryLocationLat === 'number' && typeof primaryLocationLng === 'number')
-        if (!hasPicLoc && hasSetLoc) {
-          location_name = primaryLocationName || undefined
-          location_latitude = typeof primaryLocationLat === 'number' ? primaryLocationLat : null
-          location_longitude = typeof primaryLocationLng === 'number' ? primaryLocationLng : null
+        if (hasSetLoc) {
+          if (overrideExistingPictureProps || !hasPicLoc) {
+            location_name = primaryLocationName || undefined
+            location_latitude = typeof primaryLocationLat === 'number' ? primaryLocationLat : null
+            location_longitude = typeof primaryLocationLng === 'number' ? primaryLocationLng : null
+          }
         }
         return { ...p, season_id, location_name, location_latitude, location_longitude }
       })
@@ -599,9 +603,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           .split(",")
           .map((t) => t.trim())
           .filter((t) => t.length > 0),
+        apply_set_props_to_pictures: applySetPropsToPictures,
+        override_existing_picture_props: overrideExistingPictureProps,
+        propagate_categories_to_pictures: propagateCategoriesToPictures,
+        fill_missing_from_set: fillMissingFromSet,
+        autogen_titles_subtitles: autogenTitlesSubtitles,
       }
 
-      await onSubmit(payload, editingId)
+      await onSubmit(payload, editingId ?? editingPictureSet?.id)
       
       // 表单重置逻辑由父组件通过 editingPictureSet 的变化来触发
     } catch (error) {
@@ -611,8 +620,13 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     }
   }
 
-  const formatSize = (b: number) =>
-    b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(2) + " KB" : (b / 1048576).toFixed(2) + " MB"
+  const formatSize = (b: number) => {
+    return b < 1024
+      ? b + " B"
+      : b < 1048576
+      ? (b / 1024).toFixed(2) + " KB"
+      : (b / 1048576).toFixed(2) + " MB"
+  }
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 relative">
@@ -640,7 +654,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   className="h-6 w-6 p-0"
                   onClick={() => generateField('title')}
                   disabled={isGenerating.title}
-                  title="AI生成标题"
+                  title="AI generate title"
                 >
                   {isGenerating.title ? <Sparkles className="h-3 w-3 animate-spin" /> : "✨"}
                 </Button>
@@ -660,7 +674,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   className="h-6 w-6 p-0"
                   onClick={() => generateField('subtitle')}
                   disabled={isGenerating.subtitle}
-                  title="AI生成副标题"
+                  title="AI generate subtitle"
                 >
                   {isGenerating.subtitle ? <Sparkles className="h-3 w-3 animate-spin" /> : "✨"}
                 </Button>
@@ -680,7 +694,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   className="h-6 w-6 p-0"
                   onClick={() => generateField('description')}
                   disabled={isGenerating.description}
-                  title="AI生成描述"
+                  title="AI generate description"
                 >
                   {isGenerating.description ? <Sparkles className="h-3 w-3 animate-spin" /> : "✨"}
                 </Button>
@@ -705,123 +719,118 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             </div>
           )}
 
-          {/* Advanced options (collapsible) */}
-          <div className="border rounded-md">
-            <button type="button" className="w-full text-left px-3 py-2 flex items-center justify-between" onClick={()=>setAdvancedOpen(v=>!v)}>
-              <span className="font-medium">高级选项</span>
-              <span className={`transition-transform ${advancedOpen ? 'rotate-90' : ''}`}>›</span>
-            </button>
-            {advancedOpen && (
-              <div className="p-3 space-y-4 border-t">
-                {/* Publish */}
-                <div className="flex items-center gap-3">
-                  <input id="is_published" type="checkbox" checked={isPublished} onChange={(e)=>setIsPublished(e.target.checked)} />
-                  <Label htmlFor="is_published">Published</Label>
-                </div>
+          {/* Publish */}
+          <div className="flex items-center gap-3">
+            <input id="is_published" type="checkbox" checked={isPublished} onChange={(e)=>setIsPublished(e.target.checked)} />
+            <Label htmlFor="is_published">Published</Label>
+          </div>
 
-                {/* Categories & Seasons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Categories</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {availableCategories.map(c => {
-                        const checked = categoryIds.includes(c.id)
-                        return (
-                          <label key={c.id} className="flex items-center gap-2 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={(e)=>{
-                                setCategoryIds(prev => e.target.checked ? Array.from(new Set([...prev, c.id])) : prev.filter(id=>id!==c.id))
-                              }}
-                            />
-                            <span>{c.name}</span>
-                          </label>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Seasons</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {availableSeasons.map(s => {
-                        const checked = seasonIds.includes(s.id)
-                        return (
-                          <label key={s.id} className="flex items-center gap-2 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={(e)=>{
-                                setSeasonIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
-                              }}
-                            />
-                            <span>{s.name}</span>
-                          </label>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sections */}
-                <div>
-                  <Label>Sections</Label>
-                  <p className="text-xs text-gray-500 mt-1">用于确定图片集的类型与展示位置（例如选择 Top/Bottom 对应首页上下排）。</p>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    {availableSections.map(s => {
-                      const checked = sectionIds.includes(s.id)
-                      return (
-                        <label key={s.id} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(e)=>{
-                              setSectionIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
-                            }}
-                          />
-                          <span>{s.name}</span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Primary location inputs */}
-                <div className="grid grid-cols-1 gap-2">
-                  <div className="flex items-center gap-2">
-                    <Label className="font-medium">Primary Location (optional)</Label>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={async ()=>{
-                        if (!primaryLocationName.trim()) return
-                        try {
-                          const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: primaryLocationName, limit: 1 }) })
-                          const data = await res.json()
-                          const g = data?.results?.[0]
-                          if (g) {
-                            setPrimaryLocationLat(g.lat)
-                            setPrimaryLocationLng(g.lon)
-                          }
-                        } catch (e) { console.warn('Geocode failed', e) }
-                      }}
-                    >Geocode</Button>
-                  </div>
-                  <Input placeholder="Location name (e.g., 外滩)" value={primaryLocationName} onChange={(e)=>setPrimaryLocationName(e.target.value)} />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="Latitude" value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
-                    <Input placeholder="Longitude" value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
-                  </div>
-                </div>
-
-                {/* Apply set props to pictures */}
-                <div className="flex items-center gap-2 pt-1">
-                  <input id="apply_set_props" type="checkbox" checked={applySetPropsToPictures} onChange={(e)=>setApplySetPropsToPictures(e.target.checked)} />
-                  <Label htmlFor="apply_set_props">将集合的季节/地点应用到缺失这些信息的图片</Label>
-                </div>
+          {/* Categories & Seasons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Categories</Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {availableCategories.map(c => {
+                  const checked = categoryIds.includes(c.id)
+                  return (
+                    <label key={c.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e)=>{
+                          setCategoryIds(prev => e.target.checked ? Array.from(new Set([...prev, c.id])) : prev.filter(id=>id!==c.id))
+                        }}
+                      />
+                      <span>{c.name}</span>
+                    </label>
+                  )
+                })}
               </div>
-            )}
+            </div>
+            <div>
+              <Label>Seasons</Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {availableSeasons.map(s => {
+                  const checked = seasonIds.includes(s.id)
+                  return (
+                    <label key={s.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e)=>{
+                          setSeasonIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
+                        }}
+                      />
+                      <span>{s.name}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Sections */}
+          <div>
+            <Label>Sections</Label>
+            <p className="text-xs text-gray-500 mt-1">Controls set types and placement (e.g., Top/Bottom rows on homepage).</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {availableSections.map(s => {
+                const checked = sectionIds.includes(s.id)
+                return (
+                  <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e)=>{
+                        setSectionIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
+                      }}
+                    />
+                    <span>{s.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Primary location inputs */}
+          <div className="grid grid-cols-1 gap-2">
+            <div className="flex items-center gap-2">
+              <Label className="font-medium">Primary Location (optional)</Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={async ()=>{
+                  if (!primaryLocationName.trim()) return
+                  try {
+                    const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: primaryLocationName, limit: 1 }) })
+                    const data = await res.json()
+                    const g = data?.results?.[0]
+                    if (g) {
+                      setPrimaryLocationLat(g.lat)
+                      setPrimaryLocationLng(g.lon)
+                    }
+                  } catch (e) { console.warn('Geocode failed', e) }
+                }}
+              >Geocode</Button>
+            </div>
+            <Input placeholder="Location name (e.g., The Bund)" value={primaryLocationName} onChange={(e)=>setPrimaryLocationName(e.target.value)} />
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="Latitude" value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
+              <Input placeholder="Longitude" value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
+            </div>
+          </div>
+
+          {/* Fill missing picture fields & auto-generate */}
+          <div className="flex flex-col gap-2 pt-1">
+            <label className="flex items-center gap-2 text-sm">
+              <input id="fill_missing_from_set" type="checkbox" checked={fillMissingFromSet} onChange={(e)=>setFillMissingFromSet(e.target.checked)} />
+              <span>Fill missing picture fields from this set (season/location)</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="autogen_titles_subtitles" type="checkbox" checked={autogenTitlesSubtitles} onChange={(e)=>setAutogenTitlesSubtitles(e.target.checked)} />
+              <span>AI-generate title/subtitle for pictures missing them</span>
+            </label>
           </div>
         </div>
 
@@ -833,7 +842,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               <div 
                 className="relative w-full overflow-hidden rounded-md border border-gray-200 cursor-pointer hover:border-blue-400 transition-colors group"
                 onClick={() => document.getElementById('cover-input')?.click()}
-                title="点击更换封面图片"
+                title="Click to change cover image"
               >
                 <img
                   src={coverPreview || "/placeholder.svg"}
@@ -843,11 +852,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     aspectRatio: 'auto'
                   }}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
-                    点击更换图片
-                  </div>
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
+                  Click to change image
                 </div>
+              </div>
               </div>
               {coverOriginalSize > 0 && (
                 <p className="text-sm text-gray-500 mt-2">
@@ -865,8 +874,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-gray-600 font-medium">点击上传封面图片</p>
-                  <p className="text-sm text-gray-400">支持 JPG、PNG、WebP 格式</p>
+                  <p className="text-gray-600 font-medium">Click to upload cover image</p>
+                  <p className="text-sm text-gray-400">Supports JPG, PNG, WebP</p>
                 </div>
               </div>
             </div>
@@ -881,106 +890,108 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         </div>
       </div>
 
-      {/* AI分析功能区域 - 折叠式设计 */}
-      {coverPreview && (
-        <div className="border border-gray-200 rounded-lg">
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full p-3 flex items-center justify-between text-left"
-            onClick={() => setShowAIAnalysis(!showAIAnalysis)}
-          >
-            <div className="flex items-center gap-2">
-              <span>🤖</span>
-              <span className="font-medium">AI 智能分析</span>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                一键生成 & 自定义分析
-              </span>
-            </div>
-            <span className={`transform transition-transform ${showAIAnalysis ? 'rotate-180' : ''}`}>
-              ▼
+      {/* AI & Translations (collapsible) */}
+      <div className="border border-gray-200 rounded-lg">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full p-3 flex items-center justify-between text-left"
+          onClick={() => setShowAITrans(!showAITrans)}
+        >
+          <div className="flex items-center gap-2">
+            <span>🤖</span>
+            <span className="font-medium">AI & Translations</span>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              Generation tools and bilingual fields
             </span>
-          </Button>
-          
-          {showAIAnalysis && (
-            <div className="px-3 pb-3 border-t border-gray-100">
-              <ImageAnalysisComponent
-                imageUrl={coverPreview}
-                onResultUpdate={(field, result) => {
-                  if (field === 'title') setTitle(result)
-                  if (field === 'subtitle') setSubtitle(result)
-                  if (field === 'description') setDescription(result)
-                }}
+          </div>
+          <span className={`transform transition-transform ${showAITrans ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </Button>
+        {showAITrans && (
+          <div className="px-3 pb-3 border-t border-gray-100 space-y-4">
+            {coverPreview && (
+              <div>
+                <ImageAnalysisComponent
+                  imageUrl={coverPreview}
+                  onResultUpdate={(field, result) => {
+                    if (field === 'title') setTitle(result)
+                    if (field === 'subtitle') setSubtitle(result)
+                    if (field === 'description') setDescription(result)
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Translations */}
+            <div className="grid grid-cols-2 gap-4 border rounded-lg p-3">
+              {/* English */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Label className="text-base font-semibold">English (en)</Label>
+                </div>
+                <Input placeholder="English title" value={en.title}
+                      onChange={(e) => { setEnTouched((t)=>({ ...t, title: true })); setEn((prev) => ({ ...prev, title: e.target.value })) }} />
+                <Input placeholder="English subtitle" value={en.subtitle}
+                      onChange={(e) => { setEnTouched((t)=>({ ...t, subtitle: true })); setEn((prev) => ({ ...prev, subtitle: e.target.value })) }} />
+                <Textarea placeholder="English description" value={en.description}
+                          onChange={(e) => { setEnTouched((t)=>({ ...t, description: true })); setEn((prev) => ({ ...prev, description: e.target.value })) }} />
+              </div>
+
+              {/* Chinese */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Label className="text-base font-semibold">Chinese (zh)</Label>
+                </div>
+                <Input placeholder="Chinese title" value={zh.title}
+                      onChange={(e) => setZh((prev) => ({ ...prev, title: e.target.value }))} />
+                <Input placeholder="Chinese subtitle" value={zh.subtitle}
+                      onChange={(e) => setZh((prev) => ({ ...prev, subtitle: e.target.value }))} />
+                <Textarea placeholder="Chinese description" value={zh.description}
+                          onChange={(e) => setZh((prev) => ({ ...prev, description: e.target.value }))} />
+              </div>
+            </div>
+
+            {/* Set tags (optional) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Tags (comma-separated)</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={generateTagsForSet}
+                  disabled={isGenerating.tags || (!coverPreview && pictures.length === 0)}
+                  title={coverPreview || pictures.length > 0 ? 'AI generate tags' : 'Please add a cover or images first'}
+                  className="h-8 px-2"
+                >
+                  {isGenerating.tags ? (
+                    <span className="text-xs text-gray-500">Generating…</span>
+                  ) : (
+                    <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI Generate</span>
+                  )}
+                </Button>
+              </div>
+              <Input
+                placeholder="e.g., portrait, street, night"
+                value={tagsText}
+                onChange={(e) => setTagsText(e.target.value)}
               />
             </div>
-          )}
-        </div>
-      )}
-
-      {/* 多语言与标签 */}
-      <div className="grid grid-cols-2 gap-4 border rounded-lg p-3">
-        {/* 英文 */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Label className="text-base font-semibold">English (en)</Label>
           </div>
-          <Input placeholder="English title" value={en.title}
-                 onChange={(e) => setEn((prev) => ({ ...prev, title: e.target.value }))} />
-          <Input placeholder="English subtitle" value={en.subtitle}
-                 onChange={(e) => setEn((prev) => ({ ...prev, subtitle: e.target.value }))} />
-          <Textarea placeholder="English description" value={en.description}
-                    onChange={(e) => setEn((prev) => ({ ...prev, description: e.target.value }))} />
-        </div>
-
-        {/* 中文 */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Label className="text-base font-semibold">中文 (zh)</Label>
-          </div>
-          <Input placeholder="中文标题" value={zh.title}
-                 onChange={(e) => setZh((prev) => ({ ...prev, title: e.target.value }))} />
-          <Input placeholder="中文副标题" value={zh.subtitle}
-                 onChange={(e) => setZh((prev) => ({ ...prev, subtitle: e.target.value }))} />
-          <Textarea placeholder="中文描述" value={zh.description}
-                    onChange={(e) => setZh((prev) => ({ ...prev, description: e.target.value }))} />
-        </div>
+        )}
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-base font-semibold">标签（以逗号分隔）</Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={generateTagsForSet}
-            disabled={isGenerating.tags || (!coverPreview && pictures.length === 0)}
-            title={coverPreview || pictures.length > 0 ? 'AI 生成标签' : '请先添加封面或图片'}
-            className="h-8 px-2"
-          >
-            {isGenerating.tags ? (
-              <span className="text-xs text-gray-500">生成中…</span>
-            ) : (
-              <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI 生成</span>
-            )}
-          </Button>
-        </div>
-        <Input
-          placeholder="例如：portrait, street, night"
-          value={tagsText}
-          onChange={(e) => setTagsText(e.target.value)}
-        />
-      </div>
-
-      {/* 多张图片列表 */}
+      {/* Pictures list */}
       <div className="space-y-6" ref={picturesContainerRef}>
-        {/* 简化的标题 */}
+        {/* Section header */}
         {pictures.length > 0 && (
           <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-            <Label className="text-lg font-semibold text-gray-800">图片集合</Label>
+            <Label className="text-lg font-semibold text-gray-800">Pictures</Label>
             <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-sm font-medium">
-              {pictures.length} 张图片
+              {pictures.length} images
             </span>
           </div>
         )}
@@ -991,8 +1002,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                 <Plus className="h-6 w-6 text-gray-400" />
               </div>
-              <p className="text-gray-500">还没有添加图片</p>
-              <p className="text-sm text-gray-400">点击下方按钮开始添加图片到集合中</p>
+              <p className="text-gray-500">No images yet</p>
+              <p className="text-sm text-gray-400">Click the button below to add images</p>
             </div>
           </div>
         )}
@@ -1002,19 +1013,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             key={(pic as any).id ?? (pic as any).tempId ?? idx} 
             className="relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
           >
-            {/* 图片序号标识 */}
+            {/* Picture index badge */}
             <div className="absolute top-4 left-4 z-10">
               <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md">
                 <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                   {idx + 1}
                 </div>
                 <span className="text-sm font-medium text-gray-700">
-                  {pic.id ? `已保存 #${pic.id}` : "新图片"}
+                  {pic.id ? `Saved #${pic.id}` : "New"}
                 </span>
               </div>
             </div>
 
-            {/* 删除按钮 */}
+            {/* Delete button */}
             <div className="absolute top-4 right-4 z-10">
               <Button 
                 type="button" 
@@ -1029,11 +1040,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
             <div className="p-4 pt-14">
               <div className="grid grid-cols-2 gap-6">
-                {/* 左侧：表单字段 */}
+                {/* Left column: form fields */}
                 <div className="space-y-5">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm font-semibold text-gray-700">标题</Label>
+                      <Label className="text-sm font-semibold text-gray-700">Title</Label>
                       {pic.previewUrl && (
                         <Button
                           type="button"
@@ -1042,14 +1053,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                           className="h-6 w-6 p-0 hover:bg-blue-100"
                           onClick={() => generatePictureField(idx, 'title')}
                           disabled={isGenerating.title}
-                          title="AI生成标题"
+                          title="AI generate title"
                         >
                           {isGenerating.title ? <Sparkles className="h-3 w-3 animate-spin text-blue-500" /> : "✨"}
                         </Button>
                       )}
                     </div>
                     <Input
-                      placeholder="为这张图片输入标题..."
+                      placeholder="Enter a title for this image..."
                       value={pic.title}
                       onChange={(e) => handlePictureChange(idx, "title", e.target.value)}
                       className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -1058,7 +1069,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm font-semibold text-gray-700">副标题</Label>
+                      <Label className="text-sm font-semibold text-gray-700">Subtitle</Label>
                       {pic.previewUrl && (
                         <Button
                           type="button"
@@ -1067,14 +1078,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                           className="h-6 w-6 p-0 hover:bg-green-100"
                           onClick={() => generatePictureField(idx, 'subtitle')}
                           disabled={isGenerating.subtitle}
-                          title="AI生成副标题"
+                          title="AI generate subtitle"
                         >
                           {isGenerating.subtitle ? <Sparkles className="h-3 w-3 animate-spin text-green-500" /> : "✨"}
                         </Button>
                       )}
                     </div>
                     <Input
-                      placeholder="为这张图片输入副标题..."
+                      placeholder="Enter a subtitle for this image..."
                       value={pic.subtitle}
                       onChange={(e) => handlePictureChange(idx, "subtitle", e.target.value)}
                       className="border-gray-300 focus:border-green-500 focus:ring-green-500"
@@ -1083,7 +1094,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm font-semibold text-gray-700">描述</Label>
+                      <Label className="text-sm font-semibold text-gray-700">Description</Label>
                       {pic.previewUrl && (
                         <Button
                           type="button"
@@ -1092,54 +1103,92 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                           className="h-6 w-6 p-0 hover:bg-purple-100"
                           onClick={() => generatePictureField(idx, 'description')}
                           disabled={isGenerating.description}
-                          title="AI生成描述"
+                          title="AI generate description"
                         >
                           {isGenerating.description ? <Sparkles className="h-3 w-3 animate-spin text-purple-500" /> : "✨"}
                         </Button>
                       )}
                     </div>
                     <Textarea
-                      placeholder="描述这张图片的内容和特点..."
+                      placeholder="Describe the content and features of this image..."
                       value={pic.description}
                       onChange={(e) => handlePictureChange(idx, "description", e.target.value)}
                       className="border-gray-300 focus:border-purple-500 focus:ring-purple-500 min-h-[80px]"
                     />
                   </div>
 
-                  {/* 图片标签 */}
+                  {/* Picture tags & types (hidden editor by default) */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-semibold text-gray-700">标签（逗号分隔）</Label>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => generatePictureTags(idx)}
-                        disabled={isGenerating.tags || !pic.previewUrl}
-                        className="h-7 px-2"
-                        title={pic.previewUrl ? 'AI 生成图片标签' : '请先选择图片'}
-                      >
-                        {isGenerating.tags ? <span className="text-xs text-gray-500">生成中…</span> : <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI 生成</span>}
-                      </Button>
+                      <Label className="text-sm font-semibold text-gray-700">Tags</Label>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => generatePictureTags(idx)}
+                          disabled={isGenerating.tags || !pic.previewUrl}
+                          className="h-7 px-2"
+                          title={pic.previewUrl ? 'AI generate tags' : 'Please select an image first'}
+                        >
+                          {isGenerating.tags ? <span className="text-xs text-gray-500">Generating…</span> : <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI Generate</span>}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2"
+                          onClick={() => setShowPictureTagsEditor(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                        >
+                          {showPictureTagsEditor[idx] ? 'Hide editor' : 'Edit tags'}
+                        </Button>
+                      </div>
                     </div>
-                    <Input
-                      placeholder="如 portrait, night, bokeh"
-                      value={(pic.tags || []).join(', ')}
-                      onChange={(e) => handlePictureChange(idx, 'tags', e.target.value.split(/[,，]/).map(s => s.trim()).filter(Boolean))}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    />
+                    {showPictureTagsEditor[idx] && (
+                      <Input
+                        placeholder="e.g., portrait, night, bokeh"
+                        value={(pic.tags || []).join(', ')}
+                        onChange={(e) => handlePictureChange(idx, 'tags', e.target.value.split(/[,，]/).map(s => s.trim()).filter(Boolean))}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    )}
                   </div>
 
-                  {/* 每张图片的季节与位置 */}
+                  {/* Per-picture types (categories) */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-gray-700">Types (categories)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {availableCategories.map(c => {
+                        const checked = Array.isArray((pic as any).picture_category_ids) && ((pic as any).picture_category_ids as number[]).includes(c.id)
+                        return (
+                          <label key={c.id} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e)=>{
+                                const cur = Array.isArray((pic as any).picture_category_ids) ? ([...(pic as any).picture_category_ids] as number[]) : []
+                                const next = e.target.checked ? Array.from(new Set([...cur, c.id])) : cur.filter(id => id !== c.id)
+                                handlePictureChange(idx, 'picture_category_ids', next)
+                              }}
+                            />
+                            <span>{c.name}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Per-picture season & location (hidden UI) */}
+                  {false && (
                   <div className="grid grid-cols-1 gap-3 pt-2 border-t">
                     <div>
-                      <Label className="text-sm font-semibold text-gray-700">季节</Label>
+                      <Label className="text-sm font-semibold text-gray-700">Season</Label>
                       <Select
                         value={pic.season_id != null ? String(pic.season_id) : undefined}
                         onValueChange={(v)=>handlePictureChange(idx, 'season_id', v ? Number(v) : null)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="选择季节" />
+                          <SelectValue placeholder="Select season" />
                         </SelectTrigger>
                         <SelectContent>
                           {availableSeasons.map(s => (
@@ -1150,7 +1199,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     </div>
                     <div className="grid grid-cols-1 gap-2">
                       <div className="flex items-center gap-2">
-                        <Label className="text-sm font-semibold text-gray-700">地点</Label>
+                        <Label className="text-sm font-semibold text-gray-700">Location</Label>
                         <Button
                           type="button"
                           size="sm"
@@ -1168,18 +1217,18 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                               }
                             } catch (e) { console.warn('Geocode failed', e) }
                           }}
-                        >地名转坐标</Button>
+                        >Geocode</Button>
                       </div>
-                      <Input placeholder="地点名称（如：外滩）" value={(pic as any).location_name || ''} onChange={(e)=>handlePictureChange(idx, 'location_name', e.target.value)} />
+                      <Input placeholder="Place name (e.g., The Bund)" value={(pic as any).location_name || ''} onChange={(e)=>handlePictureChange(idx, 'location_name', e.target.value)} />
                       <div className="grid grid-cols-2 gap-2">
                         <Input placeholder="Latitude" value={(pic as any).location_latitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_latitude', e.target.value ? Number(e.target.value) : null)} />
                         <Input placeholder="Longitude" value={(pic as any).location_longitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_longitude', e.target.value ? Number(e.target.value) : null)} />
                       </div>
                     </div>
                   </div>
+                  )}
 
-                  {/* 图片翻译字段 */}
-                  {/* 图片翻译字段（默认收起，提升紧凑性） */}
+                  {/* Picture translation fields (collapsed by default for compactness) */}
                   <div className="mt-4 border border-gray-200 rounded-md">
                     <Button
                       type="button"
@@ -1187,7 +1236,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                       className="w-full p-2 flex items-center justify-between text-left"
                       onClick={() => setShowPictureTranslations(prev => ({ ...prev, [idx]: !prev[idx] }))}
                     >
-                      <span className="text-sm font-medium">翻译字段</span>
+                      <span className="text-sm font-medium">Translation Fields</span>
                       <span className={`transform transition-transform ${showPictureTranslations[idx] ? 'rotate-180' : ''}`}>▼</span>
                     </Button>
                     {showPictureTranslations[idx] && (
@@ -1197,38 +1246,38 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                           <Input
                             placeholder="English title"
                             value={pic.en?.title || ''}
-                            onChange={(e) => handlePictureChange(idx, 'en.title', e.target.value)}
+                            onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), title: true } })); handlePictureChange(idx, 'en.title', e.target.value) }}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <Input
                             placeholder="English subtitle"
                             value={pic.en?.subtitle || ''}
-                            onChange={(e) => handlePictureChange(idx, 'en.subtitle', e.target.value)}
+                            onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), subtitle: true } })); handlePictureChange(idx, 'en.subtitle', e.target.value) }}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <Textarea
                             placeholder="English description"
                             value={pic.en?.description || ''}
-                            onChange={(e) => handlePictureChange(idx, 'en.description', e.target.value)}
+                            onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), description: true } })); handlePictureChange(idx, 'en.description', e.target.value) }}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-sm font-semibold text-gray-700">中文 (zh)</Label>
+                          <Label className="text-sm font-semibold text-gray-700">Chinese (zh)</Label>
                           <Input
-                            placeholder="中文标题"
+                            placeholder="Chinese title"
                             value={pic.zh?.title || ''}
                             onChange={(e) => handlePictureChange(idx, 'zh.title', e.target.value)}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <Input
-                            placeholder="中文副标题"
+                            placeholder="Chinese subtitle"
                             value={pic.zh?.subtitle || ''}
                             onChange={(e) => handlePictureChange(idx, 'zh.subtitle', e.target.value)}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <Textarea
-                            placeholder="中文描述"
+                            placeholder="Chinese description"
                             value={pic.zh?.description || ''}
                             onChange={(e) => handlePictureChange(idx, 'zh.description', e.target.value)}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
@@ -1239,16 +1288,16 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   </div>
                 </div>
 
-                {/* 右侧：图片预览 */}
+                {/* Right column: image preview */}
                 <div className="space-y-4">
                   {pic.previewUrl ? (
                     <div className="space-y-3">
-                      <Label className="text-sm font-semibold text-gray-700">图片预览</Label>
+                      <Label className="text-sm font-semibold text-gray-700">Preview</Label>
                       <div className="relative bg-gray-50 rounded-lg p-3">
                         <div 
                           className="relative w-full overflow-hidden rounded-md border border-gray-200 bg-white cursor-pointer hover:border-blue-400 transition-colors group"
                           onClick={() => document.getElementById(`picture-input-${idx}`)?.click()}
-                          title="点击更换图片"
+                          title="Click to change image"
                         >
                           <img
                             src={pic.previewUrl || "/placeholder.svg"}
@@ -1260,18 +1309,18 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                           />
                           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
-                              点击更换图片
+                              Click to change image
                             </div>
                           </div>
                         </div>
                         {pic.originalSize! > 0 && (
                           <div className="mt-3 p-2 bg-white rounded border border-gray-200">
                             <p className="text-xs text-gray-600">
-                              <span className="font-medium">原始大小:</span> {formatSize(pic.originalSize!)}
+              <span className="font-medium">Original size:</span> {formatSize(pic.originalSize!)}
                               {pic.compressedSize && (
                                 <>
                                   <br />
-                                  <span className="font-medium">压缩后:</span> {formatSize(pic.compressedSize)} 
+                                  <span className="font-medium">Compressed:</span> {formatSize(pic.compressedSize)} 
                                   <span className="text-green-600 font-medium">
                                     ({((pic.compressedSize / pic.originalSize!) * 100).toFixed(1)}%)
                                   </span>
@@ -1291,8 +1340,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         <div className="w-12 h-12 bg-gray-200 group-hover:bg-blue-100 rounded-full flex items-center justify-center mb-3 transition-colors">
                           <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
                         </div>
-                        <p className="text-gray-500 text-sm font-medium">点击上传图片</p>
-                        <p className="text-gray-400 text-xs mt-1">支持 JPG、PNG、WebP 格式</p>
+                        <p className="text-gray-500 text-sm font-medium">Click to upload</p>
+                        <p className="text-gray-400 text-xs mt-1">Supports JPG, PNG, WebP</p>
                       </div>
                     </div>
                   )}
@@ -1308,7 +1357,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 </div>
               </div>
 
-              {/* AI 分析组件 - 折叠式设计 */}
+              {/* AI analysis component (collapsible) */}
               {pic.previewUrl && (
                 <div className="mt-4 border border-gray-200 rounded-lg">
                   <Button
@@ -1322,9 +1371,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   >
                     <div className="flex items-center gap-2">
                       <span>🤖</span>
-                      <span className="font-medium">AI 分析 - Picture {idx + 1}</span>
+                      <span className="font-medium">AI Analysis - Picture {idx + 1}</span>
                       <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        智能生成
+                        Smart generate
                       </span>
                     </div>
                     <span className={`transform transition-transform ${showPictureAIAnalysis[idx] ? 'rotate-180' : ''}`}>
@@ -1349,7 +1398,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         ))}
       </div>
 
-      {/* 添加图片按钮 - 支持单个与批量 */}
+      {/* Add pictures buttons (single and bulk) */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-6">
         <Button 
           type="button" 
@@ -1358,7 +1407,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-purple-300 text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200"
         >
           <Plus className="h-5 w-5" /> 
-          添加新图片
+          Add Image
         </Button>
         <Button
           type="button"
@@ -1367,7 +1416,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
         >
           <Plus className="h-5 w-5" />
-          批量添加图片
+          Add Images (Bulk)
         </Button>
         <input
           ref={bulkInputRef}
@@ -1400,7 +1449,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 image_url: "",
                 })
               } catch (err) {
-                console.error("预览生成失败:", err)
+                console.error("Preview generation failed:", err)
               }
             }
             if (toAdd.length > 0) setPictures((prev) => [...prev, ...toAdd])
@@ -1415,8 +1464,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       {pictures.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-medium">图片顺序调整</h3>
-            <span className="text-xs text-gray-500">拖拽缩略图以改变顺序</span>
+            <h3 className="text-lg font-medium">Reorder pictures</h3>
+            <span className="text-xs text-gray-500">Drag thumbnails to reorder</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {pictures.map((pic, idx) => (
@@ -1428,7 +1477,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 onDragOver={(e) => e.preventDefault()}
                 onDragEnd={handleDragEndThumb}
                 className={`relative select-none rounded-md overflow-hidden border bg-white transition-shadow ${draggingIndex === idx ? 'ring-2 ring-blue-400 shadow-lg' : 'hover:shadow'} `}
-                title={(pic.title || '').trim() || `图片 ${idx + 1}`}
+                title={(pic.title || '').trim() || `Image ${idx + 1}`}
               >
                 <div className="absolute top-1 left-1 z-10">
                   <div className="px-2 py-0.5 text-[11px] rounded-full bg-black/70 text-white">#{idx + 1}</div>
@@ -1440,7 +1489,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     className="w-full h-24 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">无预览</div>
+                  <div className="w-full h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">No preview</div>
                 )}
               </div>
             ))}

@@ -5,7 +5,7 @@ export interface AnalysisResult {
   analysisType: 'title' | 'subtitle' | 'complete' | 'description' | 'tags' | 'technical'
   result: string
   error?: string
-  code?: string // 错误代码
+  code?: string // error code
 }
 
 export function useImageAnalysis() {
@@ -35,15 +35,15 @@ export function useImageAnalysis() {
       const data = await response.json()
 
       if (!response.ok) {
-        // 根据错误代码提供更友好的错误信息
+        // Provide friendly error messages by code
         let userFriendlyMessage = data.details || data.error || 'Analysis failed'
         
         if (data.code === 'QUOTA_EXCEEDED') {
-          userFriendlyMessage = 'AI 分析功能今日配额已用完，请明天再试'
+          userFriendlyMessage = 'AI analysis quota exhausted for today. Please try again tomorrow.'
         } else if (data.code === 'INVALID_API_KEY') {
-          userFriendlyMessage = 'AI 服务配置错误，请联系管理员'
+          userFriendlyMessage = 'AI service configuration error. Please contact admin.'
         } else if (data.code === 'BAD_REQUEST') {
-          userFriendlyMessage = '图片格式不支持，请更换图片'
+          userFriendlyMessage = 'Unsupported image format. Please use a different image.'
         }
         
         throw new Error(userFriendlyMessage)
