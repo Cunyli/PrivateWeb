@@ -26,20 +26,20 @@ export function PortfolioGrid() {
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
 
-  // 使用固定种子的洗牌函数，确保结果稳定
+  // Stable shuffle with a fixed seed for reproducible order
   const stableShuffleArray = (array: PictureSet[], seed: string): PictureSet[] => {
     const shuffled = [...array]
-    // 使用字符串作为种子生成确定性的随机数
+    // Use string as seed to produce deterministic pseudo-random numbers
     let hash = 0
     for (let i = 0; i < seed.length; i++) {
       const char = seed.charCodeAt(i)
       hash = ((hash << 5) - hash) + char
-      hash |= 0 // 转换为32位整数
+      hash |= 0 // cast to 32-bit int
     }
 
-    // Fisher-Yates 洗牌（确保索引非负且在范围内）
+    // Fisher-Yates shuffle (with bounded, non-negative index)
     for (let i = shuffled.length - 1; i > 0; i--) {
-      hash = (hash * 9301 + 49297) % 233280 // 线性同余生成器
+      hash = (hash * 9301 + 49297) % 233280 // LCG
       if (hash < 0) hash += 233280
       const j = Math.abs(hash) % (i + 1)
       const tmp = shuffled[i]
@@ -335,25 +335,25 @@ export function PortfolioGrid() {
     <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
       <div className="relative mb-4 sm:mb-8">
         <h1 className="text-2xl sm:text-4xl font-light text-center">Lijie&apos;s Galleries</h1>
-        {/* 右上角小图标：点击打开搜索面板；长按/双击不需要 */}
+        {/* Header controls (search, language toggle) */}
         <div className="absolute right-0 top-0 flex items-center gap-2">
-          {/* 语言切换：点击直接在中文/英文间切换（不再弹出菜单） */}
+          {/* Language toggle: click to switch between EN/Chinese */}
           <button
             onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')}
             className={`w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm transition ${lang!=='auto' ? 'bg-black text-white' : 'bg-white text-gray-700'} hover:shadow`}
-            title={`语言：${lang==='zh' ? '中文' : 'EN'}（点击切换）`}
+            title={`Language: ${lang==='zh' ? 'Chinese' : 'EN'} (Click to toggle)`}
             aria-label="Toggle language"
           >
             <span aria-hidden>🌐</span>
           </button>
-          {/* 搜索面板触发 */}
+          {/* Search panel trigger */}
           <button
             onClick={() => {
               setSearchOpen(true)
               setTimeout(() => searchInputRef.current?.focus(), 0)
             }}
             className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm bg-white text-gray-700 hover:shadow"
-            title="搜索"
+            title="Search"
             aria-label="Open search"
           >
             🔍
@@ -361,7 +361,7 @@ export function PortfolioGrid() {
         </div>
       </div>
 
-      {/* 轻量搜索面板（覆盖层） */}
+      {/* Lightweight search panel (overlay) */}
       {searchOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setSearchOpen(false)}>
           <div className="absolute inset-x-0 top-16 mx-auto max-w-3xl" onClick={(e) => e.stopPropagation()}>
@@ -371,24 +371,24 @@ export function PortfolioGrid() {
                   ref={searchInputRef}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="搜索集合或图片（中文/英文，支持多词 AND）"
+                  placeholder="Search sets or images (EN/Chinese, multi-word AND)"
                   className="flex-1 outline-none"
                 />
                 {searchQuery && (
-                  <button className="text-sm text-gray-500 hover:text-gray-700" onClick={() => setSearchQuery("")}>清空</button>
+                  <button className="text-sm text-gray-500 hover:text-gray-700" onClick={() => setSearchQuery("")}>Clear</button>
                 )}
                 <button className="text-xl" onClick={() => setSearchOpen(false)} aria-label="Close">×</button>
               </div>
               <div className="max-h-[70vh] overflow-auto p-3 sm:p-4">
-                {/* 结果列表：沿用现有结果块 */}
+                {/* Results list */}
                 <div className="flex flex-col gap-8">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-base font-medium">集合匹配</h2>
-                      {searchLoading && <span className="text-xs text-gray-500">检索中…</span>}
+                      <h2 className="text-base font-medium">Set Matches</h2>
+                      {searchLoading && <span className="text-xs text-gray-500">Searching…</span>}
                     </div>
                     {(setResults?.length || 0) === 0 ? (
-                      <p className="text-sm text-gray-500">没有匹配的集合</p>
+                      <p className="text-sm text-gray-500">No matching sets</p>
                     ) : (
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(setResults || []).map((item) => (
@@ -406,11 +406,11 @@ export function PortfolioGrid() {
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-base font-medium">图片匹配</h2>
-                      {searchLoading && <span className="text-xs text-gray-500">检索中…</span>}
+                      <h2 className="text-base font-medium">Picture Matches</h2>
+                      {searchLoading && <span className="text-xs text-gray-500">Searching…</span>}
                     </div>
                     {(pictureResults?.length || 0) === 0 ? (
-                      <p className="text-sm text-gray-500">没有匹配的图片</p>
+                      <p className="text-sm text-gray-500">No matching pictures</p>
                     ) : (
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(pictureResults || []).map((p) => (

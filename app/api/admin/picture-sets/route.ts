@@ -1,0 +1,359 @@
+import { NextResponse } from "next/server"
+import { supabaseAdmin } from "@/utils/supabaseAdmin"
+export const runtime = 'nodejs'
+
+// 简化的工具：确保若干 tag 存在并返回它们的 id（按 type + slug 去重）
+async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promise<number[]> {
+  const uniq = Array.from(new Set(names.map(n => String(n || '').trim()).filter(Boolean)))
+  if (uniq.length === 0) return []
+  const toInsert = uniq.map(name => ({
+    name,
+    type,
+    // 加上 type 前缀以避免不同类型同名产生 slug 冲突
+    slug: `${type}:${name.toLowerCase().replace(/\s+/g, '-')}`,
+  }))
+  // 尝试 upsert，若失败也不阻断后续 select
+  await supabaseAdmin.from('tags').upsert(toInsert, { onConflict: 'slug' })
+  const { data, error } = await supabaseAdmin
+    .from('tags')
+    .select('id, name')
+    .in('name', uniq)
+    .eq('type', type)
+  if (error) throw error
+  return (data || []).map(d => d.id)
+}
+
+export async function POST(request: Request) {
+  try {
+    const payload = await request.json()
+    const setRow = {
+      title: payload.title || "",
+      subtitle: payload.subtitle || "",
+      description: payload.description || "",
+      cover_image_url: payload.cover_image_url || null,
+      position: payload.position || "up",
+      is_published: payload.is_published ?? true,
+      primary_category_id: payload.primary_category_id ?? null,
+      season_id: payload.season_id ?? null,
+    }
+
+    const { data: inserted, error: setErr } = await supabaseAdmin
+      .from("picture_sets")
+      .insert(setRow)
+      .select("id")
+      .single()
+
+    if (setErr) {
+      return NextResponse.json({ error: setErr.message }, { status: 400 })
+    }
+
+    const picture_set_id = inserted!.id as number
+
+    const pictures: any[] = Array.isArray(payload.pictures) ? payload.pictures : []
+    // 可选：根据 set 的 flags 传播季节/地点到图片
+    let singleSeasonId: number | null = null
+    const seasonIds: number[] = Array.isArray(payload.season_ids) ? payload.season_ids : []
+    if (seasonIds.length === 1) singleSeasonId = seasonIds[0]
+    const allowApplySetProps = !!(payload.fill_missing_from_set ?? payload.apply_set_props_to_pictures)
+    const allowOverride = !!payload.override_existing_picture_props
+
+    if (pictures.length > 0) {
+      const rows = pictures
+        .filter((p: any) => typeof p.image_url === 'string' && p.image_url.length > 0)
+        .map((p: any, idx: number) => ({
+        picture_set_id,
+        order_index: idx,
+        title: p.title || "",
+        subtitle: p.subtitle || "",
+        description: p.description || "",
+        image_url: p.image_url || null,
+        raw_image_url: p.raw_image_url || null,
+        season_id: (allowApplySetProps
+          ? (allowOverride ? (singleSeasonId ?? p.season_id ?? null)
+            : (p.season_id ?? (singleSeasonId ?? null)))
+          : (p.season_id ?? null)),
+      }))
+      const { error: picErr } = await supabaseAdmin.from("pictures").insert(rows)
+      if (picErr) {
+        return NextResponse.json({ id: picture_set_id, error: picErr.message }, { status: 400 })
+      }
+
+      // 重新读取确保按 order_index 对齐
+      const { data: allPics } = await supabaseAdmin
+        .from('pictures')
+        .select('id, order_index')
+        .eq('picture_set_id', picture_set_id)
+        .order('order_index', { ascending: true })
+      const picIdByIndex: number[] = (allPics || [])
+        .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
+        .map((r: any) => r.id)
+
+      // 每张图片：翻译、标签、位置
+
+      // 预备 set 级别的 typed tags
+      const setTags: string[] = Array.isArray(payload.tags) ? payload.tags : []
+      let categoryTagIds: number[] = []
+      let seasonTagIds: number[] = []
+      // 来自多选 category_ids
+      const categoryIds: number[] = Array.isArray(payload.category_ids) ? payload.category_ids : []
+      if (categoryIds.length > 0) {
+        const { data: catRows } = await supabaseAdmin.from('categories').select('id,name').in('id', categoryIds)
+        const names = (catRows || []).map((r: any) => r.name).filter(Boolean)
+        categoryTagIds = await ensureTagIds(names, 'category')
+      }
+      // 来自多选 season_ids
+      if (seasonIds.length > 0) {
+        const { data: seaRows } = await supabaseAdmin.from('seasons').select('id,name').in('id', seasonIds)
+        const names = (seaRows || []).map((r: any) => r.name).filter(Boolean)
+        seasonTagIds = await ensureTagIds(names, 'season')
+      }
+      const topicTagIds = await ensureTagIds(setTags || [], 'topic')
+      const setCombinedTagIds = Array.from(new Set([...(topicTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
+
+      // 设置 picture_set_taggings（typed tags）
+      if (setCombinedTagIds.length) {
+        const rows = setCombinedTagIds.map((tid: number) => ({ picture_set_id, tag_id: tid }))
+        await supabaseAdmin.from('picture_set_taggings').insert(rows)
+      }
+
+      // 设置 picture_set_categories（多选分类，主分类置 is_primary=true）
+      const selectedCategoryIds: number[] = Array.isArray(payload.category_ids)
+        ? (Array.from(new Set(payload.category_ids as number[])) as number[])
+        : []
+      if (selectedCategoryIds.length) {
+        const rows = selectedCategoryIds.map((cid: number) => ({ picture_set_id, category_id: cid, is_primary: cid === (payload.primary_category_id ?? null) }))
+        await supabaseAdmin.from('picture_set_categories').insert(rows)
+      }
+
+      // set 翻译
+      if (payload.en) {
+        await supabaseAdmin
+          .from('picture_set_translations')
+          .upsert(
+            {
+              picture_set_id,
+              locale: 'en',
+              title: payload.en?.title || '',
+              subtitle: payload.en?.subtitle || null,
+              description: payload.en?.description || null,
+            },
+            { onConflict: 'picture_set_id,locale' },
+          )
+      }
+      if (payload.zh) {
+        await supabaseAdmin
+          .from('picture_set_translations')
+          .upsert(
+            {
+              picture_set_id,
+              locale: 'zh',
+              title: payload.zh?.title || '',
+              subtitle: payload.zh?.subtitle || null,
+              description: payload.zh?.description || null,
+            },
+            { onConflict: 'picture_set_id,locale' },
+          )
+      }
+
+      // set 主位置
+      const nm = (payload.primary_location_name || '').trim()
+      const lat = typeof payload.primary_location_latitude === 'number' ? payload.primary_location_latitude : null
+      const lng = typeof payload.primary_location_longitude === 'number' ? payload.primary_location_longitude : null
+      if (nm && typeof lat === 'number' && typeof lng === 'number') {
+        let locationId: number | undefined
+        const { data: found } = await supabaseAdmin
+          .from('locations')
+          .select('id')
+          .eq('name', nm)
+          .eq('latitude', lat)
+          .eq('longitude', lng)
+          .maybeSingle()
+        if (found?.id) locationId = found.id
+        else {
+          const { data: created, error: locErr } = await supabaseAdmin
+            .from('locations')
+            .insert({ name: nm, latitude: lat, longitude: lng })
+            .select('id')
+            .single()
+          if (locErr) throw locErr
+          locationId = created!.id
+        }
+        if (locationId) {
+          await supabaseAdmin.from('picture_set_locations').insert({ picture_set_id, location_id: locationId, is_primary: true })
+        }
+      }
+
+      // picture 扩展：翻译、类型标签、主位置、分类（picture_categories）
+      const propagateCategories = !!payload.propagate_categories_to_pictures
+      for (let i = 0; i < pictures.length; i++) {
+        const p = pictures[i]
+        const picture_id = picIdByIndex[i]
+        if (!picture_id) continue
+
+        // 翻译
+        if (p.en) {
+          await supabaseAdmin
+            .from('picture_translations')
+            .upsert(
+              {
+                picture_id,
+                locale: 'en',
+                title: p.en?.title || '',
+                subtitle: p.en?.subtitle || null,
+                description: p.en?.description || null,
+              },
+              { onConflict: 'picture_id,locale' },
+            )
+        }
+        if (p.zh) {
+          await supabaseAdmin
+            .from('picture_translations')
+            .upsert(
+              {
+                picture_id,
+                locale: 'zh',
+                title: p.zh?.title || '',
+                subtitle: p.zh?.subtitle || null,
+                description: p.zh?.description || null,
+              },
+              { onConflict: 'picture_id,locale' },
+            )
+        }
+
+        // 类型标签：图片自己的 topic tags + per-picture categories；可选传播 set 的 category/season tags
+        const pictureTopicTags: string[] = Array.isArray(p.tags) ? p.tags : []
+        const pTopicIds = await ensureTagIds(pictureTopicTags, 'topic')
+        let pCatTagIds: number[] = []
+        const picCatIds = Array.isArray(p.picture_category_ids) ? p.picture_category_ids : []
+        if (picCatIds.length > 0) {
+          const { data: catRows } = await supabaseAdmin.from('categories').select('id,name').in('id', picCatIds)
+          const names = (catRows || []).map((r: any) => r.name).filter(Boolean)
+          pCatTagIds = await ensureTagIds(names, 'category')
+        } else if (propagateCategories) {
+          // 传播 set 的分类/季节 typed tags
+          pCatTagIds = Array.from(new Set([...(categoryTagIds || []), ...(seasonTagIds || [])]))
+        }
+        const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || [])]))
+        if (combined.length) {
+          const rows = combined.map((tid: number) => ({ picture_id, tag_id: tid }))
+          await supabaseAdmin.from('picture_taggings').insert(rows)
+        }
+
+        // 主位置（若提供）
+        const lnm = (p.location_name || '').trim()
+        const llat = typeof p.location_latitude === 'number' ? p.location_latitude : null
+        const llng = typeof p.location_longitude === 'number' ? p.location_longitude : null
+        if (lnm && typeof llat === 'number' && typeof llng === 'number') {
+          let locId: number | undefined
+          const { data: found } = await supabaseAdmin
+            .from('locations')
+            .select('id')
+            .eq('name', lnm)
+            .eq('latitude', llat)
+            .eq('longitude', llng)
+            .maybeSingle()
+          if (found?.id) locId = found.id
+          else {
+            const { data: created, error: locErr } = await supabaseAdmin
+              .from('locations')
+              .insert({ name: lnm, latitude: llat, longitude: llng })
+              .select('id')
+              .single()
+            if (locErr) throw locErr
+            locId = created!.id
+          }
+          if (locId) await supabaseAdmin.from('picture_locations').insert({ picture_id, location_id: locId, is_primary: true })
+        }
+
+        // 分类（picture_categories）：按勾选保存
+        const pCatIdsRaw: number[] = Array.isArray(p.picture_category_ids) ? (p.picture_category_ids as number[]) : []
+        const pCatCats = Array.from(new Set(pCatIdsRaw)) as number[]
+        if (pCatCats.length) {
+          const rows = pCatCats.map((cid: number) => ({ picture_id, category_id: cid, is_primary: false }))
+          await supabaseAdmin.from('picture_categories').insert(rows)
+        }
+      }
+    }
+
+    // sections 赋值：payload.section_ids + 根据 position 推断的一个默认 section（若存在）
+    let desiredSectionIds: number[] = Array.isArray(payload.section_ids) ? Array.from(new Set(payload.section_ids)) : []
+    try {
+      const { data: secs } = await supabaseAdmin.from('sections').select('id,name')
+      const findBy = (want: 'up' | 'down') => {
+        const re = want === 'down' ? /\bdown\b|bottom|下|底/i : /\bup\b|top|上|顶/i
+        return (secs || []).find((s: any) => re.test(String(s.name || '')))?.id as number | undefined
+      }
+      const pos = String(payload.position || '').trim().toLowerCase()
+      const autoId = pos === 'down' ? findBy('down') : findBy('up')
+      if (autoId && !desiredSectionIds.includes(autoId)) desiredSectionIds = [...desiredSectionIds, autoId]
+      if (desiredSectionIds.length) {
+        const rows = desiredSectionIds.map((id: number) => ({ picture_set_id, section_id: id, page_context: 'default', display_order: 0 }))
+        await supabaseAdmin.from('picture_set_section_assignments').insert(rows)
+      }
+    } catch {}
+
+    return NextResponse.json({ id: picture_set_id })
+  } catch (e: any) {
+    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })
+  }
+}
+
+// 服务端读取：列表 + 搜索（包含每个 set 的精简图片列表）
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const q = (searchParams.get('q') || '').trim()
+
+    let sets: any[] = []
+    if (q.length === 0) {
+      const { data, error } = await supabaseAdmin
+        .from('picture_sets')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(200)
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+      sets = data || []
+    } else {
+      // 优先 FTS
+      const fts = await supabaseAdmin
+        .from('picture_sets')
+        .select('*')
+        .textSearch('search_vector', q, { type: 'websearch', config: 'english' })
+        .order('updated_at', { ascending: false })
+        .limit(200)
+      if (fts.error) {
+        // 退回到 search_text AND 检索
+        const terms = q.split(/\s+/).filter(Boolean)
+        let builder: any = supabaseAdmin.from('picture_sets').select('*')
+        for (const t of terms) builder = builder.ilike('search_text', `%${t}%`)
+        const { data, error } = await builder.order('updated_at', { ascending: false }).limit(200)
+        if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+        sets = data || []
+      } else {
+        sets = fts.data || []
+      }
+    }
+
+    const ids = sets.map((s: any) => s.id)
+    let picsBySet: Record<number, any[]> = {}
+    if (ids.length) {
+      const { data: pics } = await supabaseAdmin
+        .from('pictures')
+        .select('id,picture_set_id,order_index,image_url,title,subtitle,description')
+        .in('picture_set_id', ids)
+      for (const p of pics || []) {
+        const sid = (p as any).picture_set_id
+        picsBySet[sid] = [...(picsBySet[sid] || []), p]
+      }
+      for (const sid of Object.keys(picsBySet)) {
+        picsBySet[Number(sid)] = (picsBySet[Number(sid)] || []).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+      }
+    }
+
+    const out = sets.map((s: any) => ({ ...s, pictures: picsBySet[s.id] || [] }))
+    return NextResponse.json({ items: out })
+  } catch (e: any) {
+    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })
+  }
+}

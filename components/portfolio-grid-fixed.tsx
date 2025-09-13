@@ -16,20 +16,20 @@ export function PortfolioGrid() {
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
 
-  // 使用固定种子的洗牌函数，确保结果稳定
+  // Stable shuffle with a fixed seed for reproducible order
   const stableShuffleArray = (array: PictureSet[], seed: string): PictureSet[] => {
     const shuffled = [...array]
-    // 使用字符串作为种子生成确定性的随机数
+    // Use string as seed to produce deterministic pseudo-random numbers
     let hash = 0
     for (let i = 0; i < seed.length; i++) {
       const char = seed.charCodeAt(i)
       hash = ((hash << 5) - hash) + char
-      hash = hash & hash // 转换为32位整数
+      hash = hash & hash // cast to 32-bit int
     }
     
-    // Fisher-Yates洗牌算法，使用确定性随机数
+    // Fisher-Yates shuffle with deterministic RNG
     for (let i = shuffled.length - 1; i > 0; i--) {
-      hash = (hash * 9301 + 49297) % 233280 // 线性同余生成器
+      hash = (hash * 9301 + 49297) % 233280 // LCG
       const j = hash % (i + 1)
       ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
@@ -51,7 +51,7 @@ export function PortfolioGrid() {
         console.log(`Found ${data?.length || 0} picture sets`)
         setPictureSets(data || [])
         
-        // 生成固定的洗牌结果
+        // Build shuffled bottom row
         const downSets = (data || []).filter((s) => s.position?.trim().toLowerCase() === "down")
         const seed = downSets.map(s => s.id).join('-') // 使用ID组合作为种子
         const shuffled = stableShuffleArray(downSets, seed)
@@ -79,7 +79,7 @@ export function PortfolioGrid() {
   }, [])
 
   const upPictureSets = pictureSets.filter((s) => s.position?.trim().toLowerCase() === "up")
-  // 直接使用状态中的洗牌结果，不再进行额外洗牌
+  // Use precomputed shuffled result for bottom row
   const downPictureSets = shuffledDownSets
 
   const mid = Math.ceil(upPictureSets.length / 2)
@@ -122,7 +122,7 @@ export function PortfolioGrid() {
         </div>
       ) : (
         <div className="flex flex-col gap-6 sm:gap-12 flex-1">
-          {/* 上部两行自动滚动 - 移动端优化 */}
+          {/* Top two rows auto-scroll (mobile-friendly) */}
           {firstRow.length > 0 && (
             <div className="space-y-2 sm:space-y-3">
               <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
@@ -169,7 +169,7 @@ export function PortfolioGrid() {
                 })}
               </div>
 
-              {/* 第二行 */}
+              {/* Second row */}
               {secondRow.length > 0 && (
                 <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
                   {[...secondRow, ...secondRow].map((item, i) => {
@@ -218,7 +218,7 @@ export function PortfolioGrid() {
             </div>
           )}
 
-          {/* 下部Masonry布局 */}
+          {/* Bottom Masonry layout */}
           {downPictureSets.length > 0 && (
             <div className="flex justify-center">
               <div className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center">
