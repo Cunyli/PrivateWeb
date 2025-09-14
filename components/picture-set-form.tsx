@@ -52,6 +52,7 @@ async function getImagePreview(file: File): Promise<{ url: string; size: number 
 export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: PictureSetFormProps) {
   const { t } = useI18n()
   const { analyzeImage } = useImageAnalysis()
+  const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
   const [title, setTitle] = useState("")
   const [subtitle, setSubtitle] = useState("")
   const [description, setDescription] = useState("")
@@ -74,11 +75,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [primaryLocationLng, setPrimaryLocationLng] = useState<number | "">("")
   const [applySetPropsToPictures, setApplySetPropsToPictures] = useState<boolean>(true)
   const [overrideExistingPictureProps, setOverrideExistingPictureProps] = useState<boolean>(false)
-  const [propagateCategoriesToPictures, setPropagateCategoriesToPictures] = useState<boolean>(false)
+  const [propagateCategoriesToPictures, setPropagateCategoriesToPictures] = useState<boolean>(true)
+  const [autoFillLocalesAll, setAutoFillLocalesAll] = useState<boolean>(true)
+  const [isBulkTagsGenerating, setIsBulkTagsGenerating] = useState<boolean>(false)
+  const [autoGenerateTagsForUntagged, setAutoGenerateTagsForUntagged] = useState<boolean>(true)
   const [showAITrans, setShowAITrans] = useState<boolean>(false)
   // simplified flags per your request
   const [fillMissingFromSet, setFillMissingFromSet] = useState<boolean>(true)
-  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(false)
+  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(true)
   const [showPictureTagsEditor, setShowPictureTagsEditor] = useState<{[key:number]: boolean}>({})
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
@@ -99,6 +103,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [showAIAnalysis, setShowAIAnalysis] = useState(false)
   const [showPictureAIAnalysis, setShowPictureAIAnalysis] = useState<{[key: number]: boolean}>({})
   const [showPictureTranslations, setShowPictureTranslations] = useState<{[key: number]: boolean}>({})
+  // 进入编辑页后，对集合执行一次“仅补齐集合的语种”
+  const autoTranslatedSetOnceId = useRef<number | null>(null)
   // translation autofill touching flags
   const [enTouched, setEnTouched] = useState<{title:boolean; subtitle:boolean; description:boolean}>({ title: false, subtitle: false, description: false })
   const [picEnTouched, setPicEnTouched] = useState<{[idx:number]: { title?: boolean; subtitle?: boolean; description?: boolean }}>({})
@@ -195,7 +201,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
   const generatePictureTags = async (pictureIndex: number) => {
     const picture = pictures[pictureIndex]
-    const src = picture.previewUrl
+    const src = picture.previewUrl || (picture.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${picture.image_url}` : '')
     if (!src) return
     setIsGenerating(prev => ({ ...prev, tags: true }))
     try {
@@ -206,8 +212,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           .split(/[,，;；]/)
           .map(s => s.trim())
           .filter(Boolean)
-        const uniq = Array.from(new Set(parts.map(s => s.toLowerCase())))
-        handlePictureChange(pictureIndex, 'tags', uniq)
+        const generated = Array.from(new Set(parts.map(s => s.toLowerCase())))
+        const current = Array.isArray(picture.tags) ? picture.tags.map(s => s.trim().toLowerCase()).filter(Boolean) : []
+        const union = Array.from(new Set([ ...current, ...generated ]))
+        handlePictureChange(pictureIndex, 'tags', union)
       }
     } catch (e) {
       console.error('生成图片标签失败:', e)
@@ -282,9 +290,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         description: !!(editingPictureSet.en?.description && editingPictureSet.en.description.trim()),
       })
       setZh({
-        title: editingPictureSet.zh?.title || "",
-        subtitle: editingPictureSet.zh?.subtitle || "",
-        description: editingPictureSet.zh?.description || "",
+        title: editingPictureSet.zh?.title || (looksZh(editingPictureSet.title) ? (editingPictureSet.title || "") : ""),
+        subtitle: editingPictureSet.zh?.subtitle || (looksZh(editingPictureSet.subtitle) ? (editingPictureSet.subtitle || "") : ""),
+        description: editingPictureSet.zh?.description || (looksZh(editingPictureSet.description) ? (editingPictureSet.description || "") : ""),
       })
       setTagsText((editingPictureSet.tags || []).join(", "))
       setIsPublished(editingPictureSet.is_published ?? true)
@@ -344,6 +352,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         setPictures(mapped)
         setPicEnTouched(initialTouched)
       }
+
+      // 自动对集合翻译进行一次补齐（每个集合只执行一次）
+      try {
+        if (autoTranslatedSetOnceId.current !== editingPictureSet.id) {
+          autoTranslatedSetOnceId.current = editingPictureSet.id
+          setTimeout(() => { autoTranslateSetOnly().catch(() => {}) }, 0)
+        }
+      } catch {}
     } else if (editingPictureSet === null && (isEditMode || editingId !== undefined)) {
       // 只有当明确从编辑模式切换到非编辑模式时才重置表单
       setIsEditMode(false)
@@ -511,7 +527,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     try {
       const toEn: any = { ...(pic.en || {}) }
       const toZh: any = { ...(pic.zh || {}) }
-      const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
       for (const key of ['title','subtitle','description'] as const) {
         const baseVal = String((pic as any)[key] || '')
         const enVal = String((toEn as any)[key] || '')
@@ -533,6 +548,17 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             if (t) (toZh as any)[key] = t
           }
         }
+        // 最后保障：确保两侧都不为空
+        const enNow = String((toEn as any)[key] || '')
+        const zhNow = String((toZh as any)[key] || '')
+        if (!enNow && zhNow) {
+          const t = await translateText(zhNow, 'auto', 'en')
+          if (t) (toEn as any)[key] = t
+        }
+        if (!zhNow && enNow) {
+          const t = await translateText(enNow, 'auto', 'zh')
+          if (t) (toZh as any)[key] = t
+        }
       }
       setPictures(prev => prev.map((p, i) => i === idx ? { ...p, en: toEn, zh: toZh } : p))
       // 不标记为 touched，方便后续再次点击可覆盖自动翻译结果（只在用户手动编辑时才标记）
@@ -544,30 +570,41 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const autoTranslateAll = async () => {
     setIsTranslatingAll(true)
     try {
-      const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
       const nextEn = { ...en }
       const nextZh = { ...zh }
       for (const key of ['title','subtitle','description'] as const) {
         const baseVal = String((key === 'title' ? title : key === 'subtitle' ? subtitle : description) || '')
-        const enVal = String(nextEn[key] || '')
-        const zhVal = String(nextZh[key] || '')
+        let enVal = String(nextEn[key] || '')
+        let zhVal = String(nextZh[key] || '')
+
         if (!enVal && zhVal) {
           const t = await translateText(zhVal, 'auto', 'en')
-          if (t) nextEn[key] = t
+          if (t) enVal = t
         } else if (!zhVal && enVal) {
           const t = await translateText(enVal, 'auto', 'zh')
-          if (t) nextZh[key] = t
+          if (t) zhVal = t
         } else if (!enVal && !zhVal && baseVal) {
           if (looksZh(baseVal)) {
-            nextZh[key] = baseVal
+            zhVal = baseVal
             const t = await translateText(baseVal, 'auto', 'en')
-            if (t) nextEn[key] = t
+            if (t) enVal = t
           } else {
-            nextEn[key] = baseVal
+            enVal = baseVal
             const t = await translateText(baseVal, 'auto', 'zh')
-            if (t) nextZh[key] = t
+            if (t) zhVal = t
           }
         }
+        // 最后保障：两侧都不为空
+        if (!enVal && zhVal) {
+          const t = await translateText(zhVal, 'auto', 'en')
+          if (t) enVal = t
+        }
+        if (!zhVal && enVal) {
+          const t = await translateText(enVal, 'auto', 'zh')
+          if (t) zhVal = t
+        }
+        nextEn[key] = enVal
+        nextZh[key] = zhVal
       }
       setEn(nextEn)
       setZh(nextZh)
@@ -580,17 +617,97 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     }
   }
 
+  // 仅翻译集合的标题/副标题/描述
+  const autoTranslateSetOnly = async () => {
+    setIsTranslatingAll(true)
+    try {
+      const nextEn = { ...en }
+      const nextZh = { ...zh }
+      for (const key of ['title','subtitle','description'] as const) {
+        const baseVal = String((key === 'title' ? title : key === 'subtitle' ? subtitle : description) || '')
+        let enVal = String(nextEn[key] || '')
+        let zhVal = String(nextZh[key] || '')
+        if (!enVal && zhVal) {
+          const t = await translateText(zhVal, 'auto', 'en')
+          if (t) enVal = t
+        } else if (!zhVal && enVal) {
+          const t = await translateText(enVal, 'auto', 'zh')
+          if (t) zhVal = t
+        } else if (!enVal && !zhVal && baseVal) {
+          if (looksZh(baseVal)) {
+            zhVal = baseVal
+            const t = await translateText(baseVal, 'auto', 'en')
+            if (t) enVal = t
+          } else {
+            enVal = baseVal
+            const t = await translateText(baseVal, 'auto', 'zh')
+            if (t) zhVal = t
+          }
+        }
+        // 最后保障：两侧都不为空
+        if (!enVal && zhVal) {
+          const t = await translateText(zhVal, 'auto', 'en')
+          if (t) enVal = t
+        }
+        if (!zhVal && enVal) {
+          const t = await translateText(enVal, 'auto', 'zh')
+          if (t) zhVal = t
+        }
+        nextEn[key] = enVal
+        nextZh[key] = zhVal
+      }
+      setEn(nextEn)
+      setZh(nextZh)
+    } finally {
+      setIsTranslatingAll(false)
+    }
+  }
+
+  // 一键为无标签图片生成标签
+  // 批量为无标签图片生成标签：返回最新 pictures 数组，避免批量生成后 setState 尚未同步导致 payload 丢失
+  const generateTagsForUntaggedPictures = async (): Promise<typeof pictures> => {
+    setIsBulkTagsGenerating(true)
+    let next = [...pictures]
+    try {
+      for (let i = 0; i < next.length; i++) {
+        const p = next[i]
+        if (!p || (Array.isArray(p.tags) && p.tags.length > 0)) continue
+        const src = p.previewUrl || (p.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${p.image_url}` : '')
+        if (!src) continue
+        try {
+          const result = await analyzeImage(src, 'tags')
+          if (result.success) {
+            const parts = result.result.replace(/\n/g, ',').split(/[,，;；]/).map(s => s.trim()).filter(Boolean)
+            const generated = Array.from(new Set(parts.map(s => s.toLowerCase())))
+            const current = Array.isArray(p.tags) ? p.tags.map(s => s.trim().toLowerCase()).filter(Boolean) : []
+            const union = Array.from(new Set([ ...current, ...generated ]))
+            next[i] = { ...p, tags: union }
+          }
+        } catch (e) {
+          console.error('批量生成标签失败:', e)
+        }
+      }
+      setPictures(next)
+      return next
+    } finally {
+      setIsBulkTagsGenerating(false)
+    }
+  }
+
   // dynamic autofill for set-level translations: follow base fields until user manually edits en.*
   useEffect(() => {
     if (!enTouched.title) setEn((prev) => ({ ...prev, title }))
+    if (looksZh(title) && !((zh.title || '').trim())) setZh((prev) => ({ ...prev, title }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title])
   useEffect(() => {
     if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle }))
+    if (looksZh(subtitle) && !((zh.subtitle || '').trim())) setZh((prev) => ({ ...prev, subtitle }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtitle])
   useEffect(() => {
     if (!enTouched.description) setEn((prev) => ({ ...prev, description }))
+    if (looksZh(description) && !((zh.description || '').trim())) setZh((prev) => ({ ...prev, description }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [description])
 
@@ -599,6 +716,15 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     setIsSubmitting(true)
 
     try {
+      // 根据选项，自动补齐集合与图片语种
+      if (autoFillLocalesAll) {
+        await autoTranslateAll()
+      }
+      // 为未设置标签的图片自动生成标签（与现有标签做并集），并使用返回的 next 数组继续构造 payload，避免批量生成后 state 未同步
+      let picturesForPayload = pictures
+      if (autoGenerateTagsForUntagged) {
+        picturesForPayload = await generateTagsForUntaggedPictures()
+      }
       // Debug: log intended picture order before upload/submit
       try {
         const debugOrder = pictures.map((p, i) => ({ idx: i, id: (p as any).id, image_url: p.image_url, title: p.title }))
@@ -637,7 +763,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
       // Pictures: upload raw and compressed if a new file provided
       const processedPictures = await Promise.all(
-        pictures.map(async (pic, idx) => {
+        picturesForPayload.map(async (pic, idx) => {
           let image_url = pic.image_url || ""
           let raw_image_url = pic.raw_image_url || ""
 
@@ -839,8 +965,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           <div className="grid grid-cols-2 gap-4 border border-gray-200 rounded-lg p-3">
             <div className="col-span-2 flex items-center justify-between">
               <h3 className="text-lg font-bold">{t('translations')}</h3>
-              <Button type="button" size="sm" variant="outline" onClick={autoTranslateAll} disabled={isTranslatingAll}>
-                {isTranslatingAll ? '…' : t('autoTranslateSet')}
+              <Button type="button" size="sm" variant="outline" onClick={autoTranslateSetOnly} disabled={isTranslatingAll}>
+                {isTranslatingAll ? '…' : t('autoTranslateSetOnly')}
               </Button>
             </div>
             <div className="space-y-3">
@@ -926,6 +1052,18 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             <label className="flex items-center gap-2 text-sm">
               <input id="fill_missing_from_set" type="checkbox" checked={fillMissingFromSet} onChange={(e)=>setFillMissingFromSet(e.target.checked)} />
               <span>{t('optionsFillMissing')}</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="propagate_categories_to_pictures" type="checkbox" checked={propagateCategoriesToPictures} onChange={(e)=>setPropagateCategoriesToPictures(e.target.checked)} />
+              <span>{t('optionsPropagateCategories')}</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="auto_fill_locales_all" type="checkbox" checked={autoFillLocalesAll} onChange={(e)=>setAutoFillLocalesAll(e.target.checked)} />
+              <span>{t('autoTranslateSet')}</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="auto_generate_tags_untagged" type="checkbox" checked={autoGenerateTagsForUntagged} onChange={(e)=>setAutoGenerateTagsForUntagged(e.target.checked)} />
+              <span>{t('generateTagsForUntagged')}</span>
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input id="autogen_titles_subtitles" type="checkbox" checked={autogenTitlesSubtitles} onChange={(e)=>setAutogenTitlesSubtitles(e.target.checked)} />
@@ -1376,9 +1514,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         variant="outline"
                         size="sm"
                         onClick={() => generatePictureTags(idx)}
-                        disabled={isGenerating.tags || !pic.previewUrl}
+                        disabled={isGenerating.tags || (!pic.previewUrl && !pic.image_url)}
                         className="h-7 px-2"
-                        title={pic.previewUrl ? t('aiGenerateTags') : t('pleaseAddCoverOrImages')}
+                        title={(pic.previewUrl || pic.image_url) ? t('aiGenerateTags') : t('pleaseAddCoverOrImages')}
                       >
                         {isGenerating.tags ? <span className="text-xs text-gray-500">{t('generating')}</span> : <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> {t('aiGenerateTags')}</span>}
                       </Button>

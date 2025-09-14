@@ -116,8 +116,11 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       setErrors(prev => ({ ...prev, [type]: undefined }))
       setIsLoading(prev => ({ ...prev, [type]: true }))
       
-      const prompt = type === 'custom' ? customPrompt : type
-      const result = await analyzeImage(imageUrl, prompt)
+      const result = await analyzeImage(
+        imageUrl,
+        type === 'custom' ? 'description' : type,
+        type === 'custom' ? customPrompt : undefined,
+      )
       
       if (result.success) {
         setResults(prev => ({ ...prev, [type]: result.result }))
