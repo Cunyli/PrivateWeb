@@ -196,7 +196,19 @@ export async function POST(request: Request) {
         .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
         .map((r: any) => r.id)
 
-      // 每张图片：翻译、标签、位置
+      // --- 每张图片：可选 AI 生成标题/副标题 + 翻译、标签、位置 ---
+      const autoGen = !!payload.autogen_titles_subtitles
+      const serverAnalyze = async (imgUrl: string, type: 'title'|'subtitle'): Promise<string> => {
+        try {
+          const res = await fetch(`${getBaseUrl()}/api/analyze-image`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: imgUrl, analysisType: type })
+          })
+          const data = await res.json().catch(()=>({}))
+          if (res.ok && data?.success) return String(data.result || '').trim()
+        } catch {}
+        return ''
+      }
 
       // 预备 set 级别的 typed tags
       const setTags: string[] = Array.isArray(payload.tags) ? payload.tags : []
@@ -285,6 +297,24 @@ export async function POST(request: Request) {
         const picture_id = picIdByIndex[i]
         if (!picture_id) continue
 
+        // 自动生成标题/副标题（仅当缺失且能构造公网 URL）
+        try {
+          if (autoGen) {
+            const baseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
+            const imgUrl = p.image_url ? `${baseUrl}${p.image_url}` : ''
+            if (imgUrl) {
+              if (!String(p.title || '').trim()) {
+                const t = await serverAnalyze(imgUrl, 'title')
+                if (t) { p.title = t; await supabaseAdmin.from('pictures').update({ title: t }).eq('id', picture_id) }
+              }
+              if (!String(p.subtitle || '').trim()) {
+                const s = await serverAnalyze(imgUrl, 'subtitle')
+                if (s) { p.subtitle = s; await supabaseAdmin.from('pictures').update({ subtitle: s }).eq('id', picture_id) }
+              }
+            }
+          }
+        } catch {}
+
         // 翻译（双向自动补全）
         try {
           const filled = await fillPictureTranslationsBi(p)
@@ -311,9 +341,10 @@ export async function POST(request: Request) {
           const { data: catRows } = await supabaseAdmin.from('categories').select('id,name').in('id', picCatIds)
           const names = (catRows || []).map((r: any) => r.name).filter(Boolean)
           pCatTagIds = await ensureTagIds(names, 'category')
-        } else if (propagateCategories) {
-          // 传播 set 的分类/季节 typed tags
-          pCatTagIds = Array.from(new Set([...(categoryTagIds || []), ...(seasonTagIds || [])]))
+        }
+        // 若开启传播，则无论图片是否已有类别，均将 set 的类别/季节 typed tags 一并加入（并集）
+        if (propagateCategories) {
+          pCatTagIds = Array.from(new Set([...(pCatTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
         }
         const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || [])]))
         if (combined.length) {
@@ -349,7 +380,14 @@ export async function POST(request: Request) {
 
         // 分类（picture_categories）：按勾选保存
         const pCatIdsRaw: number[] = Array.isArray(p.picture_category_ids) ? (p.picture_category_ids as number[]) : []
-        const pCatCats = Array.from(new Set(pCatIdsRaw)) as number[]
+        let pCatCats = Array.from(new Set(pCatIdsRaw)) as number[]
+        if (propagateCategories) {
+          // 将集合选择的类别与图片现有类别做并集
+          const setCats: number[] = Array.isArray(payload.category_ids)
+            ? (Array.from(new Set(payload.category_ids as number[])) as number[])
+            : []
+          pCatCats = Array.from(new Set([...(pCatCats || []), ...(setCats || [])])) as number[]
+        }
         if (pCatCats.length) {
           const rows = pCatCats.map((cid: number) => ({ picture_id, category_id: cid, is_primary: false }))
           await supabaseAdmin.from('picture_categories').insert(rows)
