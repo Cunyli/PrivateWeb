@@ -11,8 +11,10 @@ import { toast } from "@/components/ui/use-toast"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
 import { deleteFileFromR2 } from "@/utils/r2-helpers"
+import { useI18n } from "@/lib/i18n"
 
 export function AdminDashboard() {
+  const { t } = useI18n()
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
   const [editingPictureSet, setEditingPictureSet] = useState<PictureSet | null>(null)
   const [activeTab, setActiveTab] = useState("list")
@@ -38,12 +40,12 @@ export function AdminDashboard() {
       const url = query ? `/api/admin/picture-sets?q=${encodeURIComponent(query)}` : '/api/admin/picture-sets'
       const res = await fetch(url)
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Failed to load picture sets')
+      if (!res.ok) throw new Error(data?.error || t('loadSetsFail'))
       const items = Array.isArray(data?.items) ? data.items : []
       setPictureSets(items)
     } catch (error) {
       console.error('Error in fetchPictureSets(server):', error)
-      toast({ title: 'Error', description: 'Failed to load picture sets', variant: 'destructive' })
+      toast({ title: t('error'), description: t('loadSetsFail'), variant: 'destructive' })
     } finally {
       setIsLoading(false)
     }
@@ -59,10 +61,10 @@ export function AdminDashboard() {
         const data = await res.json().catch(()=> ({}))
         if (!res.ok) {
           console.error('API update picture-set failed:', data)
-          toast({ title: 'Error', description: data?.error || 'Failed to update picture set', variant: 'destructive' })
+          toast({ title: t('error'), description: data?.error || t('updateSetFail'), variant: 'destructive' })
           return
         }
-        toast({ title: 'Success', description: 'Picture set updated successfully' })
+        toast({ title: t('success'), description: t('updateSetSuccess') })
         setEditingPictureSet(null)
         setActiveTab('list')
         setTimeout(async ()=> { await fetchPictureSets() }, 0)
@@ -73,16 +75,16 @@ export function AdminDashboard() {
         const data = await res.json().catch(()=> ({}))
         if (!res.ok) {
           console.error('API create picture-set failed:', data)
-          toast({ title: 'Error', description: data?.error || 'Failed to create picture set', variant: 'destructive' })
+          toast({ title: t('error'), description: data?.error || t('createSetFail'), variant: 'destructive' })
           return
         }
-        toast({ title: 'Success', description: 'Picture set created successfully' })
+        toast({ title: t('success'), description: t('createSetSuccess') })
         setActiveTab('list')
         await fetchPictureSets()
       }
     } catch (e) {
       console.error('Error in handleSubmitPictureSetServer:', e)
-      toast({ title: 'Error', description: 'Unexpected error occurred', variant: 'destructive' })
+      toast({ title: t('error'), description: t('unexpectedError'), variant: 'destructive' })
     }
   }
 
@@ -647,7 +649,7 @@ export function AdminDashboard() {
           await setSetTags(pictureSetId, combined)
         } catch (e) {
           console.error('Error updating translations/tags for set:', e)
-          toast({ title: 'Tag/translation error', description: 'Failed to save set tags/translations. Check permissions or network.', variant: 'destructive' })
+          toast({ title: t('error'), description: 'Failed to save set tags/translations. Check permissions or network.', variant: 'destructive' })
         }
 
         // Precompute single-select category/season for propagation to pictures
@@ -888,7 +890,7 @@ export function AdminDashboard() {
                 await setPictureTags(insertedPic.id, combined)
               } catch (e) {
                 console.error('Error inserting picture tags:', e)
-                toast({ title: 'Tag error', description: `Failed to save tags for the new picture. Check permissions or network.`, variant: 'destructive' })
+                toast({ title: t('error'), description: 'Failed to save tags for the new picture. Check permissions or network.', variant: 'destructive' })
               }
 
               // Picture primary location (optional; geocode if needed)
@@ -954,10 +956,7 @@ export function AdminDashboard() {
           console.warn('Safe reorder encountered an error:', verr)
         }
 
-        toast({
-          title: "Success",
-          description: "Picture set updated successfully",
-        })
+        toast({ title: t('success'), description: t('updateSetSuccess') })
 
         // Reset edit mode first - 立即重置编辑状态
         const currentEditingPictureSet = editingPictureSet
@@ -990,11 +989,7 @@ export function AdminDashboard() {
 
         if (pictureSetError) {
           console.error("Error inserting picture set:", pictureSetError)
-          toast({
-            title: "Error",
-            description: "Failed to create picture set",
-            variant: "destructive",
-          })
+          toast({ title: t('error'), description: t('createSetFail'), variant: 'destructive' })
           return
         }
 
@@ -1191,8 +1186,8 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Error in handleSubmitPictureSet:", error)
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('error'),
+        description: t('unexpectedError'),
         variant: "destructive",
       })
     }
@@ -1206,14 +1201,14 @@ export function AdminDashboard() {
       const data = await res.json().catch(()=> ({}))
       if (!res.ok) {
         console.error('Delete set failed:', data)
-        toast({ title: 'Error', description: data?.error || 'Failed to delete picture set', variant: 'destructive' })
+          toast({ title: t('error'), description: data?.error || t('deleteSetFail'), variant: 'destructive' })
         return
       }
-      toast({ title: 'Success', description: 'Picture set deleted successfully' })
+      toast({ title: t('success'), description: t('deleteSetSuccess') })
       await fetchPictureSets()
     } catch (error) {
       console.error('Error in handleDeletePictureSet(server):', error)
-      toast({ title: 'Error', description: 'Unexpected error occurred during deletion', variant: 'destructive' })
+      toast({ title: t('error'), description: t('unexpectedDeleteError'), variant: 'destructive' })
     }
   }
 
@@ -1227,7 +1222,7 @@ export function AdminDashboard() {
       const data = await res.json()
       if (!res.ok) {
         console.error('Load set detail failed:', data)
-        toast({ title: 'Error', description: data?.error || 'Failed to load picture set data for editing', variant: 'destructive' })
+        toast({ title: t('error'), description: data?.error || t('loadSetDataFail'), variant: 'destructive' })
         return
       }
       setEditingPictureSet(data.item as PictureSet)
@@ -1250,29 +1245,29 @@ export function AdminDashboard() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">{t('adminDashboard')}</h1>
 
       {/* Search Bar */}
       <div className="mb-6 flex gap-2 items-center">
         <Input
-          placeholder="Search sets: supports EN/Chinese, multi-word AND"
+          placeholder={t('searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         {searchQuery && (
-          <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>Clear</Button>
+          <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>{t('clear')}</Button>
         )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
-          <TabsTrigger value="list">Picture Sets</TabsTrigger>
-          <TabsTrigger value="form">{editingPictureSet ? "Edit Picture Set" : "Add New Picture Set"}</TabsTrigger>
+          <TabsTrigger value="list">{t('pictureSetsTab')}</TabsTrigger>
+          <TabsTrigger value="form">{editingPictureSet ? t('editSetTab') : t('addNewSetTab')}</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <p>Loading picture sets...</p>
+              <p>{t('loadingSets')}</p>
             </div>
           ) : (
             <PictureSetList pictureSets={pictureSets} onEdit={handleEditPictureSet} onDelete={handleDeletePictureSet} />

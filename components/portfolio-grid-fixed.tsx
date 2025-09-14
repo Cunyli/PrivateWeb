@@ -5,10 +5,12 @@ import { useState, useEffect, useRef, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/utils/supabase"
+import { useI18n } from "@/lib/i18n"
 import { ArrowUp } from "lucide-react"
 import type { PictureSet } from "@/lib/pictureSet.types"
 
 export function PortfolioGrid() {
+  const { t } = useI18n()
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
   const [loading, setLoading] = useState(true)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -114,11 +116,11 @@ export function PortfolioGrid() {
 
   return (
     <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
-      <h1 className="text-2xl sm:text-4xl font-light text-center mb-8 sm:mb-16">Lijie&apos;s Galleries</h1>
+      <h1 className="text-2xl sm:text-4xl font-light text-center mb-8 sm:mb-16">{t('galleriesTitle')}</h1>
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="animate-pulse">Loading galleries...</div>
+          <div className="animate-pulse">{t('loadingSets')}</div>
         </div>
       ) : (
         <div className="flex flex-col gap-6 sm:gap-12 flex-1">

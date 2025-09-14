@@ -2,12 +2,14 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { I18nProvider, useI18n } from "@/lib/i18n"
 import { supabase } from "@/utils/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export default function LoginPage() {
+function LoginInner() {
+  const { t, locale, setLocale } = useI18n()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const router = useRouter()
@@ -20,21 +22,27 @@ export default function LoginPage() {
       router.push("/admin")
     } catch (error) {
       console.error("Error logging in:", error)
-      alert("Failed to log in")
+      alert(t('error'))
     }
   }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="absolute top-4 right-4">
+        <select value={locale} onChange={(e)=>setLocale(e.target.value as any)} className="border rounded px-2 py-1 text-sm">
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
       <form onSubmit={handleLogin} className="p-8 bg-white rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">{t('loginTitle')}</h1>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('email')}</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div>
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('password')}</Label>
             <Input
               id="password"
               type="password"
@@ -44,7 +52,7 @@ export default function LoginPage() {
             />
           </div>
           <Button type="submit" className="w-full">
-            Log In
+            {t('login')}
           </Button>
         </div>
       </form>
@@ -52,3 +60,10 @@ export default function LoginPage() {
   )
 }
 
+export default function LoginPage() {
+  return (
+    <I18nProvider>
+      <LoginInner />
+    </I18nProvider>
+  )
+}

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Sparkles, Tag, Camera, Copy, Check, Type, FileText, AlertTriangle } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 import { useImageAnalysis } from '@/hooks/use-image-analysis'
 
 interface ImageAnalysisComponentProps {
@@ -16,6 +17,7 @@ interface ImageAnalysisComponentProps {
 
 export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalysisComponentProps) {
   const { analyzeImage, isAnalyzing } = useImageAnalysis()
+  const { t } = useI18n()
   const [results, setResults] = useState<{
     title?: string
     subtitle?: string
@@ -73,19 +75,19 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       if (titleResult.success) {
         updates.title = titleResult.result
       } else {
-        setErrors(prev => ({ ...prev, title: titleResult.error || '标题生成失败' }))
+        setErrors(prev => ({ ...prev, title: titleResult.error || t('titleGenFailed') }))
       }
       
       if (subtitleResult.success) {
         updates.subtitle = subtitleResult.result
       } else {
-        setErrors(prev => ({ ...prev, subtitle: subtitleResult.error || '副标题生成失败' }))
+        setErrors(prev => ({ ...prev, subtitle: subtitleResult.error || t('subtitleGenFailed') }))
       }
       
       if (descriptionResult.success) {
         updates.description = descriptionResult.result
       } else {
-        setErrors(prev => ({ ...prev, description: descriptionResult.error || '描述生成失败' }))
+        setErrors(prev => ({ ...prev, description: descriptionResult.error || t('descriptionGenFailed') }))
       }
       
       // 一次性更新所有结果
@@ -104,7 +106,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       console.log('并行一键生成完成！')
     } catch (error) {
       console.error('并行一键生成失败:', error)
-      setErrors(prev => ({ ...prev, complete: '一键生成失败，请重试' }))
+      setErrors(prev => ({ ...prev, complete: t('oneClickGenFailed') }))
     }
   }
 
@@ -128,11 +130,11 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           }, 25)
         }
       } else {
-        setErrors(prev => ({ ...prev, [type]: result.error || '分析失败' }))
+        setErrors(prev => ({ ...prev, [type]: result.error || t('unexpectedError') }))
       }
     } catch (error) {
       console.error(`分析${type}失败:`, error)
-      setErrors(prev => ({ ...prev, [type]: '分析失败，请重试' }))
+      setErrors(prev => ({ ...prev, [type]: t('unexpectedError') }))
     } finally {
       setIsLoading(prev => ({ ...prev, [type]: false }))
     }
@@ -155,7 +157,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-purple-500" />
-          Gemini 图片分析
+          {t('aiHeader')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -174,13 +176,13 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
             {isLoading.title || isLoading.subtitle || isLoading.description ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                生成中...
+                {t('generating')}
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                🚀 一键生成所有字段
-                <span className="ml-2 text-xs opacity-80">（并行模式，快速高效）</span>
+                🚀 {t('generateAll')}
+                <span className="ml-2 text-xs opacity-80">{t('parallelHint')}</span>
               </>
             )}
           </Button>
@@ -202,7 +204,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Type className="w-4 h-4 text-blue-500" />
-                标题生成
+                {t('titleGen')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -220,12 +222,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                 {isLoading.title ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
+                    {t('generating')}
                   </>
                 ) : (
                   <>
                     <Tag className="w-4 h-4 mr-2" />
-                    生成标题
+                    {t('genTitle')}
                   </>
                 )}
               </Button>
@@ -239,7 +241,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {results.title && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">生成结果：</span>
+                    <span className="text-xs text-gray-500">{t('result')}</span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -254,12 +256,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                       {copiedStates.title ? (
                         <>
                           <Check className="w-3 h-3 mr-1" />
-                          已复制
+                          {t('copied')}
                         </>
                       ) : (
                         <>
                           <Copy className="w-3 h-3 mr-1" />
-                          复制
+                          {t('copy')}
                         </>
                       )}
                     </Button>
@@ -277,7 +279,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Type className="w-4 h-4 text-green-500" />
-                副标题生成
+                {t('subtitleGen')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -295,12 +297,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                 {isLoading.subtitle ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
+                    {t('generating')}
                   </>
                 ) : (
                   <>
                     <Tag className="w-4 h-4 mr-2" />
-                    生成副标题
+                    {t('genSubtitle')}
                   </>
                 )}
               </Button>
@@ -314,7 +316,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {results.subtitle && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">生成结果：</span>
+                    <span className="text-xs text-gray-500">{t('result')}</span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -329,12 +331,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                       {copiedStates.subtitle ? (
                         <>
                           <Check className="w-3 h-3 mr-1" />
-                          已复制
+                          {t('copied')}
                         </>
                       ) : (
                         <>
                           <Copy className="w-3 h-3 mr-1" />
-                          复制
+                          {t('copy')}
                         </>
                       )}
                     </Button>
@@ -352,7 +354,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <FileText className="w-4 h-4 text-purple-500" />
-                描述生成
+                {t('descriptionGen')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -370,12 +372,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                 {isLoading.description ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
+                    {t('generating')}
                   </>
                 ) : (
                   <>
                     <FileText className="w-4 h-4 mr-2" />
-                    生成描述
+                    {t('genDescription')}
                   </>
                 )}
               </Button>
@@ -389,7 +391,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {results.description && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">生成结果：</span>
+                    <span className="text-xs text-gray-500">{t('result')}</span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -404,12 +406,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                       {copiedStates.description ? (
                         <>
                           <Check className="w-3 h-3 mr-1" />
-                          已复制
+                          {t('copied')}
                         </>
                       ) : (
                         <>
                           <Copy className="w-3 h-3 mr-1" />
-                          复制
+                          {t('copy')}
                         </>
                       )}
                     </Button>
@@ -426,9 +428,9 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
         {/* 高级分析功能 */}
         <Tabs defaultValue="tags" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="tags">标签提取</TabsTrigger>
-            <TabsTrigger value="technical">技术分析</TabsTrigger>
-            <TabsTrigger value="custom">自定义分析</TabsTrigger>
+            <TabsTrigger value="tags">{t('extractTags')}</TabsTrigger>
+            <TabsTrigger value="technical">{t('technicalAnalysis')}</TabsTrigger>
+            <TabsTrigger value="custom">{t('customAnalysis')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tags" className="space-y-4">
@@ -445,12 +447,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {isLoading.tags ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  分析中...
+                  {t('analyzing')}
                 </>
               ) : (
                 <>
                   <Tag className="w-4 h-4 mr-2" />
-                  提取图片标签
+                  {t('extractTags')}
                 </>
               )}
             </Button>
@@ -467,7 +469,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
             {results.tags && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">标签结果：</span>
+                  <span className="text-sm font-medium">{t('tagsResult')}</span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -481,12 +483,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                     {copiedStates.tags ? (
                       <>
                         <Check className="w-4 h-4 mr-2" />
-                        已复制
+                        {t('copied')}
                       </>
                     ) : (
                       <>
                         <Copy className="w-4 h-4 mr-2" />
-                        复制
+                        {t('copy')}
                       </>
                     )}
                   </Button>
@@ -514,12 +516,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {isLoading.technical ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  分析中...
+                  {t('analyzing')}
                 </>
               ) : (
                 <>
                   <Camera className="w-4 h-4 mr-2" />
-                  技术分析
+                  {t('technicalAnalysis')}
                 </>
               )}
             </Button>
@@ -536,7 +538,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
             {results.technical && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">技术分析：</span>
+                  <span className="text-sm font-medium">{t('technicalAnalysis')}</span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -550,12 +552,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                     {copiedStates.technical ? (
                       <>
                         <Check className="w-4 h-4 mr-2" />
-                        已复制
+                        {t('copied')}
                       </>
                     ) : (
                       <>
                         <Copy className="w-4 h-4 mr-2" />
-                        复制
+                        {t('copy')}
                       </>
                     )}
                   </Button>
@@ -571,9 +573,9 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
 
           <TabsContent value="custom" className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">自定义分析提示词：</label>
+              <label className="text-sm font-medium">{t('customPrompt')}</label>
               <Textarea
-                placeholder="输入你想要的分析内容，例如：分析这张图片的色彩搭配..."
+                placeholder={t('customPrompt')}
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 className="min-h-[80px]"
@@ -593,12 +595,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {isLoading.custom ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  分析中...
+                  {t('analyzing')}
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  开始自定义分析
+                  {t('runCustom')}
                 </>
               )}
             </Button>
@@ -615,7 +617,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
             {results.custom && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">分析结果：</span>
+                  <span className="text-sm font-medium">{t('analysisResult')}</span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -629,12 +631,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
                     {copiedStates.custom ? (
                       <>
                         <Check className="w-4 h-4 mr-2" />
-                        已复制
+                        {t('copied')}
                       </>
                     ) : (
                       <>
                         <Copy className="w-4 h-4 mr-2" />
-                        复制
+                        {t('copy')}
                       </>
                     )}
                   </Button>

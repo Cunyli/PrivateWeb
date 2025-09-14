@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo } from "react"
+import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/utils/supabase"
@@ -9,12 +10,13 @@ import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 
 export function PortfolioGrid() {
+  const { locale, t } = useI18n()
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
   const [loading, setLoading] = useState(true)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
   const [shuffledDownSets, setShuffledDownSets] = useState<PictureSet[]>([])
   const [derivedUpSets, setDerivedUpSets] = useState<PictureSet[]>([])
-  const [lang, setLang] = useState<'auto' | 'en' | 'zh'>('auto')
+  // use global locale (zh prefers zh translations, else en)
   const [transMap, setTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
   const [searchQuery, setSearchQuery] = useState("")
   const [searchLoading, setSearchLoading] = useState(false)
@@ -303,30 +305,16 @@ export function PortfolioGrid() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  // Language preference persistence
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('portfolio_lang') as 'auto'|'en'|'zh'|null
-      if (saved === 'auto' || saved === 'en' || saved === 'zh') setLang(saved)
-    } catch {}
-  }, [])
-  useEffect(() => {
-    try { localStorage.setItem('portfolio_lang', lang) } catch {}
-  }, [lang])
-
   const getText = (s: PictureSet, key: 'title'|'subtitle'|'description') => {
     const t = transMap[s.id]
-    if (lang === 'zh') return t?.zh?.[key] || s[key]
-    if (lang === 'en') return t?.en?.[key] || s[key]
-    // auto: prefer zh if available
-    return t?.zh?.[key] || s[key]
+    if (locale === 'zh') return t?.zh?.[key] || s[key]
+    return t?.en?.[key] || s[key]
   }
 
   const getPicText = (p: Picture, key: 'title'|'subtitle'|'description') => {
     const t = pictureTransMap[p.id]
-    if (lang === 'zh') return t?.zh?.[key] || (p as any)[key]
-    if (lang === 'en') return t?.en?.[key] || (p as any)[key]
-    return t?.zh?.[key] || (p as any)[key]
+    if (locale === 'zh') return t?.zh?.[key] || (p as any)[key]
+    return t?.en?.[key] || (p as any)[key]
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
@@ -334,18 +322,9 @@ export function PortfolioGrid() {
   return (
     <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
       <div className="relative mb-4 sm:mb-8">
-        <h1 className="text-2xl sm:text-4xl font-light text-center">Lijie&apos;s Galleries</h1>
-        {/* Header controls (search, language toggle) */}
+        <h1 className="text-2xl sm:text-4xl font-light text-center">{t('galleriesTitle')}</h1>
+        {/* Header controls (search) */}
         <div className="absolute right-0 top-0 flex items-center gap-2">
-          {/* Language toggle: click to switch between EN/Chinese */}
-          <button
-            onClick={() => setLang(prev => prev === 'zh' ? 'en' : 'zh')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm transition ${lang!=='auto' ? 'bg-black text-white' : 'bg-white text-gray-700'} hover:shadow`}
-            title={`Language: ${lang==='zh' ? 'Chinese' : 'EN'} (Click to toggle)`}
-            aria-label="Toggle language"
-          >
-            <span aria-hidden>🌐</span>
-          </button>
           {/* Search panel trigger */}
           <button
             onClick={() => {
@@ -353,8 +332,8 @@ export function PortfolioGrid() {
               setTimeout(() => searchInputRef.current?.focus(), 0)
             }}
             className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm bg-white text-gray-700 hover:shadow"
-            title="Search"
-            aria-label="Open search"
+            title={t('search')}
+            aria-label={t('openSearch')}
           >
             🔍
           </button>
@@ -371,24 +350,24 @@ export function PortfolioGrid() {
                   ref={searchInputRef}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search sets or images (EN/Chinese, multi-word AND)"
+                  placeholder={t('homeSearchPlaceholder')}
                   className="flex-1 outline-none"
                 />
                 {searchQuery && (
-                  <button className="text-sm text-gray-500 hover:text-gray-700" onClick={() => setSearchQuery("")}>Clear</button>
+                  <button className="text-sm text-gray-500 hover:text-gray-700" onClick={() => setSearchQuery("")}>{t('clear')}</button>
                 )}
-                <button className="text-xl" onClick={() => setSearchOpen(false)} aria-label="Close">×</button>
+                <button className="text-xl" onClick={() => setSearchOpen(false)} aria-label={t('close')}>×</button>
               </div>
               <div className="max-h-[70vh] overflow-auto p-3 sm:p-4">
                 {/* Results list */}
                 <div className="flex flex-col gap-8">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-base font-medium">Set Matches</h2>
-                      {searchLoading && <span className="text-xs text-gray-500">Searching…</span>}
+                      <h2 className="text-base font-medium">{t('setMatchesHdr')}</h2>
+                      {searchLoading && <span className="text-xs text-gray-500">{t('searching')}</span>}
                     </div>
                     {(setResults?.length || 0) === 0 ? (
-                      <p className="text-sm text-gray-500">No matching sets</p>
+                      <p className="text-sm text-gray-500">{t('noMatchingSets')}</p>
                     ) : (
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(setResults || []).map((item) => (
@@ -406,11 +385,11 @@ export function PortfolioGrid() {
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-base font-medium">Picture Matches</h2>
-                      {searchLoading && <span className="text-xs text-gray-500">Searching…</span>}
+                      <h2 className="text-base font-medium">{t('pictureMatchesHdr')}</h2>
+                      {searchLoading && <span className="text-xs text-gray-500">{t('searching')}</span>}
                     </div>
                     {(pictureResults?.length || 0) === 0 ? (
-                      <p className="text-sm text-gray-500">No matching pictures</p>
+                      <p className="text-sm text-gray-500">{t('noMatchingPictures')}</p>
                     ) : (
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(pictureResults || []).map((p) => (
@@ -434,7 +413,7 @@ export function PortfolioGrid() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="animate-pulse">Loading galleries...</div>
+          <div className="animate-pulse">{t('loadingGalleries')}</div>
         </div>
       ) : (
         <div className="flex flex-col gap-6 sm:gap-12 flex-1">
@@ -518,12 +497,12 @@ export function PortfolioGrid() {
                           <h2 
                             className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
                           >
-                            {item.title}
+                            {getText(item, 'title')}
                           </h2>
                           <p 
                             className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
                           >
-                            {item.subtitle}
+                            {getText(item, 'subtitle')}
                           </p>
                         </div>
                       </Link>
