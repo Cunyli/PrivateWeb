@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, ArrowUp, Sparkles, Camera } from "lucide-react"
+import { useI18n } from "@/lib/i18n"
 import imageCompression from "browser-image-compression"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageAnalysisComponent } from "@/components/image-analysis"
@@ -49,6 +50,7 @@ async function getImagePreview(file: File): Promise<{ url: string; size: number 
 }
 
 export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: PictureSetFormProps) {
+  const { t } = useI18n()
   const { analyzeImage } = useImageAnalysis()
   const [title, setTitle] = useState("")
   const [subtitle, setSubtitle] = useState("")
@@ -243,12 +245,13 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     // preload vocab tables
     const loadVocab = async () => {
       try {
-        const res = await fetch('/api/admin/vocab')
+        const preferred = (typeof window !== 'undefined' ? (localStorage.getItem('locale') || 'en') : 'en')
+        const res = await fetch(`/api/admin/vocab?locale=${encodeURIComponent(preferred)}`)
         const data = await res.json()
         if (res.ok) {
-          setAvailableCategories((data?.categories || []).map((c:any)=>({ id: c.id, name: c.name })))
-          setAvailableSeasons((data?.seasons || []).map((s:any)=>({ id: s.id, name: s.name })))
-          setAvailableSections((data?.sections || []).map((s:any)=>({ id: s.id, name: s.name })))
+          setAvailableCategories((data?.categories || []).map((c:any)=>({ id: c.id, name: (preferred === 'zh' ? (c.nameCN || c.name) : c.name) })))
+          setAvailableSeasons((data?.seasons || []).map((s:any)=>({ id: s.id, name: (preferred === 'zh' ? (s.nameCN || s.name) : s.name) })))
+          setAvailableSections((data?.sections || []).map((s:any)=>({ id: s.id, name: (preferred === 'zh' ? (s.nameCN || s.name) : s.name) })))
         }
       } catch (e) {
         console.warn('Load vocab failed', e)
@@ -759,30 +762,31 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 relative">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">{isEditMode ? "Edit Picture Set" : "Create New Picture Set"}</h2>
+        <h2 className="text-2xl font-semibold">{isEditMode ? t('editSet') : t('createSet')}</h2>
         {isEditMode && onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel Edit
+            {t('cancelEdit')}
           </Button>
         )}
       </div>
 
-      {/* 标题/副标题/描述 */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* 左侧：表单字段 */}
+      {/* 顶部区域：三列布局（字段+翻译 | 封面 | 其它属性） */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* 第一列：基础字段 + 翻译 */}
         <div className="space-y-4">
+          <h3 className="text-lg font-bold">{t('setDetails')}</h3>
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title">{t('title')}</Label>
               {coverPreview && (
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
+                  variant="outline"
+                  className="h-7 px-2"
                   onClick={() => generateField('title')}
                   disabled={isGenerating.title}
-                  title="AI generate title"
+                  title={t('aiGenerateTitle')}
                 >
                   {isGenerating.title ? <Sparkles className="h-3 w-3 animate-spin" /> : "✨"}
                 </Button>
@@ -793,16 +797,16 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Label htmlFor="subtitle">Subtitle</Label>
+              <Label htmlFor="subtitle">{t('subtitle')}</Label>
               {coverPreview && (
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
+                  variant="outline"
+                  className="h-7 px-2"
                   onClick={() => generateField('subtitle')}
                   disabled={isGenerating.subtitle}
-                  title="AI generate subtitle"
+                  title={t('aiGenerateSubtitle')}
                 >
                   {isGenerating.subtitle ? <Sparkles className="h-3 w-3 animate-spin" /> : "✨"}
                 </Button>
@@ -813,16 +817,16 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('description')}</Label>
               {coverPreview && (
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
+                  variant="outline"
+                  className="h-7 px-2"
                   onClick={() => generateField('description')}
                   disabled={isGenerating.description}
-                  title="AI generate description"
+                  title={t('aiGenerateDescription')}
                 >
                   {isGenerating.description ? <Sparkles className="h-3 w-3 animate-spin" /> : "✨"}
                 </Button>
@@ -831,76 +835,189 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           
-          {/* Position is now derived from Sections; UI hidden intentionally */}
-          {false && (
-            <div>
-              <Label htmlFor="position">Position</Label>
-              <Select value={position} onValueChange={setPosition}>
-                <SelectTrigger id="position">
-                  <SelectValue placeholder="Select position" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="up">Top Row</SelectItem>
-                  <SelectItem value="down">Bottom Row</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* 翻译（常显） */}
+          <div className="grid grid-cols-2 gap-4 border border-gray-200 rounded-lg p-3">
+            <div className="col-span-2 flex items-center justify-between">
+              <h3 className="text-lg font-bold">{t('translations')}</h3>
+              <Button type="button" size="sm" variant="outline" onClick={autoTranslateAll} disabled={isTranslatingAll}>
+                {isTranslatingAll ? '…' : t('autoTranslateSet')}
+              </Button>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-base font-semibold">{t('englishLabel')}</Label>
+              </div>
+              <Input placeholder="English title" value={en.title}
+                    onChange={(e) => { setEnTouched((t)=>({ ...t, title: true })); setEn((prev) => ({ ...prev, title: e.target.value })) }} />
+              <Input placeholder="English subtitle" value={en.subtitle}
+                    onChange={(e) => { setEnTouched((t)=>({ ...t, subtitle: true })); setEn((prev) => ({ ...prev, subtitle: e.target.value })) }} />
+              <Textarea placeholder="English description" value={en.description}
+                        onChange={(e) => { setEnTouched((t)=>({ ...t, description: true })); setEn((prev) => ({ ...prev, description: e.target.value })) }} />
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-base font-semibold">{t('chineseLabel')}</Label>
+              </div>
+              <Input placeholder="Chinese title" value={zh.title}
+                    onChange={(e) => setZh((prev) => ({ ...prev, title: e.target.value }))} />
+              <Input placeholder="Chinese subtitle" value={zh.subtitle}
+                    onChange={(e) => setZh((prev) => ({ ...prev, subtitle: e.target.value }))} />
+              <Textarea placeholder="Chinese description" value={zh.description}
+                        onChange={(e) => setZh((prev) => ({ ...prev, description: e.target.value }))} />
+            </div>
+          </div>
+        </div>
+        {/* 第二列：封面预览 */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-bold">{t('coverImage')}</h3>
+          {coverPreview ? (
+            <div className="mt-2 mb-4">
+              <div 
+                className="relative w-full overflow-hidden rounded-md border border-gray-200 cursor-pointer hover:border-blue-400 transition-colors group"
+                onClick={() => document.getElementById('cover-input')?.click()}
+                title="Click to change cover image"
+              >
+                <img
+                  src={coverPreview || "/placeholder.svg"}
+                  alt="Cover preview"
+                  className="w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"
+                  style={{
+                    aspectRatio: 'auto'
+                  }}
+                />
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
+                  {t('clickToChangeImage')}
+                </div>
+              </div>
+              </div>
+              {coverOriginalSize > 0 && (
+                <p className="text-sm text-gray-500 mt-2">
+                  {t('originalSize')} {formatSize(coverOriginalSize)} • {t('willBeCompressed')}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div 
+              className="mt-2 mb-4 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group"
+              onClick={() => document.getElementById('cover-input')?.click()}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 bg-gray-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center transition-colors">
+                  <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">{t('clickToUploadCover')}</p>
+                  <p className="text-sm text-gray-400">{t('supportsFormats')}</p>
+                </div>
+              </div>
             </div>
           )}
-
-          {/* Publish */}
-          <div className="flex items-center gap-3">
-            <input id="is_published" type="checkbox" checked={isPublished} onChange={(e)=>setIsPublished(e.target.checked)} />
-            <Label htmlFor="is_published">Published</Label>
+          <input 
+            id="cover-input"
+            type="file" 
+            accept="image/*" 
+            onChange={handleCoverChange}
+            className="hidden"
+          />
+          {/* Options moved under cover */}
+          <div className="flex flex-col gap-2 pt-3 border-t">
+            <h4 className="text-base font-bold">{t('options')}</h4>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="fill_missing_from_set" type="checkbox" checked={fillMissingFromSet} onChange={(e)=>setFillMissingFromSet(e.target.checked)} />
+              <span>{t('optionsFillMissing')}</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="autogen_titles_subtitles" type="checkbox" checked={autogenTitlesSubtitles} onChange={(e)=>setAutogenTitlesSubtitles(e.target.checked)} />
+              <span>{t('optionsAutogenTitles')}</span>
+            </label>
           </div>
 
-          {/* Categories & Seasons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label>Categories</Label>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {availableCategories.map(c => {
-                  const checked = categoryIds.includes(c.id)
-                  return (
-                    <label key={c.id} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(e)=>{
-                          setCategoryIds(prev => e.target.checked ? Array.from(new Set([...prev, c.id])) : prev.filter(id=>id!==c.id))
-                        }}
-                      />
-                      <span>{c.name}</span>
-                    </label>
-                  )
-                })}
-              </div>
+          {/* Cover AI tools moved here under cover */}
+          {coverPreview && (
+            <div className="border-t pt-3">
+              <h4 className="text-base font-bold mb-2">{t('aiToolsCover')}</h4>
+              <ImageAnalysisComponent
+                imageUrl={coverPreview}
+                onResultUpdate={(field, result) => {
+                  const val = result || ''
+                  const looksZh = /[\u4e00-\u9fff]/
+                  if (field === 'title') setTitle(val)
+                  if (field === 'subtitle') setSubtitle(val)
+                  if (field === 'description') setDescription(val)
+                  const isZh = looksZh.test(val)
+                  if (isZh) {
+                    setZh(prev => ({ ...prev, [field]: val }))
+                    setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
+                  } else {
+                    setEn(prev => ({ ...prev, [field]: val }))
+                    setZh(prev => ({ ...prev, [field]: '' }))
+                  }
+                }}
+              />
             </div>
-            <div>
-              <Label>Seasons</Label>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {availableSeasons.map(s => {
-                  const checked = seasonIds.includes(s.id)
-                  return (
-                    <label key={s.id} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(e)=>{
-                          setSeasonIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
-                        }}
-                      />
-                      <span>{s.name}</span>
-                    </label>
-                  )
-                })}
-              </div>
+          )}
+        </div>
+        {/* 第三列：其它属性（AI、发布、分类、季节、区块、位置、标签、选项） */}
+        <div className="space-y-4">
+          {/* Publish */}
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-bold">{t('properties')}</h3>
+          </div>
+          <div className="flex items-center gap-3 border rounded-md px-3 py-2">
+            <input id="is_published" type="checkbox" checked={isPublished} onChange={(e)=>setIsPublished(e.target.checked)} />
+            <Label htmlFor="is_published">{t('published')}</Label>
+          </div>
+
+          {/* Categories */}
+          <div className="border-t pt-3">
+            <h4 className="text-base font-bold">{t('categories')}</h4>
+            <p className="text-xs text-gray-500 mt-1">{t('examplesCategoriesHelp')}</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {availableCategories.map(c => {
+                const checked = categoryIds.includes(c.id)
+                return (
+                  <label key={c.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e)=>{
+                        setCategoryIds(prev => e.target.checked ? Array.from(new Set([...prev, c.id])) : prev.filter(id=>id!==c.id))
+                      }}
+                    />
+                    <span>{c.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Seasons */}
+          <div className="border-t pt-3">
+            <h4 className="text-base font-bold">{t('seasons')}</h4>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {availableSeasons.map(s => {
+                const checked = seasonIds.includes(s.id)
+                return (
+                  <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e)=>{
+                        setSeasonIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
+                      }}
+                    />
+                    <span>{s.name}</span>
+                  </label>
+                )
+              })}
             </div>
           </div>
 
           {/* Sections */}
-          <div>
-            <Label>Sections</Label>
-            <p className="text-xs text-gray-500 mt-1">Controls set types and placement (e.g., Top/Bottom rows on homepage).</p>
+          <div className="border-t pt-3">
+            <h4 className="text-base font-bold">{t('sections')}</h4>
+            <p className="text-xs text-gray-500 mt-1">{t('sectionsHelp')}</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {availableSections.map(s => {
                 const checked = sectionIds.includes(s.id)
@@ -921,9 +1038,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           </div>
 
           {/* Primary location inputs */}
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-1 gap-2 border-t pt-3">
+            <h4 className="text-base font-bold">{t('primaryLocation')}</h4>
             <div className="flex items-center gap-2">
-              <Label className="font-medium">Primary Location (optional)</Label>
               <Button
                 type="button"
                 size="sm"
@@ -940,190 +1057,44 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     }
                   } catch (e) { console.warn('Geocode failed', e) }
                 }}
-              >Geocode</Button>
+              >{t('geocode')}</Button>
             </div>
-            <Input placeholder="Location name (e.g., The Bund)" value={primaryLocationName} onChange={(e)=>setPrimaryLocationName(e.target.value)} />
+            <Input placeholder={t('locationNamePlaceholder')} value={primaryLocationName} onChange={(e)=>setPrimaryLocationName(e.target.value)} />
             <div className="grid grid-cols-2 gap-2">
-              <Input placeholder="Latitude" value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
-              <Input placeholder="Longitude" value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
+              <Input placeholder={t('latitude')} value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
+              <Input placeholder={t('longitude')} value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
             </div>
           </div>
 
-          {/* Fill missing picture fields & auto-generate */}
-          <div className="flex flex-col gap-2 pt-1">
-            <label className="flex items-center gap-2 text-sm">
-              <input id="fill_missing_from_set" type="checkbox" checked={fillMissingFromSet} onChange={(e)=>setFillMissingFromSet(e.target.checked)} />
-              <span>Fill missing picture fields from this set (season/location)</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input id="autogen_titles_subtitles" type="checkbox" checked={autogenTitlesSubtitles} onChange={(e)=>setAutogenTitlesSubtitles(e.target.checked)} />
-              <span>AI-generate title/subtitle for pictures missing them</span>
-            </label>
-          </div>
-        </div>
-
-        {/* 右侧：封面预览 */}
-        <div className="space-y-2">
-          <Label htmlFor="cover">Cover Image</Label>
-          {coverPreview ? (
-            <div className="mt-2 mb-4">
-              <div 
-                className="relative w-full overflow-hidden rounded-md border border-gray-200 cursor-pointer hover:border-blue-400 transition-colors group"
-                onClick={() => document.getElementById('cover-input')?.click()}
-                title="Click to change cover image"
-              >
-                <img
-                  src={coverPreview || "/placeholder.svg"}
-                  alt="Cover preview"
-                  className="w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"
-                  style={{
-                    aspectRatio: 'auto'
-                  }}
-                />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
-                  Click to change image
-                </div>
-              </div>
-              </div>
-              {coverOriginalSize > 0 && (
-                <p className="text-sm text-gray-500 mt-2">
-                  Original size: {formatSize(coverOriginalSize)} • Will be compressed to WebP at 90% quality
-                </p>
-              )}
-            </div>
-          ) : (
-            <div 
-              className="mt-2 mb-4 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group"
-              onClick={() => document.getElementById('cover-input')?.click()}
-            >
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-12 h-12 bg-gray-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center transition-colors">
-                  <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-gray-600 font-medium">Click to upload cover image</p>
-                  <p className="text-sm text-gray-400">Supports JPG, PNG, WebP</p>
-                </div>
-              </div>
-            </div>
-          )}
-          <input 
-            id="cover-input"
-            type="file" 
-            accept="image/*" 
-            onChange={handleCoverChange}
-            className="hidden"
-          />
-        </div>
-      </div>
-
-      {/* AI & Translations (collapsible) */}
-      <div className="border border-gray-200 rounded-lg">
-        <Button
-          type="button"
-          variant="ghost"
-          className="w-full p-3 flex items-center justify-between text-left"
-          onClick={() => setShowAITrans(!showAITrans)}
-        >
-          <div className="flex items-center gap-2">
-            <span>🤖</span>
-            <span className="font-medium">AI & Translations</span>
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              Generation tools and bilingual fields
-            </span>
-          </div>
-          <span className={`transform transition-transform ${showAITrans ? 'rotate-180' : ''}`}>
-            ▼
-          </span>
-        </Button>
-        {showAITrans && (
-          <div className="px-3 pb-3 border-t border-gray-100 space-y-4">
-            {coverPreview && (
-              <div>
-                <ImageAnalysisComponent
-                  imageUrl={coverPreview}
-                  onResultUpdate={(field, result) => {
-                    const val = result || ''
-                    const looksZh = /[\u4e00-\u9fff]/
-                    if (field === 'title') setTitle(val)
-                    if (field === 'subtitle') setSubtitle(val)
-                    if (field === 'description') setDescription(val)
-                    const isZh = looksZh.test(val)
-                    if (isZh) {
-                      setZh(prev => ({ ...prev, [field]: val }))
-                      setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
-                    } else {
-                      setEn(prev => ({ ...prev, [field]: val }))
-                      setZh(prev => ({ ...prev, [field]: '' }))
-                    }
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Translations */}
-            <div className="grid grid-cols-2 gap-4 border rounded-lg p-3">
-              <div className="col-span-2 flex justify-end">
-                <Button type="button" size="sm" variant="outline" onClick={autoTranslateAll} disabled={isTranslatingAll}>
-                  {isTranslatingAll ? 'Translating…' : 'Auto-translate set + pictures (bi-directional)'}
-                </Button>
-              </div>
-              {/* English */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Label className="text-base font-semibold">English (en)</Label>
-                </div>
-                <Input placeholder="English title" value={en.title}
-                      onChange={(e) => { setEnTouched((t)=>({ ...t, title: true })); setEn((prev) => ({ ...prev, title: e.target.value })) }} />
-                <Input placeholder="English subtitle" value={en.subtitle}
-                      onChange={(e) => { setEnTouched((t)=>({ ...t, subtitle: true })); setEn((prev) => ({ ...prev, subtitle: e.target.value })) }} />
-                <Textarea placeholder="English description" value={en.description}
-                          onChange={(e) => { setEnTouched((t)=>({ ...t, description: true })); setEn((prev) => ({ ...prev, description: e.target.value })) }} />
-              </div>
-
-              {/* Chinese */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Label className="text-base font-semibold">Chinese (zh)</Label>
-                </div>
-                <Input placeholder="Chinese title" value={zh.title}
-                      onChange={(e) => setZh((prev) => ({ ...prev, title: e.target.value }))} />
-                <Input placeholder="Chinese subtitle" value={zh.subtitle}
-                      onChange={(e) => setZh((prev) => ({ ...prev, subtitle: e.target.value }))} />
-                <Textarea placeholder="Chinese description" value={zh.description}
-                          onChange={(e) => setZh((prev) => ({ ...prev, description: e.target.value }))} />
-              </div>
-            </div>
-
-            {/* Set tags (optional) */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Tags (comma-separated)</Label>
+          {/* Set tags */}
+          <div className="space-y-2 border-t pt-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-base font-bold">{t('tags')} ({t('commaSeparated')})</h4>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={generateTagsForSet}
                   disabled={isGenerating.tags || (!coverPreview && pictures.length === 0)}
-                  title={coverPreview || pictures.length > 0 ? 'AI generate tags' : 'Please add a cover or images first'}
+                  title={coverPreview || pictures.length > 0 ? t('aiGenerateTags') : t('pleaseAddCoverOrImages')}
                   className="h-8 px-2"
                 >
-                  {isGenerating.tags ? (
-                    <span className="text-xs text-gray-500">Generating…</span>
-                  ) : (
-                    <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI Generate</span>
-                  )}
-                </Button>
-              </div>
-              <Input
-                placeholder="e.g., portrait, street, night"
-                value={tagsText}
-                onChange={(e) => setTagsText(e.target.value)}
-              />
+                {isGenerating.tags ? (
+                  <span className="text-xs text-gray-500">{t('generating')}</span>
+                ) : (
+                  <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> {t('aiGenerateTags')}</span>
+                )}
+              </Button>
             </div>
+            <Input
+              placeholder={t('tagsPlaceholder')}
+              value={tagsText}
+              onChange={(e) => setTagsText(e.target.value)}
+            />
           </div>
-        )}
+
+          {/* removed: Options + AI Tools moved to cover column */}
+        </div>
       </div>
 
       {/* Pictures list */}
@@ -1132,21 +1103,21 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         {pictures.length > 0 && (
           <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-            <Label className="text-lg font-semibold text-gray-800">Pictures</Label>
+            <Label className="text-lg font-semibold text-gray-800">{t('picturesHdr')}</Label>
             <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-sm font-medium">
-              {pictures.length} images
+              {pictures.length} {t('images')}
             </span>
           </div>
         )}
 
         {pictures.length === 0 && (
-          <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
             <div className="flex flex-col items-center gap-3">
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                 <Plus className="h-6 w-6 text-gray-400" />
               </div>
-              <p className="text-gray-500">No images yet</p>
-              <p className="text-sm text-gray-400">Click the button below to add images</p>
+              <p className="text-gray-500">{t('noImagesYet2')}</p>
+              <p className="text-sm text-gray-400">{t('clickToAddImagesHint')}</p>
             </div>
           </div>
         )}
@@ -1163,7 +1134,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   {idx + 1}
                 </div>
                 <span className="text-sm font-medium text-gray-700">
-                  {pic.id ? `Saved #${pic.id}` : "New"}
+                  {pic.id ? `${t('saved')} #${pic.id}` : t('newItem')}
                 </span>
               </div>
             </div>
@@ -1182,28 +1153,28 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             </div>
 
             <div className="p-4 pt-14">
-              <div className="grid grid-cols-2 gap-6">
-                {/* Left column: form fields */}
-                <div className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* 第一列：表单字段 + 翻译 */}
+                <div className="space-y-5 order-1 md:col-span-1">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm font-semibold text-gray-700">Title</Label>
+                      <Label className="text-sm font-semibold text-gray-700">{t('title')}</Label>
                       {pic.previewUrl && (
                         <Button
                           type="button"
                           size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0 hover:bg-blue-100"
+                          variant="outline"
+                          className="h-7 px-2"
                           onClick={() => generatePictureField(idx, 'title')}
                           disabled={isGenerating.title}
-                          title="AI generate title"
+                          title={t('aiGenerateTitle')}
                         >
                           {isGenerating.title ? <Sparkles className="h-3 w-3 animate-spin text-blue-500" /> : "✨"}
                         </Button>
                       )}
                     </div>
                     <Input
-                      placeholder="Enter a title for this image..."
+                      placeholder={t('enterImageTitle')}
                       value={pic.title}
                       onChange={(e) => handlePictureChange(idx, "title", e.target.value)}
                       className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -1212,23 +1183,23 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm font-semibold text-gray-700">Subtitle</Label>
+                      <Label className="text-sm font-semibold text-gray-700">{t('subtitle')}</Label>
                       {pic.previewUrl && (
                         <Button
                           type="button"
                           size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0 hover:bg-green-100"
+                          variant="outline"
+                          className="h-7 px-2"
                           onClick={() => generatePictureField(idx, 'subtitle')}
                           disabled={isGenerating.subtitle}
-                          title="AI generate subtitle"
+                          title={t('aiGenerateSubtitle')}
                         >
                           {isGenerating.subtitle ? <Sparkles className="h-3 w-3 animate-spin text-green-500" /> : "✨"}
                         </Button>
                       )}
                     </div>
                     <Input
-                      placeholder="Enter a subtitle for this image..."
+                      placeholder={t('enterImageSubtitle')}
                       value={pic.subtitle}
                       onChange={(e) => handlePictureChange(idx, "subtitle", e.target.value)}
                       className="border-gray-300 focus:border-green-500 focus:ring-green-500"
@@ -1237,69 +1208,193 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm font-semibold text-gray-700">Description</Label>
+                      <Label className="text-sm font-semibold text-gray-700">{t('description')}</Label>
                       {pic.previewUrl && (
                         <Button
                           type="button"
                           size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0 hover:bg-purple-100"
+                          variant="outline"
+                          className="h-7 px-2"
                           onClick={() => generatePictureField(idx, 'description')}
                           disabled={isGenerating.description}
-                          title="AI generate description"
+                          title={t('aiGenerateDescription')}
                         >
                           {isGenerating.description ? <Sparkles className="h-3 w-3 animate-spin text-purple-500" /> : "✨"}
                         </Button>
                       )}
                     </div>
                     <Textarea
-                      placeholder="Describe the content and features of this image..."
+                      placeholder={t('describeImagePlaceholder')}
                       value={pic.description}
                       onChange={(e) => handlePictureChange(idx, "description", e.target.value)}
                       className="border-gray-300 focus:border-purple-500 focus:ring-purple-500 min-h-[80px]"
                     />
                   </div>
+                  
 
-                  {/* Picture tags & types (hidden editor by default) */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-semibold text-gray-700">Tags</Label>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => generatePictureTags(idx)}
-                          disabled={isGenerating.tags || !pic.previewUrl}
-                          className="h-7 px-2"
-                          title={pic.previewUrl ? 'AI generate tags' : 'Please select an image first'}
-                        >
-                          {isGenerating.tags ? <span className="text-xs text-gray-500">Generating…</span> : <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI Generate</span>}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-7 px-2"
-                          onClick={() => setShowPictureTagsEditor(prev => ({ ...prev, [idx]: !prev[idx] }))}
-                        >
-                          {showPictureTagsEditor[idx] ? 'Hide editor' : 'Edit tags'}
-                        </Button>
+                  {/* Picture translation fields (always visible) */}
+                  <div className="mt-4 border border-gray-200 rounded-md p-3">
+                    <div className="col-span-2 flex items-center justify-between pb-2">
+                      <h4 className="text-base font-bold">{t('translations')}</h4>
+                      <Button type="button" size="sm" variant="outline" onClick={() => autoTranslatePicture(idx)} disabled={!!isTranslatingPic[idx]}>
+                        {isTranslatingPic[idx] ? t('generating') : t('autoTranslatePicture')}
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                          <Label className="text-sm font-semibold text-gray-700">{t('englishLabel')}</Label>
+                        <Input
+                          placeholder={t('englishLabel') + ' ' + t('title')}
+                          value={pic.en?.title || ''}
+                          onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), title: true } })); handlePictureChange(idx, 'en.title', e.target.value) }}
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                        <Input
+                          placeholder={t('englishLabel') + ' ' + t('subtitle')}
+                          value={pic.en?.subtitle || ''}
+                          onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), subtitle: true } })); handlePictureChange(idx, 'en.subtitle', e.target.value) }}
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                        <Textarea
+                          placeholder={t('englishLabel') + ' ' + t('description')}
+                          value={pic.en?.description || ''}
+                          onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), description: true } })); handlePictureChange(idx, 'en.description', e.target.value) }}
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                          <Label className="text-sm font-semibold text-gray-700">{t('chineseLabel')}</Label>
+                        <Input
+                          placeholder={t('chineseLabel') + ' ' + t('title')}
+                          value={pic.zh?.title || ''}
+                          onChange={(e) => handlePictureChange(idx, 'zh.title', e.target.value)}
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                        <Input
+                          placeholder={t('chineseLabel') + ' ' + t('subtitle')}
+                          value={pic.zh?.subtitle || ''}
+                          onChange={(e) => handlePictureChange(idx, 'zh.subtitle', e.target.value)}
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                        <Textarea
+                          placeholder={t('chineseLabel') + ' ' + t('description')}
+                          value={pic.zh?.description || ''}
+                          onChange={(e) => handlePictureChange(idx, 'zh.description', e.target.value)}
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
+                        />
                       </div>
                     </div>
-                    {showPictureTagsEditor[idx] && (
-                      <Input
-                        placeholder="e.g., portrait, night, bokeh"
-                        value={(pic.tags || []).join(', ')}
-                        onChange={(e) => handlePictureChange(idx, 'tags', e.target.value.split(/[,，]/).map(s => s.trim()).filter(Boolean))}
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    )}
+                  </div>
+                </div>
+
+                {/* 第二列：图片预览（并把 AI 分析放在图片下方） */}
+                <div className="space-y-4 order-2 md:col-span-1">
+                  {pic.previewUrl ? (
+                    <div className="space-y-3">
+                      <Label className="text-base font-bold text-gray-800">{t('preview')}</Label>
+                      <div className="relative bg-gray-50 rounded-lg p-3">
+                        <div 
+                          className="relative w-full overflow-hidden rounded-md border border-gray-200 bg-white cursor-pointer hover:border-blue-400 transition-colors group"
+                          onClick={() => document.getElementById(`picture-input-${idx}`)?.click()}
+                          title={t('clickToChangeImage')}
+                        >
+                          <img
+                            src={pic.previewUrl || "/placeholder.svg"}
+                            alt={`Picture ${idx + 1}`}
+                            className="w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"
+                            style={{
+                              aspectRatio: 'auto'
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
+                              Click to change image
+                            </div>
+                          </div>
+                        </div>
+                        {pic.originalSize! > 0 && (
+                          <div className="mt-3 p-2 bg-white rounded border border-gray-200">
+                            <p className="text-xs text-gray-600">
+                              <span className="font-medium">{t('originalSize')}</span> {formatSize(pic.originalSize!)}
+                              {pic.compressedSize && (
+                                <>
+                                  <br />
+                                  <span className="font-medium">Compressed:</span> {formatSize(pic.compressedSize)} 
+                                  <span className="text-green-600 font-medium">
+                                    ({((pic.compressedSize / pic.originalSize!) * 100).toFixed(1)}%)
+                                  </span>
+                                </>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      {/* AI 分析（放在图片下方） */}
+                    <div className="border-t pt-3">
+                      <h4 className="text-base font-bold mb-2">{t('aiToolsPicture')}</h4>
+                        <ImageAnalysisComponent
+                          imageUrl={pic.previewUrl}
+                          onResultUpdate={(field, result) => {
+                            handlePictureChange(idx, field, result)
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-48">
+                      <div 
+                        className="flex flex-col items-center justify-center h-full w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group"
+                        onClick={() => document.getElementById(`picture-input-${idx}`)?.click()}
+                      >
+                        <div className="w-12 h-12 bg-gray-200 group-hover:bg-blue-100 rounded-full flex items-center justify-center mb-3 transition-colors">
+                          <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
+                        </div>
+                        <p className="text-gray-500 text-sm font-medium">{t('clickToUploadCover')}</p>
+                        <p className="text-gray-400 text-xs mt-1">{t('supportsFormats')}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 隐藏的文件输入 */}
+                  <input
+                    id={`picture-input-${idx}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePictureChange(idx, "cover", e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+
+                </div>
+                {/* 第三列：标签 + 类型 + 季节/位置 */}
+                <div className="space-y-4 order-3 md:col-span-1">
+                  {/* Picture tags */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-base font-bold">{t('tags')}</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generatePictureTags(idx)}
+                        disabled={isGenerating.tags || !pic.previewUrl}
+                        className="h-7 px-2"
+                        title={pic.previewUrl ? t('aiGenerateTags') : t('pleaseAddCoverOrImages')}
+                      >
+                        {isGenerating.tags ? <span className="text-xs text-gray-500">{t('generating')}</span> : <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> {t('aiGenerateTags')}</span>}
+                      </Button>
+                    </div>
+                    <Input
+                      placeholder={t('tagsPlaceholder')}
+                      value={(pic.tags || []).join(', ')}
+                      onChange={(e) => handlePictureChange(idx, 'tags', e.target.value.split(/[,，]/).map(s => s.trim()).filter(Boolean))}
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
                   </div>
 
-                  {/* Per-picture types (categories) */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">Types (categories)</Label>
+                  {/* Types (categories) */}
+                  <div className="space-y-2 border-t pt-3">
+                    <h4 className="text-base font-bold">{t('typesCategories')}</h4>
+                    <p className="text-xs text-gray-500">Examples: Portrait, Landscape, Street, Creative, Documentary, Travel, Architecture, Macro, Night</p>
                     <div className="grid grid-cols-2 gap-2">
                       {availableCategories.map(c => {
                         const checked = Array.isArray((pic as any).picture_category_ids) && ((pic as any).picture_category_ids as number[]).includes(c.id)
@@ -1321,17 +1416,16 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     </div>
                   </div>
 
-                  {/* Per-picture season & location (hidden UI) */}
-                  {false && (
-                  <div className="grid grid-cols-1 gap-3 pt-2 border-t">
+                  {/* Season & Location */}
+                  <div className="grid grid-cols-1 gap-3 pt-3 border-t">
                     <div>
-                      <Label className="text-sm font-semibold text-gray-700">Season</Label>
+                      <h4 className="text-base font-bold mb-1">{t('season')}</h4>
                       <Select
                         value={pic.season_id != null ? String(pic.season_id) : undefined}
                         onValueChange={(v)=>handlePictureChange(idx, 'season_id', v ? Number(v) : null)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select season" />
+                          <SelectValue placeholder={t('selectSeason')} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableSeasons.map(s => (
@@ -1340,9 +1434,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-2 border-t pt-3">
                       <div className="flex items-center gap-2">
-                        <Label className="text-sm font-semibold text-gray-700">Location</Label>
+                        <h4 className="text-base font-bold">{t('location')}</h4>
                         <Button
                           type="button"
                           size="sm"
@@ -1360,187 +1454,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                               }
                             } catch (e) { console.warn('Geocode failed', e) }
                           }}
-                        >Geocode</Button>
+                        >{t('geocode')}</Button>
                       </div>
-                      <Input placeholder="Place name (e.g., The Bund)" value={(pic as any).location_name || ''} onChange={(e)=>handlePictureChange(idx, 'location_name', e.target.value)} />
+                      <Input placeholder={t('locationNamePlaceholder')} value={(pic as any).location_name || ''} onChange={(e)=>handlePictureChange(idx, 'location_name', e.target.value)} />
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Latitude" value={(pic as any).location_latitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_latitude', e.target.value ? Number(e.target.value) : null)} />
-                        <Input placeholder="Longitude" value={(pic as any).location_longitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_longitude', e.target.value ? Number(e.target.value) : null)} />
+                        <Input placeholder={t('latitude')} value={(pic as any).location_latitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_latitude', e.target.value ? Number(e.target.value) : null)} />
+                        <Input placeholder={t('longitude')} value={(pic as any).location_longitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_longitude', e.target.value ? Number(e.target.value) : null)} />
                       </div>
                     </div>
                   </div>
-                  )}
-
-                  {/* Picture translation fields (collapsed by default for compactness) */}
-                  <div className="mt-4 border border-gray-200 rounded-md">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="w-full p-2 flex items-center justify-between text-left"
-                      onClick={() => setShowPictureTranslations(prev => ({ ...prev, [idx]: !prev[idx] }))}
-                    >
-                      <span className="text-sm font-medium">Translation Fields</span>
-                      <span className={`transform transition-transform ${showPictureTranslations[idx] ? 'rotate-180' : ''}`}>▼</span>
-                    </Button>
-                    {showPictureTranslations[idx] && (
-                      <div className="grid grid-cols-2 gap-4 px-3 pb-3">
-                        <div className="col-span-2 flex justify-end">
-                          <Button type="button" size="sm" variant="outline" onClick={() => autoTranslatePicture(idx)} disabled={!!isTranslatingPic[idx]}>
-                            {isTranslatingPic[idx] ? 'Translating…' : 'Auto-translate for this picture'}
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-semibold text-gray-700">English (en)</Label>
-                          <Input
-                            placeholder="English title"
-                            value={pic.en?.title || ''}
-                            onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), title: true } })); handlePictureChange(idx, 'en.title', e.target.value) }}
-                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <Input
-                            placeholder="English subtitle"
-                            value={pic.en?.subtitle || ''}
-                            onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), subtitle: true } })); handlePictureChange(idx, 'en.subtitle', e.target.value) }}
-                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <Textarea
-                            placeholder="English description"
-                            value={pic.en?.description || ''}
-                            onChange={(e) => { setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx]||{}), description: true } })); handlePictureChange(idx, 'en.description', e.target.value) }}
-                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-semibold text-gray-700">Chinese (zh)</Label>
-                          <Input
-                            placeholder="Chinese title"
-                            value={pic.zh?.title || ''}
-                            onChange={(e) => handlePictureChange(idx, 'zh.title', e.target.value)}
-                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <Input
-                            placeholder="Chinese subtitle"
-                            value={pic.zh?.subtitle || ''}
-                            onChange={(e) => handlePictureChange(idx, 'zh.subtitle', e.target.value)}
-                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <Textarea
-                            placeholder="Chinese description"
-                            value={pic.zh?.description || ''}
-                            onChange={(e) => handlePictureChange(idx, 'zh.description', e.target.value)}
-                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[60px]"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Right column: image preview */}
-                <div className="space-y-4">
-                  {pic.previewUrl ? (
-                    <div className="space-y-3">
-                      <Label className="text-sm font-semibold text-gray-700">Preview</Label>
-                      <div className="relative bg-gray-50 rounded-lg p-3">
-                        <div 
-                          className="relative w-full overflow-hidden rounded-md border border-gray-200 bg-white cursor-pointer hover:border-blue-400 transition-colors group"
-                          onClick={() => document.getElementById(`picture-input-${idx}`)?.click()}
-                          title="Click to change image"
-                        >
-                          <img
-                            src={pic.previewUrl || "/placeholder.svg"}
-                            alt={`Picture ${idx + 1}`}
-                            className="w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"
-                            style={{
-                              aspectRatio: 'auto'
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white bg-opacity-90 px-3 py-1 rounded-md text-sm font-medium text-gray-700">
-                              Click to change image
-                            </div>
-                          </div>
-                        </div>
-                        {pic.originalSize! > 0 && (
-                          <div className="mt-3 p-2 bg-white rounded border border-gray-200">
-                            <p className="text-xs text-gray-600">
-              <span className="font-medium">Original size:</span> {formatSize(pic.originalSize!)}
-                              {pic.compressedSize && (
-                                <>
-                                  <br />
-                                  <span className="font-medium">Compressed:</span> {formatSize(pic.compressedSize)} 
-                                  <span className="text-green-600 font-medium">
-                                    ({((pic.compressedSize / pic.originalSize!) * 100).toFixed(1)}%)
-                                  </span>
-                                </>
-                              )}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-48">
-                      <div 
-                        className="flex flex-col items-center justify-center h-full w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group"
-                        onClick={() => document.getElementById(`picture-input-${idx}`)?.click()}
-                      >
-                        <div className="w-12 h-12 bg-gray-200 group-hover:bg-blue-100 rounded-full flex items-center justify-center mb-3 transition-colors">
-                          <Camera className="h-6 w-6 text-gray-400 group-hover:text-blue-500" />
-                        </div>
-                        <p className="text-gray-500 text-sm font-medium">Click to upload</p>
-                        <p className="text-gray-400 text-xs mt-1">Supports JPG, PNG, WebP</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* 隐藏的文件输入 */}
-                  <input
-                    id={`picture-input-${idx}`}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handlePictureChange(idx, "cover", e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
                 </div>
               </div>
 
-              {/* AI analysis component (collapsible) */}
-              {pic.previewUrl && (
-                <div className="mt-4 border border-gray-200 rounded-lg">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full p-3 flex items-center justify-between text-left"
-                    onClick={() => setShowPictureAIAnalysis(prev => ({
-                      ...prev,
-                      [idx]: !prev[idx]
-                    }))}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>🤖</span>
-                      <span className="font-medium">AI Analysis - Picture {idx + 1}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        Smart generate
-                      </span>
-                    </div>
-                    <span className={`transform transition-transform ${showPictureAIAnalysis[idx] ? 'rotate-180' : ''}`}>
-                      ▼
-                    </span>
-                  </Button>
-                  
-                  {showPictureAIAnalysis[idx] && (
-                    <div className="px-3 pb-3 border-t border-gray-100">
-                      <ImageAnalysisComponent
-                        imageUrl={pic.previewUrl}
-                        onResultUpdate={(field, result) => {
-                          handlePictureChange(idx, field, result)
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* moved AI analysis inside right column */}
             </div>
           </div>
         ))}
@@ -1555,7 +1481,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-purple-300 text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200"
         >
           <Plus className="h-5 w-5" /> 
-          Add Image
+          {t('addImageBtn')}
         </Button>
         <Button
           type="button"
@@ -1564,7 +1490,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
         >
           <Plus className="h-5 w-5" />
-          Add Images (Bulk)
+          {t('addImagesBulkBtn')}
         </Button>
         <input
           ref={bulkInputRef}
@@ -1612,8 +1538,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       {pictures.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-medium">Reorder pictures</h3>
-            <span className="text-xs text-gray-500">Drag thumbnails to reorder</span>
+            <h3 className="text-lg font-medium">{t('reorderPicturesHdr')}</h3>
+            <span className="text-xs text-gray-500">{t('dragThumbnails')}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {pictures.map((pic, idx) => (
@@ -1625,7 +1551,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 onDragOver={(e) => e.preventDefault()}
                 onDragEnd={handleDragEndThumb}
                 className={`relative select-none rounded-md overflow-hidden border bg-white transition-shadow ${draggingIndex === idx ? 'ring-2 ring-blue-400 shadow-lg' : 'hover:shadow'} `}
-                title={(pic.title || '').trim() || `Image ${idx + 1}`}
+                title={(pic.title || '').trim() || `${t('image')} ${idx + 1}`}
               >
                 <div className="absolute top-1 left-1 z-10">
                   <div className="px-2 py-0.5 text-[11px] rounded-full bg-black/70 text-white">#{idx + 1}</div>
@@ -1637,7 +1563,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     className="w-full h-24 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">No preview</div>
+                  <div className="w-full h-24 bg-gray-100 flex items-center justify-center text-xs text-gray-400">{t('noPreview')}</div>
                 )}
               </div>
             ))}
@@ -1647,7 +1573,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
       <div className="sticky bottom-0 bg-white py-4 border-t z-10 space-y-2">
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? "Submitting..." : isEditMode ? "Update Picture Set" : "Submit Picture Set"}
+          {isSubmitting ? t('submitting') : isEditMode ? t('updateSet') : t('submitSet')}
         </Button>
       </div>
 

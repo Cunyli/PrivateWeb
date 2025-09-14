@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Sparkles, Tag, Camera, Copy, Check, Type, FileText, AlertTriangle } from 'lucide-react'
 import { useImageAnalysis } from '@/hooks/use-image-analysis'
+import { useI18n } from '@/lib/i18n'
 
 interface ImageAnalysisComponentProps {
   imageUrl: string
@@ -16,6 +17,7 @@ interface ImageAnalysisComponentProps {
 
 export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalysisComponentProps) {
   const { analyzeImage, isAnalyzing } = useImageAnalysis()
+  const { t } = useI18n()
   const [results, setResults] = useState<{
     title?: string
     subtitle?: string
@@ -74,19 +76,19 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       if (titleResult.success) {
         updates.title = titleResult.result
       } else {
-        setErrors(prev => ({ ...prev, title: titleResult.error || 'Failed to generate title' }))
+        setErrors(prev => ({ ...prev, title: titleResult.error || t('titleGenFailed') }))
       }
       
       if (subtitleResult.success) {
         updates.subtitle = subtitleResult.result
       } else {
-        setErrors(prev => ({ ...prev, subtitle: subtitleResult.error || 'Failed to generate subtitle' }))
+        setErrors(prev => ({ ...prev, subtitle: subtitleResult.error || t('subtitleGenFailed') }))
       }
       
       if (descriptionResult.success) {
         updates.description = descriptionResult.result
       } else {
-        setErrors(prev => ({ ...prev, description: descriptionResult.error || 'Failed to generate description' }))
+        setErrors(prev => ({ ...prev, description: descriptionResult.error || t('descriptionGenFailed') }))
       }
       
       // Commit updates at once
@@ -105,7 +107,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       console.log('One-click generation completed!')
     } catch (error) {
       console.error('One-click generation failed:', error)
-      setErrors(prev => ({ ...prev, complete: 'Generation failed. Please try again.' }))
+      setErrors(prev => ({ ...prev, complete: t('oneClickGenFailed') }))
     } finally {
       // Clear loading flags
       setIsLoading(prev => ({ ...prev, title: false, subtitle: false, description: false }))
@@ -132,11 +134,11 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           }, 25)
         }
       } else {
-        setErrors(prev => ({ ...prev, [type]: result.error || 'Analysis failed' }))
+        setErrors(prev => ({ ...prev, [type]: result.error || t('unexpectedError') }))
       }
     } catch (error) {
       console.error(`Analysis failed: ${type}`, error)
-      setErrors(prev => ({ ...prev, [type]: 'Analysis failed. Please try again.' }))
+      setErrors(prev => ({ ...prev, [type]: t('unexpectedError') }))
     } finally {
       setIsLoading(prev => ({ ...prev, [type]: false }))
     }
@@ -172,12 +174,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           {isLoading.title || isLoading.subtitle || isLoading.description ? (
             <>
               <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-              Generating...
+              {t('generating')}
             </>
           ) : (
             <>
               <Sparkles className="mr-2 h-3 w-3" />
-              Generate all fields
+              {t('generateAll')}
             </>
           )}
         </Button>
@@ -208,7 +210,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           ) : (
             <>
               <Type className="h-3 w-3 mr-1" />
-              Title
+              {t('genTitle')}
             </>
           )}
         </Button>
@@ -230,7 +232,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           ) : (
             <>
               <Type className="h-3 w-3 mr-1" />
-              Subtitle
+              {t('genSubtitle')}
             </>
           )}
         </Button>
@@ -252,7 +254,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           ) : (
             <>
               <FileText className="h-3 w-3 mr-1" />
-              Description
+              {t('genDescription')}
             </>
           )}
         </Button>
@@ -261,7 +263,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       {/* Advanced analysis (collapsible) */}
       <details className="border border-gray-200 rounded">
         <summary className="cursor-pointer p-2 text-sm font-medium bg-gray-50 rounded hover:bg-gray-100">
-          🔧 Advanced analysis tools
+          🔧 {t('advancedAnalysisTools')}
         </summary>
         <div className="p-2 space-y-2">
           <div className="grid grid-cols-2 gap-2">
@@ -282,7 +284,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               ) : (
                 <>
                   <Tag className="h-3 w-3 mr-1" />
-                  Tags
+                  {t('extractTags')}
                 </>
               )}
             </Button>
@@ -304,7 +306,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               ) : (
                 <>
                   <Camera className="h-3 w-3 mr-1" />
-                  Technical
+                  {t('technicalAnalysis')}
                 </>
               )}
             </Button>
@@ -313,7 +315,7 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
           {/* Custom analysis */}
           <div className="space-y-1">
             <Input
-              placeholder="Custom analysis prompt..."
+              placeholder={t('customPrompt')}
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
               className="text-xs h-8"
@@ -332,12 +334,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
               {isLoading.custom ? (
                 <>
                   <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  Analyzing...
+                  {t('analyzing')}
                 </>
               ) : (
                 <>
                   <Sparkles className="h-3 w-3 mr-1" />
-                  Run custom analysis
+                  {t('runCustom')}
                 </>
               )}
             </Button>
@@ -348,12 +350,12 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       {/* Errors */}
       {(errors.title || errors.subtitle || errors.description || errors.tags || errors.technical || errors.custom) && (
         <div className="space-y-1">
-          {errors.title && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Title: {errors.title}</div>}
-          {errors.subtitle && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Subtitle: {errors.subtitle}</div>}
-          {errors.description && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Description: {errors.description}</div>}
-          {errors.tags && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Tags: {errors.tags}</div>}
-          {errors.technical && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Technical: {errors.technical}</div>}
-          {errors.custom && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Custom: {errors.custom}</div>}
+          {errors.title && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">{t('title')}: {errors.title}</div>}
+          {errors.subtitle && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">{t('subtitle')}: {errors.subtitle}</div>}
+          {errors.description && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">{t('description')}: {errors.description}</div>}
+          {errors.tags && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">{t('tags')}: {errors.tags}</div>}
+          {errors.technical && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">{t('technicalAnalysis')}: {errors.technical}</div>}
+          {errors.custom && <div className="text-xs text-red-600 bg-red-50 p-1 rounded">{t('customAnalysis')}: {errors.custom}</div>}
         </div>
       )}
 
@@ -361,37 +363,37 @@ export function ImageAnalysisComponent({ imageUrl, onResultUpdate }: ImageAnalys
       {(results.title || results.subtitle || results.description || results.tags || results.technical || results.custom) && (
         <details className="border border-green-200 rounded">
           <summary className="cursor-pointer p-2 text-sm font-medium bg-green-50 rounded hover:bg-green-100">
-            ✅ Generated results ({Object.values(results).filter(Boolean).length} items)
+            ✅ {t('generatedResults')} ({Object.values(results).filter(Boolean).length})
           </summary>
           <div className="p-2 space-y-2 max-h-40 overflow-y-auto">
             {results.title && (
               <div className="text-xs">
-                <span className="font-medium text-blue-600">Title:</span> {results.title}
+                <span className="font-medium text-blue-600">{t('title')}:</span> {results.title}
               </div>
             )}
             {results.subtitle && (
               <div className="text-xs">
-                <span className="font-medium text-green-600">Subtitle:</span> {results.subtitle}
+                <span className="font-medium text-green-600">{t('subtitle')}:</span> {results.subtitle}
               </div>
             )}
             {results.description && (
               <div className="text-xs">
-                <span className="font-medium text-purple-600">Description:</span> {results.description}
+                <span className="font-medium text-purple-600">{t('description')}:</span> {results.description}
               </div>
             )}
             {results.tags && (
               <div className="text-xs">
-                <span className="font-medium text-orange-600">Tags:</span> {results.tags}
+                <span className="font-medium text-orange-600">{t('tags')}:</span> {results.tags}
               </div>
             )}
             {results.technical && (
               <div className="text-xs">
-                <span className="font-medium text-red-600">Technical:</span> {results.technical}
+                <span className="font-medium text-red-600">{t('technicalAnalysis')}:</span> {results.technical}
               </div>
             )}
             {results.custom && (
               <div className="text-xs">
-                <span className="font-medium text-gray-600">Custom:</span> {results.custom}
+                <span className="font-medium text-gray-600">{t('customAnalysis')}:</span> {results.custom}
               </div>
             )}
           </div>

@@ -2,6 +2,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/react'
+import { I18nProvider } from "@/lib/i18n"
+import { LangSwitcher } from "@/components/lang-switcher"
 
 export const metadata: Metadata = {
   title: "Lijie's Portfolio",
@@ -22,7 +24,10 @@ export default function RootLayout({
     <html lang="en">
       <head />
       <body>
-        {children}
+        <I18nProvider>
+          <LangSwitcher />
+          {children}
+        </I18nProvider>
         <Analytics />
       </body>
     </html>

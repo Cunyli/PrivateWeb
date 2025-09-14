@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
+import { useI18n } from "@/lib/i18n"
 
 interface PictureSetListProps {
   pictureSets: PictureSet[]
@@ -24,6 +25,7 @@ interface PictureSetListProps {
 }
 
 export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetListProps) {
+  const { t } = useI18n()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pictureSetToDelete, setPictureSetToDelete] = useState<number | null>(null)
   
@@ -43,7 +45,7 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Uploaded Picture Sets</h2>
+      <h2 className="text-2xl font-semibold">{t('uploadedPictureSets')}</h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {pictureSets.map((set, index) => {
           const count = (set.pictures?.length || 0) + (set.cover_image_url ? 1 : 0)
@@ -53,9 +55,9 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
                 <CardTitle className="flex justify-between items-center gap-3">
                   <span className="smooth-transition group-hover:text-blue-600">{set.title}</span>
                   <span className="flex items-center gap-2 text-sm font-normal text-gray-500">
-                    <span>Position: {set.position || "up"}</span>
+                    <span>{t('position')}: {set.position || "up"}</span>
                     <span className={`px-2 py-0.5 rounded-full text-xs ${set.is_published === false ? 'bg-gray-200 text-gray-700' : 'bg-green-100 text-green-700'}`}>
-                      {set.is_published === false ? 'Unpublished' : 'Published'}
+                      {set.is_published === false ? t('unpublished') : t('publishedLabel')}
                     </span>
                   </span>
                 </CardTitle>
@@ -73,15 +75,15 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
                 )}
                 <p className="text-sm text-gray-500 smooth-transition group-hover:text-gray-700">{set.subtitle}</p>
                 <p className="mt-2 line-clamp-2 smooth-transition group-hover:text-gray-800">{set.description}</p>
-                <p className="mt-2 text-sm text-gray-500">{count > 0 ? `${count} pictures` : "No pictures"}</p>
+                <p className="mt-2 text-sm text-gray-500">{count > 0 ? `${count} ${t('pictures')}` : t('noPictures')}</p>
               </CardContent>
               <CardFooter className="opacity-0 group-hover:opacity-100 smooth-transition transform translate-y-2 group-hover:translate-y-0">
                 <div className="flex justify-end w-full gap-2">
                   <Button variant="outline" size="sm" onClick={() => onEdit(set)} className="smooth-hover">
-                    <Edit className="h-4 w-4 mr-1" /> Edit
+                    <Edit className="h-4 w-4 mr-1" /> {t('edit')}
                   </Button>
                   <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(set.id)} className="smooth-hover">
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    <Trash2 className="h-4 w-4 mr-1" /> {t('delete')}
                   </Button>
                 </div>
               </CardFooter>
@@ -93,15 +95,15 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this picture set?</AlertDialogTitle>
+            <AlertDialogTitle>{t('areYouSureDeleteSet')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the picture set and all its pictures.
+              {t('deleteWarning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+              {t('deleteAction')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

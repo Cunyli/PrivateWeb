@@ -30,11 +30,8 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
-  },
+  // Disable unstable experiments to avoid dev fallback chunk 500s
+  experimental: {},
 }
 
 mergeConfig(nextConfig, userConfig)

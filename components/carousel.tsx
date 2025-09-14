@@ -3,6 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Download } from "lucide-react"
+import { useI18n } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 
 interface ImageItem {
@@ -22,6 +23,7 @@ interface CarouselProps {
 }
 
 export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true }: CarouselProps) {
+  const { t } = useI18n()
   const goToPrevious = () => {
     const isFirstImage = currentIndex === 0
     const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1
@@ -41,7 +43,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
   }
 
   if (!images || images.length === 0) {
-    return <div>No images to display</div>
+    return <div>{t('noPictures') || 'No images'}</div>
   }
 
   return (
@@ -68,7 +70,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
               className="absolute bottom-4 right-4 bg-white/80 hover:bg-white shadow-md z-10 opacity-0 group-hover:opacity-100 smooth-transition transform translate-y-2 group-hover:translate-y-0"
             >
               <Download className="h-4 w-4 mr-2" />
-              View Original
+              {t('viewOriginal') || 'View Original'}
             </Button>
           )}
 
