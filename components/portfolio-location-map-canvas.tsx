@@ -7,6 +7,7 @@ import type { Map as LeafletMap } from "leaflet"
 import { LatLngBounds } from "leaflet"
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
+import { useI18n } from "@/lib/i18n"
 
 export interface MapLocationSet {
   id: number
@@ -34,6 +35,7 @@ export interface PortfolioLocationMapProps {
 export function PortfolioLocationMapCanvas({ locations, heading, subheading, emptyLabel, viewAllLabel }: PortfolioLocationMapProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [mapInstance, setMapInstance] = useState<LeafletMap | null>(null)
+  const { locale } = useI18n()
 
   useEffect(() => {
     if (!locations.length) {
@@ -60,6 +62,23 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
     if (!activeLocation) return emptyLabel
     return viewAllLabel.replace("{{count}}", String(activeLocation.sets.length))
   }, [activeLocation, emptyLabel, viewAllLabel])
+
+  const tileConfig = useMemo(() => {
+    if (locale === 'zh') {
+      return {
+        key: 'zh-tile',
+        url: 'https://webrd0{s}.is.autonavi.com/appmaptile?style=7&lang=zh_cn&size=1&scale=1&x={x}&y={y}&z={z}',
+        subdomains: ['1', '2', '3', '4'] as string[] | undefined,
+        attribution: 'Map data © AutoNavi',
+      }
+    }
+    return {
+      key: 'en-tile',
+      url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+      subdomains: undefined,
+      attribution: 'Map data © Esri & contributors',
+    }
+  }, [locale])
 
   if (!locations.length) {
     return (
@@ -96,8 +115,12 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
             preferCanvas
           >
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OSM</a> & <a href='https://carto.com/attributions'>Carto</a>"
+              key={tileConfig.key}
+              url={tileConfig.url}
+              tileSize={256}
+              maxZoom={18}
+              attribution={tileConfig.attribution}
+              {...(tileConfig.subdomains ? { subdomains: tileConfig.subdomains } : {})}
             />
             {locations.map((loc) => {
               const isActive = activeLocation?.key === loc.key

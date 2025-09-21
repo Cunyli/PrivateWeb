@@ -6,13 +6,19 @@ import { ChevronLeft, ChevronRight, Download } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 
+interface LocalizedContent {
+  title?: string
+  subtitle?: string
+  description?: string
+}
+
 interface ImageItem {
   url: string
-  rawUrl: string
-  alt: string
-  title: string
-  titleCn: string
-  description: string
+  rawUrl?: string | null
+  translations: {
+    en: LocalizedContent
+    zh: LocalizedContent
+  }
 }
 
 interface CarouselProps {
@@ -23,7 +29,9 @@ interface CarouselProps {
 }
 
 export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true }: CarouselProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const primaryLocale = locale === 'zh' ? 'zh' : 'en'
+  const secondaryLocale = primaryLocale === 'zh' ? 'en' : 'zh'
   const goToPrevious = () => {
     const isFirstImage = currentIndex === 0
     const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1
@@ -46,6 +54,11 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
     return <div>{t('noPictures') || 'No images'}</div>
   }
 
+  const activeImage = images[currentIndex]
+  const activeText = activeImage.translations[primaryLocale]
+  const fallbackText = activeImage.translations[secondaryLocale]
+  const computedAlt = activeText.title || fallbackText.title || "Portfolio image"
+
   return (
     <div className="flex flex-col w-full h-full">
       {/* Main image container */}
@@ -55,15 +68,15 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
         {/* Image wrapper */}
         <div className="w-full h-full flex items-center justify-center relative">
           <Image
-            src={process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].url || "/placeholder.svg"}
-            alt={images[currentIndex].alt || "Portfolio image"}
+            src={process.env.NEXT_PUBLIC_BUCKET_URL+activeImage.url || "/placeholder.svg"}
+            alt={computedAlt}
             fill
             className="object-contain corner-lg smooth-transition"
             priority
           />
 
           {/* Download original button - appears on hover */}
-          {images[currentIndex].rawUrl && (
+          {activeImage.rawUrl && (
             <Button
               variant="secondary"
               onClick={handleOpenOriginal}

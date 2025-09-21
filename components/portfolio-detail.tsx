@@ -6,43 +6,49 @@ import Image from "next/image"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Carousel } from "@/components/carousel"
 import { ImageDetails } from "@/components/image-details"
+import { LangSwitcher } from "@/components/lang-switcher"
+import { useI18n } from "@/lib/i18n"
+
+interface LocalizedContent {
+  title?: string
+  subtitle?: string
+  description?: string
+}
 
 interface ImageItem {
   url: string
-  rawUrl: string
-  alt: string
-  title: string
-  titleCn: string
-  description: string
+  rawUrl?: string | null
+  translations: {
+    en: LocalizedContent
+    zh: LocalizedContent
+  }
 }
 
 interface PortfolioDetailProps {
+  id: string
   images: ImageItem[]
-  title?: string
-  subtitle?: string
-  description?: string
+  translations: {
+    en: LocalizedContent
+    zh: LocalizedContent
+  }
 }
 
-export default function PortfolioDetail({ 
-  images, 
-  title, 
-  subtitle, 
-  description 
-}: { 
-  images: ImageItem[]
-  title?: string
-  subtitle?: string
-  description?: string
-  id: string 
-}) {
+export default function PortfolioDetail({ images, translations }: PortfolioDetailProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
+  const { locale } = useI18n()
   
   const currentImage = images[currentIndex];
+
+  const activeSetContent = locale === 'zh' ? translations.zh : translations.en
+  const fallbackSetContent = locale === 'zh' ? translations.en : translations.zh
+  const displayTitle = activeSetContent.title || fallbackSetContent.title || ''
+  const displaySubtitle = activeSetContent.subtitle || fallbackSetContent.subtitle || ''
+  const displayDescription = activeSetContent.description || fallbackSetContent.description || ''
 
   const handleImageChange = (index: number) => {
     setCurrentIndex(index)
@@ -181,18 +187,21 @@ export default function PortfolioDetail({
       <div className="max-w-[2000px] w-full mx-auto px-4 py-4 lg:px-8 xl:px-16 flex flex-col h-screen">
         {/* Header with back button and title */}
         <header className="mb-4 flex justify-between items-center">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-black transition-colors duration-200"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Works
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="inline-flex items-center text-sm text-gray-600 hover:text-black transition-colors duration-200"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Works
+            </Link>
+            <LangSwitcher className="h-8 w-8 text-gray-600 bg-white" />
+          </div>
 
-          {title && (
+          {(displayTitle || displaySubtitle) && (
             <div className="text-right">
-              <h1 className="text-xl font-medium">{title}</h1>
-              {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
+              {displayTitle && <h1 className="text-xl font-medium">{displayTitle}</h1>}
+              {displaySubtitle && <p className="text-sm text-gray-600">{displaySubtitle}</p>}
             </div>
           )}
         </header>
@@ -377,9 +386,9 @@ export default function PortfolioDetail({
           </div>
 
           {/* Portfolio description */}
-          {description && (
+          {displayDescription && (
             <div className="mt-6 pb-4">
-              <p className="text-gray-700">{description}</p>
+              <p className="text-gray-700">{displayDescription}</p>
             </div>
           )}
         </main>

@@ -9,6 +9,7 @@ import { supabase } from "@/utils/supabase"
 import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import { PortfolioLocationMap } from "@/components/portfolio-location-map"
+import { LangSwitcher } from "@/components/lang-switcher"
 
 export function PortfolioGrid() {
   const { locale, t } = useI18n()
@@ -392,6 +393,7 @@ export function PortfolioGrid() {
         <h1 className="text-2xl sm:text-4xl font-light text-center">{t('galleriesTitle')}</h1>
         {/* Header controls (search) */}
         <div className="absolute right-0 top-0 flex items-center gap-2">
+          <LangSwitcher className="bg-white text-gray-700" />
           {/* Search panel trigger */}
           <button
             onClick={() => {
