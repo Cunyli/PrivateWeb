@@ -24,16 +24,51 @@ interface PictureSetFormProps {
   onCancel?: () => void
 }
 
-// 压缩图片的函数
-async function compressImage(file: File, quality = 0.9): Promise<File> {
-  const options = {
-    maxWidthOrHeight: 1920,
-    useWebWorker: true,
-    initialQuality: quality,
-    fileType: "image/webp",
+const COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024
+
+type CompressionResult = {
+  file: File
+  didCompress: boolean
+}
+
+// 压缩图片的函数（大于 10MB 才压缩，并根据原始大小动态调整参数）
+async function compressImage(file: File, quality?: number): Promise<CompressionResult> {
+  if (file.size <= COMPRESSION_THRESHOLD_BYTES) {
+    return { file, didCompress: false }
   }
+
+  const sizeInMB = file.size / (1024 * 1024)
+  const dynamicQuality =
+    typeof quality === "number"
+      ? quality
+      : sizeInMB > 30
+        ? 0.72
+        : sizeInMB > 20
+          ? 0.78
+          : sizeInMB > 12
+            ? 0.82
+            : 0.86
+  const options = {
+    maxWidthOrHeight: sizeInMB > 30 ? 2048 : sizeInMB > 20 ? 2304 : 2560,
+    useWebWorker: true,
+    initialQuality: dynamicQuality,
+    maxSizeMB: Math.max(4, sizeInMB * 0.55),
+    fileType: "image/webp" as const,
+  }
+
   const compressedFile = await imageCompression(file, options)
-  return new File([compressedFile], file.name.replace(/\.[^/.]+$/, ".webp"), { type: "image/webp" })
+  const webpFile = new File(
+    [compressedFile],
+    file.name.replace(/\.[^/.]+$/, ".webp"),
+    { type: "image/webp" },
+  )
+
+  if (webpFile.size >= file.size) {
+    // 压缩结果反而更大，直接返回原图
+    return { file, didCompress: false }
+  }
+
+  return { file: webpFile, didCompress: true }
 }
 
 // 生成预览 URL
@@ -105,6 +140,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [showPictureTranslations, setShowPictureTranslations] = useState<{[key: number]: boolean}>({})
   // 进入编辑页后，对集合执行一次“仅补齐集合的语种”
   const autoTranslatedSetOnceId = useRef<number | null>(null)
+  const autoTranslateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   // translation autofill touching flags
   const [enTouched, setEnTouched] = useState<{title:boolean; subtitle:boolean; description:boolean}>({ title: false, subtitle: false, description: false })
   const [picEnTouched, setPicEnTouched] = useState<{[idx:number]: { title?: boolean; subtitle?: boolean; description?: boolean }}>({})
@@ -356,8 +392,15 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       // 自动对集合翻译进行一次补齐（每个集合只执行一次）
       try {
         if (autoTranslatedSetOnceId.current !== editingPictureSet.id) {
+          const needsAutoTranslate = (['title', 'subtitle', 'description'] as const).some((key) => {
+            const enVal = String(editingPictureSet.en?.[key] || '').trim()
+            const zhVal = String(editingPictureSet.zh?.[key] || '').trim()
+            return !(enVal && zhVal)
+          })
           autoTranslatedSetOnceId.current = editingPictureSet.id
-          setTimeout(() => { autoTranslateSetOnly().catch(() => {}) }, 0)
+          if (needsAutoTranslate) {
+            setTimeout(() => { autoTranslateSetOnly().catch(() => {}) }, 0)
+          }
         }
       } catch {}
     } else if (editingPictureSet === null && (isEditMode || editingId !== undefined)) {
@@ -576,6 +619,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         const baseVal = String((key === 'title' ? title : key === 'subtitle' ? subtitle : description) || '')
         let enVal = String(nextEn[key] || '')
         let zhVal = String(nextZh[key] || '')
+        const existingEn = String((en as any)[key] || '')
+        const existingZh = String((zh as any)[key] || '')
 
         if (!enVal && zhVal) {
           const t = await translateText(zhVal, 'auto', 'en')
@@ -602,6 +647,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         if (!zhVal && enVal) {
           const t = await translateText(enVal, 'auto', 'zh')
           if (t) zhVal = t
+        }
+        if (!enVal && baseVal) enVal = existingEn || baseVal
+        if (!zhVal) {
+          if (existingZh) zhVal = existingZh
+          else if (looksZh(baseVal)) zhVal = baseVal
         }
         nextEn[key] = enVal
         nextZh[key] = zhVal
@@ -627,6 +677,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         const baseVal = String((key === 'title' ? title : key === 'subtitle' ? subtitle : description) || '')
         let enVal = String(nextEn[key] || '')
         let zhVal = String(nextZh[key] || '')
+        const existingEn = String((en as any)[key] || '')
+        const existingZh = String((zh as any)[key] || '')
         if (!enVal && zhVal) {
           const t = await translateText(zhVal, 'auto', 'en')
           if (t) enVal = t
@@ -652,6 +704,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         if (!zhVal && enVal) {
           const t = await translateText(enVal, 'auto', 'zh')
           if (t) zhVal = t
+        }
+        if (!enVal && baseVal) enVal = existingEn || baseVal
+        if (!zhVal) {
+          if (existingZh) zhVal = existingZh
+          else if (looksZh(baseVal)) zhVal = baseVal
         }
         nextEn[key] = enVal
         nextZh[key] = zhVal
@@ -696,20 +753,72 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
   // dynamic autofill for set-level translations: follow base fields until user manually edits en.*
   useEffect(() => {
-    if (!enTouched.title) setEn((prev) => ({ ...prev, title }))
+    if ((!enTouched.title || !String(en.title || '').trim()) && String(title || '').trim()) {
+      setEn((prev) => ({ ...prev, title }))
+    }
     if (looksZh(title) && !((zh.title || '').trim())) setZh((prev) => ({ ...prev, title }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title])
   useEffect(() => {
-    if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle }))
+    if ((!enTouched.subtitle || !String(en.subtitle || '').trim()) && String(subtitle || '').trim()) {
+      setEn((prev) => ({ ...prev, subtitle }))
+    }
     if (looksZh(subtitle) && !((zh.subtitle || '').trim())) setZh((prev) => ({ ...prev, subtitle }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtitle])
   useEffect(() => {
-    if (!enTouched.description) setEn((prev) => ({ ...prev, description }))
+    if ((!enTouched.description || !String(en.description || '').trim()) && String(description || '').trim()) {
+      setEn((prev) => ({ ...prev, description }))
+    }
     if (looksZh(description) && !((zh.description || '').trim())) setZh((prev) => ({ ...prev, description }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [description])
+
+  useEffect(() => {
+    const cleanup = () => {
+      if (autoTranslateTimeout.current) {
+        clearTimeout(autoTranslateTimeout.current)
+        autoTranslateTimeout.current = null
+      }
+    }
+
+    const fields: Array<{ key: 'title' | 'subtitle' | 'description'; base: string }> = [
+      { key: 'title', base: title },
+      { key: 'subtitle', base: subtitle },
+      { key: 'description', base: description },
+    ]
+
+    const needs = fields.some(({ key, base }) => {
+      const baseVal = String(base || '').trim()
+      if (!baseVal) return false
+      const enVal = String((en as any)[key] || '').trim()
+      const zhVal = String((zh as any)[key] || '').trim()
+      return !enVal || !zhVal
+    })
+
+    if (!needs || isTranslatingAll) {
+      cleanup()
+      return cleanup
+    }
+
+    cleanup()
+    autoTranslateTimeout.current = setTimeout(() => {
+      autoTranslateSetOnly().catch(() => {})
+    }, 600)
+
+    return cleanup
+  }, [
+    title,
+    subtitle,
+    description,
+    en.title,
+    en.subtitle,
+    en.description,
+    zh.title,
+    zh.subtitle,
+    zh.description,
+    isTranslatingAll,
+  ])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -754,10 +863,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       // Cover upload (if provided)
       let coverKey = coverImageUrl
       if (cover) {
-        const compressedCover = await compressImage(cover)
+        const { file: preparedCover } = await compressImage(cover)
         coverKey = await uploadFile(
-          compressedCover,
-          `picture/cover-${Date.now()}-${compressedCover.name}`,
+          preparedCover,
+          `picture/cover-${Date.now()}-${preparedCover.name}`,
         )
       }
 
@@ -774,15 +883,22 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               `picture/original-${Date.now()}-${idx}-${pic.cover.name}`,
             )
             // compress + upload
-            const comp = await compressImage(pic.cover)
-            image_url = await uploadFile(
-              comp,
-              `picture/compressed-${Date.now()}-${idx}-${comp.name}`,
-            )
+            const { file: comp, didCompress } = await compressImage(pic.cover)
+            if (didCompress) {
+              image_url = await uploadFile(
+                comp,
+                `picture/compressed-${Date.now()}-${idx}-${comp.name}`,
+              )
+            } else {
+              image_url = raw_image_url
+            }
             // update UI compressed size (non-blocking)
-            const compressedSize = comp.size
             setPictures((current) =>
-              current.map((p, i) => (i === idx ? { ...p, compressedSize } : p)),
+              current.map((p, i) =>
+                i === idx
+                  ? { ...p, compressedSize: didCompress ? comp.size : undefined }
+                  : p,
+              ),
             )
           }
 
@@ -1019,7 +1135,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               </div>
               {coverOriginalSize > 0 && (
                 <p className="text-sm text-gray-500 mt-2">
-                  {t('originalSize')} {formatSize(coverOriginalSize)} • {t('willBeCompressed')}
+                  {t('originalSize')} {formatSize(coverOriginalSize)}
+                  {coverOriginalSize > COMPRESSION_THRESHOLD_BYTES && ` • ${t('willBeCompressed')}`}
                 </p>
               )}
             </div>

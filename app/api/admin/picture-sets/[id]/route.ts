@@ -186,6 +186,48 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const idNum = Number(ctx.params.id)
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
     const payload = await request.json()
+    const pictures: any[] = Array.isArray(payload.pictures) ? payload.pictures : []
+
+    const autoGen = !!payload.autogen_titles_subtitles
+    const bucketBaseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
+    const makePublicUrl = (path?: string | null): string => {
+      if (!path || !path.trim()) return ''
+      if (/^https?:/i.test(path)) return path
+      if (!bucketBaseUrl) return ''
+      return `${bucketBaseUrl}${path}`
+    }
+    const serverAnalyze = async (imgUrl: string, type: 'title' | 'subtitle'): Promise<string> => {
+      if (!imgUrl) return ''
+      try {
+        const res = await fetch(`${getBaseUrl()}/api/analyze-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: imgUrl, analysisType: type }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (res.ok && data?.success) return String(data.result || '').trim()
+      } catch {}
+      return ''
+    }
+
+    if (autoGen) {
+      const candidateSources = [
+        makePublicUrl(payload.cover_image_url),
+        makePublicUrl(pictures.find((p: any) => p?.image_url)?.image_url),
+        makePublicUrl(pictures.find((p: any) => p?.raw_image_url)?.raw_image_url),
+      ]
+      const setImageUrl = candidateSources.find((src) => !!src)
+      if (setImageUrl) {
+        if (!String(payload.title || '').trim()) {
+          const generated = await serverAnalyze(setImageUrl, 'title')
+          if (generated) payload.title = generated
+        }
+        if (!String(payload.subtitle || '').trim()) {
+          const generated = await serverAnalyze(setImageUrl, 'subtitle')
+          if (generated) payload.subtitle = generated
+        }
+      }
+    }
 
     // update set
     const setRow = { title: payload.title || '', subtitle: payload.subtitle || '', description: payload.description || '', cover_image_url: payload.cover_image_url || null, position: payload.position || 'up', is_published: payload.is_published ?? true, primary_category_id: payload.primary_category_id ?? null, season_id: payload.season_id ?? null }
@@ -251,7 +293,6 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
       await supabaseAdmin.from('pictures').delete().in('id', existingIds)
     }
 
-    const pictures: any[] = Array.isArray(payload.pictures) ? payload.pictures : []
     // Apply set props flags similar to POST
     let singleSeasonId: number | null = null
     if (seasonIds.length === 1) singleSeasonId = seasonIds[0]
@@ -289,19 +330,16 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
           // Auto-generate title/subtitle if requested and missing
           try {
             if (payload?.autogen_titles_subtitles) {
-              const baseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
-              const imgUrl = p.image_url ? `${baseUrl}${p.image_url}` : ''
-              const call = async (typ: 'title'|'subtitle') => {
-                try {
-                  const res = await fetch(`${getBaseUrl()}/api/analyze-image`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl: imgUrl, analysisType: typ }) })
-                  const data = await res.json().catch(()=>({}))
-                  if (res.ok && data?.success) return String(data.result||'').trim()
-                } catch {}
-                return ''
-              }
+              const imgUrl = makePublicUrl(p.image_url || p.raw_image_url)
               if (imgUrl) {
-                if (!String(p.title||'').trim()) { const t = await call('title'); if (t) { p.title = t; await supabaseAdmin.from('pictures').update({ title: t }).eq('id', picture_id) } }
-                if (!String(p.subtitle||'').trim()) { const s = await call('subtitle'); if (s) { p.subtitle = s; await supabaseAdmin.from('pictures').update({ subtitle: s }).eq('id', picture_id) } }
+                if (!String(p.title || '').trim()) {
+                  const t = await serverAnalyze(imgUrl, 'title')
+                  if (t) { p.title = t; await supabaseAdmin.from('pictures').update({ title: t }).eq('id', picture_id) }
+                }
+                if (!String(p.subtitle || '').trim()) {
+                  const s = await serverAnalyze(imgUrl, 'subtitle')
+                  if (s) { p.subtitle = s; await supabaseAdmin.from('pictures').update({ subtitle: s }).eq('id', picture_id) }
+                }
               }
             }
           } catch {}

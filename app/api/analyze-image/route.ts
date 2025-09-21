@@ -65,37 +65,40 @@ export async function POST(request: NextRequest) {
       // Default prompt (English)
       switch (analysisType) {
         case 'title':
-          prompt = `Generate a concise, evocative, and lyrical title for this photograph.
+          prompt = `Craft a concise, evocative title for this photograph.
 Guidelines:
-1) Capture the core subject and atmosphere with imagery
-2) Prefer refined, poetic language; avoid clichés and generic words
-3) Keep it short: ~2–7 words (EN) or 4–10字（ZH）
-4) No punctuation, no quotes, no extra commentary
+- Express the key subject or emotion in fresh imagery
+- Use refined language, avoid generic adjectives and cliches
+- Length: 2-6 words (EN) or 4-10字（ZH）
+- No punctuation, quotation marks, or explanations
 Return ONLY the title text.`
           break
       case 'subtitle':
-        prompt = `Generate a poetic, atmospheric subtitle that complements the title.
+        prompt = `Write a graceful subtitle sentence that deepens the title.
 Guidelines:
-1) Add context: setting, time, style, or mood—evoke a scene
-2) Refined and lyrical, avoid clichés; natural rhythm
-3) Keep length around 12–24 words（英文）或 12–20字（中文）
-4) No punctuation-heavy phrasing; no quotes
-Return ONLY the subtitle text.`
+- Mention one concrete detail (setting, time, story hint, or mood)
+- Keep it natural and fluid - no lists, no piling adjectives
+- Length: 8-16 words (EN) or 10-18字（ZH）
+- Single sentence, no colons, dashes, or trailing punctuation beyond a period
+Return ONLY the subtitle sentence.`
         break
       case 'complete':
         prompt = `Generate title, subtitle, and description for this photograph.
 Return EXACTLY in this format (no extra text):
 
-Title: [8–15 words, concise and elegant]
-Subtitle: [10–25 words, complementary info]
-Description: [80–120 words, include subject, style, mood, light/color]
+Title: [8-15 words, concise and elegant]
+Subtitle: [10-25 words, complementary info]
+Description: [80-120 words, include subject, style, mood, light/color]
 
 Keep tone refined and suitable for a photography portfolio.`
         break
       case 'description':
-        prompt = `Analyze the photo and write a concise, elegant description for a photography portfolio (≤ 120 words).
-Include: main subject and scene, style and mood, color and light qualities, overall feeling.
-Return ONLY the description text (no extra text).`
+        prompt = `Study the photograph and write a polished portfolio description.
+Guidelines:
+- Length: 70-110 words (EN) 或 80-120字（ZH）
+- Cover the subject and surroundings, mood and narrative impression, light and color qualities, notable techniques or composition choices
+- Flow as a cohesive paragraph; no bullet points, no camera specs unless visually obvious
+Return ONLY the description paragraph.`
         break
       case 'tags':
         prompt = `Generate tags for this photograph.
@@ -103,7 +106,7 @@ Cover: subject category, style, color, and mood.
 Return a single comma-separated line with up to 10 English tags. No extra text.`
         break
       case 'technical':
-        prompt = `Provide a concise technical analysis (≤ 150 words):
+        prompt = `Provide a concise technical analysis (<= 150 words):
 shooting techniques (depth of field, composition, angle), lighting (type/direction), post-processing style, and suggested camera settings.`
         break
       default:
