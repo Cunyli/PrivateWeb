@@ -165,6 +165,57 @@ export async function POST(request: Request) {
     const allowApplySetProps = !!(payload.fill_missing_from_set ?? payload.apply_set_props_to_pictures)
     const allowOverride = !!payload.override_existing_picture_props
 
+    const autoGen = !!payload.autogen_titles_subtitles
+    const bucketBaseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
+    const makePublicUrl = (path?: string | null): string => {
+      if (!path || !path.trim()) return ''
+      if (/^https?:/i.test(path)) return path
+      if (!bucketBaseUrl) return ''
+      return `${bucketBaseUrl}${path}`
+    }
+    const serverAnalyze = async (imgUrl: string, type: 'title' | 'subtitle'): Promise<string> => {
+      if (!imgUrl) return ''
+      try {
+        const res = await fetch(`${getBaseUrl()}/api/analyze-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: imgUrl, analysisType: type }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (res.ok && data?.success) return String(data.result || '').trim()
+      } catch {}
+      return ''
+    }
+
+    if (autoGen) {
+      const candidateSources = [
+        makePublicUrl(payload.cover_image_url),
+        makePublicUrl(pictures.find((p: any) => p?.image_url)?.image_url),
+        makePublicUrl(pictures.find((p: any) => p?.raw_image_url)?.raw_image_url),
+      ]
+      const setImageUrl = candidateSources.find((src) => !!src)
+      if (setImageUrl) {
+        const updates: Record<string, string> = {}
+        if (!String(payload.title || '').trim()) {
+          const generated = await serverAnalyze(setImageUrl, 'title')
+          if (generated) {
+            payload.title = generated
+            updates.title = generated
+          }
+        }
+        if (!String(payload.subtitle || '').trim()) {
+          const generated = await serverAnalyze(setImageUrl, 'subtitle')
+          if (generated) {
+            payload.subtitle = generated
+            updates.subtitle = generated
+          }
+        }
+        if (Object.keys(updates).length) {
+          await supabaseAdmin.from('picture_sets').update(updates).eq('id', picture_set_id)
+        }
+      }
+    }
+
     if (pictures.length > 0) {
       const rows = pictures
         .filter((p: any) => typeof p.image_url === 'string' && p.image_url.length > 0)
@@ -197,19 +248,6 @@ export async function POST(request: Request) {
         .map((r: any) => r.id)
 
       // --- 每张图片：可选 AI 生成标题/副标题 + 翻译、标签、位置 ---
-      const autoGen = !!payload.autogen_titles_subtitles
-      const serverAnalyze = async (imgUrl: string, type: 'title'|'subtitle'): Promise<string> => {
-        try {
-          const res = await fetch(`${getBaseUrl()}/api/analyze-image`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: imgUrl, analysisType: type })
-          })
-          const data = await res.json().catch(()=>({}))
-          if (res.ok && data?.success) return String(data.result || '').trim()
-        } catch {}
-        return ''
-      }
-
       // 预备 set 级别的 typed tags
       const setTags: string[] = Array.isArray(payload.tags) ? payload.tags : []
       let categoryTagIds: number[] = []
@@ -300,8 +338,7 @@ export async function POST(request: Request) {
         // 自动生成标题/副标题（仅当缺失且能构造公网 URL）
         try {
           if (autoGen) {
-            const baseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
-            const imgUrl = p.image_url ? `${baseUrl}${p.image_url}` : ''
+            const imgUrl = makePublicUrl(p.image_url || p.raw_image_url)
             if (imgUrl) {
               if (!String(p.title || '').trim()) {
                 const t = await serverAnalyze(imgUrl, 'title')
