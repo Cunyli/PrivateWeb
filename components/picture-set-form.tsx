@@ -17,6 +17,7 @@ import { supabase } from "@/utils/supabase"
 
 import type { PictureSet } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
+import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
 
 interface PictureSetFormProps {
   onSubmit: (pictureSet: PictureSetSubmitData, pictureSetId?: number) => void
@@ -355,6 +356,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title || "",
             subtitle: pic.subtitle || "",
             description: pic.description || "",
+            style: (pic as any).style ?? null,
             season_id: (pic as any).season_id ?? null,
             location_name: (pic as any).location_name || '',
             location_latitude: (pic as any).location_latitude ?? null,
@@ -474,6 +476,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         location_latitude: null,
         location_longitude: null,
         picture_category_ids: [],
+        style: null,
         tags: [],
         en: { title: "", subtitle: "", description: "" },
         zh: { title: "", subtitle: "", description: "" },
@@ -907,6 +910,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             title: pic.title,
             subtitle: pic.subtitle,
             description: pic.description,
+            style: (pic as any).style ?? null,
             season_id: (pic as any).season_id ?? null,
             location_name: (pic as any).location_name || undefined,
             location_latitude: (pic as any).location_latitude ?? null,
@@ -1646,6 +1650,28 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     />
                   </div>
 
+                  {/* Photography style selector */}
+                  <div className="space-y-2 border-t pt-3">
+                    <h4 className="text-base font-bold">{t('pictureStyle')}</h4>
+                    <Select
+                      value={pic.style ?? ''}
+                      onValueChange={(value) => handlePictureChange(idx, 'style', value || null)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('selectPictureStyle')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t('styleNone')}</SelectItem>
+                        {PHOTOGRAPHY_STYLES.map((style) => (
+                          <SelectItem key={style.id} value={style.id}>
+                            {t(style.i18nKey)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">{t('pictureStyleHint')}</p>
+                  </div>
+
                   {/* Types (categories) */}
                   <div className="space-y-2 border-t pt-3">
                     <h4 className="text-base font-bold">{t('typesCategories')}</h4>
@@ -1767,6 +1793,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 title: "",
                 subtitle: "",
                 description: "",
+                style: null,
                 season_id: null,
                 location_name: '',
                 location_latitude: null,

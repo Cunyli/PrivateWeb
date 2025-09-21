@@ -14,6 +14,8 @@ export interface PictureFormData {
   originalSize?: number
   compressedSize?: number
   compressedFile?: File | null
+  // single photography style selection
+  style?: string | null
   // per-picture season & location
   season_id?: number | null
   location_name?: string

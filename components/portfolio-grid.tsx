@@ -10,6 +10,7 @@ import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import { PortfolioLocationMap } from "@/components/portfolio-location-map"
 import { LangSwitcher } from "@/components/lang-switcher"
+import { PhotographyStyleShowcase } from "@/components/photography-style-showcase"
 
 export function PortfolioGrid() {
   const { locale, t } = useI18n()
@@ -583,10 +584,10 @@ export function PortfolioGrid() {
           )}
 
           {/* 下部Masonry布局 */}
-          {downPictureSets.length > 0 && (
-            <div className="flex justify-center">
-              <div className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center">
-                {downPictureSets.map((item, index) => (
+      {downPictureSets.length > 0 && (
+        <div className="flex justify-center">
+          <div className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center">
+            {downPictureSets.map((item, index) => (
                   <div
                     key={item.id}
                     className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
@@ -621,6 +622,8 @@ export function PortfolioGrid() {
           )}
         </div>
       )}
+
+      <PhotographyStyleShowcase />
 
       {locationClusters.length > 0 && (
         <section className="mt-16 sm:mt-24">
