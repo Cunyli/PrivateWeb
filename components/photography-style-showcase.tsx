@@ -6,9 +6,9 @@ import Link from "next/link"
 import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
 import { useI18n } from "@/lib/i18n"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Carousel } from "@/components/carousel"
 import { Button } from "@/components/ui/button"
 import { ArrowUpRight } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 type PictureTranslation = {
   title?: string | null
@@ -357,18 +357,6 @@ export function PhotographyStyleShowcase() {
   const isModalLoading = !!selectedStyleId && styleLoading === selectedStyleId && modalPictures.length === 0
   const highlightStyleId = activeStyle ?? selectedStyleId ?? null
 
-  const carouselImages = useMemo(() => {
-    if (!modalPictures.length) return []
-    return modalPictures.map((picture) => ({
-      url: picture.imageUrl,
-      rawUrl: picture.rawImageUrl,
-      translations: {
-        en: picture.translations.en || {},
-        zh: picture.translations.zh || {},
-      },
-    }))
-  }, [modalPictures])
-
   const loadingState = loading && Object.keys(stylesData).length === 0
 
   return (
@@ -522,41 +510,163 @@ export function PhotographyStyleShowcase() {
               </div>
             ) : modalPictures.length > 0 ? (
               <div className="flex flex-col gap-6">
-                <div className="rounded-3xl border border-border/50 bg-white/5 p-4 shadow-xl">
-                  <Carousel
-                    images={carouselImages}
-                    currentIndex={modalIndex}
-                    onChangeImage={setModalIndex}
-                  />
-                </div>
-                {currentModalPicture && (
-                  <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="font-medium text-foreground">
-                        {locale === "zh"
-                          ? currentModalPicture.translations.zh?.title || currentModalPicture.translations.en?.title
-                          : currentModalPicture.translations.en?.title || currentModalPicture.translations.zh?.title || t("styleUntitled")}
-                      </span>
-                      <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground/80">
-                        {t("styleFromSeries")}
-                      </span>
-                      <Link
-                        href={`/work/${currentModalPicture.pictureSetId}`}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors"
-                      >
-                        {locale === "zh"
-                          ? currentModalPicture.set.translations.zh?.title || currentModalPicture.set.translations.en?.title || currentModalPicture.set.title
-                          : currentModalPicture.set.translations.en?.title || currentModalPicture.set.translations.zh?.title || currentModalPicture.set.title}
-                        <ArrowUpRight className="h-3 w-3" />
-                      </Link>
+                <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
+                  <div className="space-y-4">
+                    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[2.5rem] border border-white/15 bg-black/70 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.65)]">
+                      {modalPictures.map((picture, idx) => {
+                        const active = idx === modalIndex
+                        const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
+                        return (
+                          <Image
+                            key={`${picture.id}-hero-${idx}`}
+                            src={imageSrc || '/placeholder.svg'}
+                            alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                            fill
+                            priority={idx === modalIndex}
+                            className={`absolute inset-0 object-cover transition-all duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                              active ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                            }`}
+                          />
+                        )
+                      })}
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(99,102,241,0.28),transparent_55%),radial-gradient(circle_at_75%_10%,rgba(34,211,238,0.25),transparent_55%),linear-gradient(140deg,rgba(2,6,23,0.75) 10%,rgba(15,23,42,0.35) 45%,rgba(15,23,42,0.85) 100%)]" />
+                      <div className="absolute left-6 top-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.45em] text-white/70">
+                        <span>{selectedStyleConfig ? t(selectedStyleConfig.i18nKey) : t('styleShowcaseTitle')}</span>
+                        <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 font-semibold tracking-[0.3em]">
+                          {String(modalIndex + 1).padStart(2, '0')} / {String(modalPictures.length).padStart(2, '0')}
+                        </span>
+                      </div>
+                      {currentModalPicture && (
+                        <div className="absolute inset-x-6 bottom-6 flex flex-col gap-3 text-white drop-shadow-xl">
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.4em] text-white/70">
+                            <span>{currentModalPicture.set.translations[locale as 'zh' | 'en']?.title || currentModalPicture.set.title}</span>
+                            <span className="h-[1px] w-10 bg-white/40" />
+                            <span>{locale === 'zh' ? '大师影廊' : 'Master Series'}</span>
+                          </div>
+                          <h3 className="text-2xl md:text-3xl font-light leading-tight">
+                            {locale === 'zh'
+                              ? currentModalPicture.translations.zh?.title || currentModalPicture.translations.en?.title
+                              : currentModalPicture.translations.en?.title || currentModalPicture.translations.zh?.title || t('styleUntitled')}
+                          </h3>
+                          {(currentModalPicture.translations[locale as 'zh' | 'en']?.description || selectedStyleConfig?.tagline?.[locale as 'zh' | 'en']) && (
+                            <p className="max-w-2xl text-sm text-white/80">
+                              {currentModalPicture.translations[locale as 'zh' | 'en']?.description || selectedStyleConfig?.tagline?.[locale as 'zh' | 'en']}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {[...(currentModalPicture.categories || []), ...(currentModalPicture.tags || [])]
+                              .filter(Boolean)
+                              .slice(0, 6)
+                              .map((label) => (
+                                <span
+                                  key={`${currentModalPicture.id}-${label}`}
+                                  className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-white/75"
+                                >
+                                  {label}
+                                </span>
+                              ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {currentModalPicture.translations[locale as "en" | "zh"]?.description && (
-                      <p className="text-sm leading-relaxed">
-                        {currentModalPicture.translations[locale as "en" | "zh"]?.description}
-                      </p>
+
+                    {currentModalPicture && (
+                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-sm text-white/80">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[11px] uppercase tracking-[0.4em] text-white/60">
+                            {t('styleFromSeries')}
+                          </span>
+                          <span className="text-base font-medium text-white">
+                            {currentModalPicture.set.translations[locale as 'zh' | 'en']?.title || currentModalPicture.set.title}
+                          </span>
+                        </div>
+                        <Button variant="secondary" size="sm" className="bg-white/90 text-slate-900 hover:bg-white" asChild>
+                          <Link href={`/work/${currentModalPicture.pictureSetId}`}>
+                            {t('styleViewGallery')}
+                            <ArrowUpRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
                     )}
                   </div>
-                )}
+
+                  <div className="hidden lg:block rounded-[2rem] border border-white/10 bg-white/10 p-4 shadow-[0_25px_70px_-50px_rgba(15,23,42,0.75)] backdrop-blur">
+                    <ScrollArea className="h-[440px] pr-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        {modalPictures.map((picture, idx) => {
+                          const active = idx === modalIndex
+                          const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
+                          return (
+                            <button
+                              key={`${picture.id}-thumb-${idx}`}
+                              type="button"
+                              onClick={() => setModalIndex(idx)}
+                              className={`group relative aspect-[4/3] w-full overflow-hidden rounded-2xl border transition-all duration-500 ${
+                                active
+                                  ? 'border-white shadow-[0_20px_55px_-35px_rgba(59,130,246,0.6)] scale-[1.01]'
+                                  : 'border-white/15 hover:border-white/45 hover:scale-[1.01]'
+                              }`}
+                            >
+                              <Image
+                                src={imageSrc || '/placeholder.svg'}
+                                alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                                fill
+                                className="object-cover transition duration-700 group-hover:scale-105"
+                              />
+                              <div className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ${active ? 'opacity-5' : 'opacity-35 group-hover:opacity-15'}`} />
+                              <div className="absolute left-3 top-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-white/70">
+                                <span>{String(idx + 1).padStart(2, '0')}</span>
+                              </div>
+                              <div className="absolute bottom-3 left-3 right-3 text-left text-[11px] leading-tight text-white drop-shadow-md">
+                                <div className="font-medium line-clamp-1">
+                                  {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                                </div>
+                                <div className="opacity-75 line-clamp-1">
+                                  {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
+                                </div>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </div>
+
+                <div className="lg:hidden grid gap-3 sm:grid-cols-3 auto-rows-[120px] sm:auto-rows-[150px] md:auto-rows-[180px] overflow-hidden">
+                  {modalPictures.map((picture, idx) => {
+                    const active = idx === modalIndex
+                    const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
+                    return (
+                      <button
+                        key={`${picture.id}-mobile-${idx}`}
+                        type="button"
+                        onClick={() => setModalIndex(idx)}
+                        className={`group relative aspect-[4/3] w-full overflow-hidden rounded-2xl border transition-all duration-500 ${
+                          active
+                            ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)] scale-[1.02]'
+                            : 'border-white/20 hover:border-white/60 hover:scale-[1.01]'
+                        }`}
+                      >
+                        <Image
+                          src={imageSrc || '/placeholder.svg'}
+                          alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                          fill
+                          className="object-cover transition duration-700 group-hover:scale-105"
+                        />
+                        <div className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ${active ? 'opacity-5' : 'opacity-35 group-hover:opacity-15'}`} />
+                        <div className="absolute bottom-2 left-2 right-2 text-left text-[11px] leading-tight text-white drop-shadow-md">
+                          <div className="font-medium line-clamp-1">
+                            {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                          </div>
+                          <div className="opacity-75 line-clamp-1">
+                            {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
