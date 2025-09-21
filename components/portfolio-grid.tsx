@@ -1,13 +1,14 @@
 // components/PortfolioGrid.tsx
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/utils/supabase"
 import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
+import { PortfolioLocationMap } from "@/components/portfolio-location-map"
 
 export function PortfolioGrid() {
   const { locale, t } = useI18n()
@@ -23,10 +24,12 @@ export function PortfolioGrid() {
   const [setResults, setSetResults] = useState<PictureSet[] | null>(null)
   const [pictureResults, setPictureResults] = useState<Picture[] | null>(null)
   const [pictureTransMap, setPictureTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
+  const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; latitude: number; longitude: number }>>({})
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
+  const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || '', [])
 
   // Stable shuffle with a fixed seed for reproducible order
   const stableShuffleArray = (array: PictureSet[], seed: string): PictureSet[] => {
@@ -99,8 +102,41 @@ export function PortfolioGrid() {
             }
           }
           setTransMap(map)
+
+          try {
+            const { data: locRows, error: locErr } = await supabase
+              .from('picture_set_locations')
+              .select('picture_set_id, is_primary, location:locations(name, latitude, longitude)')
+              .in('picture_set_id', ids)
+              .eq('is_primary', true)
+
+            if (locErr) {
+              console.warn('Fetch primary locations failed:', locErr)
+              setSetLocations({})
+            } else {
+              const mapLoc: Record<number, { name?: string | null; latitude: number; longitude: number }> = {}
+              for (const row of locRows || []) {
+                const loc = (row as any).location || (row as any).locations
+                if (!loc) continue
+                const lat = Number((loc as any).latitude)
+                const lng = Number((loc as any).longitude)
+                if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                  mapLoc[(row as any).picture_set_id] = {
+                    name: (loc as any).name,
+                    latitude: lat,
+                    longitude: lng,
+                  }
+                }
+              }
+              setSetLocations(mapLoc)
+            }
+          } catch (locError) {
+            console.warn('Failed to prepare map locations:', locError)
+            setSetLocations({})
+          }
         } else {
           setTransMap({})
+          setSetLocations({})
         }
         
         // 根据 Sections 推导上下排（兼容 position）
@@ -305,19 +341,50 @@ export function PortfolioGrid() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const getText = (s: PictureSet, key: 'title'|'subtitle'|'description') => {
-    const t = transMap[s.id]
-    if (locale === 'zh') return t?.zh?.[key] || s[key]
-    return t?.en?.[key] || s[key]
-  }
+  const getText = useCallback((s: PictureSet, key: 'title' | 'subtitle' | 'description') => {
+    const translations = transMap[s.id]
+    if (locale === 'zh') return translations?.zh?.[key] || s[key]
+    return translations?.en?.[key] || s[key]
+  }, [locale, transMap])
 
-  const getPicText = (p: Picture, key: 'title'|'subtitle'|'description') => {
-    const t = pictureTransMap[p.id]
-    if (locale === 'zh') return t?.zh?.[key] || (p as any)[key]
-    return t?.en?.[key] || (p as any)[key]
-  }
+  const getPicText = useCallback((p: Picture, key: 'title' | 'subtitle' | 'description') => {
+    const translations = pictureTransMap[p.id]
+    if (locale === 'zh') return translations?.zh?.[key] || (p as any)[key]
+    return translations?.en?.[key] || (p as any)[key]
+  }, [locale, pictureTransMap])
 
-  const baseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
+  const locationClusters = useMemo(() => {
+    const buckets = new Map<string, { key: string; name: string; latitude: number; longitude: number; sets: Array<{ id: number; title: string; subtitle?: string; coverUrl: string }> }>()
+    for (const set of pictureSets) {
+      const loc = setLocations[set.id]
+      if (!loc) continue
+      const lat = Number(loc.latitude)
+      const lng = Number(loc.longitude)
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
+      const bucketKey = `${lat.toFixed(3)}:${lng.toFixed(3)}`
+      const existing = buckets.get(bucketKey) || {
+        key: bucketKey,
+        name: (loc.name && String(loc.name).trim().length > 0) ? String(loc.name) : t('mapUnknownLocation'),
+        latitude: lat,
+        longitude: lng,
+        sets: [],
+      }
+      const title = getText(set, 'title') || set.title || t('mapUntitledSet')
+      const subtitle = getText(set, 'subtitle') || set.subtitle || undefined
+      existing.sets.push({
+        id: set.id,
+        title,
+        subtitle,
+        coverUrl: set.cover_image_url ? `${baseUrl}${set.cover_image_url}` : '/placeholder.svg',
+      })
+      buckets.set(bucketKey, existing)
+    }
+
+    return Array.from(buckets.values()).map((bucket) => ({
+      ...bucket,
+      sets: bucket.sets.sort((a, b) => a.title.localeCompare(b.title)),
+    })).sort((a, b) => a.name.localeCompare(b.name))
+  }, [pictureSets, setLocations, baseUrl, getText, t])
 
   return (
     <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
@@ -551,6 +618,18 @@ export function PortfolioGrid() {
             </div>
           )}
         </div>
+      )}
+
+      {locationClusters.length > 0 && (
+        <section className="mt-16 sm:mt-24">
+          <PortfolioLocationMap
+            locations={locationClusters}
+            heading={t('mapSectionTitle')}
+            subheading={t('mapSectionSubtitle')}
+            emptyLabel={t('mapEmptyCallout')}
+            viewAllLabel={t('mapViewAll')}
+          />
+        </section>
       )}
 
       {/* Scroll to top button */}
