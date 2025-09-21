@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
 
 export const runtime = 'nodejs'
 
@@ -143,11 +144,22 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
     const catMap: Record<number, number[]> = {}
     for (const r of pcat.data || []) { const pid = (r as any).picture_id as number; const cid = (r as any).category_id as number; catMap[pid] = Array.from(new Set([...(catMap[pid] || []), cid])) }
     const tagMap: Record<number, string[]> = {}
+    const styleMap: Record<number, string | undefined> = {}
     if (ptagRows.data && ptagRows.data.length) {
       const tagIds = Array.from(new Set((ptagRows.data as any[]).map(r => (r as any).tag_id).filter(Boolean)))
       const { data: tags } = await supabaseAdmin.from('tags').select('id,name,type').in('id', tagIds)
       const byId: Record<number, any> = {}; for (const t of tags || []) byId[(t as any).id] = t
-      for (const r of ptagRows.data) { const pid = (r as any).picture_id as number; const tinfo = byId[(r as any).tag_id]; if (tinfo?.type === 'topic' && tinfo?.name) tagMap[pid] = Array.from(new Set([...(tagMap[pid] || []), String(tinfo.name)])) }
+      for (const r of ptagRows.data) {
+        const pid = (r as any).picture_id as number
+        const tinfo = byId[(r as any).tag_id]
+        if (!tinfo) continue
+        if (tinfo?.type === 'topic' && tinfo?.name) {
+          tagMap[pid] = Array.from(new Set([...(tagMap[pid] || []), String(tinfo.name)]))
+        } else if (tinfo?.type === 'style' && tinfo?.name) {
+          const mapped = PHOTOGRAPHY_TAG_NAME_TO_ID[String(tinfo.name || '').toLowerCase()]
+          styleMap[pid] = mapped || String(tinfo.name)
+        }
+      }
     }
     const locMap: Record<number, { name?: string; latitude?: number | null; longitude?: number | null }> = {}
     if (pLocRows.data && pLocRows.data.length) {
@@ -171,6 +183,7 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
       location_latitude: locMap[p.id]?.latitude ?? null,
       location_longitude: locMap[p.id]?.longitude ?? null,
       picture_category_ids: catMap[p.id] || [],
+      style: styleMap[p.id] || null,
       tags: tagMap[p.id] || [],
       en: enMap[p.id] || { title: '', subtitle: '', description: '' },
       zh: zhMap[p.id] || { title: '', subtitle: '', description: '' },
@@ -299,6 +312,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const allowApplySetProps = !!(payload.fill_missing_from_set ?? payload.apply_set_props_to_pictures)
     const allowOverride = !!payload.override_existing_picture_props
     const propagateCategories = !!payload.propagate_categories_to_pictures
+    const styleTagIdCache: Record<string, number | null> = {}
     // Set primary location presence
     const setLocName: string = (payload.primary_location_name || '').trim()
     const setLocLat = typeof payload.primary_location_latitude === 'number' ? payload.primary_location_latitude : null
@@ -358,7 +372,22 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
           if (propagateCategories) {
             pCatTagIds = Array.from(new Set([...(pCatTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
           }
-          const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || [])]))
+          let styleTagIds: number[] = []
+          const styleKey = typeof p.style === 'string' ? p.style : ''
+          if (styleKey && PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]) {
+            const tagName = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID].tagName
+            const cached = styleTagIdCache[styleKey]
+            if (typeof cached === 'number') {
+              styleTagIds = [cached]
+            } else {
+              const ensured = await ensureTagIds([tagName], 'style')
+              const firstId = ensured[0] ?? null
+              styleTagIdCache[styleKey] = firstId
+              if (typeof firstId === 'number') styleTagIds = [firstId]
+            }
+          }
+
+          const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || []), ...(styleTagIds || [])]))
           if (combined.length) await supabaseAdmin.from('picture_taggings').insert(combined.map((tid: number) => ({ picture_id, tag_id: tid })))
           const selectedCatIds: number[] = Array.isArray(payload.category_ids)
             ? (Array.from(new Set(payload.category_ids as number[])) as number[])

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
 export const runtime = 'nodejs'
 
 // --- Translation helpers (server-side bi-directional) ---
@@ -330,6 +331,7 @@ export async function POST(request: Request) {
 
       // picture 扩展：翻译、类型标签、主位置、分类（picture_categories）
       const propagateCategories = !!payload.propagate_categories_to_pictures
+      const styleTagIdCache: Record<string, number | null> = {}
       for (let i = 0; i < pictures.length; i++) {
         const p = pictures[i]
         const picture_id = picIdByIndex[i]
@@ -383,7 +385,22 @@ export async function POST(request: Request) {
         if (propagateCategories) {
           pCatTagIds = Array.from(new Set([...(pCatTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
         }
-        const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || [])]))
+        let styleTagIds: number[] = []
+        const styleKey = typeof p.style === 'string' ? p.style : ''
+        if (styleKey && PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]) {
+          const tagName = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID].tagName
+          const cached = styleTagIdCache[styleKey]
+          if (typeof cached === 'number') {
+            styleTagIds = [cached]
+          } else {
+            const ensured = await ensureTagIds([tagName], 'style')
+            const firstId = ensured[0] ?? null
+            styleTagIdCache[styleKey] = firstId
+            if (typeof firstId === 'number') styleTagIds = [firstId]
+          }
+        }
+
+        const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || []), ...(styleTagIds || [])]))
         if (combined.length) {
           const rows = combined.map((tid: number) => ({ picture_id, tag_id: tid }))
           await supabaseAdmin.from('picture_taggings').insert(rows)

@@ -39,6 +39,8 @@ export interface Picture {
   title: string;
   subtitle: string;
   description: string;
+  // photography style tag (single select)
+  style?: string | null;
   // new optional fields matching DB extensions
   is_published?: boolean;
   primary_category_id?: number | null;

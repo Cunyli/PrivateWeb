@@ -109,10 +109,11 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
             minZoom={2}
             maxZoom={12}
             whenCreated={(map) => setMapInstance(map)}
-            className="h-full w-full [&_.leaflet-control-container]:hidden"
+            className="h-full w-full focus:outline-none focus-visible:outline-none [&_.leaflet-control-container]:hidden"
             zoomControl={false}
             attributionControl={false}
             preferCanvas
+            keyboard={false}
           >
             <TileLayer
               key={tileConfig.key}
