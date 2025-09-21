@@ -23,6 +23,8 @@ type StylePicture = {
   rawImageUrl: string | null
   orderIndex: number | null
   createdAt: string
+  tags: string[]
+  categories: string[]
   set: {
     id: number
     title: string
@@ -45,15 +47,8 @@ type StyleApiResponse = {
   pictures: StylePicture[]
 }
 
-const FALLBACK_DELAY_MS = 6_500
-const DELAY_VARIANCE_MS = 4_000
-
-const pickNextIndex = (current: number, length: number) => {
-  if (length <= 1) return 0
-  const random = Math.floor(Math.random() * length)
-  if (random === current) return (current + 1) % length
-  return random
-}
+const FALLBACK_DELAY_MS = 15_000
+const DELAY_VARIANCE_MS = 6_000
 
 export function PhotographyStyleShowcase() {
   const { t, locale } = useI18n()
@@ -68,6 +63,70 @@ export function PhotographyStyleShowcase() {
   const [modalIndex, setModalIndex] = useState(0)
   const [styleLoading, setStyleLoading] = useState<string | null>(null)
   const rotationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const [landscapeMap, setLandscapeMap] = useState<Record<string, Record<number, boolean>>>({})
+  const processedOrientationRef = useRef<Set<string>>(new Set())
+
+  const hasMasterTag = useCallback((picture: StylePicture) => {
+    const pool = [...(picture.tags || []), ...(picture.categories || [])]
+    return pool.some((value) => {
+      const lower = value.toLowerCase()
+      return lower.includes('大师') || lower.includes('master')
+    })
+  }, [])
+
+  const getEligibleIndices = useCallback((styleId: string) => {
+    const pictures = stylesData[styleId]?.pictures || []
+    const orientationMap = landscapeMap[styleId] || {}
+    const tiers: Array<(picture: StylePicture) => boolean> = [
+      (picture) => hasMasterTag(picture) && orientationMap[picture.id] === true,
+      (picture) => {
+        const orientationValue = orientationMap[picture.id]
+        return orientationValue === undefined && hasMasterTag(picture)
+      },
+    ]
+
+    for (const predicate of tiers) {
+      const matches: number[] = []
+      pictures.forEach((picture, idx) => {
+        if (predicate(picture)) {
+          matches.push(idx)
+        }
+      })
+      if (matches.length > 0) return matches
+    }
+    return []
+  }, [hasMasterTag, landscapeMap, stylesData])
+
+  const pickNextEligibleIndex = useCallback(
+    (styleId: string, eligible: number[], current: number, usedPictureIds: Set<number>) => {
+      if (eligible.length === 0) return -1
+      const pictures = stylesData[styleId]?.pictures || []
+      const pickWithCheck = (indices: number[], fallback?: number) => {
+        for (const idx of indices) {
+          const picture = pictures[idx]
+          if (!picture) continue
+          if (!usedPictureIds.has(picture.id)) return idx
+        }
+        return fallback ?? -1
+      }
+
+      const shuffled = [...eligible]
+      if (!eligible.includes(current)) {
+        const preferred = pickWithCheck(shuffled)
+        return preferred !== -1 ? preferred : eligible[0]
+      }
+
+      const withoutCurrent = shuffled.filter((idx) => idx !== current)
+      const preferred = pickWithCheck(withoutCurrent)
+      if (preferred !== -1) return preferred
+
+      const allowCurrent = pickWithCheck([current], current)
+      if (allowCurrent !== -1) return allowCurrent
+
+      return pickWithCheck(shuffled, eligible[0])
+    },
+    [stylesData],
+  )
 
   const fetchStyles = useCallback(async () => {
     try {
@@ -78,10 +137,21 @@ export function PhotographyStyleShowcase() {
       }
       const data = await res.json()
       const payload = (data?.styles || {}) as Record<string, StyleApiResponse>
-      setStylesData(payload)
+      const normalized: Record<string, StyleApiResponse> = {}
+      for (const [key, value] of Object.entries(payload)) {
+        normalized[key] = {
+          ...value,
+          pictures: (value?.pictures || []).map((picture) => ({
+            ...picture,
+            tags: Array.isArray(picture.tags) ? picture.tags : [],
+            categories: Array.isArray(picture.categories) ? picture.categories : [],
+          })),
+        }
+      }
+      setStylesData(normalized)
       const nextVisible: Record<string, number> = {}
       for (const style of PHOTOGRAPHY_STYLES) {
-        const pictures = payload[style.id]?.pictures || []
+        const pictures = normalized[style.id]?.pictures || []
         nextVisible[style.id] = pictures.length ? 0 : -1
       }
       setVisibleIndex(nextVisible)
@@ -105,14 +175,22 @@ export function PhotographyStyleShowcase() {
       const data = await res.json()
       const payload = (data?.styles || {}) as Record<string, StyleApiResponse>
       if (!payload[styleId]) return
+      const normalizedStyle: StyleApiResponse = {
+        ...payload[styleId],
+        pictures: (payload[styleId]?.pictures || []).map((picture) => ({
+          ...picture,
+          tags: Array.isArray(picture.tags) ? picture.tags : [],
+          categories: Array.isArray(picture.categories) ? picture.categories : [],
+        })),
+      }
       setStylesData((prev) => {
         const next = { ...prev }
-        next[styleId] = payload[styleId]
+        next[styleId] = normalizedStyle
         return next
       })
       setVisibleIndex((prev) => {
         const next = { ...prev }
-        const pictures = payload[styleId]?.pictures || []
+        const pictures = normalizedStyle.pictures || []
         if (pictures.length) {
           const baseIndex = prev[styleId] ?? 0
           next[styleId] = Math.min(Math.max(baseIndex, 0), pictures.length - 1)
@@ -133,19 +211,70 @@ export function PhotographyStyleShowcase() {
   }, [fetchStyles])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    const pending: Array<{ styleId: string; picture: StylePicture }> = []
+    for (const [styleId, data] of Object.entries(stylesData)) {
+      for (const picture of data.pictures) {
+        const key = `${styleId}:${picture.id}`
+        if (processedOrientationRef.current.has(key)) continue
+        pending.push({ styleId, picture })
+      }
+    }
+    if (!pending.length) return
+
+    let cancelled = false
+    const recordOrientation = (styleId: string, pictureId: number, isLandscape: boolean) => {
+      if (cancelled) return
+      processedOrientationRef.current.add(`${styleId}:${pictureId}`)
+      setLandscapeMap((prev) => {
+        const styleMap = { ...(prev[styleId] || {}) }
+        styleMap[pictureId] = isLandscape
+        return { ...prev, [styleId]: styleMap }
+      })
+    }
+
+    for (const { styleId, picture } of pending) {
+      const img = new window.Image()
+      img.onload = () => {
+        recordOrientation(styleId, picture.id, img.naturalWidth >= img.naturalHeight)
+      }
+      img.onerror = () => {
+        recordOrientation(styleId, picture.id, false)
+      }
+      const src = picture.imageUrl?.startsWith("http") ? picture.imageUrl : `${bucketUrl}${picture.imageUrl}`
+      img.src = src
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [bucketUrl, stylesData])
+
+  useEffect(() => {
     // Clear existing timers before scheduling new ones
     Object.values(rotationTimers.current).forEach((timer) => clearTimeout(timer))
     rotationTimers.current = {}
 
     for (const style of PHOTOGRAPHY_STYLES) {
-      const pictures = stylesData[style.id]?.pictures || []
-      if (pictures.length <= 1) continue
       const schedule = () => {
+        const eligibleIndices = getEligibleIndices(style.id)
+        if (eligibleIndices.length <= 1) return
         const delay = FALLBACK_DELAY_MS + Math.random() * DELAY_VARIANCE_MS
         rotationTimers.current[style.id] = setTimeout(() => {
           setVisibleIndex((prev) => {
-            const current = prev[style.id] ?? 0
-            const next = pickNextIndex(current, pictures.length)
+            const currentEligible = getEligibleIndices(style.id)
+            if (currentEligible.length === 0) return prev
+            const current = prev[style.id] ?? currentEligible[0]
+            const usedPictureIds = new Set<number>()
+            for (const otherStyle of PHOTOGRAPHY_STYLES) {
+              if (otherStyle.id === style.id) continue
+              const idx = prev[otherStyle.id]
+              if (idx == null || idx < 0) continue
+              const picture = stylesData[otherStyle.id]?.pictures?.[idx]
+              if (picture) usedPictureIds.add(picture.id)
+            }
+            const next = pickNextEligibleIndex(style.id, currentEligible, current, usedPictureIds)
+            if (next === -1 || next === current) return prev
             return { ...prev, [style.id]: next }
           })
           schedule()
@@ -158,16 +287,19 @@ export function PhotographyStyleShowcase() {
       Object.values(rotationTimers.current).forEach((timer) => clearTimeout(timer))
       rotationTimers.current = {}
     }
-  }, [stylesData])
+  }, [getEligibleIndices, pickNextEligibleIndex, stylesData])
 
   const handleOpenStyle = useCallback((styleId: string) => {
     void ensureStylePictures(styleId)
     const pictures = stylesData[styleId]?.pictures || []
+    const eligible = getEligibleIndices(styleId)
     const currentIdx = visibleIndex[styleId] ?? 0
-    const safeIdx = pictures.length ? Math.max(0, Math.min(pictures.length - 1, currentIdx)) : 0
+    const safeIdx = eligible.length
+      ? eligible.includes(currentIdx) ? currentIdx : eligible[0]
+      : (pictures.length ? Math.max(0, Math.min(pictures.length - 1, currentIdx)) : 0)
     setSelectedStyleId(styleId)
     setModalIndex(safeIdx)
-  }, [ensureStylePictures, stylesData, visibleIndex])
+  }, [ensureStylePictures, getEligibleIndices, stylesData, visibleIndex])
 
   useEffect(() => {
     if (!selectedStyleId) return
@@ -176,6 +308,48 @@ export function PhotographyStyleShowcase() {
     const idx = visibleIndex[selectedStyleId] ?? 0
     setModalIndex(Math.max(0, Math.min(pictures.length - 1, idx)))
   }, [selectedStyleId, stylesData, visibleIndex])
+
+  useEffect(() => {
+    setVisibleIndex((prev) => {
+      let changed = false
+      const next = { ...prev }
+      const usedPictureIds = new Set<number>()
+      for (const style of PHOTOGRAPHY_STYLES) {
+        const idx = prev[style.id]
+        if (idx == null || idx < 0) continue
+        const picture = stylesData[style.id]?.pictures?.[idx]
+        if (picture) usedPictureIds.add(picture.id)
+      }
+
+      for (const style of PHOTOGRAPHY_STYLES) {
+        const pictures = stylesData[style.id]?.pictures || []
+        const eligible = getEligibleIndices(style.id)
+        if (!eligible.length) {
+          if ((prev[style.id] ?? 0) !== -1) {
+            next[style.id] = -1
+            changed = true
+          }
+          continue
+        }
+        const current = prev[style.id]
+        let candidate = eligible.find((idx) => {
+          const picture = pictures[idx]
+          if (!picture) return false
+          return !usedPictureIds.has(picture.id)
+        })
+        if (candidate == null) {
+          candidate = eligible[0]
+        }
+        const picture = pictures[candidate]
+        if (picture) usedPictureIds.add(picture.id)
+        if (current !== candidate) {
+          next[style.id] = candidate
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [getEligibleIndices, stylesData])
 
   const selectedStyleConfig = selectedStyleId ? PHOTOGRAPHY_STYLE_BY_ID[selectedStyleId as keyof typeof PHOTOGRAPHY_STYLE_BY_ID] : undefined
   const modalPictures = selectedStyleId ? stylesData[selectedStyleId]?.pictures || [] : []
@@ -233,9 +407,10 @@ export function PhotographyStyleShowcase() {
 
         {!loadingState && !error && (
           <div className="flex flex-col md:flex-row [clip-path:polygon(0_0,100%_0,100%_100%,0_100%)] overflow-hidden">
-            {PHOTOGRAPHY_STYLES.map((style) => {
+            {PHOTOGRAPHY_STYLES.map((style, idx) => {
               const pictures = stylesData[style.id]?.pictures || []
-              const activeIndex = visibleIndex[style.id] ?? 0
+              const eligible = getEligibleIndices(style.id)
+              const activeIndex = visibleIndex[style.id] ?? (eligible[0] ?? -1)
               const preview = activeIndex >= 0 ? pictures[activeIndex] : undefined
               const isActive = highlightStyleId === style.id
               const flexClass = activeStyle
@@ -243,9 +418,16 @@ export function PhotographyStyleShowcase() {
                   ? "md:flex-[2.25]"
                   : "md:flex-[0.6]"
                 : "md:flex-1"
-              const hasContent = pictures.length > 0
+              const hasContent = eligible.length > 0
               const badge = locale === "zh" ? "风格" : "Style"
               const tagline = style.tagline?.[locale] || style.tagline?.en || ""
+              const isFirst = idx === 0
+              const isLast = idx === PHOTOGRAPHY_STYLES.length - 1
+              const clipPath = isFirst
+                ? "polygon(0% 0, 100% 0, 94% 100%, 0% 100%)"
+                : isLast
+                  ? "polygon(6% 0, 100% 0, 100% 100%, 0% 100%)"
+                  : "polygon(6% 0, 100% 0, 94% 100%, 0% 100%)"
               return (
                 <button
                   key={style.id}
@@ -257,9 +439,9 @@ export function PhotographyStyleShowcase() {
                   onClick={() => handleOpenStyle(style.id)}
                   className={`group relative min-h-[280px] md:min-h-[360px] transition-[flex] duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] flex-1 ${flexClass} bg-black/70 text-left`}
                   style={{
-                    clipPath: "polygon(6% 0, 100% 0, 94% 100%, 0 100%)",
-                    marginRight: style.id !== PHOTOGRAPHY_STYLES[PHOTOGRAPHY_STYLES.length - 1].id ? "-5%" : undefined,
-                    marginLeft: style.id !== PHOTOGRAPHY_STYLES[0].id ? "-5%" : undefined,
+                    clipPath,
+                    marginRight: isLast ? undefined : "-5%",
+                    marginLeft: isFirst ? undefined : "-5%",
                     zIndex: isActive ? 20 : 10,
                   }}
                 >
@@ -271,7 +453,7 @@ export function PhotographyStyleShowcase() {
                           src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
                           alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                           fill
-                          className="object-cover scale-[1.02] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.12]"
+                          className="image-fade-soft object-cover scale-[1.02] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.12]"
                           priority={style.id === PHOTOGRAPHY_STYLES[0].id}
                         />
                       ) : (

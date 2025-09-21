@@ -25,6 +25,8 @@ type PicturePayload = {
   rawImageUrl: string | null
   orderIndex: number | null
   createdAt: string
+  tags: string[]
+  categories: string[]
   set: {
     id: number
     title: string
@@ -131,7 +133,7 @@ export async function GET(request: Request) {
         const alias = String((row as any).name || "").toLowerCase().trim()
         if (!alias) continue
         if (!categoriesByAlias[alias]) categoriesByAlias[alias] = new Set<number>()
-        categoriesByAlias[alias].add((row as any).id as number)
+        if (Number.isFinite((row as any).id)) categoriesByAlias[alias].add((row as any).id as number)
       }
 
       for (const style of targetStyles) {
@@ -235,6 +237,33 @@ export async function GET(request: Request) {
         .in("picture_id", filteredPictureIds),
     ])
 
+    const { data: pictureTagRows } = await supabaseAdmin
+      .from('picture_taggings')
+      .select('picture_id, tag_id')
+      .in('picture_id', filteredPictureIds)
+
+    const tagIdSet = new Set<number>()
+    for (const row of pictureTagRows || []) {
+      const tagId = (row as any).tag_id as number
+      if (Number.isFinite(tagId)) tagIdSet.add(tagId)
+    }
+
+    let tagById: Record<number, { name: string; type: string }> = {}
+    if (tagIdSet.size > 0) {
+      const { data: tagRows } = await supabaseAdmin
+        .from('tags')
+        .select('id,name,type')
+        .in('id', Array.from(tagIdSet))
+      for (const row of tagRows || []) {
+        const id = (row as any).id as number
+        if (!Number.isFinite(id)) continue
+        tagById[id] = {
+          name: String((row as any).name || ''),
+          type: String((row as any).type || ''),
+        }
+      }
+    }
+
     const pictureTransMap = new Map<number, { en: PictureTranslation; zh: PictureTranslation }>()
     for (const picture of filteredPictures) {
       pictureTransMap.set(picture.id as number, {
@@ -251,6 +280,36 @@ export async function GET(request: Request) {
           description: (row as any).description || entry.en.description,
         }
       }
+    }
+
+    const pictureTagsMap: Record<number, string[]> = {}
+    for (const row of pictureTagRows || []) {
+      const tagId = (row as any).tag_id as number
+      const tagInfo = tagById[tagId]
+      if (!tagInfo) continue
+      const type = String(tagInfo.type || '').toLowerCase()
+      if (type !== 'topic') continue
+      const name = String(tagInfo.name || '').trim()
+      if (!name) continue
+      const pid = (row as any).picture_id as number
+      const existing = new Set(pictureTagsMap[pid] || [])
+      existing.add(name)
+      pictureTagsMap[pid] = Array.from(existing)
+    }
+
+    const { data: pictureCategoryNameRows } = await supabaseAdmin
+      .from('picture_categories')
+      .select('picture_id, category:categories(name)')
+      .in('picture_id', filteredPictureIds)
+
+    const pictureCategoriesMap: Record<number, string[]> = {}
+    for (const row of pictureCategoryNameRows || []) {
+      const pid = (row as any).picture_id as number
+      const name = String(((row as any).category as any)?.name || '').trim()
+      if (!pid || !name) continue
+      const existing = new Set(pictureCategoriesMap[pid] || [])
+      existing.add(name)
+      pictureCategoriesMap[pid] = Array.from(existing)
     }
     for (const row of picZh || []) {
       const entry = pictureTransMap.get((row as any).picture_id)
@@ -322,16 +381,18 @@ export async function GET(request: Request) {
         if (!relatedSet) continue
         const translationEntry = pictureTransMap.get(picture.id as number)
         const setTranslation = setTransMap.get(relatedSet.id as number)
-        payload.push({
-          id: picture.id as number,
-          pictureSetId: relatedSet.id as number,
-          imageUrl: picture.image_url as string,
-          rawImageUrl: picture.raw_image_url || null,
-          orderIndex: picture.order_index ?? null,
-          createdAt: String(picture.created_at || ''),
-          set: {
-            id: relatedSet.id as number,
-            title: relatedSet.title || "",
+      payload.push({
+        id: picture.id as number,
+        pictureSetId: relatedSet.id as number,
+        imageUrl: picture.image_url as string,
+        rawImageUrl: picture.raw_image_url || null,
+        orderIndex: picture.order_index ?? null,
+        createdAt: String(picture.created_at || ''),
+        tags: pictureTagsMap[picture.id as number] || [],
+        categories: pictureCategoriesMap[picture.id as number] || [],
+        set: {
+          id: relatedSet.id as number,
+          title: relatedSet.title || "",
             subtitle: relatedSet.subtitle || "",
             coverImageUrl: relatedSet.cover_image_url || null,
             translations: {
