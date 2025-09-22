@@ -11,51 +11,44 @@ import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import { PortfolioLocationMap } from "@/components/portfolio-location-map"
 import { LangSwitcher } from "@/components/lang-switcher"
 import { PhotographyStyleShowcase } from "@/components/photography-style-showcase"
+import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
+import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 
-export function PortfolioGrid() {
+const INITIAL_DOWN_LIMIT = 15
+const LOAD_MORE_COUNT = 15
+const DOWN_EAGER_COUNT = 6
+
+interface PortfolioGridProps {
+  initialData?: InitialPortfolioPayload
+}
+
+export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const { locale, t } = useI18n()
-  const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
-  const [loading, setLoading] = useState(true)
+  const [pictureSets, setPictureSets] = useState<PictureSet[]>(initialData?.pictureSets || [])
+  const [loading, setLoading] = useState(!initialData)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
-  const [shuffledDownSets, setShuffledDownSets] = useState<PictureSet[]>([])
-  const [derivedUpSets, setDerivedUpSets] = useState<PictureSet[]>([])
+  const [shuffledDownSets, setShuffledDownSets] = useState<PictureSet[]>(initialData?.downSets || [])
+  const [derivedUpSets, setDerivedUpSets] = useState<PictureSet[]>(initialData?.upSets || [])
   // use global locale (zh prefers zh translations, else en)
-  const [transMap, setTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
+  const [transMap, setTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>(initialData?.transMap || {})
   const [searchQuery, setSearchQuery] = useState("")
   const [searchLoading, setSearchLoading] = useState(false)
   const [setResults, setSetResults] = useState<PictureSet[] | null>(null)
   const [pictureResults, setPictureResults] = useState<Picture[] | null>(null)
   const [pictureTransMap, setPictureTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
-  const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; latitude: number; longitude: number }>>({})
+  const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || '', [])
-
-  // Stable shuffle with a fixed seed for reproducible order
-  const stableShuffleArray = (array: PictureSet[], seed: string): PictureSet[] => {
-    const shuffled = [...array]
-    // Use string as seed to produce deterministic pseudo-random numbers
-    let hash = 0
-    for (let i = 0; i < seed.length; i++) {
-      const char = seed.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash |= 0 // cast to 32-bit int
-    }
-
-    // Fisher-Yates shuffle (with bounded, non-negative index)
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      hash = (hash * 9301 + 49297) % 233280 // LCG
-      if (hash < 0) hash += 233280
-      const j = Math.abs(hash) % (i + 1)
-      const tmp = shuffled[i]
-      shuffled[i] = shuffled[j]
-      shuffled[j] = tmp
-    }
-
-    return shuffled
-  }
+  const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
+  const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
+  const [downVisibleCount, setDownVisibleCount] = useState(() => {
+    const initial = initialData?.downSets?.length || 0
+    if (!initial) return INITIAL_DOWN_LIMIT
+    return Math.min(INITIAL_DOWN_LIMIT, initial)
+  })
 
   const fetchPictureSets = async () => {
     setLoading(true)
@@ -63,7 +56,7 @@ export function PortfolioGrid() {
       console.log("Fetching picture sets for portfolio grid")
       const { data, error } = await supabase
         .from("picture_sets")
-        .select("*")
+        .select("id, created_at, updated_at, cover_image_url, title, subtitle, description, position, is_published")
         .order("created_at", { ascending: false })
 
       if (error) {
@@ -148,37 +141,14 @@ export function PortfolioGrid() {
             supabase.from('picture_set_section_assignments').select('picture_set_id, section_id').in('picture_set_id', ids),
             supabase.from('sections').select('id,name')
           ])
-          const secNameById: Record<number, string> = {}
-          for (const r of secs || []) secNameById[(r as any).id] = String((r as any).name || '').toLowerCase().trim()
-          const isTop = (n?: string) => !!n && (/\bup\b|top|上|顶/.test(n))
-          const isBottom = (n?: string) => !!n && (/\bdown\b|bottom|下|底/.test(n))
-          const topIds = new Set<number>()
-          const bottomIds = new Set<number>()
-          for (const a of assigns || []) {
-            const sid = (a as any).section_id as number
-            const psid = (a as any).picture_set_id as number
-            const nm = secNameById[sid]
-            if (isTop(nm)) topIds.add(psid)
-            if (isBottom(nm)) bottomIds.add(psid)
-          }
-          // derive lists and merge with legacy position
-          const topSets = sets.filter(s => topIds.has(s.id))
-          const bottomSets = sets.filter(s => bottomIds.has(s.id))
-          const legacyUp = sets.filter(s => (s.position||'').trim().toLowerCase() === 'up' && !topIds.has(s.id))
-          const legacyDown = sets.filter(s => (s.position||'').trim().toLowerCase() === 'down' && !bottomIds.has(s.id))
-          const upCombined = [...topSets, ...legacyUp]
-          const downCombined = [...bottomSets, ...legacyDown]
+          const { upCombined, downCombined } = derivePortfolioBuckets(sets, assigns || [], secs || [])
           setDerivedUpSets(upCombined)
-          const seed = downCombined.map(s => s.id).join('-')
-          const shuffled = stableShuffleArray(downCombined, seed)
-          setShuffledDownSets(shuffled)
+          setShuffledDownSets(downCombined)
         } catch (e) {
           console.warn('Derive up/down by sections failed; fallback to position only', e)
-          const downSets = (sets || []).filter((s) => s.position?.trim().toLowerCase() === "down")
-          const seed = downSets.map(s => s.id).join('-')
-          const shuffled = stableShuffleArray(downSets, seed)
-          setShuffledDownSets(shuffled)
-          setDerivedUpSets(sets.filter((s) => s.position?.trim().toLowerCase() === "up"))
+          const { upCombined, downCombined } = fallbackBuckets(sets)
+          setDerivedUpSets(upCombined)
+          setShuffledDownSets(downCombined)
         }
       }
     } catch (error) {
@@ -290,8 +260,9 @@ export function PortfolioGrid() {
   }, [searchQuery])
 
   useEffect(() => {
+    if (initialData) return
     fetchPictureSets()
-  }, [])
+  }, [initialData])
 
   // Monitor scroll position to show/hide scroll to top button
   useEffect(() => {
@@ -310,6 +281,42 @@ export function PortfolioGrid() {
   const mid = Math.ceil(upPictureSets.length / 2)
   const firstRow = upPictureSets.slice(0, mid)
   const secondRow = upPictureSets.slice(mid)
+  const visibleDownSets = useMemo(
+    () => downPictureSets.slice(0, downVisibleCount),
+    [downPictureSets, downVisibleCount],
+  )
+
+  useEffect(() => {
+    setDownVisibleCount((prev) => {
+      if (downPictureSets.length === 0) return INITIAL_DOWN_LIMIT
+      const baseline = Math.max(prev, INITIAL_DOWN_LIMIT)
+      return Math.min(baseline, downPictureSets.length)
+    })
+  }, [downPictureSets.length])
+
+  useEffect(() => {
+    setDownLoadedMap((prev) => {
+      if (downPictureSets.length === 0) return {}
+      const next: Record<number, boolean> = {}
+      for (const item of downPictureSets) {
+        if (prev[item.id]) next[item.id] = true
+      }
+      return next
+    })
+  }, [downPictureSets])
+
+  const handleDownImageLoaded = useCallback((id: number, width?: number, height?: number) => {
+    setDownLoadedMap((prev) => {
+      if (prev[id]) return prev
+      return { ...prev, [id]: true }
+    })
+    if (width && height) {
+      setCoverDimensions((prev) => {
+        if (prev[id]) return prev
+        return { ...prev, [id]: { width, height } }
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (!upPictureSets.length) return
@@ -481,70 +488,33 @@ export function PortfolioGrid() {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-pulse">{t('loadingGalleries')}</div>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-6 sm:gap-12 flex-1">
-          {/* 上部两行自动滚动 - 移动端优化 */}
-          {firstRow.length > 0 && (
-            <div className="space-y-2 sm:space-y-3">
-              <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
-                {[...firstRow, ...firstRow].map((item, i) => {
-                  const widthClass =
-                    i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
-
-                  return (
-                    <Link
-                      key={`${item.id}-${i}`}
-                      href={`/work/${item.id}?t=${Date.now()}`}
-                      className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
-                    >
-                      <Image
-                        src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
-                        alt={item.title}
-                        fill
-                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
-                      />
-
-                      <div
-                        className="
-                          absolute inset-0
-                          bg-black/60
-                          opacity-100
-                          transition-opacity duration-300 ease-out
-                          group-hover:opacity-0
-                          flex flex-col items-center justify-center text-white p-4 text-center
-                        "
-                      >
-                        <h2 
-                          className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
-                        >
-                          {getText(item, 'title')}
-                        </h2>
-                        <p 
-                          className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
-                        >
-                          {getText(item, 'subtitle')}
-                        </p>
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-
-              {/* 第二行 */}
-              {secondRow.length > 0 && (
-                <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
-                  {[...secondRow, ...secondRow].map((item, i) => {
+      <div className="flex flex-col gap-6 sm:gap-12 flex-1">
+        {loading ? (
+          <>
+            <div className="space-y-4">
+              <div className="h-36 sm:h-44 rounded-2xl bg-gray-100 animate-pulse" />
+              <div className="h-36 sm:h-44 rounded-2xl bg-gray-100 animate-pulse" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="h-48 sm:h-64 rounded-xl bg-gray-100 animate-pulse" />
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* 上部两行自动滚动 - 移动端优化 */}
+            {firstRow.length > 0 && (
+              <div className="space-y-2 sm:space-y-3">
+                <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
+                  {[...firstRow, ...firstRow].map((item, i) => {
                     const widthClass =
                       i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
 
                     return (
                       <Link
                         key={`${item.id}-${i}`}
-                        href={`/work/${item.id}?t=${Date.now()}`}
+                        href={`/work/${item.id}`}
                         className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                       >
                         <Image
@@ -579,51 +549,130 @@ export function PortfolioGrid() {
                     )
                   })}
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* 下部Masonry布局 */}
-      {downPictureSets.length > 0 && (
-        <div className="flex justify-center">
-          <div className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center">
-            {downPictureSets.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
-                    style={{ 
-                      opacity: 1,
-                      animationDelay: `${index * 100}ms`
-                    }}
-                  >
-                    <Link
-                      href={`/work/${item.id}?t=${Date.now()}`}
-                      className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
-                    >
-                      <Image
-                        src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
-                        alt={item.title}
-                        width={600}
-                        height={800}
-                        className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105"
-                      />
-                      
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
-                        <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
-                          <h3 className="text-lg font-medium mb-1">{getText(item,'title')}</h3>
-                          <p className="text-sm opacity-80">{getText(item,'subtitle')}</p>
-                        </div>
-                      </div>
-                    </Link>
+                {/* 第二行 */}
+                {secondRow.length > 0 && (
+                  <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
+                    {[...secondRow, ...secondRow].map((item, i) => {
+                      const widthClass =
+                        i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
+
+                      return (
+                        <Link
+                          key={`${item.id}-${i}`}
+                          href={`/work/${item.id}`}
+                          className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
+                        >
+                          <Image
+                            src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
+                            alt={item.title}
+                            fill
+                            className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                          />
+
+                          <div
+                            className="
+                              absolute inset-0
+                              bg-black/60
+                              opacity-100
+                              transition-opacity duration-300 ease-out
+                              group-hover:opacity-0
+                              flex flex-col items-center justify-center text-white p-4 text-center
+                            "
+                          >
+                            <h2 
+                              className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
+                            >
+                              {getText(item, 'title')}
+                            </h2>
+                            <p 
+                              className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
+                            >
+                              {getText(item, 'subtitle')}
+                            </p>
+                          </div>
+                        </Link>
+                      )
+                    })}
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
 
-      <PhotographyStyleShowcase />
+            {/* 下部Masonry布局 */}
+            {visibleDownSets.length > 0 && (
+              <div className="flex justify-center">
+                <div
+                  className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center"
+                  style={{ columnFill: "auto" }}
+                >
+                  {visibleDownSets.map((item, index) => {
+                    const dims = coverDimensions[item.id]
+                    const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+                    const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
+                    const isLoaded = !!downLoadedMap[item.id]
+                    const eager = index < DOWN_EAGER_COUNT
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
+                        style={{
+                          opacity: 1,
+                          animationDelay: `${index * 100}ms`,
+                          breakInside: "avoid",
+                          WebkitColumnBreakInside: "avoid",
+                        }}
+                      >
+                        <Link
+                          href={`/work/${item.id}`}
+                          className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
+                          style={{ aspectRatio: aspectRatio || 0.75 }}
+                        >
+                          {!isLoaded && (
+                            <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
+                          )}
+                          <Image
+                            src={coverSrc}
+                            alt={getText(item,'title') || item.title}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            priority={eager}
+                            loading={eager ? 'eager' : 'lazy'}
+                            onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
+                          />
+
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
+                            <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
+                              <h3 className="text-lg font-medium mb-1">{getText(item,'title')}</h3>
+                              <p className="text-sm opacity-80">{getText(item,'subtitle')}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+            {visibleDownSets.length < downPictureSets.length && (
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={() => {
+                    setDownVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, downPictureSets.length))
+                  }}
+                  className="px-5 py-2 rounded-full bg-black text-white text-sm sm:text-base transition-transform duration-200 hover:scale-105"
+                >
+                  加载更多
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {!loading && <PhotographyStyleShowcase />}
 
       {locationClusters.length > 0 && (
         <section className="mt-16 sm:mt-24">
