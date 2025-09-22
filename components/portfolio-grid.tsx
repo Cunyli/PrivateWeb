@@ -44,6 +44,9 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || '', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
+  const downPrefetchedRef = useRef<Set<string>>(new Set())
+  const downPrefetchQueueRef = useRef<string[]>([])
+  const downPrefetchingRef = useRef(false)
   const [downVisibleCount, setDownVisibleCount] = useState(() => {
     const initial = initialData?.downSets?.length || 0
     if (!initial) return INITIAL_DOWN_LIMIT
@@ -285,6 +288,46 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     () => downPictureSets.slice(0, downVisibleCount),
     [downPictureSets, downVisibleCount],
   )
+
+  const processDownPrefetch = useCallback(() => {
+    if (typeof window === 'undefined') return
+    if (downPrefetchingRef.current) return
+    const url = downPrefetchQueueRef.current.shift()
+    if (!url) return
+    downPrefetchingRef.current = true
+    const img = new window.Image()
+    img.decoding = 'async'
+    img.onload = img.onerror = () => {
+      downPrefetchingRef.current = false
+      processDownPrefetch()
+    }
+    img.src = url
+  }, [])
+
+  const enqueueDownPrefetch = useCallback((url: string) => {
+    if (!url) return
+    if (downPrefetchedRef.current.has(url)) return
+    downPrefetchedRef.current.add(url)
+    downPrefetchQueueRef.current.push(url)
+    if (typeof window !== 'undefined') {
+      const idle = (window as any).requestIdleCallback
+      if (typeof idle === 'function') {
+        idle(() => processDownPrefetch())
+      } else {
+        window.setTimeout(processDownPrefetch, 50)
+      }
+    }
+  }, [processDownPrefetch])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const bufferCount = Math.min(downVisibleCount + 6, downPictureSets.length)
+    const candidates = downPictureSets.slice(0, bufferCount)
+    for (const item of candidates) {
+      if (!item.cover_image_url) continue
+      enqueueDownPrefetch(`${baseUrl}${item.cover_image_url}`)
+    }
+  }, [downPictureSets, downVisibleCount, baseUrl, enqueueDownPrefetch])
 
   useEffect(() => {
     setDownVisibleCount((prev) => {
@@ -606,12 +649,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center"
                   style={{ columnFill: "auto" }}
                 >
-                  {visibleDownSets.map((item, index) => {
-                    const dims = coverDimensions[item.id]
-                    const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-                    const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
-                    const isLoaded = !!downLoadedMap[item.id]
-                    const eager = index < DOWN_EAGER_COUNT
+            {visibleDownSets.map((item, index) => {
+              const dims = coverDimensions[item.id]
+              const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+              const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
+              const isLoaded = !!downLoadedMap[item.id]
+              const eager = index < DOWN_EAGER_COUNT
 
                     return (
                       <div
