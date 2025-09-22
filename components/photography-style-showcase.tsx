@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
@@ -49,6 +49,7 @@ type StyleApiResponse = {
 
 const FALLBACK_DELAY_MS = 15_000
 const DELAY_VARIANCE_MS = 6_000
+const HOVER_INTENT_DELAY_MS = 90
 
 export function PhotographyStyleShowcase() {
   const { t, locale } = useI18n()
@@ -65,6 +66,9 @@ export function PhotographyStyleShowcase() {
   const rotationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [landscapeMap, setLandscapeMap] = useState<Record<string, Record<number, boolean>>>({})
   const processedOrientationRef = useRef<Set<string>>(new Set())
+  const [, startHighlightTransition] = useTransition()
+  const hoverTimerRef = useRef<number | null>(null)
+  const prefetchedImagesRef = useRef<Set<string>>(new Set())
 
   const hasMasterTag = useCallback((picture: StylePicture) => {
     const pool = [...(picture.tags || []), ...(picture.categories || [])]
@@ -74,28 +78,38 @@ export function PhotographyStyleShowcase() {
     })
   }, [])
 
-  const getEligibleIndices = useCallback((styleId: string) => {
-    const pictures = stylesData[styleId]?.pictures || []
-    const orientationMap = landscapeMap[styleId] || {}
-    const tiers: Array<(picture: StylePicture) => boolean> = [
-      (picture) => hasMasterTag(picture) && orientationMap[picture.id] === true,
-      (picture) => {
-        const orientationValue = orientationMap[picture.id]
-        return orientationValue === undefined && hasMasterTag(picture)
-      },
-    ]
-
-    for (const predicate of tiers) {
-      const matches: number[] = []
+  const eligibleCache = useMemo(() => {
+    const cache: Record<string, number[]> = {}
+    for (const style of PHOTOGRAPHY_STYLES) {
+      const pictures = stylesData[style.id]?.pictures || []
+      if (!pictures.length) {
+        cache[style.id] = []
+        continue
+      }
+      const orientationMap = landscapeMap[style.id] || {}
+      const tierPreferred: number[] = []
+      const tierFallback: number[] = []
       pictures.forEach((picture, idx) => {
-        if (predicate(picture)) {
-          matches.push(idx)
+        if (!hasMasterTag(picture)) return
+        const orientationValue = orientationMap[picture.id]
+        if (orientationValue === true) {
+          tierPreferred.push(idx)
+        } else if (orientationValue === undefined) {
+          tierFallback.push(idx)
         }
       })
-      if (matches.length > 0) return matches
+      if (tierPreferred.length > 0) {
+        cache[style.id] = tierPreferred
+      } else if (tierFallback.length > 0) {
+        cache[style.id] = tierFallback
+      } else {
+        cache[style.id] = []
+      }
     }
-    return []
+    return cache
   }, [hasMasterTag, landscapeMap, stylesData])
+
+  const getEligibleIndices = useCallback((styleId: string) => eligibleCache[styleId] || [], [eligibleCache])
 
   const pickNextEligibleIndex = useCallback(
     (styleId: string, eligible: number[], current: number, usedPictureIds: Set<number>) => {
@@ -301,6 +315,56 @@ export function PhotographyStyleShowcase() {
     setModalIndex(safeIdx)
   }, [ensureStylePictures, getEligibleIndices, stylesData, visibleIndex])
 
+  const prefetchPreview = useCallback((styleId: string | null) => {
+    if (typeof window === 'undefined') return
+    if (!styleId) return
+    const pictures = stylesData[styleId]?.pictures || []
+    if (!pictures.length) return
+    const eligible = getEligibleIndices(styleId)
+    const candidateIdx = eligible.length ? eligible[0] : 0
+    const candidate = pictures[candidateIdx]
+    if (!candidate) return
+    const src = candidate.imageUrl?.startsWith("http")
+      ? candidate.imageUrl
+      : `${bucketUrl}${candidate.imageUrl}`
+    if (!src || prefetchedImagesRef.current.has(src)) return
+    const img = new window.Image()
+    img.src = src
+    prefetchedImagesRef.current.add(src)
+  }, [bucketUrl, getEligibleIndices, stylesData])
+
+  const handleHighlightChange = useCallback((next: string | null) => {
+    if (hoverTimerRef.current != null) {
+      window.clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
+    if (next === null) {
+      startHighlightTransition(() => {
+        setActiveStyle((prev) => (prev === null ? prev : null))
+      })
+      return
+    }
+
+    if (typeof window !== 'undefined') {
+      prefetchPreview(next)
+    }
+
+    hoverTimerRef.current = window.setTimeout(() => {
+      startHighlightTransition(() => {
+        setActiveStyle((prev) => (prev === next ? prev : next))
+      })
+    }, HOVER_INTENT_DELAY_MS)
+  }, [prefetchPreview, startHighlightTransition])
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current != null) {
+        window.clearTimeout(hoverTimerRef.current)
+        hoverTimerRef.current = null
+      }
+    }
+  }, [])
+
   useEffect(() => {
     if (!selectedStyleId) return
     const pictures = stylesData[selectedStyleId]?.pictures || []
@@ -357,6 +421,17 @@ export function PhotographyStyleShowcase() {
   const isModalLoading = !!selectedStyleId && styleLoading === selectedStyleId && modalPictures.length === 0
   const highlightStyleId = activeStyle ?? selectedStyleId ?? null
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    prefetchPreview(highlightStyleId)
+  }, [highlightStyleId, prefetchPreview])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const primaryStyle = PHOTOGRAPHY_STYLES[0]?.id
+    if (primaryStyle) prefetchPreview(primaryStyle)
+  }, [prefetchPreview, stylesData])
+
   const loadingState = loading && Object.keys(stylesData).length === 0
 
   return (
@@ -401,11 +476,9 @@ export function PhotographyStyleShowcase() {
               const activeIndex = visibleIndex[style.id] ?? (eligible[0] ?? -1)
               const preview = activeIndex >= 0 ? pictures[activeIndex] : undefined
               const isActive = highlightStyleId === style.id
-              const flexClass = activeStyle
-                ? isActive
-                  ? "md:flex-[2.25]"
-                  : "md:flex-[0.6]"
-                : "md:flex-1"
+              const flexGrow = activeStyle ? (isActive ? 2.2 : 0.78) : 1
+              const flexBasis = activeStyle ? (isActive ? "50%" : "16%") : "auto"
+              const translateY = isActive ? "-8px" : "0px"
               const hasContent = eligible.length > 0
               const badge = locale === "zh" ? "风格" : "Style"
               const tagline = style.tagline?.[locale] || style.tagline?.en || ""
@@ -420,17 +493,22 @@ export function PhotographyStyleShowcase() {
                 <button
                   key={style.id}
                   type="button"
-                  onMouseEnter={() => setActiveStyle(style.id)}
-                  onMouseLeave={() => setActiveStyle(null)}
-                  onFocus={() => setActiveStyle(style.id)}
-                  onBlur={() => setActiveStyle(null)}
+                  onMouseEnter={() => handleHighlightChange(style.id)}
+                  onMouseLeave={() => handleHighlightChange(null)}
+                  onFocus={() => handleHighlightChange(style.id)}
+                  onBlur={() => handleHighlightChange(null)}
                   onClick={() => handleOpenStyle(style.id)}
-                  className={`group relative min-h-[280px] md:min-h-[360px] transition-[flex] duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] flex-1 ${flexClass} bg-black/70 text-left`}
+                  className="group relative min-h-[280px] md:min-h-[360px] flex-1 bg-black/70 text-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     clipPath,
                     marginRight: isLast ? undefined : "-5%",
                     marginLeft: isFirst ? undefined : "-5%",
-                    zIndex: isActive ? 20 : 10,
+                    zIndex: isActive ? 25 : 10,
+                    flexGrow,
+                    flexBasis,
+                    transform: `translateY(${translateY})`,
+                    transition: "flex-grow 520ms cubic-bezier(0.22,1,0.36,1), flex-basis 520ms cubic-bezier(0.22,1,0.36,1), transform 420ms cubic-bezier(0.24,1,0.32,1)",
+                    willChange: "flex-grow, flex-basis, transform",
                   }}
                 >
                   <div className="absolute inset-0 pointer-events-none">
@@ -441,19 +519,20 @@ export function PhotographyStyleShowcase() {
                           src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
                           alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                           fill
-                          className="image-fade-soft object-cover scale-[1.02] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.12]"
-                          priority={style.id === PHOTOGRAPHY_STYLES[0].id}
+                          className="image-fade-soft object-cover scale-[1.02] transition-transform duration-[1200ms] ease-out group-hover:scale-[1.08]"
+                          priority={isActive}
+                          loading={isActive ? "eager" : "lazy"}
                         />
                       ) : (
                         <div className="h-full w-full bg-gradient-to-br from-slate-300 via-slate-200 to-white" />
                       )}
                       <div
-                        className={`absolute inset-0 bg-gradient-to-br from-black/82 via-black/30 to-black/75 transition-opacity duration-500 ${isActive ? "opacity-28" : "opacity-55"}`}
+                        className={`absolute inset-0 bg-gradient-to-br from-black/80 via-black/30 to-black/75 transition-opacity duration-500 ${isActive ? "opacity-25" : "opacity-55"}`}
                       />
                     </div>
                   </div>
 
-                  <div className="relative z-10 flex h-full flex-col justify-between px-6 py-8 md:px-8 md:py-10 space-y-6">
+                  <div className="relative z-10 flex h-full flex-col justify-between px-6 py-8 md:px-8 md:py-10 space-y-6 transition-opacity duration-300 ease-out">
                     <div className="flex items-center gap-3 text-white/70">
                       <span className="text-[10px] uppercase tracking-[0.5em]">
                         {badge}
@@ -465,17 +544,17 @@ export function PhotographyStyleShowcase() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-[1.9rem] md:text-[2.2rem] font-extralight text-white drop-shadow-lg">
+                      <h3 className="text-[1.9rem] md:text-[2.2rem] font-extralight text-white drop-shadow-lg transition-transform duration-500 ease-out group-hover:-translate-y-[3px]">
                         {t(style.i18nKey)}
                       </h3>
                       {tagline && (
-                        <p className="max-w-[24ch] text-sm md:text-[0.95rem] leading-relaxed text-white/75">
+                        <p className="max-w-[24ch] text-sm md:text-[0.95rem] leading-relaxed text-white/80 transition-opacity duration-500 ease-out group-hover:opacity-95">
                           {tagline}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] uppercase tracking-[0.45em] text-white/70">
+                      <span className="text-[11px] uppercase tracking-[0.45em] text-white/75 transition-transform duration-500 ease-out group-hover:translate-x-1">
                         {hasContent ? t("styleViewGallery") : t("styleEmpty")}
                       </span>
                       <ArrowUpRight className="h-4 w-4 text-white/80 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:-translate-y-1.5" />

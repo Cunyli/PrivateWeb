@@ -3,7 +3,7 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { Carousel } from "@/components/carousel"
 import { ImageDetails } from "@/components/image-details"
 import { LangSwitcher } from "@/components/lang-switcher"
@@ -40,6 +40,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
+  const [showDescriptionCard, setShowDescriptionCard] = useState(false)
   const { locale } = useI18n()
   
   const currentImage = images[currentIndex];
@@ -182,12 +183,14 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [currentIndex, images.length])
 
+  const overlayRight = useMemo(() => (sidebarHovered ? '18rem' : '1rem'), [sidebarHovered])
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <div className="max-w-[2000px] w-full mx-auto px-4 py-4 lg:px-8 xl:px-16 flex flex-col h-screen">
+      <div className="max-w-[2000px] w-full mx-auto px-4 py-6 lg:px-8 xl:px-16 flex flex-col h-screen">
         {/* Header with back button and title */}
-        <header className="mb-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-gray-600">
             <Link
               href="/"
               className="inline-flex items-center text-sm text-gray-600 hover:text-black transition-colors duration-200"
@@ -195,15 +198,8 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Works
             </Link>
-            <LangSwitcher className="h-8 w-8 text-gray-600 bg-white" />
           </div>
-
-          {(displayTitle || displaySubtitle) && (
-            <div className="text-right">
-              {displayTitle && <h1 className="text-xl font-medium">{displayTitle}</h1>}
-              {displaySubtitle && <p className="text-sm text-gray-600">{displaySubtitle}</p>}
-            </div>
-          )}
+          <LangSwitcher className="h-8 w-8 text-gray-600 bg-white border border-gray-200 shadow-sm" />
         </header>
 
         {/* Main content area - using flex layout */}
@@ -211,9 +207,52 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
           {/* Image gallery section */}
           <div className="flex flex-1 gap-4 overflow-hidden">
             {/* Left column: Main image and details */}
-            <div className="flex flex-col pr-2 w-full group-hover:w-[calc(100%-20rem)] smooth-transition">
+            <div className="flex flex-col w-full lg:pr-1">
               {/* Main image container */}
-              <div className="flex-1 flex items-center justify-center rounded-md overflow-hidden">
+              <div className="relative flex-1 flex items-center justify-center rounded-[28px] overflow-hidden shadow-sm">
+                {(displayTitle || displaySubtitle) && (
+                  <div
+                    className="absolute top-4 lg:top-6 z-20 flex flex-col items-end gap-2 text-right max-w-xs rounded-3xl bg-black/65 px-4 py-3 backdrop-blur-sm shadow-lg"
+                    style={{ right: overlayRight }}
+                  >
+                    <span className="uppercase text-[9px] tracking-[0.45em] text-white/80">
+                      {locale === 'zh' ? '作品系列' : 'Portfolio Series'}
+                    </span>
+                    {displayTitle && (
+                      <h1 className="text-xl lg:text-[2rem] font-light text-white drop-shadow">
+                        {displayTitle}
+                      </h1>
+                    )}
+                    {displaySubtitle && (
+                      <p className="text-xs lg:text-sm text-white/75 leading-relaxed">
+                        {displaySubtitle}
+                      </p>
+                    )}
+                    {displayDescription && (
+                      <button
+                        onClick={() => setShowDescriptionCard((prev) => !prev)}
+                        className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-black/80 px-3 py-1.5 text-[9px] uppercase tracking-[0.32em] text-white shadow-sm transition-all duration-200 hover:bg-black"
+                      >
+                        {showDescriptionCard ? (locale === 'zh' ? '隐藏介绍' : 'Hide Info') : (locale === 'zh' ? '作品简介' : 'About Set')}
+                        <span className={`text-[10px] transition-transform ${showDescriptionCard ? 'rotate-180' : ''}`}>▴</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {displayDescription && (
+                  <div
+                    className={`absolute z-20 max-w-xs rounded-2xl bg-white/95 backdrop-blur-md border border-white/60 shadow-xl px-4 py-3 transition-all duration-250 ${
+                      showDescriptionCard ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-3 opacity-0 pointer-events-none'
+                    }`}
+                    style={{ right: overlayRight, top: '6.4rem' }}
+                  >
+                    <p className="text-xs leading-relaxed text-gray-700 whitespace-pre-line">
+                      {displayDescription}
+                    </p>
+                  </div>
+                )}
+
                 <Carousel
                   images={images}
                   currentIndex={currentIndex}
@@ -270,13 +309,13 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
 
             {/* Right column: Hover-triggered Thumbnails sidebar */}
             <div 
-              className="relative hidden lg:block group w-6 hover:w-80" 
-              style={{ transition: 'width 0.8s cubic-bezier(0.23, 1, 0.32, 1)' }}
+              className="relative hidden lg:block group w-3 hover:w-64" 
+              style={{ transition: 'width 0.75s cubic-bezier(0.23, 1, 0.32, 1)' }}
               onMouseEnter={() => setSidebarHovered(true)}
               onMouseLeave={() => setSidebarHovered(false)}
             >
               {/* Trigger zone - always visible on the right edge */}
-              <div className="absolute right-0 top-0 w-6 h-full bg-gradient-to-l from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-r-md cursor-pointer flex items-center justify-center z-30 shadow-sm hover:shadow-md" style={{ 
+              <div className="absolute right-0 top-0 w-6 h-full bg-gradient-to-l from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 rounded-r-xl cursor-pointer flex items-center justify-center z-30 shadow-sm hover:shadow-md" style={{ 
                 transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)' 
               }}>
                 {/* Hover indicator dots */}
@@ -384,13 +423,6 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
               </div>
             </div>
           </div>
-
-          {/* Portfolio description */}
-          {displayDescription && (
-            <div className="mt-6 pb-4">
-              <p className="text-gray-700">{displayDescription}</p>
-            </div>
-          )}
         </main>
       </div>
     </div>
