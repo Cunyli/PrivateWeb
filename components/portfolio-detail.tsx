@@ -3,7 +3,7 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Carousel } from "@/components/carousel"
 import { ImageDetails } from "@/components/image-details"
 import { LangSwitcher } from "@/components/lang-switcher"
@@ -50,6 +50,12 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
   const displayTitle = activeSetContent.title || fallbackSetContent.title || ''
   const displaySubtitle = activeSetContent.subtitle || fallbackSetContent.subtitle || ''
   const displayDescription = activeSetContent.description || fallbackSetContent.description || ''
+
+  const activeImageContent = locale === 'zh' ? currentImage?.translations.zh : currentImage?.translations.en
+  const fallbackImageContent = locale === 'zh' ? currentImage?.translations.en : currentImage?.translations.zh
+  const displayImageTitle = activeImageContent?.title || fallbackImageContent?.title || ''
+  const displayImageSubtitle = activeImageContent?.subtitle || fallbackImageContent?.subtitle || ''
+  const displayImageDescription = activeImageContent?.description || fallbackImageContent?.description || ''
 
   const handleImageChange = (index: number) => {
     setCurrentIndex(index)
@@ -183,8 +189,6 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [currentIndex, images.length])
 
-  const overlayRight = useMemo(() => (sidebarHovered ? '18rem' : '1rem'), [sidebarHovered])
-
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <div className="max-w-[2000px] w-full mx-auto px-4 py-6 lg:px-8 xl:px-16 flex flex-col h-screen">
@@ -210,46 +214,70 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
             <div className="flex flex-col w-full lg:pr-1">
               {/* Main image container */}
               <div className="relative flex-1 flex items-center justify-center rounded-[28px] overflow-hidden shadow-sm">
-                {(displayTitle || displaySubtitle) && (
-                  <div
-                    className="absolute top-4 lg:top-6 z-20 flex flex-col items-end gap-2 text-right max-w-xs rounded-3xl bg-black/65 px-4 py-3 backdrop-blur-sm shadow-lg"
-                    style={{ right: overlayRight }}
-                  >
-                    <span className="uppercase text-[9px] tracking-[0.45em] text-white/80">
-                      {locale === 'zh' ? '作品系列' : 'Portfolio Series'}
-                    </span>
-                    {displayTitle && (
-                      <h1 className="text-xl lg:text-[2rem] font-light text-white drop-shadow">
-                        {displayTitle}
-                      </h1>
-                    )}
-                    {displaySubtitle && (
-                      <p className="text-xs lg:text-sm text-white/75 leading-relaxed">
-                        {displaySubtitle}
-                      </p>
-                    )}
-                    {displayDescription && (
-                      <button
-                        onClick={() => setShowDescriptionCard((prev) => !prev)}
-                        className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-black/80 px-3 py-1.5 text-[9px] uppercase tracking-[0.32em] text-white shadow-sm transition-all duration-200 hover:bg-black"
-                      >
-                        {showDescriptionCard ? (locale === 'zh' ? '隐藏介绍' : 'Hide Info') : (locale === 'zh' ? '作品简介' : 'About Set')}
-                        <span className={`text-[10px] transition-transform ${showDescriptionCard ? 'rotate-180' : ''}`}>▴</span>
-                      </button>
-                    )}
-                  </div>
-                )}
+                {(displayTitle || displaySubtitle || displayDescription) && (
+                  <div className="absolute left-4 top-4 lg:left-6 lg:top-6 z-20 flex flex-col items-start gap-3 max-w-sm">
+                    <button
+                      onClick={() => setShowDescriptionCard((prev) => !prev)}
+                      className="inline-flex items-center gap-2 rounded-full bg-black/75 px-3.5 py-1.5 text-[10px] uppercase tracking-[0.32em] text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-black"
+                    >
+                      {showDescriptionCard ? (locale === 'zh' ? '隐藏介绍' : 'Hide Info') : (locale === 'zh' ? '作品简介' : 'About Set')}
+                      <span className={`text-[10px] transition-transform ${showDescriptionCard ? 'rotate-180' : ''}`}>▴</span>
+                    </button>
 
-                {displayDescription && (
-                  <div
-                    className={`absolute z-20 max-w-xs rounded-2xl bg-white/95 backdrop-blur-md border border-white/60 shadow-xl px-4 py-3 transition-all duration-250 ${
-                      showDescriptionCard ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-3 opacity-0 pointer-events-none'
-                    }`}
-                    style={{ right: overlayRight, top: '6.4rem' }}
-                  >
-                    <p className="text-xs leading-relaxed text-gray-700 whitespace-pre-line">
-                      {displayDescription}
-                    </p>
+                    <div
+                      className={`w-[min(70vw,280px)] rounded-3xl bg-white/95 border border-white/60 px-5 py-4 text-left text-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 ${
+                        showDescriptionCard ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-2 opacity-0 pointer-events-none'
+                      }`}
+                    >
+                      {(displayTitle || displaySubtitle) && (
+                        <div className="mb-3 border-b border-gray-200 pb-2">
+                          {displayTitle && (
+                            <h2 className="text-base font-medium text-gray-900">
+                              {displayTitle}
+                            </h2>
+                          )}
+                          {displaySubtitle && (
+                            <p className="text-sm text-gray-500 mt-0.5">
+                              {displaySubtitle}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {displayDescription && (
+                        <div className="mb-4">
+                          <h3 className="text-xs uppercase tracking-[0.35em] text-gray-400 mb-2">
+                            {locale === 'zh' ? '系列简介' : 'Set Overview'}
+                          </h3>
+                          <p className="text-sm leading-relaxed whitespace-pre-line text-gray-700">
+                            {displayDescription}
+                          </p>
+                        </div>
+                      )}
+
+                      {(displayImageTitle || displayImageSubtitle || displayImageDescription) && (
+                        <div>
+                          <h3 className="text-xs uppercase tracking-[0.35em] text-gray-400 mb-2">
+                            {locale === 'zh' ? '当前作品' : 'Current Image'}
+                          </h3>
+                          {displayImageTitle && (
+                            <p className="text-sm font-medium text-gray-900">
+                              {displayImageTitle}
+                            </p>
+                          )}
+                          {displayImageSubtitle && (
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {displayImageSubtitle}
+                            </p>
+                          )}
+                          {displayImageDescription && (
+                            <p className="text-sm leading-relaxed text-gray-700 mt-2 whitespace-pre-line">
+                              {displayImageDescription}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
