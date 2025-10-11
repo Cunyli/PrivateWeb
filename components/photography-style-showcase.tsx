@@ -65,10 +65,27 @@ export function PhotographyStyleShowcase() {
   const [styleLoading, setStyleLoading] = useState<string | null>(null)
   const rotationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [landscapeMap, setLandscapeMap] = useState<Record<string, Record<number, boolean>>>({})
-  const processedOrientationRef = useRef<Set<string>>(new Set())
   const [, startHighlightTransition] = useTransition()
   const hoverTimerRef = useRef<number | null>(null)
   const prefetchedImagesRef = useRef<Set<string>>(new Set())
+
+  const updateOrientation = useCallback((styleId: string | null, pictureId: number, width?: number, height?: number) => {
+    if (!styleId) return
+    if (!Number.isFinite(pictureId)) return
+    if (!width || !height) return
+    const isLandscape = width >= height
+    setLandscapeMap((prev) => {
+      const styleEntry = prev[styleId] || {}
+      if (styleEntry[pictureId] === isLandscape) return prev
+      return {
+        ...prev,
+        [styleId]: {
+          ...styleEntry,
+          [pictureId]: isLandscape,
+        },
+      }
+    })
+  }, [])
 
   const hasMasterTag = useCallback((picture: StylePicture) => {
     const pool = [...(picture.tags || []), ...(picture.categories || [])]
@@ -223,46 +240,6 @@ export function PhotographyStyleShowcase() {
   useEffect(() => {
     fetchStyles().catch(() => {})
   }, [fetchStyles])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const pending: Array<{ styleId: string; picture: StylePicture }> = []
-    for (const [styleId, data] of Object.entries(stylesData)) {
-      for (const picture of data.pictures) {
-        const key = `${styleId}:${picture.id}`
-        if (processedOrientationRef.current.has(key)) continue
-        pending.push({ styleId, picture })
-      }
-    }
-    if (!pending.length) return
-
-    let cancelled = false
-    const recordOrientation = (styleId: string, pictureId: number, isLandscape: boolean) => {
-      if (cancelled) return
-      processedOrientationRef.current.add(`${styleId}:${pictureId}`)
-      setLandscapeMap((prev) => {
-        const styleMap = { ...(prev[styleId] || {}) }
-        styleMap[pictureId] = isLandscape
-        return { ...prev, [styleId]: styleMap }
-      })
-    }
-
-    for (const { styleId, picture } of pending) {
-      const img = new window.Image()
-      img.onload = () => {
-        recordOrientation(styleId, picture.id, img.naturalWidth >= img.naturalHeight)
-      }
-      img.onerror = () => {
-        recordOrientation(styleId, picture.id, false)
-      }
-      const src = picture.imageUrl?.startsWith("http") ? picture.imageUrl : `${bucketUrl}${picture.imageUrl}`
-      img.src = src
-    }
-
-    return () => {
-      cancelled = true
-    }
-  }, [bucketUrl, stylesData])
 
   useEffect(() => {
     // Clear existing timers before scheduling new ones
@@ -438,11 +415,11 @@ export function PhotographyStyleShowcase() {
     <section className="mt-12 md:mt-20">
       <div className="flex flex-col gap-4 md:gap-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-light tracking-wide">
+          <div className="text-center md:text-left">
+            <h2 className="text-lg md:text-2xl font-medium tracking-[0.08em] md:tracking-[0.1em] uppercase text-slate-900/95">
               {t("styleShowcaseTitle")}
             </h2>
-            <p className="text-sm md:text-base text-muted-foreground/80 max-w-2xl">
+            <p className="text-xs md:text-sm text-muted-foreground/70 max-w-2xl mx-auto md:mx-0">
               {t("styleShowcaseSubtitle")}
             </p>
           </div>
@@ -498,7 +475,7 @@ export function PhotographyStyleShowcase() {
                   onFocus={() => handleHighlightChange(style.id)}
                   onBlur={() => handleHighlightChange(null)}
                   onClick={() => handleOpenStyle(style.id)}
-                  className="group relative min-h-[280px] md:min-h-[360px] flex-1 bg-black/70 text-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="group relative min-h-[280px] md:min-h-[360px] flex-1 bg-black/70 text-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu"
                   style={{
                     clipPath,
                     marginRight: isLast ? undefined : "-5%",
@@ -507,8 +484,8 @@ export function PhotographyStyleShowcase() {
                     flexGrow,
                     flexBasis,
                     transform: `translateY(${translateY})`,
-                    transition: "flex-grow 520ms cubic-bezier(0.22,1,0.36,1), flex-basis 520ms cubic-bezier(0.22,1,0.36,1), transform 420ms cubic-bezier(0.24,1,0.32,1)",
-                    willChange: "flex-grow, flex-basis, transform",
+                    transition: "flex-grow 480ms cubic-bezier(0.27,0.8,0.25,1), flex-basis 480ms cubic-bezier(0.27,0.8,0.25,1), transform 360ms cubic-bezier(0.24,1,0.32,1)",
+                    willChange: "transform, flex-basis, flex-grow",
                   }}
                 >
                   <div className="absolute inset-0 pointer-events-none">
@@ -519,15 +496,18 @@ export function PhotographyStyleShowcase() {
                           src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
                           alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                           fill
-                          className="image-fade-soft object-cover scale-[1.02] transition-transform duration-[1200ms] ease-out group-hover:scale-[1.08]"
+                          className="image-fade-soft object-cover scale-[1.02] transition-transform duration-[1200ms] ease-out group-hover:scale-[1.08] transform-gpu"
+                          style={{ willChange: "transform, opacity" }}
                           priority={isActive}
                           loading={isActive ? "eager" : "lazy"}
+                          onLoadingComplete={(img) => updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)}
                         />
                       ) : (
                         <div className="h-full w-full bg-gradient-to-br from-slate-300 via-slate-200 to-white" />
                       )}
                       <div
                         className={`absolute inset-0 bg-gradient-to-br from-black/80 via-black/30 to-black/75 transition-opacity duration-500 ${isActive ? "opacity-25" : "opacity-55"}`}
+                        style={{ willChange: "opacity" }}
                       />
                     </div>
                   </div>
@@ -605,6 +585,7 @@ export function PhotographyStyleShowcase() {
                             className={`absolute inset-0 object-cover transition-all duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
                               active ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
                             }`}
+                            onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
                           />
                         )
                       })}
@@ -691,6 +672,7 @@ export function PhotographyStyleShowcase() {
                                 alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
                                 fill
                                 className="object-cover transition duration-700 group-hover:scale-105"
+                                onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
                               />
                               <div className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ${active ? 'opacity-5' : 'opacity-35 group-hover:opacity-15'}`} />
                               <div className="absolute left-3 top-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-white/70">
@@ -732,6 +714,7 @@ export function PhotographyStyleShowcase() {
                           alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
                           fill
                           className="object-cover transition duration-700 group-hover:scale-105"
+                          onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
                         />
                         <div className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ${active ? 'opacity-5' : 'opacity-35 group-hover:opacity-15'}`} />
                         <div className="absolute bottom-2 left-2 right-2 text-left text-[11px] leading-tight text-white drop-shadow-md">

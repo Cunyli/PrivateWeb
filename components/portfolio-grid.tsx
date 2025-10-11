@@ -16,7 +16,6 @@ import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 
 const INITIAL_DOWN_LIMIT = 15
 const LOAD_MORE_COUNT = 15
-const DOWN_EAGER_COUNT = 6
 
 interface PortfolioGridProps {
   initialData?: InitialPortfolioPayload
@@ -288,6 +287,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     () => downPictureSets.slice(0, downVisibleCount),
     [downPictureSets, downVisibleCount],
   )
+  const downEagerCount = useMemo(() => Math.min(downVisibleCount, INITIAL_DOWN_LIMIT), [downVisibleCount])
 
   const processDownPrefetch = useCallback(() => {
     if (typeof window === 'undefined') return
@@ -438,10 +438,93 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     })).sort((a, b) => a.name.localeCompare(b.name))
   }, [pictureSets, setLocations, baseUrl, getText, t])
 
+  const downGallerySection = !loading && visibleDownSets.length > 0 && (
+    <section className="mt-16 sm:mt-24">
+      <div className="text-center max-w-3xl mx-auto mb-2 sm:mb-4">
+        <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
+          {t('downGalleryTitle')}
+        </h2>
+        <p className="mt-1 text-xs sm:text-sm text-slate-500/80">
+          {t('downGallerySubtitle')}
+        </p>
+      </div>
+      <div className="flex justify-center">
+        <div
+          className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center"
+          style={{ columnFill: "auto" }}
+        >
+          {visibleDownSets.map((item, index) => {
+            const dims = coverDimensions[item.id]
+            const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+            const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
+            const isLoaded = !!downLoadedMap[item.id]
+            const eager = index < downEagerCount
+
+            return (
+              <div
+                key={item.id}
+                className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
+                style={{
+                  opacity: 1,
+                  animationDelay: `${index * 100}ms`,
+                  breakInside: "avoid",
+                  WebkitColumnBreakInside: "avoid",
+                }}
+              >
+                <Link
+                  href={`/work/${item.id}`}
+                  className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
+                  style={{ aspectRatio: aspectRatio || 0.75 }}
+                >
+                  {!isLoaded && (
+                    <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
+                  )}
+                  <Image
+                    src={coverSrc}
+                    alt={getText(item,'title') || item.title}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    fetchPriority={eager ? 'high' : 'auto'}
+                    className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    priority={eager}
+                    loading={eager ? 'eager' : 'lazy'}
+                    onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
+                  />
+
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
+                    <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
+                      <h3 className="text-lg font-medium mb-1">{getText(item,'title')}</h3>
+                      <p className="text-sm opacity-80">{getText(item,'subtitle')}</p>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {visibleDownSets.length < downPictureSets.length && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => {
+              setDownVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, downPictureSets.length))
+            }}
+            className="px-5 py-2 rounded-full bg-black text-white text-sm sm:text-base transition-transform duration-200 hover:scale-105"
+          >
+            加载更多
+          </button>
+        </div>
+      )}
+    </section>
+  )
+
   return (
     <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
       <div className="relative mb-4 sm:mb-8">
-        <h1 className="text-2xl sm:text-4xl font-light text-center">{t('galleriesTitle')}</h1>
+        <h1 className="text-2xl sm:text-4xl font-light tracking-wide text-center text-slate-900/90">
+          {t('galleriesTitle')}
+        </h1>
         {/* Header controls (search) */}
         <div className="absolute right-0 top-0 flex items-center gap-2">
           <LangSwitcher className="bg-white text-gray-700" />
@@ -641,76 +724,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 )}
               </div>
             )}
-
-            {/* 下部Masonry布局 */}
-            {visibleDownSets.length > 0 && (
-              <div className="flex justify-center">
-                <div
-                  className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center"
-                  style={{ columnFill: "auto" }}
-                >
-            {visibleDownSets.map((item, index) => {
-              const dims = coverDimensions[item.id]
-              const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-              const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
-              const isLoaded = !!downLoadedMap[item.id]
-              const eager = index < DOWN_EAGER_COUNT
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
-                        style={{
-                          opacity: 1,
-                          animationDelay: `${index * 100}ms`,
-                          breakInside: "avoid",
-                          WebkitColumnBreakInside: "avoid",
-                        }}
-                      >
-                        <Link
-                          href={`/work/${item.id}`}
-                          className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
-                          style={{ aspectRatio: aspectRatio || 0.75 }}
-                        >
-                          {!isLoaded && (
-                            <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
-                          )}
-                          <Image
-                            src={coverSrc}
-                            alt={getText(item,'title') || item.title}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                            className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                            priority={eager}
-                            loading={eager ? 'eager' : 'lazy'}
-                            onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
-                          />
-
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
-                            <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
-                              <h3 className="text-lg font-medium mb-1">{getText(item,'title')}</h3>
-                              <p className="text-sm opacity-80">{getText(item,'subtitle')}</p>
-                            </div>
-                          </div>
-                        </Link>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-            {visibleDownSets.length < downPictureSets.length && (
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={() => {
-                    setDownVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, downPictureSets.length))
-                  }}
-                  className="px-5 py-2 rounded-full bg-black text-white text-sm sm:text-base transition-transform duration-200 hover:scale-105"
-                >
-                  加载更多
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
@@ -719,6 +732,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
       {locationClusters.length > 0 && (
         <section className="mt-16 sm:mt-24">
+          <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
+              {t('mapSectionTitle')}
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-slate-500/80">
+              {t('mapSectionSubtitle')}
+            </p>
+          </div>
           <PortfolioLocationMap
             locations={locationClusters}
             heading={t('mapSectionTitle')}
@@ -728,6 +749,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           />
         </section>
       )}
+
+      {downGallerySection}
 
       {/* Scroll to top button */}
       {showScrollToTop && (
