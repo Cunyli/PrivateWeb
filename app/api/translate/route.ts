@@ -24,7 +24,7 @@ function createOpenAI(kind: 'vision' | 'text') {
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, sourceLang = "en", targetLang = "zh" } = await req.json()
+    const { text, sourceLang = "en", targetLang = "zh", context } = await req.json()
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "Missing text" }, { status: 400 })
     }
@@ -35,48 +35,91 @@ export async function POST(req: NextRequest) {
 
     const { client: openai, model } = createOpenAI('text')
     const fromLabel = sourceLang === 'auto' ? 'auto-detected language' : sourceLang
-    const system = `You are a professional translator. Preserve meaning, tone, and style. Return ONLY the translated text, with no quotes or extra commentary.`
-    const user = `Translate the following text from ${fromLabel} to ${targetLang}:
+
+    const hasCJK = (value: string) => /[\u4e00-\u9fff]/.test(value)
+    const normalize = (value: string) => value.trim().replace(/\s+/g, ' ')
+    const sourceTrim = String(text || '').trim()
+    const sourceNormalized = normalize(sourceTrim)
+    const sourceHasCJK = hasCJK(sourceTrim)
+
+    const baseSystem = `You are a professional translator. Preserve meaning, tone, and style. Return ONLY the translated text, with no quotes or extra commentary.`
+    const baseUser = `Translate the following ${context ? `(${context}) ` : ''}text from ${fromLabel} to ${targetLang}:
 ${text}`
 
-    let out: string = ''
-    try {
-      // Try Chat Completions first (works on OpenAI & many Azure deployments)
-      const completion = await openai.chat.completions.create({
-        model,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user },
-        ],
-        temperature: 0.2,
-      })
-      out = (completion.choices?.[0]?.message?.content || '').trim()
-    } catch (err: any) {
-      const msg = String(err?.message || '')
-      // Fallback to Responses API if server complains about 'messages'/'input'
-      if (/unsupported\s*parameter|moved to 'input'|responses api/i.test(msg)) {
-        const combined = `${system}\n\n${user}`
-        const resp = await openai.responses.create({
-          model,
-          input: [
-            { role: 'user', content: [ { type: 'input_text', text: combined } ] },
-          ] as any,
-        } as any)
-        // @ts-ignore - SDK exposes output_text helper
-        out = String((resp as any).output_text || '').trim()
-        if (!out) {
-          // fallback parse
-          try {
-            // @ts-ignore
-            const content = (resp as any).output?.[0]?.content?.[0]
-            out = String(content?.text?.value || content?.input_text?.text || '')
-          } catch {}
-        }
-      } else {
-        throw err
+    const forceSystem = targetLang === 'zh'
+      ? 'You are a strict translation engine. Respond ONLY with the Simplified Chinese translation, using natural, poetic but concise language. NO English words, no commentary.'
+      : 'You are a strict translation engine. Respond ONLY with the English translation, natural and fluid. NO Chinese characters, no commentary.'
+    const forceUser = `Source text:
+${text}
+
+Return only the translation in ${targetLang === 'zh' ? 'Simplified Chinese' : 'English'}.`
+
+    const evaluateCandidate = (candidate: string): string => {
+      const trimmed = String(candidate || '').trim()
+      if (!trimmed) return ''
+      const normalized = normalize(trimmed)
+      const identical = normalized.localeCompare(sourceNormalized, undefined, { sensitivity: 'base' }) === 0
+      const candidateHasCJK = hasCJK(trimmed)
+
+      if (targetLang === 'zh') {
+        if (!candidateHasCJK) return ''
+        if (!sourceHasCJK && identical) return ''
+      } else if (targetLang === 'en') {
+        if (candidateHasCJK) return ''
+        if (sourceHasCJK && identical) return ''
       }
+      return trimmed
     }
-    return NextResponse.json({ success: true, translated: out })
+
+    const runChatPrompt = async (systemPrompt: string, userPrompt: string): Promise<string> => {
+      let out = ''
+      try {
+        const completion = await openai.chat.completions.create({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.2,
+        })
+        out = (completion.choices?.[0]?.message?.content || '').trim()
+      } catch (err: any) {
+        const msg = String(err?.message || '')
+        if (/unsupported\s*parameter|moved to 'input'|responses api/i.test(msg)) {
+          const combined = `${systemPrompt}\n\n${userPrompt}`
+          const resp = await openai.responses.create({
+            model,
+            input: [
+              { role: 'user', content: [ { type: 'input_text', text: combined } ] },
+            ] as any,
+          } as any)
+          // @ts-ignore - SDK exposes output_text helper when available
+          out = String((resp as any).output_text || '').trim()
+          if (!out) {
+            try {
+              // @ts-ignore
+              const content = (resp as any).output?.[0]?.content?.[0]
+              out = String(content?.text?.value || content?.input_text?.text || '')
+            } catch {}
+          }
+        } else {
+          throw err
+        }
+      }
+      return out
+    }
+
+    let candidate = evaluateCandidate(await runChatPrompt(baseSystem, baseUser))
+    if (!candidate) {
+      candidate = evaluateCandidate(await runChatPrompt(forceSystem, forceUser))
+    }
+
+    if (!candidate) {
+      console.warn('translate.runPrompt produced no valid translation', { targetLang, context })
+      return NextResponse.json({ success: true, translated: '' })
+    }
+
+    return NextResponse.json({ success: true, translated: candidate })
   } catch (err) {
     console.error("/api/translate error", err)
     return NextResponse.json({ error: "Translation failed", debug: String((err as any)?.message || err) }, { status: 500 })
