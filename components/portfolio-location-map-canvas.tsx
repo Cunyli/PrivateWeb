@@ -90,16 +90,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
   return (
     <div className="w-full">
-      <div className="text-center max-w-3xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
-          {heading}
-        </h2>
-        <p className="mt-2 text-sm sm:text-base text-slate-500">
-          {subheading}
-        </p>
-      </div>
-
-      <div className="mt-10 sm:mt-14 grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="relative h-[420px] w-full overflow-hidden rounded-[2.5rem] border border-slate-200/60 shadow-[0_40px_90px_-45px_rgba(15,23,42,0.7)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.18),transparent_55%),radial-gradient(circle_at_80%_15%,rgba(56,189,248,0.18),transparent_55%),radial-gradient(circle_at_50%_80%,rgba(129,140,248,0.16),transparent_65%)]" />
           <div className="absolute inset-0 mix-blend-screen opacity-40" style={{ backgroundImage: "repeating-linear-gradient(0deg, rgba(148,163,184,0.1), rgba(148,163,184,0.1) 1px, transparent 1px, transparent 48px), repeating-linear-gradient(90deg, rgba(148,163,184,0.08), rgba(148,163,184,0.08) 1px, transparent 1px, transparent 64px)" }} />
