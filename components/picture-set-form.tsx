@@ -1667,14 +1667,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   <div className="space-y-2 border-t pt-3">
                     <h4 className="text-base font-bold">{t('pictureStyle')}</h4>
                     <Select
-                      value={pic.style ?? ''}
-                      onValueChange={(value) => handlePictureChange(idx, 'style', value || null)}
+                      value={pic.style ?? 'none'}
+                      onValueChange={(value) => handlePictureChange(idx, 'style', value === 'none' ? null : value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('selectPictureStyle')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">{t('styleNone')}</SelectItem>
+                        <SelectItem value="none">{t('styleNone')}</SelectItem>
                         {PHOTOGRAPHY_STYLES.map((style) => (
                           <SelectItem key={style.id} value={style.id}>
                             {t(style.i18nKey)}
