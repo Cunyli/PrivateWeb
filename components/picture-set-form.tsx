@@ -139,7 +139,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [showAIAnalysis, setShowAIAnalysis] = useState(false)
   const [showPictureAIAnalysis, setShowPictureAIAnalysis] = useState<{[key: number]: boolean}>({})
   const [showPictureTranslations, setShowPictureTranslations] = useState<{[key: number]: boolean}>({})
-  // 进入编辑页后，对集合执行一次“仅补齐集合的语种”
+  // 进入编辑页后，对集合执行一次"仅补齐集合的语种"
   const autoTranslatedSetOnceId = useRef<number | null>(null)
   const autoTranslateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   // translation autofill touching flags
@@ -195,7 +195,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         if (field === 'title') setTitle(val)
         if (field === 'subtitle') setSubtitle(val)
         if (field === 'description') setDescription(val)
-        // 同步到翻译区：AI 生成视为“可覆盖自动值”，忽略 touched 限制
+        // 同步到翻译区：AI 生成视为"可覆盖自动值"，忽略 touched 限制
         const isZh = looksZh.test(val)
         if (isZh) {
           setZh(prev => ({ ...prev, [field]: val }))
@@ -566,6 +566,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     } catch { return '' }
   }
 
+  const ensureTargetLanguage = (value: string, target: 'en' | 'zh', fallback: string): string => {
+    const trimmed = String(value || '').trim()
+    if (!trimmed) return ''
+    const hasCJK = /[\u4e00-\u9fff]/.test(trimmed)
+    if (target === 'zh') {
+      return hasCJK ? trimmed : ''
+    }
+    if (target === 'en') {
+      return hasCJK ? '' : trimmed
+    }
+    return fallback
+  }
+
   const autoTranslatePicture = async (idx: number) => {
     const pic = pictures[idx]
     if (!pic) return
@@ -579,19 +592,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         const zhVal = String((toZh as any)[key] || '')
         if (!enVal && zhVal) {
           const t = await translateText(zhVal, 'auto', 'en')
-          if (t) (toEn as any)[key] = t
+          if (t) (toEn as any)[key] = ensureTargetLanguage(t, 'en', enVal)
         } else if (!zhVal && enVal) {
           const t = await translateText(enVal, 'auto', 'zh')
-          if (t) (toZh as any)[key] = t
+          if (t) (toZh as any)[key] = ensureTargetLanguage(t, 'zh', zhVal)
         } else if (!enVal && !zhVal && baseVal) {
           if (looksZh(baseVal)) {
             (toZh as any)[key] = baseVal
             const t = await translateText(baseVal, 'auto', 'en')
-            if (t) (toEn as any)[key] = t
+            if (t) (toEn as any)[key] = ensureTargetLanguage(t, 'en', baseVal)
           } else {
             (toEn as any)[key] = baseVal
             const t = await translateText(baseVal, 'auto', 'zh')
-            if (t) (toZh as any)[key] = t
+            if (t) (toZh as any)[key] = ensureTargetLanguage(t, 'zh', '')
           }
         }
         // 最后保障：确保两侧都不为空
@@ -599,11 +612,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         const zhNow = String((toZh as any)[key] || '')
         if (!enNow && zhNow) {
           const t = await translateText(zhNow, 'auto', 'en')
-          if (t) (toEn as any)[key] = t
+          if (t) (toEn as any)[key] = ensureTargetLanguage(t, 'en', enNow)
         }
         if (!zhNow && enNow) {
           const t = await translateText(enNow, 'auto', 'zh')
-          if (t) (toZh as any)[key] = t
+          if (t) (toZh as any)[key] = ensureTargetLanguage(t, 'zh', zhNow)
         }
       }
       setPictures(prev => prev.map((p, i) => i === idx ? { ...p, en: toEn, zh: toZh } : p))
@@ -626,30 +639,30 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         const existingZh = String((zh as any)[key] || '')
 
         if (!enVal && zhVal) {
-          const t = await translateText(zhVal, 'auto', 'en')
-          if (t) enVal = t
+          const t = await translateText(zhVal, 'auto', 'en', { context: key })
+          if (t) enVal = ensureTargetLanguage(t, 'en', enVal)
         } else if (!zhVal && enVal) {
-          const t = await translateText(enVal, 'auto', 'zh')
-          if (t) zhVal = t
+          const t = await translateText(enVal, 'auto', 'zh', { context: key })
+          if (t) zhVal = ensureTargetLanguage(t, 'zh', zhVal)
         } else if (!enVal && !zhVal && baseVal) {
           if (looksZh(baseVal)) {
             zhVal = baseVal
-            const t = await translateText(baseVal, 'auto', 'en')
-            if (t) enVal = t
+            const t = await translateText(baseVal, 'auto', 'en', { context: key })
+            if (t) enVal = ensureTargetLanguage(t, 'en', enVal)
           } else {
             enVal = baseVal
-            const t = await translateText(baseVal, 'auto', 'zh')
-            if (t) zhVal = t
+            const t = await translateText(baseVal, 'auto', 'zh', { context: key })
+            if (t) zhVal = ensureTargetLanguage(t, 'zh', zhVal)
           }
         }
         // 最后保障：两侧都不为空
         if (!enVal && zhVal) {
-          const t = await translateText(zhVal, 'auto', 'en')
-          if (t) enVal = t
+          const t = await translateText(zhVal, 'auto', 'en', { context: key })
+          if (t) enVal = ensureTargetLanguage(t, 'en', enVal)
         }
         if (!zhVal && enVal) {
-          const t = await translateText(enVal, 'auto', 'zh')
-          if (t) zhVal = t
+          const t = await translateText(enVal, 'auto', 'zh', { context: key })
+          if (t) zhVal = ensureTargetLanguage(t, 'zh', zhVal)
         }
         if (!enVal && baseVal) enVal = existingEn || baseVal
         if (!zhVal) {
@@ -683,30 +696,30 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         const existingEn = String((en as any)[key] || '')
         const existingZh = String((zh as any)[key] || '')
         if (!enVal && zhVal) {
-          const t = await translateText(zhVal, 'auto', 'en')
-          if (t) enVal = t
+          const t = await translateText(zhVal, 'auto', 'en', { context: key })
+          if (t) enVal = ensureTargetLanguage(t, 'en', enVal)
         } else if (!zhVal && enVal) {
-          const t = await translateText(enVal, 'auto', 'zh')
-          if (t) zhVal = t
+          const t = await translateText(enVal, 'auto', 'zh', { context: key })
+          if (t) zhVal = ensureTargetLanguage(t, 'zh', zhVal)
         } else if (!enVal && !zhVal && baseVal) {
           if (looksZh(baseVal)) {
             zhVal = baseVal
-            const t = await translateText(baseVal, 'auto', 'en')
-            if (t) enVal = t
+            const t = await translateText(baseVal, 'auto', 'en', { context: key })
+            if (t) enVal = ensureTargetLanguage(t, 'en', enVal)
           } else {
             enVal = baseVal
-            const t = await translateText(baseVal, 'auto', 'zh')
-            if (t) zhVal = t
+            const t = await translateText(baseVal, 'auto', 'zh', { context: key })
+            if (t) zhVal = ensureTargetLanguage(t, 'zh', zhVal)
           }
         }
         // 最后保障：两侧都不为空
         if (!enVal && zhVal) {
-          const t = await translateText(zhVal, 'auto', 'en')
-          if (t) enVal = t
+          const t = await translateText(zhVal, 'auto', 'en', { context: key })
+          if (t) enVal = ensureTargetLanguage(t, 'en', enVal)
         }
         if (!zhVal && enVal) {
-          const t = await translateText(enVal, 'auto', 'zh')
-          if (t) zhVal = t
+          const t = await translateText(enVal, 'auto', 'zh', { context: key })
+          if (t) zhVal = ensureTargetLanguage(t, 'zh', zhVal)
         }
         if (!enVal && baseVal) enVal = existingEn || baseVal
         if (!zhVal) {
@@ -1654,14 +1667,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                   <div className="space-y-2 border-t pt-3">
                     <h4 className="text-base font-bold">{t('pictureStyle')}</h4>
                     <Select
-                      value={pic.style ?? ''}
-                      onValueChange={(value) => handlePictureChange(idx, 'style', value || null)}
+                      value={pic.style ?? 'none'}
+                      onValueChange={(value) => handlePictureChange(idx, 'style', value === 'none' ? null : value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('selectPictureStyle')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">{t('styleNone')}</SelectItem>
+                        <SelectItem value="none">{t('styleNone')}</SelectItem>
                         {PHOTOGRAPHY_STYLES.map((style) => (
                           <SelectItem key={style.id} value={style.id}>
                             {t(style.i18nKey)}

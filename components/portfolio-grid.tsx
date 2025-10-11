@@ -449,58 +449,57 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         </p>
       </div>
       <div className="flex justify-center">
-        <div
-          className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center"
-          style={{ columnFill: "auto" }}
-        >
-          {visibleDownSets.map((item, index) => {
-            const dims = coverDimensions[item.id]
-            const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-            const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
-            const isLoaded = !!downLoadedMap[item.id]
-            const eager = index < downEagerCount
+        <div className="w-full max-w-6xl lg:max-w-7xl px-2 sm:px-4">
+          <div className="columns-2 sm:columns-3 gap-2 sm:gap-4" style={{ columnFill: 'balance' }}>
+              {visibleDownSets.map((item, index) => {
+                const dims = coverDimensions[item.id]
+                const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+                const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
+                const isLoaded = !!downLoadedMap[item.id]
+                const eager = index < downEagerCount
 
-            return (
-              <div
-                key={item.id}
-                className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
-                style={{
-                  opacity: 1,
-                  animationDelay: `${index * 100}ms`,
-                  breakInside: "avoid",
-                  WebkitColumnBreakInside: "avoid",
-                }}
-              >
-                <Link
-                  href={`/work/${item.id}`}
-                  className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
-                  style={{ aspectRatio: aspectRatio || 0.75 }}
-                >
-                  {!isLoaded && (
-                    <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
-                  )}
-                  <Image
-                    src={coverSrc}
-                    alt={getText(item,'title') || item.title}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    fetchPriority={eager ? 'high' : 'auto'}
-                    className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    priority={eager}
-                    loading={eager ? 'eager' : 'lazy'}
-                    onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
-                  />
+                return (
+                  <div
+                    key={item.id}
+                    className="group relative inline-block w-full transition-opacity duration-500 ease-out mb-2 sm:mb-4"
+                    style={{
+                      opacity: 1,
+                      animationDelay: `${index * 100}ms`,
+                      breakInside: 'avoid-column',
+                      WebkitColumnBreakInside: 'avoid',
+                    }}
+                  >
+                    <Link
+                      href={`/work/${item.id}`}
+                      className="block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
+                      style={{ aspectRatio: aspectRatio || 0.75 }}
+                    >
+                      {!isLoaded && (
+                        <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
+                      )}
+                      <Image
+                        src={coverSrc}
+                        alt={getText(item, 'title') || item.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        fetchPriority={eager ? 'high' : 'auto'}
+                        className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        priority={eager}
+                        loading={eager ? 'eager' : 'lazy'}
+                        onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
+                      />
 
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
-                    <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
-                      <h3 className="text-lg font-medium mb-1">{getText(item,'title')}</h3>
-                      <p className="text-sm opacity-80">{getText(item,'subtitle')}</p>
-                    </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
+                        <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
+                          <h3 className="text-lg font-medium mb-1">{getText(item, 'title')}</h3>
+                          <p className="text-sm opacity-80">{getText(item, 'subtitle')}</p>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-              </div>
-            )
-          })}
+                )
+              })}
+            </div>
         </div>
       </div>
 

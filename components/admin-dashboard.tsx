@@ -141,7 +141,16 @@ export function AdminDashboard() {
       })
       if (!res.ok) return ''
       const data = await res.json()
-      return (data.translated as string) || ''
+      const translated = (data.translated as string) || ''
+      const cleaned = translated.trim()
+      const hasCJK = /[\u4e00-\u9fff]/.test(cleaned)
+      if (target === 'zh') {
+        return hasCJK ? cleaned : ''
+      }
+      if (target === 'en') {
+        return hasCJK ? '' : cleaned
+      }
+      return cleaned
     } catch (e) {
       console.error('translateText error', e)
       return ''
