@@ -449,8 +449,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         </p>
       </div>
       <div className="flex justify-center">
-        <div className="w-full max-w-7xl px-2 sm:px-4">
-          <div className="grid gap-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: '1fr' }}>
+        <div className="w-full max-w-7xl px-2 sm:px-4" style={{ columnWidth: '280px' }}>
+          <div className="columns-1 sm:columns-2 lg:columns-3 [column-gap:0.75rem] sm:[column-gap:1rem] lg:[column-gap:1.25rem]">
             {visibleDownSets.map((item, index) => {
             const dims = coverDimensions[item.id]
             const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
@@ -461,8 +461,13 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
               return (
                 <div
                   key={item.id}
-                  className="group relative flex flex-col transition-opacity duration-500 ease-out"
-                  style={{ opacity: 1, animationDelay: `${index * 100}ms` }}
+                  className="group relative inline-block w-full transition-opacity duration-500 ease-out mb-2 sm:mb-4"
+                  style={{
+                    opacity: 1,
+                    animationDelay: `${index * 100}ms`,
+                    breakInside: 'avoid-column',
+                    WebkitColumnBreakInside: 'avoid'
+                  }}
                 >
                   <Link
                     href={`/work/${item.id}`}
