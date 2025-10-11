@@ -449,9 +449,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         </p>
       </div>
       <div className="flex justify-center">
-        <div className="w-full max-w-7xl px-2 sm:px-4">
-          <div className="transform origin-top scale-[0.96] sm:scale-[0.88] lg:scale-[0.83]">
-            <div className="columns-2 sm:columns-3 gap-2 sm:gap-4" style={{ columnFill: "auto" }}>
+        <div className="w-full max-w-6xl lg:max-w-7xl px-2 sm:px-4">
+          <div className="columns-2 sm:columns-3 gap-2 sm:gap-4" style={{ columnFill: 'balance' }}>
               {visibleDownSets.map((item, index) => {
                 const dims = coverDimensions[item.id]
                 const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
@@ -501,7 +500,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 )
               })}
             </div>
-          </div>
         </div>
       </div>
 
