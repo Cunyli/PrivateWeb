@@ -475,7 +475,7 @@ export function PhotographyStyleShowcase() {
                   onFocus={() => handleHighlightChange(style.id)}
                   onBlur={() => handleHighlightChange(null)}
                   onClick={() => handleOpenStyle(style.id)}
-                  className="group relative min-h-[280px] md:min-h-[360px] flex-1 bg-black/70 text-left transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu"
+                  className="group relative min-h-[280px] md:min-h-[360px] flex-1 bg-black/70 text-left transition-transform duration-500 transform-gpu"
                   style={{
                     clipPath,
                     marginRight: isLast ? undefined : "-5%",
@@ -496,8 +496,8 @@ export function PhotographyStyleShowcase() {
                           src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
                           alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                           fill
-                          className="image-fade-soft object-cover scale-[1.02] transition-transform duration-[1200ms] ease-out group-hover:scale-[1.08] transform-gpu"
-                          style={{ willChange: "transform, opacity" }}
+                          className="image-fade-soft object-cover scale-[1.02] transition-transform ease-out group-hover:scale-[1.08] transform-gpu"
+                          style={{ willChange: "transform, opacity", transitionDuration: '1200ms' }}
                           priority={isActive}
                           loading={isActive ? "eager" : "lazy"}
                           onLoadingComplete={(img) => updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)}
@@ -582,9 +582,10 @@ export function PhotographyStyleShowcase() {
                             alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
                             fill
                             priority={idx === modalIndex}
-                            className={`absolute inset-0 object-cover transition-all duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                            className={`absolute inset-0 object-cover transition-all ${
                               active ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
                             }`}
+                            style={{ transitionDuration: '1400ms', transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
                             onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
                           />
                         )
