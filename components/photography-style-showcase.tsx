@@ -719,12 +719,22 @@ export function PhotographyStyleShowcase() {
                     const cardHeight = 180
                     const overlapAmount = 45
                     
+                    const handleMobileClick = (e: React.MouseEvent) => {
+                      // 如果是竖图且未展开，第一次点击只展开预览
+                      if (!isLandscape && !isExpanded) {
+                        e.preventDefault()
+                        setModalIndex(idx)
+                        setHoveredMobileIndex(idx)
+                      }
+                      // 如果是横图或已展开的竖图，允许跳转（不阻止默认行为）
+                    }
+                    
                     return (
-                      <button
+                      <Link
                         key={`${picture.id}-mobile-${idx}`}
-                        type="button"
-                        onClick={() => setModalIndex(idx)}
-                        className={`group relative w-full overflow-hidden rounded-2xl border transition-all duration-500 ${
+                        href={`/work/${picture.pictureSetId}`}
+                        onClick={handleMobileClick}
+                        className={`group relative w-full overflow-hidden rounded-2xl border transition-all duration-500 block ${
                           active
                             ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)]'
                             : 'border-white/20 hover:border-white/60'
@@ -740,52 +750,52 @@ export function PhotographyStyleShowcase() {
                           setHoveredMobileIndex(idx)
                           if (!isLandscape) {
                             // 竖向图片展开时，需要更多空间
-                            const buttons = e.currentTarget.parentElement?.querySelectorAll('button')
-                            if (!buttons) return
-                            buttons.forEach((btn, btnIdx) => {
-                              const htmlBtn = btn as HTMLElement
-                              if (btnIdx < idx) {
+                            const items = e.currentTarget.parentElement?.querySelectorAll('a')
+                            if (!items) return
+                            items.forEach((item, itemIdx) => {
+                              const htmlItem = item as HTMLElement
+                              if (itemIdx < idx) {
                                 // 上面的图片向上移动
-                                htmlBtn.style.transform = 'translateY(-140px)'
-                              } else if (btnIdx === idx) {
+                                htmlItem.style.transform = 'translateY(-140px)'
+                              } else if (itemIdx === idx) {
                                 // 悬停的图片本身
-                                htmlBtn.style.transform = 'scale(1.02)'
-                                htmlBtn.style.zIndex = String(modalPictures.length + 10)
+                                htmlItem.style.transform = 'scale(1.02)'
+                                htmlItem.style.zIndex = String(modalPictures.length + 10)
                               } else {
                                 // 下面的图片向下移动
-                                htmlBtn.style.transform = 'translateY(140px)'
+                                htmlItem.style.transform = 'translateY(140px)'
                               }
                             })
                           } else {
                             // 横向图片正常展开
-                            const buttons = e.currentTarget.parentElement?.querySelectorAll('button')
-                            if (!buttons) return
-                            buttons.forEach((btn, btnIdx) => {
-                              const htmlBtn = btn as HTMLElement
-                              if (btnIdx < idx) {
-                                htmlBtn.style.transform = 'translateY(-45px)'
-                              } else if (btnIdx === idx) {
-                                htmlBtn.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
-                                htmlBtn.style.zIndex = String(modalPictures.length + 10)
+                            const items = e.currentTarget.parentElement?.querySelectorAll('a')
+                            if (!items) return
+                            items.forEach((item, itemIdx) => {
+                              const htmlItem = item as HTMLElement
+                              if (itemIdx < idx) {
+                                htmlItem.style.transform = 'translateY(-45px)'
+                              } else if (itemIdx === idx) {
+                                htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
+                                htmlItem.style.zIndex = String(modalPictures.length + 10)
                               } else {
-                                htmlBtn.style.transform = 'translateY(45px)'
+                                htmlItem.style.transform = 'translateY(45px)'
                               }
                             })
                           }
                         }}
                         onMouseLeave={(e) => {
                           setHoveredMobileIndex(null)
-                          const buttons = e.currentTarget.parentElement?.querySelectorAll('button')
-                          if (!buttons) return
-                          buttons.forEach((btn, btnIdx) => {
-                            const htmlBtn = btn as HTMLElement
-                            if (btnIdx === modalIndex) {
-                              htmlBtn.style.transform = 'translateY(0) scale(1.02)'
+                          const items = e.currentTarget.parentElement?.querySelectorAll('a')
+                          if (!items) return
+                          items.forEach((item, itemIdx) => {
+                            const htmlItem = item as HTMLElement
+                            if (itemIdx === modalIndex) {
+                              htmlItem.style.transform = 'translateY(0) scale(1.02)'
                             } else {
-                              htmlBtn.style.transform = 'translateY(0) scale(1)'
+                              htmlItem.style.transform = 'translateY(0) scale(1)'
                             }
                             // 恢复原始 z-index
-                            htmlBtn.style.zIndex = String(modalPictures.length - btnIdx)
+                            htmlItem.style.zIndex = String(modalPictures.length - itemIdx)
                           })
                         }}
                       >
@@ -838,7 +848,7 @@ export function PhotographyStyleShowcase() {
                             {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
                           </div>
                         </div>
-                      </button>
+                      </Link>
                     )
                   })}
                 </div>
