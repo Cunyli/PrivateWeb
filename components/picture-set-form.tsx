@@ -61,8 +61,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [position, setPosition] = useState<string>("up")
   const [isPublished, setIsPublished] = useState<boolean>(true)
-  const [primaryCategoryId, setPrimaryCategoryId] = useState<number | null>(null)
-  const [seasonId, setSeasonId] = useState<number | null>(null)
+  const [categoryIds, setCategoryIds] = useState<number[]>([])
+  const [seasonIds, setSeasonIds] = useState<number[]>([])
   const [sectionIds, setSectionIds] = useState<number[]>([])
   const [availableCategories, setAvailableCategories] = useState<Array<{id:number; name:string}>>([])
   const [availableSeasons, setAvailableSeasons] = useState<Array<{id:number; name:string}>>([])
@@ -70,6 +70,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [primaryLocationName, setPrimaryLocationName] = useState<string>("")
   const [primaryLocationLat, setPrimaryLocationLat] = useState<number | "">("")
   const [primaryLocationLng, setPrimaryLocationLng] = useState<number | "">("")
+  const [applySetPropsToPictures, setApplySetPropsToPictures] = useState<boolean>(true)
+  const [overrideExistingPictureProps, setOverrideExistingPictureProps] = useState<boolean>(false)
+  const [propagateCategoriesToPictures, setPropagateCategoriesToPictures] = useState<boolean>(true)
+  const [fillMissingFromSet, setFillMissingFromSet] = useState<boolean>(true)
+  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(true)
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -248,8 +253,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       })
       setTagsText((editingPictureSet.tags || []).join(", "))
       setIsPublished(editingPictureSet.is_published ?? true)
-      setPrimaryCategoryId(editingPictureSet.primary_category_id ?? null)
-      setSeasonId(editingPictureSet.season_id ?? null)
+      setCategoryIds((editingPictureSet as any).category_ids || (editingPictureSet.primary_category_id ? [editingPictureSet.primary_category_id] : []))
+      setSeasonIds((editingPictureSet as any).season_ids || (editingPictureSet.season_id ? [editingPictureSet.season_id] : []))
       // fetch section assignments
       ;(async () => {
         try {
@@ -321,8 +326,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setPictures([])
       setPosition("up")
       setIsPublished(true)
-      setPrimaryCategoryId(null)
-      setSeasonId(null)
+      setCategoryIds([])
+      setSeasonIds([])
       setSectionIds([])
       setPrimaryLocationName("")
       setPrimaryLocationLat("")
@@ -507,16 +512,26 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         }),
       )
 
+      // Derive position from selected sections
+      const selectedSectionNames = availableSections
+        .filter(s => sectionIds.includes(s.id))
+        .map(s => (s.name || '').toLowerCase().trim())
+      const hasDown = selectedSectionNames.some(n => /\bdown\b|bottom|下|底/.test(n))
+      const hasUp = selectedSectionNames.some(n => /\bup\b|top|上|顶/.test(n))
+      const derivedPosition = hasDown ? 'down' : (hasUp ? 'up' : 'up')
+
       const payload: PictureSetSubmitData = {
         title,
         subtitle,
         description,
-        position,
+        position: derivedPosition,
         cover_image_url: coverKey,
         pictures: processedPictures,
         is_published: isPublished,
-        primary_category_id: primaryCategoryId ?? null,
-        season_id: seasonId ?? null,
+        primary_category_id: categoryIds.length ? categoryIds[0] : null,
+        season_id: seasonIds.length ? seasonIds[0] : null,
+        category_ids: categoryIds,
+        season_ids: seasonIds,
         section_ids: sectionIds,
         primary_location_name: primaryLocationName || undefined,
         primary_location_latitude: typeof primaryLocationLat === 'number' ? primaryLocationLat : null,
@@ -527,6 +542,11 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           .split(",")
           .map((t) => t.trim())
           .filter((t) => t.length > 0),
+        apply_set_props_to_pictures: applySetPropsToPictures,
+        override_existing_picture_props: overrideExistingPictureProps,
+        propagate_categories_to_pictures: propagateCategoriesToPictures,
+        fill_missing_from_set: fillMissingFromSet,
+        autogen_titles_subtitles: autogenTitlesSubtitles,
       }
 
       await onSubmit(payload, editingId)
@@ -553,9 +573,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         )}
       </div>
 
-      {/* 标题/副标题/描述/位置 */}
-      <div className="grid grid-cols-2 gap-5">
-        {/* 左侧：表单字段 */}
+      {/* 三列布局：基础字段 | 封面 | 其他属性 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* 第一列：基础字段 */}
         <div className="space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -617,108 +637,37 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           
-          <div>
-            <Label htmlFor="position">Position</Label>
-            <Select value={position} onValueChange={setPosition}>
-              <SelectTrigger id="position">
-                <SelectValue placeholder="Select position" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="up">Top Row</SelectItem>
-                <SelectItem value="down">Bottom Row</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Publish toggle */}
-          <div className="flex items-center gap-3">
-            <input id="is_published" type="checkbox" checked={isPublished} onChange={(e)=>setIsPublished(e.target.checked)} />
-            <Label htmlFor="is_published">Published</Label>
-          </div>
-
-          {/* Category and Season */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label>Category</Label>
-              <Select value={primaryCategoryId !== null ? String(primaryCategoryId) : undefined} onValueChange={(v)=>setPrimaryCategoryId(v ? Number(v) : null)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCategories.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* 翻译区域（嵌入在第一列） */}
+          <div className="grid grid-cols-2 gap-4 border border-gray-200 rounded-lg p-3">
+            <div className="col-span-2 flex items-center justify-between">
+              <h3 className="text-base font-bold">翻译 Translations</h3>
             </div>
-            <div>
-              <Label>Season</Label>
-              <Select value={seasonId !== null ? String(seasonId) : undefined} onValueChange={(v)=>setSeasonId(v ? Number(v) : null)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select season" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableSeasons.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-semibold">English (en)</Label>
+              </div>
+              <Input placeholder="English title" value={en.title}
+                     onChange={(e) => setEn((prev) => ({ ...prev, title: e.target.value }))} />
+              <Input placeholder="English subtitle" value={en.subtitle}
+                     onChange={(e) => setEn((prev) => ({ ...prev, subtitle: e.target.value }))} />
+              <Textarea placeholder="English description" value={en.description}
+                        onChange={(e) => setEn((prev) => ({ ...prev, description: e.target.value }))} />
             </div>
-          </div>
-
-          {/* Sections */}
-          <div>
-            <Label>Sections</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {availableSections.map(s => {
-                const checked = sectionIds.includes(s.id)
-                return (
-                  <label key={s.id} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e)=>{
-                        setSectionIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
-                      }}
-                    />
-                    <span>{s.name}</span>
-                  </label>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Primary location inputs */}
-          <div className="grid grid-cols-1 gap-2">
-            <div className="flex items-center gap-2">
-              <Label className="font-medium">Primary Location (optional)</Label>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={async ()=>{
-                  if (!primaryLocationName.trim()) return
-                  try {
-                    const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: primaryLocationName, limit: 1 }) })
-                    const data = await res.json()
-                    const g = data?.results?.[0]
-                    if (g) {
-                      setPrimaryLocationLat(g.lat)
-                      setPrimaryLocationLng(g.lon)
-                    }
-                  } catch (e) { console.warn('Geocode failed', e) }
-                }}
-              >Geocode</Button>
-            </div>
-            <Input placeholder="Location name (e.g., 外滩)" value={primaryLocationName} onChange={(e)=>setPrimaryLocationName(e.target.value)} />
-            <div className="grid grid-cols-2 gap-2">
-              <Input placeholder="Latitude" value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
-              <Input placeholder="Longitude" value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-semibold">中文 (zh)</Label>
+              </div>
+              <Input placeholder="中文标题" value={zh.title}
+                     onChange={(e) => setZh((prev) => ({ ...prev, title: e.target.value }))} />
+              <Input placeholder="中文副标题" value={zh.subtitle}
+                     onChange={(e) => setZh((prev) => ({ ...prev, subtitle: e.target.value }))} />
+              <Textarea placeholder="中文描述" value={zh.description}
+                        onChange={(e) => setZh((prev) => ({ ...prev, description: e.target.value }))} />
             </div>
           </div>
         </div>
 
-        {/* 右侧：封面预览 */}
+        {/* 第二列：封面预览 */}
         <div className="space-y-2">
           <Label htmlFor="cover">Cover Image</Label>
           {coverPreview ? (
@@ -771,98 +720,202 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             onChange={handleCoverChange}
             className="hidden"
           />
-        </div>
-      </div>
-
-      {/* AI分析功能区域 - 折叠式设计 */}
-      {coverPreview && (
-        <div className="border border-gray-200 rounded-lg">
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full p-3 flex items-center justify-between text-left"
-            onClick={() => setShowAIAnalysis(!showAIAnalysis)}
-          >
-            <div className="flex items-center gap-2">
-              <span>🤖</span>
-              <span className="font-medium">AI 智能分析</span>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                一键生成 & 自定义分析
-              </span>
-            </div>
-            <span className={`transform transition-transform ${showAIAnalysis ? 'rotate-180' : ''}`}>
-              ▼
-            </span>
-          </Button>
           
-          {showAIAnalysis && (
-            <div className="px-3 pb-3 border-t border-gray-100">
-              <ImageAnalysisComponent
-                imageUrl={coverPreview}
-                onResultUpdate={(field, result) => {
-                  if (field === 'title') setTitle(result)
-                  if (field === 'subtitle') setSubtitle(result)
-                  if (field === 'description') setDescription(result)
-                }}
-              />
+          {/* Options moved under cover */}
+          <div className="flex flex-col gap-2 pt-3 border-t">
+            <h4 className="text-base font-bold">选项 Options</h4>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="fill_missing_from_set" type="checkbox" checked={fillMissingFromSet} onChange={(e)=>setFillMissingFromSet(e.target.checked)} />
+              <span>自动填充图片属性（从集合继承）</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="autogen_titles_subtitles" type="checkbox" checked={autogenTitlesSubtitles} onChange={(e)=>setAutogenTitlesSubtitles(e.target.checked)} />
+              <span>自动生成图片标题和副标题</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="apply_set_props_to_pictures" type="checkbox" checked={applySetPropsToPictures} onChange={(e)=>setApplySetPropsToPictures(e.target.checked)} />
+              <span>应用集合属性到图片</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="override_existing_picture_props" type="checkbox" checked={overrideExistingPictureProps} onChange={(e)=>setOverrideExistingPictureProps(e.target.checked)} />
+              <span>覆盖现有图片属性</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="propagate_categories_to_pictures" type="checkbox" checked={propagateCategoriesToPictures} onChange={(e)=>setPropagateCategoriesToPictures(e.target.checked)} />
+              <span>传播分类到图片</span>
+            </label>
+          </div>
+          
+          {/* AI分析功能区域 - 折叠式设计 */}
+          {coverPreview && (
+            <div className="border border-gray-200 rounded-lg mt-3">
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full p-3 flex items-center justify-between text-left"
+                onClick={() => setShowAIAnalysis(!showAIAnalysis)}
+              >
+                <div className="flex items-center gap-2">
+                  <span>🤖</span>
+                  <span className="font-medium">AI 智能分析</span>
+                </div>
+                <span className={`transform transition-transform ${showAIAnalysis ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </Button>
+              
+              {showAIAnalysis && (
+                <div className="px-3 pb-3 border-t border-gray-100">
+                  <ImageAnalysisComponent
+                    imageUrl={coverPreview}
+                    onResultUpdate={(field, result) => {
+                      if (field === 'title') setTitle(result)
+                      if (field === 'subtitle') setSubtitle(result)
+                      if (field === 'description') setDescription(result)
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
 
-      {/* 多语言与标签 */}
-      <div className="grid grid-cols-2 gap-4 border rounded-lg p-3">
-        {/* 英文 */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Label className="text-base font-semibold">English (en)</Label>
+        {/* 第三列：其他属性 */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-bold">属性设置</h3>
           </div>
-          <Input placeholder="English title" value={en.title}
-                 onChange={(e) => setEn((prev) => ({ ...prev, title: e.target.value }))} />
-          <Input placeholder="English subtitle" value={en.subtitle}
-                 onChange={(e) => setEn((prev) => ({ ...prev, subtitle: e.target.value }))} />
-          <Textarea placeholder="English description" value={en.description}
-                    onChange={(e) => setEn((prev) => ({ ...prev, description: e.target.value }))} />
-        </div>
 
-        {/* 中文 */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Label className="text-base font-semibold">中文 (zh)</Label>
+          {/* Publish toggle */}
+          <div className="flex items-center gap-3 border rounded-md px-3 py-2">
+            <input id="is_published" type="checkbox" checked={isPublished} onChange={(e)=>setIsPublished(e.target.checked)} />
+            <Label htmlFor="is_published">Published 发布</Label>
           </div>
-          <Input placeholder="中文标题" value={zh.title}
-                 onChange={(e) => setZh((prev) => ({ ...prev, title: e.target.value }))} />
-          <Input placeholder="中文副标题" value={zh.subtitle}
-                 onChange={(e) => setZh((prev) => ({ ...prev, subtitle: e.target.value }))} />
-          <Textarea placeholder="中文描述" value={zh.description}
-                    onChange={(e) => setZh((prev) => ({ ...prev, description: e.target.value }))} />
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-base font-semibold">标签（以逗号分隔）</Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={generateTagsForSet}
-            disabled={isGenerating.tags || (!coverPreview && pictures.length === 0)}
-            title={coverPreview || pictures.length > 0 ? 'AI 生成标签' : '请先添加封面或图片'}
-            className="h-8 px-2"
-          >
-            {isGenerating.tags ? (
-              <span className="text-xs text-gray-500">生成中…</span>
-            ) : (
-              <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI 生成</span>
-            )}
-          </Button>
+          {/* Categories */}
+          <div className="border-t pt-3">
+            <h4 className="text-base font-bold">Categories 分类</h4>
+            <p className="text-xs text-gray-500 mt-1">可多选。例如：Portrait, Landscape, Street, Creative 等</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {availableCategories.map(c => {
+                const checked = categoryIds.includes(c.id)
+                return (
+                  <label key={c.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e)=>{
+                        setCategoryIds(prev => e.target.checked ? Array.from(new Set([...prev, c.id])) : prev.filter(id=>id!==c.id))
+                      }}
+                    />
+                    <span>{c.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Seasons */}
+          <div className="border-t pt-3">
+            <h4 className="text-base font-bold">Seasons 季节</h4>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {availableSeasons.map(s => {
+                const checked = seasonIds.includes(s.id)
+                return (
+                  <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e)=>{
+                        setSeasonIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
+                      }}
+                    />
+                    <span>{s.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Sections */}
+          <div className="border-t pt-3">
+            <h4 className="text-base font-bold">Sections 展示区块</h4>
+            <p className="text-xs text-gray-500 mt-1">选择在哪些页面区块显示此集合</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {availableSections.map(s => {
+                const checked = sectionIds.includes(s.id)
+                return (
+                  <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e)=>{
+                        setSectionIds(prev => e.target.checked ? Array.from(new Set([...prev, s.id])) : prev.filter(id=>id!==s.id))
+                      }}
+                    />
+                    <span>{s.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Primary location inputs */}
+          <div className="grid grid-cols-1 gap-2 border-t pt-3">
+            <h4 className="text-base font-bold">Primary Location 主要地点</h4>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={async ()=>{
+                  if (!primaryLocationName.trim()) return
+                  try {
+                    const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: primaryLocationName, limit: 1 }) })
+                    const data = await res.json()
+                    const g = data?.results?.[0]
+                    if (g) {
+                      setPrimaryLocationLat(g.lat)
+                      setPrimaryLocationLng(g.lon)
+                    }
+                  } catch (e) { console.warn('Geocode failed', e) }
+                }}
+              >地理编码 Geocode</Button>
+            </div>
+            <Input placeholder="地点名称 (e.g., 外滩, 上海)" value={primaryLocationName} onChange={(e)=>setPrimaryLocationName(e.target.value)} />
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="纬度 Latitude" value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
+              <Input placeholder="经度 Longitude" value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
+            </div>
+          </div>
+
+          {/* Set tags */}
+          <div className="space-y-2 border-t pt-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-base font-bold">标签 Tags</h4>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={generateTagsForSet}
+                disabled={isGenerating.tags || (!coverPreview && pictures.length === 0)}
+                title={coverPreview || pictures.length > 0 ? 'AI 生成标签' : '请先添加封面或图片'}
+                className="h-8 px-2"
+              >
+                {isGenerating.tags ? (
+                  <span className="text-xs text-gray-500">生成中…</span>
+                ) : (
+                  <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI 生成</span>
+                )}
+              </Button>
+            </div>
+            <Input
+              placeholder="用逗号分隔，例如：portrait, street, night"
+              value={tagsText}
+              onChange={(e) => setTagsText(e.target.value)}
+            />
+          </div>
         </div>
-        <Input
-          placeholder="例如：portrait, street, night"
-          value={tagsText}
-          onChange={(e) => setTagsText(e.target.value)}
-        />
       </div>
 
       {/* 多张图片列表 */}
