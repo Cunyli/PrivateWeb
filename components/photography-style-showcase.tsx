@@ -68,6 +68,7 @@ export function PhotographyStyleShowcase() {
   const [, startHighlightTransition] = useTransition()
   const hoverTimerRef = useRef<number | null>(null)
   const prefetchedImagesRef = useRef<Set<string>>(new Set())
+  const [hoveredMobileIndex, setHoveredMobileIndex] = useState<number | null>(null)
 
   const updateOrientation = useCallback((styleId: string | null, pictureId: number, width?: number, height?: number) => {
     if (!styleId) return
@@ -706,34 +707,134 @@ export function PhotographyStyleShowcase() {
                   </div>
                 </div>
 
-                <div className="lg:hidden grid gap-3 sm:grid-cols-3 auto-rows-[120px] sm:auto-rows-[150px] md:auto-rows-[180px] overflow-hidden">
+                <div className="lg:hidden relative flex flex-col items-center">
                   {modalPictures.map((picture, idx) => {
                     const active = idx === modalIndex
+                    const isHovered = hoveredMobileIndex === idx
                     const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
+                    const isLandscape = selectedStyleId ? (landscapeMap[selectedStyleId]?.[picture.id] ?? true) : true
+                    const isExpanded = (active || isHovered) && !isLandscape
+                    
+                    // 统一使用横向布局，竖向图片展开时显示完整内容
+                    const cardHeight = 180
+                    const overlapAmount = 45
+                    
                     return (
                       <button
                         key={`${picture.id}-mobile-${idx}`}
                         type="button"
                         onClick={() => setModalIndex(idx)}
-                        className={`group relative aspect-[4/3] w-full overflow-hidden rounded-2xl border transition-all duration-500 ${
+                        className={`group relative w-full overflow-hidden rounded-2xl border transition-all duration-500 ${
                           active
-                            ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)] scale-[1.02]'
-                            : 'border-white/20 hover:border-white/60 hover:scale-[1.01]'
+                            ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)]'
+                            : 'border-white/20 hover:border-white/60'
                         }`}
+                        style={{
+                          height: `${cardHeight}px`,
+                          marginTop: idx === 0 ? '0' : `-${overlapAmount}px`,
+                          zIndex: isExpanded ? modalPictures.length + 10 : modalPictures.length - idx,
+                          transform: active ? 'scale(1.02)' : 'scale(1)',
+                          transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        }}
+                        onMouseEnter={(e) => {
+                          setHoveredMobileIndex(idx)
+                          if (!isLandscape) {
+                            // 竖向图片展开时，需要更多空间
+                            const buttons = e.currentTarget.parentElement?.querySelectorAll('button')
+                            if (!buttons) return
+                            buttons.forEach((btn, btnIdx) => {
+                              const htmlBtn = btn as HTMLElement
+                              if (btnIdx < idx) {
+                                // 上面的图片向上移动
+                                htmlBtn.style.transform = 'translateY(-140px)'
+                              } else if (btnIdx === idx) {
+                                // 悬停的图片本身
+                                htmlBtn.style.transform = 'scale(1.02)'
+                                htmlBtn.style.zIndex = String(modalPictures.length + 10)
+                              } else {
+                                // 下面的图片向下移动
+                                htmlBtn.style.transform = 'translateY(140px)'
+                              }
+                            })
+                          } else {
+                            // 横向图片正常展开
+                            const buttons = e.currentTarget.parentElement?.querySelectorAll('button')
+                            if (!buttons) return
+                            buttons.forEach((btn, btnIdx) => {
+                              const htmlBtn = btn as HTMLElement
+                              if (btnIdx < idx) {
+                                htmlBtn.style.transform = 'translateY(-45px)'
+                              } else if (btnIdx === idx) {
+                                htmlBtn.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
+                                htmlBtn.style.zIndex = String(modalPictures.length + 10)
+                              } else {
+                                htmlBtn.style.transform = 'translateY(45px)'
+                              }
+                            })
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          setHoveredMobileIndex(null)
+                          const buttons = e.currentTarget.parentElement?.querySelectorAll('button')
+                          if (!buttons) return
+                          buttons.forEach((btn, btnIdx) => {
+                            const htmlBtn = btn as HTMLElement
+                            if (btnIdx === modalIndex) {
+                              htmlBtn.style.transform = 'translateY(0) scale(1.02)'
+                            } else {
+                              htmlBtn.style.transform = 'translateY(0) scale(1)'
+                            }
+                            // 恢复原始 z-index
+                            htmlBtn.style.zIndex = String(modalPictures.length - btnIdx)
+                          })
+                        }}
                       >
-                        <Image
-                          src={imageSrc || '/placeholder.svg'}
-                          alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                          fill
-                          className="object-cover transition duration-700 group-hover:scale-105"
-                          onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
-                        />
-                        <div className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ${active ? 'opacity-5' : 'opacity-35 group-hover:opacity-15'}`} />
-                        <div className="absolute bottom-2 left-2 right-2 text-left text-[11px] leading-tight text-white drop-shadow-md">
-                          <div className="font-medium line-clamp-1">
+                        {/* 背景层 - 模糊的图片背景 */}
+                        {isExpanded && (
+                          <div className="absolute inset-0 overflow-hidden z-0">
+                            <Image
+                              src={imageSrc || '/placeholder.svg'}
+                              alt=""
+                              fill
+                              className="object-cover scale-110 blur-2xl opacity-40"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
+                          </div>
+                        )}
+                        
+                        {/* 图片层 - 统一使用一个 Image 组件，根据状态切换显示模式 */}
+                        <div className="absolute inset-0 z-10">
+                          <Image
+                            src={imageSrc || '/placeholder.svg'}
+                            alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                            fill
+                            className={`transition-all duration-500 ${
+                              isExpanded 
+                                ? 'object-contain scale-100' 
+                                : 'object-cover group-hover:scale-105'
+                            }`}
+                            onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
+                            priority={active || isHovered}
+                          />
+                        </div>
+                        
+                        {/* 遮罩层 */}
+                        <div className={`absolute inset-0 transition-opacity duration-500 z-5 ${
+                          isExpanded 
+                            ? 'opacity-0' 
+                            : (active ? 'bg-black/5 opacity-100' : 'bg-black/35 opacity-100 group-hover:opacity-50')
+                        }`} />
+                        
+                        {/* 文字信息 */}
+                        <div className={`absolute bottom-0 left-0 right-0 text-left text-[11px] leading-tight text-white z-20 transition-all duration-300 ${
+                          isExpanded 
+                            ? 'bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 py-3' 
+                            : 'px-2 py-2'
+                        }`}>
+                          <div className={`font-medium line-clamp-1 ${isExpanded ? 'drop-shadow-xl' : 'drop-shadow-md'}`}>
                             {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
                           </div>
-                          <div className="opacity-75 line-clamp-1">
+                          <div className={`opacity-75 line-clamp-1 ${isExpanded ? 'drop-shadow-xl' : 'drop-shadow-md'}`}>
                             {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
                           </div>
                         </div>
