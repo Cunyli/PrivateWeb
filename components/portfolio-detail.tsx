@@ -7,7 +7,7 @@ import { Carousel } from "@/components/carousel"
 import { ImageDetails } from "@/components/image-details"
 import { LangSwitcher } from "@/components/lang-switcher"
 import { useI18n } from "@/lib/i18n"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface LocalizedContent {
   title?: string
@@ -34,7 +34,10 @@ interface PortfolioDetailProps {
 }
 
 export default function PortfolioDetail({ images, translations }: PortfolioDetailProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const searchParams = useSearchParams()
+  const initialIndex = parseInt(searchParams.get('index') || '0', 10)
+  const styleParam = searchParams.get('style') // 获取风格参数
+  const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(initialIndex, images.length - 1)));
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
@@ -61,12 +64,15 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
   }
 
   const handleBack = useCallback(() => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
+    // 如果有风格参数，返回到首页并自动打开对应的风格弹窗
+    if (styleParam) {
+      router.push(`/?style=${styleParam}`)
+    } else if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back()
     } else {
       router.push('/')
     }
-  }, [router])
+  }, [router, styleParam])
 
   // Smart preloading strategy: start preloading after page load
   useEffect(() => {
@@ -457,16 +463,6 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
         </main>
       </div>
 
-      {/* Floating back button for mobile to ensure quick access */}
-      <button
-        type="button"
-        onClick={handleBack}
-        className="fixed bottom-5 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-lg shadow-gray-900/10 transition-transform duration-200 hover:scale-105 sm:hidden"
-        aria-label={t('backToHome')}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t('backToHome')}
-      </button>
     </div>
   )
 }

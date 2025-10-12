@@ -229,7 +229,7 @@ const dicts: Record<Locale, Dict> = {
     styleShowcaseTitle: "摄影风格专栏",
     styleShowcaseSubtitle: "悬停浏览四种代表性的摄影风格，点击区块即可展开对应照片轮播。",
     styleShowcaseInstruction: "悬停预览 · 点击查看轮播",
-    styleViewGallery: "查看风格",
+    styleViewGallery: "查看图片",
     styleEmpty: "尚未收录",
     styleUntitled: "未命名",
     styleFromSeries: "所属系列",
