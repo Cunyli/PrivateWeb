@@ -32,8 +32,6 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
   const { t, locale } = useI18n()
   const primaryLocale = locale === 'zh' ? 'zh' : 'en'
   const secondaryLocale = primaryLocale === 'zh' ? 'en' : 'zh'
-  const bucketUrl = React.useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
-  
   const goToPrevious = () => {
     const isFirstImage = currentIndex === 0
     const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1
@@ -48,7 +46,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
 
   const handleOpenOriginal = () => {
     if (images[currentIndex].rawUrl) {
-      window.open(bucketUrl + images[currentIndex].rawUrl, "_blank")
+      window.open(process.env.NEXT_PUBLIC_BUCKET_URL+images[currentIndex].rawUrl, "_blank")
     }
   }
 
@@ -70,7 +68,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
         {/* Image wrapper */}
         <div className="w-full h-full flex items-center justify-center relative">
           <Image
-            src={activeImage.url ? (bucketUrl + activeImage.url) : "/placeholder.svg"}
+            src={process.env.NEXT_PUBLIC_BUCKET_URL+activeImage.url || "/placeholder.svg"}
             alt={computedAlt}
             fill
             className="object-contain corner-lg smooth-transition"
@@ -122,7 +120,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
                 }`}
               >
                 <Image
-                  src={image.url ? (bucketUrl + image.url) : "/placeholder.svg"}
+                  src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
                   alt={`Thumbnail ${index + 1}`}
                   width={96}
                   height={54}

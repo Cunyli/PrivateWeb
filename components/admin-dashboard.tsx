@@ -11,8 +11,10 @@ import { toast } from "@/components/ui/use-toast"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
 import { deleteFileFromR2 } from "@/utils/r2-helpers"
+import { useI18n } from "@/lib/i18n"
 
 export function AdminDashboard() {
+  const { t } = useI18n()
   const [pictureSets, setPictureSets] = useState<PictureSet[]>([])
   const [editingPictureSet, setEditingPictureSet] = useState<PictureSet | null>(null)
   const [activeTab, setActiveTab] = useState("list")
@@ -34,101 +36,55 @@ export function AdminDashboard() {
   const fetchPictureSets = async (q?: string) => {
     try {
       setIsLoading(true)
-      console.log("Fetching picture sets...")
       const query = (typeof q === 'string' ? q : searchQuery).trim()
-
-      let setsData: any[] | null = null
-      let setsError: any = null
-
-      if (query.length === 0) {
-        // Base list
-        const res = await supabase
-          .from("picture_sets")
-          .select("*")
-          .order("updated_at", { ascending: false })
-          .order("created_at", { ascending: false })
-        setsData = res.data
-        setsError = res.error
-      } else {
-        console.log(`Searching picture_sets for: ${query}`)
-        // Try English websearch FTS first
-        const fts = await supabase
-          .from('picture_sets')
-          .select('*')
-          .textSearch('search_vector', query, { type: 'websearch', config: 'english' })
-          .order('updated_at', { ascending: false })
-          .limit(100)
-
-        if (fts.error) {
-          console.warn('FTS search error:', fts.error)
-        }
-
-        if (fts.data && fts.data.length > 0) {
-          setsData = fts.data
-        } else {
-          // Fallback: AND all terms against search_text (supports zh + tags)
-          const terms = query.split(/\s+/).filter(Boolean)
-          let builder: any = supabase.from('picture_sets').select('*')
-          for (const t of terms) {
-            builder = builder.ilike('search_text', `%${t}%`)
-          }
-          const andRes = await builder
-            .order('updated_at', { ascending: false })
-            .limit(100)
-          if (andRes.error) {
-            setsError = andRes.error
-          }
-          setsData = andRes.data
-        }
-      }
-
-      if (setsError) {
-        console.error("Error fetching picture sets:", setsError)
-        toast({
-          title: "Error",
-          description: "Failed to load picture sets",
-          variant: "destructive",
-        })
-        return
-      }
-
-      console.log(`Found ${setsData?.length || 0} picture sets`)
-
-      // Then fetch pictures for each set
-      const sets = await Promise.all(
-        (setsData || []).map(async (set) => {
-          const { data: picturesData, error: picturesError } = await supabase
-            .from("pictures")
-            .select("*")
-            .eq("picture_set_id", set.id)
-            .order("order_index", { ascending: true })
-
-          if (picturesError) {
-            console.error(`Error fetching pictures for set ${set.id}:`, picturesError)
-          }
-
-          console.log(`Set ${set.id} has ${picturesData?.length || 0} pictures`)
-
-          return {
-            ...set,
-            pictures: picturesData || [],
-          }
-        }),
-      )
-
-      setPictureSets(sets)
-
-      // Don't automatically update editing state when fetching data
-      // This prevents unwanted state changes after submit operations
+      const url = query ? `/api/admin/picture-sets?q=${encodeURIComponent(query)}` : '/api/admin/picture-sets'
+      const res = await fetch(url)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || t('loadSetsFail'))
+      const items = Array.isArray(data?.items) ? data.items : []
+      setPictureSets(items)
     } catch (error) {
-      console.error("Error in fetchPictureSets:", error)
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while loading data",
-        variant: "destructive",
-      })
+      console.error('Error in fetchPictureSets(server):', error)
+      toast({ title: t('error'), description: t('loadSetsFail'), variant: 'destructive' })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // 使用服务端 API 写库，优先确保 set / 图片描述类字段能保存
+  const handleSubmitPictureSetServer = async (newPictureSet: PictureSetSubmitData, pictureSetId?: number) => {
+    try {
+      if (pictureSetId) {
+        const res = await fetch(`/api/admin/picture-sets/${pictureSetId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newPictureSet)
+        })
+        const data = await res.json().catch(()=> ({}))
+        if (!res.ok) {
+          console.error('API update picture-set failed:', data)
+          toast({ title: t('error'), description: data?.error || t('updateSetFail'), variant: 'destructive' })
+          return
+        }
+        toast({ title: t('success'), description: t('updateSetSuccess') })
+        setEditingPictureSet(null)
+        setActiveTab('list')
+        setTimeout(async ()=> { await fetchPictureSets() }, 0)
+      } else {
+        const res = await fetch('/api/admin/picture-sets', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newPictureSet)
+        })
+        const data = await res.json().catch(()=> ({}))
+        if (!res.ok) {
+          console.error('API create picture-set failed:', data)
+          toast({ title: t('error'), description: data?.error || t('createSetFail'), variant: 'destructive' })
+          return
+        }
+        toast({ title: t('success'), description: t('createSetSuccess') })
+        setActiveTab('list')
+        await fetchPictureSets()
+      }
+    } catch (e) {
+      console.error('Error in handleSubmitPictureSetServer:', e)
+      toast({ title: t('error'), description: t('unexpectedError'), variant: 'destructive' })
     }
   }
 
@@ -171,8 +127,12 @@ export function AdminDashboard() {
     if (error) throw error
   }
 
-  // --- Helpers: auto-translate missing zh fields from English/base ---
-  const translateText = async (text: string, source: 'en'|'zh' = 'en', target: 'en'|'zh' = 'zh'): Promise<string> => {
+  // --- Helpers: auto-translate missing fields with language detection ---
+  const translateText = async (
+    text: string,
+    source: 'en' | 'zh' | 'auto' = 'auto',
+    target: 'en' | 'zh' = 'zh',
+  ): Promise<string> => {
     try {
       const res = await fetch('/api/translate', {
         method: 'POST',
@@ -189,46 +149,96 @@ export function AdminDashboard() {
   }
 
   const autoFillTranslations = async (payload: PictureSetSubmitData) => {
-    // base English candidates from main fields if en not provided
-    const enTitleBase = payload.en?.title ?? payload.title ?? ''
-    const enSubtitleBase = payload.en?.subtitle ?? payload.subtitle ?? ''
-    const enDescBase = payload.en?.description ?? payload.description ?? ''
-
-    // ensure en has values (copy from base if not supplied)
-    const enOut = {
-      title: payload.en?.title ?? enTitleBase ?? '',
-      subtitle: payload.en?.subtitle ?? enSubtitleBase ?? '',
-      description: payload.en?.description ?? enDescBase ?? '',
+    // Base fields
+    const base = {
+      title: payload.title ?? '',
+      subtitle: payload.subtitle ?? '',
+      description: payload.description ?? '',
     }
 
-    // only translate into zh if missing and we have english text
+    const enOut = {
+      title: payload.en?.title ?? '',
+      subtitle: payload.en?.subtitle ?? '',
+      description: payload.en?.description ?? '',
+    }
     const zhOut = {
       title: payload.zh?.title ?? '',
       subtitle: payload.zh?.subtitle ?? '',
       description: payload.zh?.description ?? '',
     }
 
-    if (!zhOut.title && enOut.title) zhOut.title = await translateText(enOut.title, 'en', 'zh')
-    if (!zhOut.subtitle && enOut.subtitle) zhOut.subtitle = await translateText(enOut.subtitle, 'en', 'zh')
-    if (!zhOut.description && enOut.description) zhOut.description = await translateText(enOut.description, 'en', 'zh')
+    // Helper to detect if a string looks Chinese
+    const isZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+
+    // For each field, fill both sides using base and detection
+    for (const key of ['title', 'subtitle', 'description'] as const) {
+      const b = base[key]
+      let enVal = enOut[key] || ''
+      let zhVal = zhOut[key] || ''
+
+      if (!enVal && !zhVal && b) {
+        if (isZh(b)) {
+          zhVal = b
+          enVal = await translateText(b, 'auto', 'en')
+        } else {
+          enVal = b
+          zhVal = await translateText(b, 'auto', 'zh')
+        }
+      } else if (!enVal && zhVal) {
+        enVal = await translateText(zhVal, 'auto', 'en')
+      } else if (!zhVal && enVal) {
+        zhVal = await translateText(enVal, 'auto', 'zh')
+      }
+
+      enOut[key] = enVal
+      zhOut[key] = zhVal
+    }
 
     return { en: enOut, zh: zhOut }
   }
 
   const autoFillPictureTranslations = async (p: any) => {
-    const enOut = {
-      title: p?.en?.title ?? p?.title ?? '',
-      subtitle: p?.en?.subtitle ?? p?.subtitle ?? '',
-      description: p?.en?.description ?? p?.description ?? '',
+    const base = {
+      title: p?.title ?? '',
+      subtitle: p?.subtitle ?? '',
+      description: p?.description ?? '',
     }
-    const zhOut = {
+    const enOut: { title: string; subtitle: string; description: string } = {
+      title: p?.en?.title ?? '',
+      subtitle: p?.en?.subtitle ?? '',
+      description: p?.en?.description ?? '',
+    }
+    const zhOut: { title: string; subtitle: string; description: string } = {
       title: p?.zh?.title ?? '',
       subtitle: p?.zh?.subtitle ?? '',
       description: p?.zh?.description ?? '',
     }
-    if (!zhOut.title && enOut.title) zhOut.title = await translateText(enOut.title, 'en', 'zh')
-    if (!zhOut.subtitle && enOut.subtitle) zhOut.subtitle = await translateText(enOut.subtitle, 'en', 'zh')
-    if (!zhOut.description && enOut.description) zhOut.description = await translateText(enOut.description, 'en', 'zh')
+
+    const isZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+
+    for (const key of ['title', 'subtitle', 'description'] as const) {
+      const b = base[key]
+      let enVal = enOut[key] || ''
+      let zhVal = zhOut[key] || ''
+
+      if (!enVal && !zhVal && b) {
+        if (isZh(b)) {
+          zhVal = b
+          enVal = await translateText(b, 'auto', 'en')
+        } else {
+          enVal = b
+          zhVal = await translateText(b, 'auto', 'zh')
+        }
+      } else if (!enVal && zhVal) {
+        enVal = await translateText(zhVal, 'auto', 'en')
+      } else if (!zhVal && enVal) {
+        zhVal = await translateText(enVal, 'auto', 'zh')
+      }
+
+      enOut[key] = enVal
+      zhOut[key] = zhVal
+    }
+
     return { en: enOut, zh: zhOut }
   }
 
@@ -386,8 +396,27 @@ export function AdminDashboard() {
     return existingPictures.filter((p) => !updatedIds.includes(p.id))
   }
 
-  // Handle adding or updating a picture set
+  /* LEGACY_DISABLED: client-side submit (replaced by server API)
   const handleSubmitPictureSet = async (newPictureSet: PictureSetSubmitData, pictureSetId?: number) => {
+    // Simple helpers for transient errors (e.g., 429 Too Many Requests)
+    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
+    const withRetry = async <T extends { data?: any; error?: any }>(fn: () => Promise<T>, tries: number = 3): Promise<T> => {
+      let last: T | undefined
+      for (let i = 0; i < tries; i++) {
+        const res = await fn()
+        if (!res?.error) return res
+        const err = res.error
+        const msg = String(err?.message || err || '')
+        const code = String(err?.code || '')
+        if (code === '429' || /too many requests|rate/i.test(msg)) {
+          await sleep(400 * Math.pow(2, i))
+          last = res
+          continue
+        }
+        return res
+      }
+      return last as T
+    }
     try {
       console.log("Submitting picture set with position:", newPictureSet.position)
       console.log(`Picture set has ${newPictureSet.pictures.length} pictures`)
@@ -488,9 +517,8 @@ export function AdminDashboard() {
         }
 
         // Update existing picture set
-        const { error: updateError } = await supabase
-          .from("picture_sets")
-          .update({
+        const upd = await withRetry(() => supabase
+          .from("picture_sets").update({
             title: newPictureSet.title,
             subtitle: newPictureSet.subtitle,
             description: newPictureSet.description,
@@ -499,8 +527,8 @@ export function AdminDashboard() {
             is_published: newPictureSet.is_published ?? true,
             primary_category_id: newPictureSet.primary_category_id ?? null,
             season_id: newPictureSet.season_id ?? null,
-          })
-          .eq("id", pictureSetId)
+          }).eq("id", pictureSetId))
+        const updateError = upd.error
 
         if (updateError) {
           console.error("Error updating picture set:", updateError)
@@ -514,7 +542,17 @@ export function AdminDashboard() {
 
         // Update sections assignments (multi)
         try {
-          const desiredSectionIds = Array.from(new Set(newPictureSet.section_ids || []))
+          let desiredSectionIds = Array.from(new Set(newPictureSet.section_ids || []))
+          // also add a section by derived position if no explicit mapping
+          const { data: secs } = await supabase.from('sections').select('id,name')
+          const findBy = (want: 'up'|'down') => {
+            const re = want === 'down' ? /\bdown\b|bottom|下|底/i : /\bup\b|top|上|顶/i
+            return (secs || []).find((s:any)=> re.test(String(s.name||'')))?.id as number | undefined
+          }
+          const pos = (newPictureSet.position||'').trim().toLowerCase()
+          const autoId = pos === 'down' ? findBy('down') : findBy('up')
+          if (autoId && !desiredSectionIds.includes(autoId)) desiredSectionIds = [...desiredSectionIds, autoId]
+
           const { data: existingAssigns } = await supabase
             .from('picture_set_section_assignments')
             .select('section_id')
@@ -589,12 +627,55 @@ export function AdminDashboard() {
               }
             } catch {}
           }
-          const tagIds = await ensureTagIds(setTags || [], 'topic')
-          await setSetTags(pictureSetId, tagIds)
+          // topic tags
+          const topicTagIds = await ensureTagIds(setTags || [], 'topic')
+          // category tags from selected category IDs
+          let categoryTagIds: number[] = []
+          const selectedCategoryIds = Array.from(new Set(newPictureSet.category_ids || []))
+          if (selectedCategoryIds.length) {
+            const { data: catRows } = await supabase.from('categories').select('id,name').in('id', selectedCategoryIds)
+            const catNames = (catRows || []).map((r:any)=> r.name).filter(Boolean)
+            categoryTagIds = await ensureTagIds(catNames, 'category')
+          }
+          // season tags from selected season IDs
+          let seasonTagIds: number[] = []
+          const selectedSeasonIds = Array.from(new Set(newPictureSet.season_ids || []))
+          if (selectedSeasonIds.length) {
+            const { data: seaRows } = await supabase.from('seasons').select('id,name').in('id', selectedSeasonIds)
+            const seaNames = (seaRows || []).map((r:any)=> r.name).filter(Boolean)
+            seasonTagIds = await ensureTagIds(seaNames, 'season')
+          }
+          const combined = Array.from(new Set([...(topicTagIds||[]), ...(categoryTagIds||[]), ...(seasonTagIds||[])]))
+          await setSetTags(pictureSetId, combined)
         } catch (e) {
           console.error('Error updating translations/tags for set:', e)
-          toast({ title: 'Tag/translation error', description: '保存集合标签或翻译失败，请检查权限或网络。', variant: 'destructive' })
+          toast({ title: t('error'), description: 'Failed to save set tags/translations. Check permissions or network.', variant: 'destructive' })
         }
+
+        // Precompute single-select category/season for propagation to pictures
+        let __singleSeasonId: number | null = null
+        let __singleSeasonTagIds: number[] = []
+        let __singleCategoryTagIds: number[] = []
+        try {
+          const selSeasons = Array.from(new Set(newPictureSet.season_ids || []))
+          if (selSeasons.length === 1) {
+            __singleSeasonId = selSeasons[0]
+            const { data: seaRows } = await supabase.from('seasons').select('id,name').in('id', selSeasons)
+            const seaNames = (seaRows || []).map((r:any)=> r.name).filter(Boolean)
+            if (seaNames.length === 1) __singleSeasonTagIds = await ensureTagIds(seaNames, 'season')
+          }
+          const selCats = Array.from(new Set(newPictureSet.category_ids || []))
+          if (selCats.length === 1) {
+            const { data: catRows } = await supabase.from('categories').select('id,name').in('id', selCats)
+            const catNames = (catRows || []).map((r:any)=> r.name).filter(Boolean)
+            if (catNames.length === 1) __singleCategoryTagIds = await ensureTagIds(catNames, 'category')
+          }
+        } catch (e) { console.warn('Precompute per-picture propagated tags failed', e) }
+
+        const allowApplySetProps = !!(newPictureSet.fill_missing_from_set ?? newPictureSet.apply_set_props_to_pictures)
+        const allowOverrideExisting = !!newPictureSet.override_existing_picture_props
+        const allowPropagateCategories = !!newPictureSet.propagate_categories_to_pictures
+        const autoGenTitlesSubtitles = !!newPictureSet.autogen_titles_subtitles
 
         // Update or insert pictures
         for (const [index, picture] of newPictureSet.pictures.entries()) {
@@ -602,19 +683,41 @@ export function AdminDashboard() {
             // Find the existing picture to compare URLs
             const existingPicture = existingPictures?.find((p) => p.id === picture.id)
 
+            // Auto-generate title/subtitle if requested and missing (update path)
+            try {
+              if (autoGenTitlesSubtitles) {
+                if (!picture.title?.trim()) {
+                  const picUrl = picture.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${picture.image_url}` : undefined
+                  if (picUrl) {
+                    const res = await fetch('/api/analyze-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl: picUrl, analysisType: 'title' }) })
+                    const data = await res.json(); if (res.ok && data?.success) picture.title = String(data.result).trim()
+                  }
+                }
+                if (!picture.subtitle?.trim()) {
+                  const picUrl = picture.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${picture.image_url}` : undefined
+                  if (picUrl) {
+                    const res = await fetch('/api/analyze-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl: picUrl, analysisType: 'subtitle' }) })
+                    const data = await res.json(); if (res.ok && data?.success) picture.subtitle = String(data.result).trim()
+                  }
+                }
+              }
+            } catch {}
+
             // Update existing picture
-            const { error: pictureUpdateError } = await supabase
-              .from("pictures")
-              .update({
+            const upPic = await withRetry(() => supabase
+              .from("pictures").update({
                 title: picture.title,
                 subtitle: picture.subtitle,
                 description: picture.description,
                 image_url: picture.image_url || undefined,
                 raw_image_url: picture.raw_image_url || undefined,
-                season_id: picture.season_id ?? null,
+                season_id: (allowApplySetProps
+                  ? (allowOverrideExisting ? (__singleSeasonId ?? picture.season_id ?? null)
+                    : (picture.season_id ?? (__singleSeasonId ?? null)))
+                  : (picture.season_id ?? null)),
                 order_index: index,
-              })
-              .eq("id", picture.id)
+              }).eq("id", picture.id))
+            const pictureUpdateError = upPic.error
 
             if (pictureUpdateError) {
               console.error(`Error updating picture ${picture.id}:`, pictureUpdateError)
@@ -630,7 +733,7 @@ export function AdminDashboard() {
               console.error('Error upserting picture translations (update):', e)
             }
 
-            // Picture tags (auto-generate if missing)
+            // Picture tags (auto-generate if missing) and propagate category/season tags
             try {
               let pTags = picture.tags || []
               if (!pTags || pTags.length === 0) {
@@ -647,10 +750,20 @@ export function AdminDashboard() {
                 } catch {}
               }
               const pTagIds = await ensureTagIds(pTags || [], 'topic')
-              await setPictureTags(picture.id, pTagIds)
+              let catTagIds: number[] = []
+              const picCatIds = Array.isArray((picture as any).picture_category_ids) ? (picture as any).picture_category_ids as number[] : []
+              if (picCatIds.length) {
+                const { data: catRows } = await supabase.from('categories').select('id,name').in('id', picCatIds)
+                const names = (catRows || []).map((r:any)=> r.name).filter(Boolean)
+                catTagIds = await ensureTagIds(names, 'category')
+              } else if (allowPropagateCategories) {
+                catTagIds = Array.from(new Set([...(__singleCategoryTagIds||[]), ...(__singleSeasonTagIds||[])]))
+              }
+              const combined = Array.from(new Set([...(pTagIds||[]), ...catTagIds]))
+              await setPictureTags(picture.id, combined)
             } catch (e) {
               console.error('Error updating picture tags:', e)
-              toast({ title: 'Tag error', description: `图片 #${picture.id} 标签保存失败，请检查权限或网络。`, variant: 'destructive' })
+              toast({ title: 'Tag error', description: `Failed to save tags for picture #${picture.id}. Check permissions or network.`, variant: 'destructive' })
             }
 
             // Upsert picture primary location (optional; geocode if needed)
@@ -707,9 +820,28 @@ export function AdminDashboard() {
               }
             }
           } else {
+            // Insert new picture (auto-generate title/subtitle if requested and missing)
+            try {
+              if (autoGenTitlesSubtitles) {
+                if (!picture.title?.trim()) {
+                  const picUrl = picture.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${picture.image_url}` : undefined
+                  if (picUrl) {
+                    const res = await fetch('/api/analyze-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl: picUrl, analysisType: 'title' }) })
+                    const data = await res.json(); if (res.ok && data?.success) picture.title = String(data.result).trim()
+                  }
+                }
+                if (!picture.subtitle?.trim()) {
+                  const picUrl = picture.image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL || ''}${picture.image_url}` : undefined
+                  if (picUrl) {
+                    const res = await fetch('/api/analyze-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl: picUrl, analysisType: 'subtitle' }) })
+                    const data = await res.json(); if (res.ok && data?.success) picture.subtitle = String(data.result).trim()
+                  }
+                }
+              }
+            } catch {}
             // Insert new picture
             console.log(`Inserting new picture at index ${index}`)
-            const { data: insertedPic, error: pictureInsertError } = await supabase.from("pictures").insert({
+            const insPic = await withRetry(() => supabase.from("pictures").insert({
               picture_set_id: pictureSetId,
               order_index: index,
               title: picture.title,
@@ -717,8 +849,13 @@ export function AdminDashboard() {
               description: picture.description,
               image_url: picture.image_url,
               raw_image_url: picture.raw_image_url,
-              season_id: picture.season_id ?? null,
-            }).select('id').single()
+              season_id: (allowApplySetProps
+                ? (allowOverrideExisting ? (__singleSeasonId ?? picture.season_id ?? null)
+                  : (picture.season_id ?? (__singleSeasonId ?? null)))
+                : (picture.season_id ?? null)),
+            }).select('id').single())
+            const insertedPic = insPic.data
+            const pictureInsertError = insPic.error
 
             if (pictureInsertError) {
               console.error("Error inserting new picture:", pictureInsertError)
@@ -747,10 +884,13 @@ export function AdminDashboard() {
                   } catch {}
                 }
                 const pTagIds = await ensureTagIds(pTags || [], 'topic')
-              await setPictureTags(insertedPic.id, pTagIds)
+                const extra = (!allowPropagateCategories || (pTags && pTags.length > 0)) ? [] : Array.from(new Set([...
+                  (__singleCategoryTagIds||[]), ...(__singleSeasonTagIds||[])]))
+                const combined = Array.from(new Set([...(pTagIds||[]), ...extra]))
+                await setPictureTags(insertedPic.id, combined)
               } catch (e) {
                 console.error('Error inserting picture tags:', e)
-                toast({ title: 'Tag error', description: `新图片标签保存失败，请检查权限或网络。`, variant: 'destructive' })
+                toast({ title: t('error'), description: 'Failed to save tags for the new picture. Check permissions or network.', variant: 'destructive' })
               }
 
               // Picture primary location (optional; geocode if needed)
@@ -816,10 +956,7 @@ export function AdminDashboard() {
           console.warn('Safe reorder encountered an error:', verr)
         }
 
-        toast({
-          title: "Success",
-          description: "Picture set updated successfully",
-        })
+        toast({ title: t('success'), description: t('updateSetSuccess') })
 
         // Reset edit mode first - 立即重置编辑状态
         const currentEditingPictureSet = editingPictureSet
@@ -852,20 +989,25 @@ export function AdminDashboard() {
 
         if (pictureSetError) {
           console.error("Error inserting picture set:", pictureSetError)
-          toast({
-            title: "Error",
-            description: "Failed to create picture set",
-            variant: "destructive",
-          })
+          toast({ title: t('error'), description: t('createSetFail'), variant: 'destructive' })
           return
         }
 
         const pictureSetId = pictureSetData[0].id
         console.log(`Created new picture set with ID: ${pictureSetId}`)
 
-        // Sections assignments
+        // Sections assignments (ensure top/bottom by derived position if missing)
         try {
-          const desiredSectionIds = Array.from(new Set(newPictureSet.section_ids || []))
+          let desiredSectionIds = Array.from(new Set(newPictureSet.section_ids || []))
+          // try to find top/bottom section IDs
+          const { data: secs } = await supabase.from('sections').select('id,name')
+          const findBy = (want: 'up'|'down') => {
+            const re = want === 'down' ? /\bdown\b|bottom|下|底/i : /\bup\b|top|上|顶/i
+            return (secs || []).find((s:any)=> re.test(String(s.name||'')))?.id as number | undefined
+          }
+          const pos = (newPictureSet.position||'').trim().toLowerCase()
+          const autoId = pos === 'down' ? findBy('down') : findBy('up')
+          if (autoId && !desiredSectionIds.includes(autoId)) desiredSectionIds = [...desiredSectionIds, autoId]
           if (desiredSectionIds.length) {
             const rows = desiredSectionIds.map((id:number)=>({ picture_set_id: pictureSetId, section_id: id, page_context: 'default', display_order: 0 }))
             await supabase.from('picture_set_section_assignments').insert(rows)
@@ -874,11 +1016,15 @@ export function AdminDashboard() {
           console.warn('Insert sections failed', e)
         }
 
-        // Primary location (optional)
+        // Primary location (optional; geocode if lat/lng missing)
         try {
           const nm = newPictureSet.primary_location_name?.trim()
-          const lat = newPictureSet.primary_location_latitude
-          const lng = newPictureSet.primary_location_longitude
+          let lat = newPictureSet.primary_location_latitude as number | null
+          let lng = newPictureSet.primary_location_longitude as number | null
+          if (nm && (lat == null || lng == null)) {
+            const g = await geocodeByName(nm)
+            if (g) { lat = g.lat; lng = g.lon }
+          }
           if (nm && typeof lat === 'number' && typeof lng === 'number') {
             let locationId: number | undefined
             const { data: found } = await supabase
@@ -928,11 +1074,27 @@ export function AdminDashboard() {
               }
             } catch {}
           }
-          const tagIds = await ensureTagIds(setTags || [], 'topic')
-          await setSetTags(pictureSetId, tagIds)
+          const topicTagIds = await ensureTagIds(setTags || [], 'topic')
+          // from multi-select categories/seasons, set typed tags
+          let categoryTagIds: number[] = []
+          const selectedCategoryIds = Array.from(new Set(newPictureSet.category_ids || []))
+          if (selectedCategoryIds.length) {
+            const { data: catRows } = await supabase.from('categories').select('id,name').in('id', selectedCategoryIds)
+            const catNames = (catRows || []).map((r:any)=> r.name).filter(Boolean)
+            categoryTagIds = await ensureTagIds(catNames, 'category')
+          }
+          let seasonTagIds: number[] = []
+          const selectedSeasonIds = Array.from(new Set(newPictureSet.season_ids || []))
+          if (selectedSeasonIds.length) {
+            const { data: seaRows } = await supabase.from('seasons').select('id,name').in('id', selectedSeasonIds)
+            const seaNames = (seaRows || []).map((r:any)=> r.name).filter(Boolean)
+            seasonTagIds = await ensureTagIds(seaNames, 'season')
+          }
+          const combined = Array.from(new Set([...(topicTagIds||[]), ...(categoryTagIds||[]), ...(seasonTagIds||[])]))
+          await setSetTags(pictureSetId, combined)
         } catch (e) {
           console.error('Error inserting translations/tags for set:', e)
-          toast({ title: 'Tag/translation error', description: '保存集合标签或翻译失败，请检查权限或网络。', variant: 'destructive' })
+          toast({ title: 'Tag/translation error', description: 'Failed to save set tags/translations. Check permissions or network.', variant: 'destructive' })
         }
 
         // Insert all pictures (with season/location support)
@@ -1024,104 +1186,29 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Error in handleSubmitPictureSet:", error)
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('error'),
+        description: t('unexpectedError'),
         variant: "destructive",
       })
     }
   }
+  */
 
-  // Handle deleting a picture set
+  // Handle deleting a picture set (服务端删除，规避 RLS 并同步删 R2 文件)
   const handleDeletePictureSet = async (id: number) => {
     try {
-      console.log(`Deleting picture set with ID: ${id}`)
-
-      // First get the picture set and its pictures to delete files from R2
-      const { data: pictureSet, error: fetchError } = await supabase
-        .from("picture_sets")
-        .select("*, pictures(*)")
-        .eq("id", id)
-        .single()
-
-      if (fetchError) {
-        console.error(`Error fetching picture set ${id} for deletion:`, fetchError)
-        toast({
-          title: "Error",
-          description: "Failed to fetch picture set data for deletion",
-          variant: "destructive",
-        })
+      const res = await fetch(`/api/admin/picture-sets/${id}`, { method: 'DELETE' })
+      const data = await res.json().catch(()=> ({}))
+      if (!res.ok) {
+        console.error('Delete set failed:', data)
+          toast({ title: t('error'), description: data?.error || t('deleteSetFail'), variant: 'destructive' })
         return
       }
-
-      if (!pictureSet) {
-        console.error(`Picture set ${id} not found for deletion`)
-        toast({
-          title: "Error",
-          description: "Picture set not found",
-          variant: "destructive",
-        })
-        return
-      }
-
-      console.log(`Found picture set with ${pictureSet.pictures?.length || 0} pictures`)
-
-      // Delete cover image from R2
-      if (pictureSet.cover_image_url) {
-        console.log(`Deleting cover image: ${pictureSet.cover_image_url}`)
-        const coverDeleted = await safeDeleteFromR2(pictureSet.cover_image_url)
-        console.log(`Cover image deletion ${coverDeleted ? "successful" : "failed"}`)
-      }
-
-      // Delete all picture images from R2
-      if (pictureSet.pictures && pictureSet.pictures.length > 0) {
-        console.log(`Deleting ${pictureSet.pictures.length} pictures from R2`)
-
-        for (const picture of pictureSet.pictures) {
-          // Delete compressed image
-          if (picture.image_url) {
-            console.log(`Deleting compressed image for picture ${picture.id}: ${picture.image_url}`)
-            const imageDeleted = await safeDeleteFromR2(picture.image_url)
-            console.log(`Deleted compressed image for picture ${picture.id}: ${imageDeleted ? "Success" : "Failed"}`)
-          }
-
-          // Delete raw image
-          if (picture.raw_image_url) {
-            console.log(`Deleting raw image for picture ${picture.id}: ${picture.raw_image_url}`)
-            const rawDeleted = await safeDeleteFromR2(picture.raw_image_url)
-            console.log(`Deleted raw image for picture ${picture.id}: ${rawDeleted ? "Success" : "Failed"}`)
-          }
-        }
-      }
-
-      // Then delete from database (pictures will be deleted via CASCADE)
-      const { error: deleteError } = await supabase.from("picture_sets").delete().eq("id", id)
-
-      if (deleteError) {
-        console.error("Error deleting picture set from database:", deleteError)
-        toast({
-          title: "Error",
-          description: "Failed to delete picture set from database",
-          variant: "destructive",
-        })
-        return
-      }
-
-      console.log(`Successfully deleted picture set ${id} from database`)
-
-      toast({
-        title: "Success",
-        description: "Picture set deleted successfully",
-      })
-
-      // Refresh the picture sets
+      toast({ title: t('success'), description: t('deleteSetSuccess') })
       await fetchPictureSets()
     } catch (error) {
-      console.error("Error in handleDeletePictureSet:", error)
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred during deletion",
-        variant: "destructive",
-      })
+      console.error('Error in handleDeletePictureSet(server):', error)
+      toast({ title: t('error'), description: t('unexpectedDeleteError'), variant: 'destructive' })
     }
   }
 
@@ -1130,118 +1217,15 @@ export function AdminDashboard() {
     try {
       console.log(`Preparing to edit picture set ${pictureSet.id}`)
 
-      // Fetch the latest data for this picture set to ensure we have the most up-to-date information
-      const { data: freshPictureSet, error } = await supabase
-        .from("picture_sets")
-        .select("*, pictures(*)")
-        .eq("id", pictureSet.id)
-        .single()
-
-      if (error) {
-        console.error("Error fetching picture set for editing:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load picture set data for editing",
-          variant: "destructive",
-        })
+      // 改为服务端读取完整详情
+      const res = await fetch(`/api/admin/picture-sets/${pictureSet.id}`)
+      const data = await res.json()
+      if (!res.ok) {
+        console.error('Load set detail failed:', data)
+        toast({ title: t('error'), description: data?.error || t('loadSetDataFail'), variant: 'destructive' })
         return
       }
-
-      console.log(
-        `Loaded fresh data for picture set ${pictureSet.id} with ${freshPictureSet.pictures?.length || 0} pictures`,
-      )
-
-      // Load translations and tags for this set
-      const [{ data: tEn }, { data: tZh }] = await Promise.all([
-        supabase
-          .from('picture_set_translations')
-          .select('*')
-          .eq('picture_set_id', pictureSet.id)
-          .eq('locale', 'en')
-          .maybeSingle(),
-        supabase
-          .from('picture_set_translations')
-          .select('*')
-          .eq('picture_set_id', pictureSet.id)
-          .eq('locale', 'zh')
-          .maybeSingle(),
-      ])
-      const { data: tagRows } = await supabase
-        .from('picture_set_taggings')
-        .select('tag_id, tags(name)')
-        .eq('picture_set_id', pictureSet.id)
-
-      // Load picture translations for all pictures in this set
-      const picIds = (freshPictureSet.pictures || []).map((p: any) => p.id)
-      let transMap: Record<number, { en?: any; zh?: any }> = {}
-      if (picIds.length > 0) {
-        const { data: pTrans } = await supabase
-          .from('picture_translations')
-          .select('*')
-          .in('picture_id', picIds)
-        for (const t of pTrans || []) {
-          const entry = transMap[t.picture_id] || {}
-          if (t.locale === 'en') entry.en = { title: t.title || '', subtitle: t.subtitle || '', description: t.description || '' }
-          if (t.locale === 'zh') entry.zh = { title: t.title || '', subtitle: t.subtitle || '', description: t.description || '' }
-          transMap[t.picture_id] = entry
-        }
-      }
-
-      // Load picture tags for all pictures in this set
-      let picTagMap: Record<number, string[]> = {}
-      if (picIds.length > 0) {
-        const { data: pTags } = await supabase
-          .from('picture_taggings')
-          .select('picture_id, tags(name)')
-          .in('picture_id', picIds)
-        for (const row of pTags || []) {
-          const name = (row as any).tags?.name
-          const pid = (row as any).picture_id
-          if (!name || !pid) continue
-          picTagMap[pid] = [...(picTagMap[pid] || []), name]
-        }
-      }
-
-      // Load picture primary locations for all pictures
-      let picLocMap: Record<number, { name?: string; latitude?: number | null; longitude?: number | null }> = {}
-      if (picIds.length > 0) {
-        const { data: pLocs } = await supabase
-          .from('picture_locations')
-          .select('picture_id, is_primary, locations(name, latitude, longitude)')
-          .in('picture_id', picIds)
-        for (const row of pLocs || []) {
-          const pid = (row as any).picture_id
-          const loc = (row as any).locations
-          if (!pid || !loc) continue
-          // prefer primary; otherwise any
-          const prev = picLocMap[pid]
-          if (!prev || (row as any).is_primary) {
-            picLocMap[pid] = { name: loc.name, latitude: loc.latitude, longitude: loc.longitude }
-          }
-        }
-      }
-
-      const enriched = {
-        ...freshPictureSet,
-        en: tEn ? { title: tEn.title || '', subtitle: tEn.subtitle || '', description: tEn.description || '' } : undefined,
-        zh: tZh ? { title: tZh.title || '', subtitle: tZh.subtitle || '', description: tZh.description || '' } : undefined,
-        tags: (tagRows || []).map((r: any) => r.tags?.name).filter(Boolean),
-        pictures: (freshPictureSet.pictures || [])
-          .slice()
-          .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
-          .map((p: any) => ({
-          ...p,
-          en: transMap[p.id]?.en,
-          zh: transMap[p.id]?.zh,
-          tags: picTagMap[p.id] || [],
-          location_name: picLocMap[p.id]?.name,
-          location_latitude: picLocMap[p.id]?.latitude ?? null,
-          location_longitude: picLocMap[p.id]?.longitude ?? null,
-        })),
-      }
-
-      // Set the editing state with the enriched data
-      setEditingPictureSet(enriched as PictureSet)
+      setEditingPictureSet(data.item as PictureSet)
       setActiveTab("form")
     } catch (error) {
       console.error("Error in handleEditPictureSet:", error)
@@ -1261,29 +1245,29 @@ export function AdminDashboard() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">{t('adminDashboard')}</h1>
 
       {/* Search Bar */}
       <div className="mb-6 flex gap-2 items-center">
         <Input
-          placeholder="搜索集合：支持中文/英文，多词自动 AND 匹配"
+          placeholder={t('searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         {searchQuery && (
-          <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>清空</Button>
+          <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>{t('clear')}</Button>
         )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
-          <TabsTrigger value="list">Picture Sets</TabsTrigger>
-          <TabsTrigger value="form">{editingPictureSet ? "Edit Picture Set" : "Add New Picture Set"}</TabsTrigger>
+          <TabsTrigger value="list">{t('pictureSetsTab')}</TabsTrigger>
+          <TabsTrigger value="form">{editingPictureSet ? t('editSetTab') : t('addNewSetTab')}</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <p>Loading picture sets...</p>
+              <p>{t('loadingSets')}</p>
             </div>
           ) : (
             <PictureSetList pictureSets={pictureSets} onEdit={handleEditPictureSet} onDelete={handleDeletePictureSet} />
@@ -1291,7 +1275,7 @@ export function AdminDashboard() {
         </TabsContent>
         <TabsContent value="form">
           <PictureSetForm
-            onSubmit={handleSubmitPictureSet}
+            onSubmit={handleSubmitPictureSetServer}
             editingPictureSet={editingPictureSet}
             onCancel={handleCancelEdit}
           />
