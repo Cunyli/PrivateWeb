@@ -1,7 +1,7 @@
 // components/PortfolioGrid.tsx
 "use client"
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
 import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
@@ -727,7 +727,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         )}
       </div>
 
-      {!loading && <PhotographyStyleShowcase />}
+      {!loading && (
+        <Suspense fallback={<div className="py-8 text-center text-gray-500">Loading...</div>}>
+          <PhotographyStyleShowcase />
+        </Suspense>
+      )}
 
       {locationClusters.length > 0 && (
         <section className="mt-16 sm:mt-24">

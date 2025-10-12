@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
 import { supabase } from "@/utils/supabase"
 
@@ -135,10 +136,12 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
   if (!setEntry.zh.description && looksZh(pictureSet?.description)) setEntry.zh.description = pictureSet?.description ?? ''
 
   return (
-    <PortfolioDetail
-      id={params.id}
-      images={images}
-      translations={setEntry}
-    />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <PortfolioDetail
+        id={params.id}
+        images={images}
+        translations={setEntry}
+      />
+    </Suspense>
   )
 }
