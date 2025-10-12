@@ -3,11 +3,12 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Carousel } from "@/components/carousel"
 import { ImageDetails } from "@/components/image-details"
 import { LangSwitcher } from "@/components/lang-switcher"
 import { useI18n } from "@/lib/i18n"
+import { useRouter } from "next/navigation"
 
 interface LocalizedContent {
   title?: string
@@ -35,13 +36,12 @@ interface PortfolioDetailProps {
 
 export default function PortfolioDetail({ images, translations }: PortfolioDetailProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isImageLoading, setIsImageLoading] = useState(true);
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
   const [showDescriptionCard, setShowDescriptionCard] = useState(false)
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
+  const router = useRouter()
   
   const currentImage = images[currentIndex];
 
@@ -61,8 +61,17 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
     setCurrentIndex(index)
   }
 
+  const handleBack = useCallback(() => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back()
+    } else {
+      router.push('/')
+    }
+  }, [router])
+
   // Smart preloading strategy: start preloading after page load
   useEffect(() => {
+    if (typeof window === 'undefined') return
     if (images && images.length > 0) {
       // Detect network conditions
       const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
@@ -135,6 +144,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
 
   // Preload all thumbnails when sidebar is hovered
   useEffect(() => {
+    if (typeof window === 'undefined') return
     if (sidebarHovered && images && images.length > 0) {
       console.log('Sidebar expanding, preloading all thumbnails...');
       
@@ -191,25 +201,34 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <div className="max-w-[2000px] w-full mx-auto px-4 py-6 lg:px-8 xl:px-16 flex flex-col h-screen">
+      <div className="max-w-[2000px] w-full mx-auto px-4 py-6 lg:px-8 xl:px-16 flex flex-col">
         {/* Header with back button and title */}
-        <header className="mb-8 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-gray-600">
-            <Link
-              href="/"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-black transition-colors duration-200"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Works
-            </Link>
+        <header className="sticky top-0 z-40 -mx-4 lg:-mx-8 xl:-mx-16 mb-6 border-b border-gray-200/70 bg-white/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/80 lg:px-8 xl:px-16">
+          <div className="flex items-center justify-between gap-4 text-gray-600">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:text-black"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t('backToHome')}
+              </button>
+              <Link
+                href="/"
+                className="hidden sm:inline-flex items-center rounded-full border border-transparent px-3 py-2 text-xs uppercase tracking-[0.35em] text-gray-500 transition-colors hover:text-black"
+              >
+                {t('styleViewGallery')}
+              </Link>
+            </div>
+            <LangSwitcher className="h-8 w-8 text-gray-600 bg-white border border-gray-200 shadow-sm" />
           </div>
-          <LangSwitcher className="h-8 w-8 text-gray-600 bg-white border border-gray-200 shadow-sm" />
         </header>
 
         {/* Main content area - using flex layout */}
-        <main className="flex flex-col flex-1 overflow-hidden">
+        <main className="flex flex-col flex-1">
           {/* Image gallery section */}
-          <div className="flex flex-1 gap-4 overflow-hidden">
+          <div className="flex flex-1 flex-col gap-6 lg:flex-row lg:gap-4">
             {/* Left column: Main image and details */}
             <div className="flex flex-col w-full lg:pr-1">
               {/* Main image container */}
@@ -453,6 +472,17 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
           </div>
         </main>
       </div>
+
+      {/* Floating back button for mobile to ensure quick access */}
+      <button
+        type="button"
+        onClick={handleBack}
+        className="fixed bottom-5 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-lg shadow-gray-900/10 transition-transform duration-200 hover:scale-105 sm:hidden"
+        aria-label={t('backToHome')}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {t('backToHome')}
+      </button>
     </div>
   )
 }

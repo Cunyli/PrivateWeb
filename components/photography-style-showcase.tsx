@@ -5,9 +5,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
 import { useI18n } from "@/lib/i18n"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowLeft, ArrowUpRight } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 type PictureTranslation = {
@@ -548,27 +548,38 @@ export function PhotographyStyleShowcase() {
       </div>
 
       <Dialog open={!!selectedStyleId} onOpenChange={(open) => { if (!open) setSelectedStyleId(null) }}>
-        <DialogContent className="max-w-5xl w-full p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-6">
-            <DialogTitle className="font-light tracking-wide text-2xl">
-              {selectedStyleConfig ? t(selectedStyleConfig.i18nKey) : t("styleShowcaseTitle")}
-            </DialogTitle>
-            {selectedStyleConfig?.tagline && (
-              <DialogDescription className="text-sm text-muted-foreground">
-                {selectedStyleConfig.tagline[locale] || selectedStyleConfig.tagline.en}
-              </DialogDescription>
-            )}
-            {isModalLoading && (
-              <span className="text-xs text-muted-foreground">{t("loadingSets")}</span>
-            )}
-          </DialogHeader>
-          <div className="px-6 pb-6">
-            {isModalLoading ? (
-              <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-                {t("loadingSets")}
+        <DialogContent className="flex max-h-[calc(100vh-2rem)] w-[min(100vw-2rem,80rem)] max-w-5xl flex-col overflow-hidden bg-background p-0 shadow-2xl">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <DialogHeader className="sticky top-0 z-20 gap-3 border-b border-border/60 bg-background/95 px-6 pt-6 pb-4 text-left backdrop-blur supports-[backdrop-filter]:bg-background/80">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <DialogClose asChild>
+                  <Button variant="ghost" size="sm" className="inline-flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    {t("backToHome")}
+                  </Button>
+                </DialogClose>
+                {isModalLoading && (
+                  <span className="text-xs text-muted-foreground">{t("loadingSets")}</span>
+                )}
               </div>
-            ) : modalPictures.length > 0 ? (
-              <div className="flex flex-col gap-6">
+              <div className="space-y-1 text-left">
+                <DialogTitle className="font-light text-2xl tracking-wide">
+                  {selectedStyleConfig ? t(selectedStyleConfig.i18nKey) : t("styleShowcaseTitle")}
+                </DialogTitle>
+                {selectedStyleConfig?.tagline && (
+                  <DialogDescription className="text-sm text-muted-foreground">
+                    {selectedStyleConfig.tagline[locale] || selectedStyleConfig.tagline.en}
+                  </DialogDescription>
+                )}
+              </div>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto px-6 pb-6">
+              {isModalLoading ? (
+                <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                  {t("loadingSets")}
+                </div>
+              ) : modalPictures.length > 0 ? (
+                <div className="flex flex-col gap-6">
                 <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
                   <div className="space-y-4">
                     <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[2.5rem] border border-white/15 bg-black/70 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.65)]">
@@ -730,16 +741,19 @@ export function PhotographyStyleShowcase() {
                     )
                   })}
                 </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                  {t("styleEmpty")}
+                </div>
+              )}
+              <div className="mt-6 flex justify-end">
+                <DialogClose asChild>
+                  <Button variant="ghost">
+                    {t("close")}
+                  </Button>
+                </DialogClose>
               </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-                {t("styleEmpty")}
-              </div>
-            )}
-            <div className="mt-6 flex justify-end">
-              <Button variant="ghost" onClick={() => setSelectedStyleId(null)}>
-                {t("close")}
-              </Button>
             </div>
           </div>
         </DialogContent>
