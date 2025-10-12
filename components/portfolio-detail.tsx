@@ -1,7 +1,6 @@
 "use client"
 
 import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect, useCallback } from "react"
 import { Carousel } from "@/components/carousel"
@@ -39,9 +38,9 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
-  const [showDescriptionCard, setShowDescriptionCard] = useState(false)
   const { locale, t } = useI18n()
   const router = useRouter()
+  const bucketUrl = process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top'
   
   const currentImage = images[currentIndex];
 
@@ -94,7 +93,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
           img.onerror = () => {
             setPreloadedImages(prev => new Set(prev).add(index));
           };
-          img.src = process.env.NEXT_PUBLIC_BUCKET_URL + images[index].url;
+          img.src = bucketUrl + images[index].url;
         }
       });
 
@@ -121,7 +120,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
                 img.onerror = () => {
                   setPreloadedImages(prev => new Set(prev).add(index));
                 };
-                img.src = process.env.NEXT_PUBLIC_BUCKET_URL + images[index].url;
+                img.src = bucketUrl + images[index].url;
               }, i * 50); // 小延迟避免同时发起请求
             }
           });
@@ -175,7 +174,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
                 setPreloadedImages(prev => new Set(prev).add(index));
                 console.log(`Thumb ${index + 1} failed, skip`);
               };
-              img.src = process.env.NEXT_PUBLIC_BUCKET_URL + image.url;
+              img.src = bucketUrl + image.url;
             }, loadDelay);
           }
         });
@@ -205,22 +204,14 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
         {/* Header with back button and title */}
         <header className="sticky top-0 z-40 -mx-4 lg:-mx-8 xl:-mx-16 mb-6 border-b border-gray-200/70 bg-white/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/80 lg:px-8 xl:px-16">
           <div className="flex items-center justify-between gap-4 text-gray-600">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="inline-flex items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:text-black"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('backToHome')}
-              </button>
-              <Link
-                href="/"
-                className="hidden sm:inline-flex items-center rounded-full border border-transparent px-3 py-2 text-xs uppercase tracking-[0.35em] text-gray-500 transition-colors hover:text-black"
-              >
-                {t('styleViewGallery')}
-              </Link>
-            </div>
+            <button
+              type="button"
+              onClick={handleBack}
+              className="inline-flex items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:text-black"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('backToHome')}
+            </button>
             <LangSwitcher className="h-8 w-8 text-gray-600 bg-white border border-gray-200 shadow-sm" />
           </div>
         </header>
@@ -232,22 +223,15 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
             {/* Left column: Main image and details */}
             <div className="flex flex-col w-full lg:pr-1">
               {/* Main image container */}
-              <div className="relative flex-1 flex items-center justify-center rounded-[28px] overflow-hidden shadow-sm">
+              <div className="relative w-full min-h-[400px] h-[60vh] flex items-center justify-center rounded-[28px] overflow-hidden shadow-sm bg-gray-50">
                 {(displayTitle || displaySubtitle || displayDescription) && (
-                  <div className="absolute left-4 top-4 lg:left-6 lg:top-6 z-20 flex flex-col items-start gap-3 max-w-sm">
-                    <button
-                      onClick={() => setShowDescriptionCard((prev) => !prev)}
-                      className="inline-flex items-center gap-2 rounded-full bg-black/75 px-3.5 py-1.5 text-[10px] uppercase tracking-[0.32em] text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-black"
-                    >
-                      {showDescriptionCard ? (locale === 'zh' ? '隐藏介绍' : 'Hide Info') : (locale === 'zh' ? '作品简介' : 'About Set')}
-                      <span className={`text-[10px] transition-transform ${showDescriptionCard ? 'rotate-180' : ''}`}>▴</span>
-                    </button>
+                  <div className="group/info absolute left-4 top-4 lg:left-6 lg:top-6 z-20 flex flex-col items-start gap-3 max-w-sm">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-black/75 px-3.5 py-1.5 text-[10px] uppercase tracking-[0.32em] text-white shadow-md backdrop-blur-sm transition-all duration-200 group-hover/info:bg-black">
+                      {locale === 'zh' ? '作品简介' : 'About Set'}
+                      <span className="text-[10px] transition-transform group-hover/info:rotate-180">▴</span>
+                    </div>
 
-                    <div
-                      className={`w-[min(70vw,280px)] rounded-3xl bg-white/95 border border-white/60 px-5 py-4 text-left text-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 ${
-                        showDescriptionCard ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-2 opacity-0 pointer-events-none'
-                      }`}
-                    >
+                    <div className="w-[min(70vw,280px)] rounded-3xl bg-white/95 border border-white/60 px-5 py-4 text-left text-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 translate-y-2 opacity-0 pointer-events-none group-hover/info:translate-y-0 group-hover/info:opacity-100 group-hover/info:pointer-events-auto">
                       {(displayTitle || displaySubtitle) && (
                         <div className="mb-3 border-b border-gray-200 pb-2">
                           {displayTitle && (
@@ -340,7 +324,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
                         }}
                       >
                         <Image
-                          src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
+                          src={image.url ? (bucketUrl + image.url) : "/placeholder.svg"}
                           alt={`Thumbnail ${index + 1}`}
                           fill
                           sizes="(max-width: 768px) 25vw, (max-width: 1200px) 16vw, 16vw"
@@ -436,7 +420,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
                       >
                         {preloadedImages.has(index) ? (
                           <img
-                            src={process.env.NEXT_PUBLIC_BUCKET_URL+image.url || "/placeholder.svg"}
+                            src={image.url ? (bucketUrl + image.url) : "/placeholder.svg"}
                             alt={`Thumbnail ${index + 1}`}
                             className="object-cover w-full h-full transform group-hover/thumb:scale-110"
                             style={{ 
