@@ -40,7 +40,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
-  const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || '', [])
+  const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())

@@ -53,7 +53,7 @@ const HOVER_INTENT_DELAY_MS = 90
 
 export function PhotographyStyleShowcase() {
   const { t, locale } = useI18n()
-  const bucketUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || "", [])
+  const bucketUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top", [])
 
   const [stylesData, setStylesData] = useState<Record<string, StyleApiResponse>>({})
   const [loading, setLoading] = useState(true)
