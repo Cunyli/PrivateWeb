@@ -1,7 +1,7 @@
 // components/PortfolioGrid.tsx
 "use client"
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
 import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
@@ -35,12 +35,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const [setResults, setSetResults] = useState<PictureSet[] | null>(null)
   const [pictureResults, setPictureResults] = useState<Picture[] | null>(null)
   const [pictureTransMap, setPictureTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
-  const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
+  const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
-  const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || '', [])
+  const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())
@@ -103,7 +103,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           try {
             const { data: locRows, error: locErr } = await supabase
               .from('picture_set_locations')
-              .select('picture_set_id, is_primary, location:locations(name, latitude, longitude)')
+              .select('picture_set_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
               .in('picture_set_id', ids)
               .eq('is_primary', true)
 
@@ -111,7 +111,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
               console.warn('Fetch primary locations failed:', locErr)
               setSetLocations({})
             } else {
-              const mapLoc: Record<number, { name?: string | null; latitude: number; longitude: number }> = {}
+              const mapLoc: Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }> = {}
               for (const row of locRows || []) {
                 const loc = (row as any).location || (row as any).locations
                 if (!loc) continue
@@ -120,6 +120,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 if (Number.isFinite(lat) && Number.isFinite(lng)) {
                   mapLoc[(row as any).picture_set_id] = {
                     name: (loc as any).name,
+                    name_en: (loc as any).name_en,
+                    name_zh: (loc as any).name_zh,
                     latitude: lat,
                     longitude: lng,
                   }
@@ -414,9 +416,26 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       const lng = Number(loc.longitude)
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
       const bucketKey = `${lat.toFixed(3)}:${lng.toFixed(3)}`
+      
+      // 根据当前语言选择地点名称
+      let locationName: string
+      if (locale === 'zh') {
+        locationName = (loc.name_zh && String(loc.name_zh).trim().length > 0) 
+          ? String(loc.name_zh) 
+          : (loc.name && String(loc.name).trim().length > 0) 
+            ? String(loc.name) 
+            : t('mapUnknownLocation')
+      } else {
+        locationName = (loc.name_en && String(loc.name_en).trim().length > 0) 
+          ? String(loc.name_en) 
+          : (loc.name && String(loc.name).trim().length > 0) 
+            ? String(loc.name) 
+            : t('mapUnknownLocation')
+      }
+      
       const existing = buckets.get(bucketKey) || {
         key: bucketKey,
-        name: (loc.name && String(loc.name).trim().length > 0) ? String(loc.name) : t('mapUnknownLocation'),
+        name: locationName,
         latitude: lat,
         longitude: lng,
         sets: [],
@@ -436,7 +455,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       ...bucket,
       sets: bucket.sets.sort((a, b) => a.title.localeCompare(b.title)),
     })).sort((a, b) => a.name.localeCompare(b.name))
-  }, [pictureSets, setLocations, baseUrl, getText, t])
+  }, [pictureSets, setLocations, baseUrl, getText, t, locale])
 
   const downGallerySection = !loading && visibleDownSets.length > 0 && (
     <section className="mt-16 sm:mt-24">
@@ -449,58 +468,57 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         </p>
       </div>
       <div className="flex justify-center">
-        <div
-          className="w-full max-w-7xl columns-2 sm:columns-3 gap-2 sm:gap-4 transform scale-[0.9] sm:scale-[0.833] origin-center"
-          style={{ columnFill: "auto" }}
-        >
-          {visibleDownSets.map((item, index) => {
-            const dims = coverDimensions[item.id]
-            const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-            const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
-            const isLoaded = !!downLoadedMap[item.id]
-            const eager = index < downEagerCount
+        <div className="w-full max-w-6xl lg:max-w-7xl px-2 sm:px-4">
+          <div className="columns-2 sm:columns-2 lg:columns-3 xl:columns-4 gap-2 sm:gap-3" style={{ columnFill: 'balance' }}>
+              {visibleDownSets.map((item, index) => {
+                const dims = coverDimensions[item.id]
+                const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+                const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
+                const isLoaded = !!downLoadedMap[item.id]
+                const eager = index < downEagerCount
 
-            return (
-              <div
-                key={item.id}
-                className="break-inside-avoid mb-2 sm:mb-4 transition-opacity duration-500 ease-out"
-                style={{
-                  opacity: 1,
-                  animationDelay: `${index * 100}ms`,
-                  breakInside: "avoid",
-                  WebkitColumnBreakInside: "avoid",
-                }}
-              >
-                <Link
-                  href={`/work/${item.id}`}
-                  className="group block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
-                  style={{ aspectRatio: aspectRatio || 0.75 }}
-                >
-                  {!isLoaded && (
-                    <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
-                  )}
-                  <Image
-                    src={coverSrc}
-                    alt={getText(item,'title') || item.title}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    fetchPriority={eager ? 'high' : 'auto'}
-                    className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    priority={eager}
-                    loading={eager ? 'eager' : 'lazy'}
-                    onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
-                  />
+                return (
+                  <div
+                    key={item.id}
+                    className="group relative inline-block w-full transition-opacity duration-500 ease-out mb-2 sm:mb-3"
+                    style={{
+                      opacity: 1,
+                      animationDelay: `${index * 100}ms`,
+                      breakInside: 'avoid-column',
+                      WebkitColumnBreakInside: 'avoid',
+                    }}
+                  >
+                    <Link
+                      href={`/work/${item.id}`}
+                      className="block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
+                      style={{ aspectRatio: aspectRatio || 0.75 }}
+                    >
+                      {!isLoaded && (
+                        <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
+                      )}
+                      <Image
+                        src={coverSrc}
+                        alt={getText(item, 'title') || item.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                        fetchPriority={eager ? 'high' : 'auto'}
+                        className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        priority={eager}
+                        loading={eager ? 'eager' : 'lazy'}
+                        onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
+                      />
 
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
-                    <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
-                      <h3 className="text-lg font-medium mb-1">{getText(item,'title')}</h3>
-                      <p className="text-sm opacity-80">{getText(item,'subtitle')}</p>
-                    </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
+                        <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
+                          <h3 className="text-lg font-medium mb-1">{getText(item, 'title')}</h3>
+                          <p className="text-sm opacity-80">{getText(item, 'subtitle')}</p>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-              </div>
-            )
-          })}
+                )
+              })}
+            </div>
         </div>
       </div>
 
@@ -728,7 +746,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         )}
       </div>
 
-      {!loading && <PhotographyStyleShowcase />}
+      {!loading && (
+        <Suspense fallback={<div className="py-8 text-center text-gray-500">Loading...</div>}>
+          <PhotographyStyleShowcase />
+        </Suspense>
+      )}
 
       {locationClusters.length > 0 && (
         <section className="mt-16 sm:mt-24">

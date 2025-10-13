@@ -42,7 +42,7 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
         .in('picture_set_id', ids),
       supabaseAdmin
         .from('picture_set_locations')
-        .select('picture_set_id, is_primary, location:locations(name, latitude, longitude)')
+        .select('picture_set_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
         .in('picture_set_id', ids)
         .eq('is_primary', true),
       supabaseAdmin
@@ -76,7 +76,7 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
       transMap[id] = existing
     }
 
-    const setLocations: Record<number, { name?: string | null; latitude: number; longitude: number }> = {}
+    const setLocations: Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }> = {}
     for (const row of locationsRes.data || []) {
       const psid = Number((row as any).picture_set_id)
       const loc = (row as any).location || (row as any).locations
@@ -86,6 +86,8 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
       setLocations[psid] = {
         name: (loc as any).name,
+        name_en: (loc as any).name_en,
+        name_zh: (loc as any).name_zh,
         latitude: lat,
         longitude: lng,
       }
