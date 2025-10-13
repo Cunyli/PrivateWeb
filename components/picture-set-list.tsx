@@ -54,11 +54,8 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
               <CardHeader>
                 <CardTitle className="flex justify-between items-center gap-3">
                   <span className="smooth-transition group-hover:text-blue-600">{set.title}</span>
-                  <span className="flex items-center gap-2 text-sm font-normal text-gray-500">
-                    <span>{t('position')}: {set.position || "up"}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${set.is_published === false ? 'bg-gray-200 text-gray-700' : 'bg-green-100 text-green-700'}`}>
-                      {set.is_published === false ? t('unpublished') : t('publishedLabel')}
-                    </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${set.is_published === false ? 'bg-gray-200 text-gray-700' : 'bg-green-100 text-green-700'}`}>
+                    {set.is_published === false ? t('unpublished') : t('publishedLabel')}
                   </span>
                 </CardTitle>
               </CardHeader>
