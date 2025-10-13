@@ -62,48 +62,137 @@ export async function POST(request: NextRequest) {
       // 使用自定义 prompt
       prompt = customPrompt
     } else {
-      // Default prompt (English)
+      // Default prompt (中英双语，更具诗意)
       switch (analysisType) {
         case 'title':
-          prompt = `Craft a concise, evocative title for this photograph.
-Guidelines:
-- Express the key subject or emotion in fresh imagery
-- Use refined language, avoid generic adjectives and cliches
-- Length: 2-6 words (EN) or 4-10字（ZH）
-- No punctuation, quotation marks, or explanations
-Return ONLY the title text.`
+          prompt = `为这张摄影作品创作一个富有诗意和意境的标题。
+
+要求：
+- 捕捉画面的核心情感、氛围或故事性
+- 运用文学化、意象丰富的语言，避免平淡直白
+- 可以使用隐喻、通感或诗性表达
+- 长度：中文 4-10 字，英文 2-6 词
+- 不要使用标点、引号或任何解释说明
+- 只返回标题本身
+
+示例风格：
+- "暮色中的低语" 而非 "夕阳下的风景"
+- "时光的褶皱" 而非 "老旧的墙壁"
+- "光影的诗篇" 而非 "明暗对比"
+
+Create a poetic and evocative title for this photograph.
+
+Requirements:
+- Capture the core emotion, atmosphere, or narrative
+- Use literary, imagery-rich language, avoid plain descriptions
+- You may use metaphor, synesthesia, or poetic expression
+- Length: 2-6 words (EN) or 4-10 characters (ZH)
+- No punctuation, quotes, or explanations
+- Return ONLY the title
+
+Example style:
+- "Whispers at Dusk" not "Sunset Landscape"
+- "Folds of Time" not "Old Wall"
+- "Poem of Light and Shadow" not "Contrast of Light and Dark"
+
+请返回标题（可以是中文或英文，选择更适合画面意境的语言）：`
           break
       case 'subtitle':
-        prompt = `Write a graceful subtitle sentence that deepens the title.
-Guidelines:
-- Mention one concrete detail (setting, time, story hint, or mood)
-- Keep it natural and fluid - no lists, no piling adjectives
-- Length: 8-16 words (EN) or 10-18字（ZH）
-- Single sentence, no colons, dashes, or trailing punctuation beyond a period
-Return ONLY the subtitle sentence.`
+        prompt = `为这张摄影作品创作一个富有文学性的副标题句子，深化标题的意境。
+
+要求：
+- 延伸标题的意境，加入一个具体而诗意的细节（场景、时刻、情绪或故事暗示）
+- 语言流畅自然，具有散文诗般的节奏感
+- 避免堆砌形容词，追求意象的准确和深度
+- 长度：中文 10-20 字，英文 8-16 词
+- 单句，可用逗号但避免冒号、破折号
+- 只返回副标题本身
+
+示例风格：
+- "晨雾散去时，旧巷深处传来木屐声" 而非 "早晨的街道很安静"
+- "Between rain and rainbow, the world holds its breath" 而非 "After the rain, it looks beautiful"
+
+Write a literary subtitle sentence that deepens the title's poetic resonance.
+
+Requirements:
+- Extend the title's mood with one concrete, poetic detail
+- Flow naturally with prose-poem rhythm
+- Avoid piling adjectives, seek precise and deep imagery
+- Length: 8-16 words (EN) or 10-20 characters (ZH)
+- Single sentence, commas allowed but avoid colons/dashes
+- Return ONLY the subtitle
+
+请返回副标题（可以是中文或英文，与标题相呼应）：`
         break
       case 'complete':
-        prompt = `Generate title, subtitle, and description for this photograph.
+        prompt = `为这张摄影作品创作标题、副标题和描述，整体风格应富有诗意和文学性。
+
+严格按照以下格式返回（不要有其他文字）：
+
+Title: [2-6 词/4-10 字，诗意简洁]
+Subtitle: [8-16 词/10-20 字，意境延伸]
+Description: [70-110 词/80-120 字，包含主体、氛围、光影、情感]
+
+描述要求：
+- 用散文诗般的语言描绘画面
+- 融入情感共鸣和想象空间
+- 描述光影、色彩、构图时追求意境而非技术性
+- 形成连贯的段落，不要列表或相机参数
+
+Generate poetic title, subtitle and description for this photograph.
+
 Return EXACTLY in this format (no extra text):
 
-Title: [8-15 words, concise and elegant]
-Subtitle: [10-25 words, complementary info]
-Description: [80-120 words, include subject, style, mood, light/color]
+Title: [2-6 words/4-10 chars, poetic and concise]
+Subtitle: [8-16 words/10-20 chars, extending the mood]
+Description: [70-110 words/80-120 chars, covering subject, atmosphere, light/shadow, emotion]
 
-Keep tone refined and suitable for a photography portfolio.`
+Description requirements:
+- Use prose-poem language to depict the scene
+- Integrate emotional resonance and imaginative space
+- Describe light, color, composition with poetic sense, not technical terms
+- Form a cohesive paragraph, no lists or camera specs`
         break
       case 'description':
-        prompt = `Study the photograph and write a polished portfolio description.
-Guidelines:
-- Length: 70-110 words (EN) 或 80-120字（ZH）
-- Cover the subject and surroundings, mood and narrative impression, light and color qualities, notable techniques or composition choices
-- Flow as a cohesive paragraph; no bullet points, no camera specs unless visually obvious
-Return ONLY the description paragraph.`
+        prompt = `仔细观察这张摄影作品，写一段富有文学性和诗意的作品描述，适合展示在摄影作品集中。
+
+要求：
+- 长度：中文 80-120 字，英文 70-110 词
+- 内容涵盖：
+  * 主体与环境，用意象化的语言描绘
+  * 氛围与情感，唤起观者的共鸣
+  * 光影与色彩，强调其诗意和象征意义
+  * 构图或技法，若有明显特点可融入叙述
+- 文字流畅连贯，形成完整段落
+- 避免技术性术语和相机参数
+- 追求意境和情感深度，而非客观描述
+- 只返回描述段落本身
+
+示例风格：
+"晨光如细纱般铺洒在古旧的石阶上，每一级台阶都承载着岁月的重量。光影在墙面上勾勒出时间的纹理，那些剥落的痕迹仿佛在低语着被遗忘的故事。构图的纵深引导视线深入未知，留下想象的空间。"
+
+Study this photograph carefully and write a literary, poetic description suitable for a photography portfolio.
+
+Requirements:
+- Length: 70-110 words (EN) or 80-120 characters (ZH)
+- Cover:
+  * Subject and surroundings, using imagery-rich language
+  * Atmosphere and emotion, evoking viewer resonance
+  * Light and color, emphasizing poetic and symbolic meaning
+  * Composition or techniques, if notable, weave into narrative
+- Flow as cohesive paragraph
+- Avoid technical jargon and camera specs
+- Seek emotional depth and poetic mood over objective description
+- Return ONLY the description paragraph
+
+请返回描述段落：`
         break
       case 'tags':
-        prompt = `Generate tags for this photograph.
+        prompt = `Generate bilingual tags for this photograph in both English and Chinese.
 Cover: subject category, style, color, and mood.
-Return a single comma-separated line with up to 10 English tags. No extra text.`
+Return a single comma-separated line with up to 10 tags in the format: "english-tag (中文标签)".
+Example: "landscape (风景), sunset (日落), warm-tones (暖色调), serene (宁静)"
+Return ONLY the comma-separated tags, no extra text.`
         break
       case 'technical':
         prompt = `Provide a concise technical analysis (<= 150 words):

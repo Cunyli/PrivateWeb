@@ -27,9 +27,16 @@ async function translateText(text: string, target: 'en' | 'zh'): Promise<string>
 const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
 
 async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }> {
+  console.log('🔧 [PUT] fillSetTranslationsBi received payload.en:', payload.en)
+  console.log('🔧 [PUT] fillSetTranslationsBi received payload.zh:', payload.zh)
+  
   const base = { title: payload.title || '', subtitle: payload.subtitle || '', description: payload.description || '' }
   const enOut: any = { title: payload.en?.title || '', subtitle: payload.en?.subtitle || '', description: payload.en?.description || '' }
   const zhOut: any = { title: payload.zh?.title || '', subtitle: payload.zh?.subtitle || '', description: payload.zh?.description || '' }
+  
+  console.log('🔧 [PUT] Initial enOut:', enOut)
+  console.log('🔧 [PUT] Initial zhOut:', zhOut)
+  
   for (const key of ['title','subtitle','description'] as const) {
     const b = base[key]
     let enVal = enOut[key] || ''
@@ -40,6 +47,8 @@ async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }
     else if (!zhVal && enVal) { zhVal = await translateText(enVal, 'zh') }
     enOut[key] = enVal; zhOut[key] = zhVal
   }
+  console.log('🔧 [PUT] Final enOut:', enOut)
+  console.log('🔧 [PUT] Final zhOut:', zhOut)
   return { en: enOut, zh: zhOut }
 }
 
@@ -294,6 +303,25 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     // sections
     const desiredSectionIds: number[] = Array.isArray(payload.section_ids) ? Array.from(new Set(payload.section_ids)) : []
     if (desiredSectionIds.length) await supabaseAdmin.from('picture_set_section_assignments').insert(desiredSectionIds.map((sid: number) => ({ picture_set_id: idNum, section_id: sid, page_context: 'default', display_order: 0 })))
+
+    // ✅ 保存 SET 级别的翻译
+    try {
+      const filled = await fillSetTranslationsBi(payload)
+      await supabaseAdmin
+        .from('picture_set_translations')
+        .upsert(
+          { picture_set_id: idNum, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
+          { onConflict: 'picture_set_id,locale' }
+        )
+      await supabaseAdmin
+        .from('picture_set_translations')
+        .upsert(
+          { picture_set_id: idNum, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
+          { onConflict: 'picture_set_id,locale' }
+        )
+    } catch (e) {
+      console.error('Error saving set translations:', e)
+    }
 
     // pictures: delete and recreate
     const { data: existingPics } = await supabaseAdmin.from('pictures').select('id').eq('picture_set_id', idNum)

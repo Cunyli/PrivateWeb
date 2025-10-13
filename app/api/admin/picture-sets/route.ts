@@ -30,6 +30,9 @@ async function translateText(text: string, target: 'en' | 'zh'): Promise<string>
 const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
 
 async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }> {
+  console.log('🔧 fillSetTranslationsBi received payload.en:', payload.en)
+  console.log('🔧 fillSetTranslationsBi received payload.zh:', payload.zh)
+  
   const base = {
     title: payload.title || '',
     subtitle: payload.subtitle || '',
@@ -45,6 +48,9 @@ async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }
     subtitle: payload.zh?.subtitle || '',
     description: payload.zh?.description || '',
   }
+  
+  console.log('🔧 Initial enOut:', enOut)
+  console.log('🔧 Initial zhOut:', zhOut)
 
   for (const key of ['title', 'subtitle', 'description'] as const) {
     const b = base[key]
@@ -67,6 +73,9 @@ async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }
     zhOut[key] = zhVal
   }
 
+  console.log('🔧 Final enOut:', enOut)
+  console.log('🔧 Final zhOut:', zhOut)
+  
   return { en: enOut, zh: zhOut }
 }
 

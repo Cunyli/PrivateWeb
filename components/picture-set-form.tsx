@@ -14,10 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ImageAnalysisComponent } from "@/components/image-analysis"
 import { useImageAnalysis } from "@/hooks/use-image-analysis"
 import { supabase } from "@/utils/supabase"
+import { LocationPreviewMap } from "@/components/location-preview-map"
 
 import type { PictureSet } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
-import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
 
 interface PictureSetFormProps {
   onSubmit: (pictureSet: PictureSetSubmitData, pictureSetId?: number) => void
@@ -38,38 +38,44 @@ async function compressImage(file: File, quality?: number): Promise<CompressionR
     return { file, didCompress: false }
   }
 
-  const sizeInMB = file.size / (1024 * 1024)
-  const dynamicQuality =
-    typeof quality === "number"
-      ? quality
-      : sizeInMB > 30
-        ? 0.72
-        : sizeInMB > 20
-          ? 0.78
-          : sizeInMB > 12
-            ? 0.82
-            : 0.86
-  const options = {
-    maxWidthOrHeight: sizeInMB > 30 ? 2048 : sizeInMB > 20 ? 2304 : 2560,
-    useWebWorker: true,
-    initialQuality: dynamicQuality,
-    maxSizeMB: Math.max(4, sizeInMB * 0.55),
-    fileType: "image/webp" as const,
-  }
+  try {
+    const sizeInMB = file.size / (1024 * 1024)
+    const dynamicQuality =
+      typeof quality === "number"
+        ? quality
+        : sizeInMB > 30
+          ? 0.72
+          : sizeInMB > 20
+            ? 0.78
+            : sizeInMB > 12
+              ? 0.82
+              : 0.86
+    const options = {
+      maxWidthOrHeight: sizeInMB > 30 ? 2048 : sizeInMB > 20 ? 2304 : 2560,
+      useWebWorker: true,
+      initialQuality: dynamicQuality,
+      maxSizeMB: Math.max(4, sizeInMB * 0.55),
+      fileType: "image/webp" as const,
+    }
 
-  const compressedFile = await imageCompression(file, options)
-  const webpFile = new File(
-    [compressedFile],
-    file.name.replace(/\.[^/.]+$/, ".webp"),
-    { type: "image/webp" },
-  )
+    const compressedFile = await imageCompression(file, options)
+    const webpFile = new File(
+      [compressedFile],
+      file.name.replace(/\.[^/.]+$/, ".webp"),
+      { type: "image/webp" },
+    )
 
-  if (webpFile.size >= file.size) {
-    // 压缩结果反而更大，直接返回原图
+    if (webpFile.size >= file.size) {
+      // 压缩结果反而更大，直接返回原图
+      return { file, didCompress: false }
+    }
+
+    return { file: webpFile, didCompress: true }
+  } catch (error) {
+    console.error(`压缩图片 ${file.name} 失败，使用原图:`, error)
+    // 压缩失败时返回原图
     return { file, didCompress: false }
   }
-
-  return { file: webpFile, didCompress: true }
 }
 
 // 生成预览 URL
@@ -134,6 +140,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   // translations
   const [en, setEn] = useState<{title: string; subtitle: string; description: string}>({ title: "", subtitle: "", description: "" })
   const [zh, setZh] = useState<{title: string; subtitle: string; description: string}>({ title: "", subtitle: "", description: "" })
+  
   // simple comma-separated tags input
   const [tagsText, setTagsText] = useState<string>("")
   const [showAIAnalysis, setShowAIAnalysis] = useState(false)
@@ -142,6 +149,12 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   // 进入编辑页后，对集合执行一次“仅补齐集合的语种”
   const autoTranslatedSetOnceId = useRef<number | null>(null)
   const autoTranslateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isHydratingFromEdit = useRef(false)
+  const hasSyncedBaseOnce = useRef<{ title: boolean; subtitle: boolean; description: boolean }>({
+    title: false,
+    subtitle: false,
+    description: false,
+  })
   // translation autofill touching flags
   const [enTouched, setEnTouched] = useState<{title:boolean; subtitle:boolean; description:boolean}>({ title: false, subtitle: false, description: false })
   const [picEnTouched, setPicEnTouched] = useState<{[idx:number]: { title?: boolean; subtitle?: boolean; description?: boolean }}>({})
@@ -203,6 +216,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
         } else {
           setEn(prev => ({ ...prev, [field]: val }))
+          if (val.trim()) {
+            setEnTouched(prev => ({ ...prev, [field]: true }))
+          }
           setZh(prev => ({ ...prev, [field]: '' }))
         }
       }
@@ -244,13 +260,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     try {
       const result = await analyzeImage(src, 'tags')
       if (result.success) {
+        // Parse bilingual tags in format: "english-tag (中文标签), ..."
         const parts = result.result
           .replace(/\n/g, ',')
           .split(/[,，;；]/)
           .map(s => s.trim())
           .filter(Boolean)
-        const generated = Array.from(new Set(parts.map(s => s.toLowerCase())))
-        const current = Array.isArray(picture.tags) ? picture.tags.map(s => s.trim().toLowerCase()).filter(Boolean) : []
+        const generated = Array.from(new Set(parts))
+        const current = Array.isArray(picture.tags) ? picture.tags.filter(Boolean) : []
         const union = Array.from(new Set([ ...current, ...generated ]))
         handlePictureChange(pictureIndex, 'tags', union)
       }
@@ -269,13 +286,13 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     try {
       const result = await analyzeImage(sourceImage, 'tags')
       if (result.success) {
-        // 解析标签，支持中文逗号、英文逗号、分号和换行
+        // Parse bilingual tags in format: "english-tag (中文标签), ..."
         const parts = result.result
           .replace(/\n/g, ',')
           .split(/[,，;；]/)
           .map(s => s.trim())
           .filter(Boolean)
-        const uniq = Array.from(new Set(parts.map(s => s.toLowerCase())));
+        const uniq = Array.from(new Set(parts));
         setTagsText(uniq.join(', '))
       }
     } catch (e) {
@@ -284,6 +301,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setIsGenerating(prev => ({ ...prev, tags: false }))
     }
   }
+
+  // Track the last loaded editing ID to prevent re-initialization
+  const lastLoadedIdRef = useRef<number | null>(null)
 
   // 编辑模式初始化
   useEffect(() => {
@@ -305,6 +325,15 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     loadVocab()
 
     if (editingPictureSet) {
+      // Only hydrate if this is a new picture set ID
+      if (lastLoadedIdRef.current === editingPictureSet.id) {
+        return
+      }
+      
+      lastLoadedIdRef.current = editingPictureSet.id
+      isHydratingFromEdit.current = true
+      // In edit mode, mark as already synced to prevent useEffect from overwriting loaded translations
+      hasSyncedBaseOnce.current = { title: true, subtitle: true, description: true }
       setIsEditMode(true)
       setEditingId(editingPictureSet.id)
       setTitle(editingPictureSet.title || "")
@@ -315,22 +344,25 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setPosition(editingPictureSet.position || "up")
       // translations and tags (optional on type)
       // Prefill en from DB; if missing, fall back to base fields
-      setEn({
+      const enData = {
         title: editingPictureSet.en?.title || editingPictureSet.title || "",
         subtitle: editingPictureSet.en?.subtitle || editingPictureSet.subtitle || "",
         description: editingPictureSet.en?.description || editingPictureSet.description || "",
-      })
-      // Mark touched for en fields only if DB provided a non-empty translation
-      setEnTouched({
-        title: !!(editingPictureSet.en?.title && editingPictureSet.en.title.trim()),
-        subtitle: !!(editingPictureSet.en?.subtitle && editingPictureSet.en.subtitle.trim()),
-        description: !!(editingPictureSet.en?.description && editingPictureSet.en.description.trim()),
-      })
-      setZh({
+      }
+      const zhData = {
         title: editingPictureSet.zh?.title || (looksZh(editingPictureSet.title) ? (editingPictureSet.title || "") : ""),
         subtitle: editingPictureSet.zh?.subtitle || (looksZh(editingPictureSet.subtitle) ? (editingPictureSet.subtitle || "") : ""),
         description: editingPictureSet.zh?.description || (looksZh(editingPictureSet.description) ? (editingPictureSet.description || "") : ""),
-      })
+      }
+      const touchedData = {
+        title: !!(editingPictureSet.en?.title && editingPictureSet.en.title.trim()),
+        subtitle: !!(editingPictureSet.en?.subtitle && editingPictureSet.en.subtitle.trim()),
+        description: !!(editingPictureSet.en?.description && editingPictureSet.en.description.trim()),
+      }
+      setEn(enData)
+      // Mark touched for en fields only if DB provided a non-empty translation
+      setEnTouched(touchedData)
+      setZh(zhData)
       setTagsText((editingPictureSet.tags || []).join(", "))
       setIsPublished(editingPictureSet.is_published ?? true)
       // 预填分类与季节：直接用后端返回字段，避免客户端读取 RLS 表
@@ -390,6 +422,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         setPictures(mapped)
         setPicEnTouched(initialTouched)
       }
+      // 让自动同步 useEffect 在一轮渲染后才开始生效，避免初始化时清空翻译
+      setTimeout(() => {
+        isHydratingFromEdit.current = false
+      }, 0)
 
       // 自动对集合翻译进行一次补齐（每个集合只执行一次）
       try {
@@ -400,12 +436,17 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             return !(enVal && zhVal)
           })
           autoTranslatedSetOnceId.current = editingPictureSet.id
-          if (needsAutoTranslate) {
-            setTimeout(() => { autoTranslateSetOnly().catch(() => {}) }, 0)
-          }
+          // DON'T run auto-translate in edit mode - data is already loaded from DB
+          // The auto-translate function reads from stale closure values and will overwrite loaded data
+          // if (needsAutoTranslate) {
+          //   setTimeout(() => { autoTranslateSetOnly().catch(() => {}) }, 0)
+          // }
         }
       } catch {}
     } else if (editingPictureSet === null && (isEditMode || editingId !== undefined)) {
+      lastLoadedIdRef.current = null
+      isHydratingFromEdit.current = false
+      hasSyncedBaseOnce.current = { title: false, subtitle: false, description: false }
       // 只有当明确从编辑模式切换到非编辑模式时才重置表单
       setIsEditMode(false)
       setEditingId(undefined)
@@ -457,6 +498,29 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         setCoverPreview(url)
         setCoverOriginalSize(size)
         setCover(file)
+        
+        // Auto-generate tags when cover is uploaded
+        if (url) {
+          setTimeout(async () => {
+            setIsGenerating(prev => ({ ...prev, tags: true }))
+            try {
+              const result = await analyzeImage(url, 'tags')
+              if (result.success) {
+                const parts = result.result
+                  .replace(/\n/g, ',')
+                  .split(/[,，;；]/)
+                  .map(s => s.trim())
+                  .filter(Boolean)
+                const uniq = Array.from(new Set(parts));
+                setTagsText(uniq.join(', '))
+              }
+            } catch (e) {
+              console.error('自动生成标签失败', e)
+            } finally {
+              setIsGenerating(prev => ({ ...prev, tags: false }))
+            }
+          }, 100)
+        }
       } catch (error) {
         console.error("Error loading cover image:", error)
       }
@@ -573,23 +637,34 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     try {
       const toEn: any = { ...(pic.en || {}) }
       const toZh: any = { ...(pic.zh || {}) }
+      const touched = picEnTouched[idx] || {}
+      
       for (const key of ['title','subtitle','description'] as const) {
         const baseVal = String((pic as any)[key] || '')
         const enVal = String((toEn as any)[key] || '')
         const zhVal = String((toZh as any)[key] || '')
-        if (!enVal && zhVal) {
+        const originalEn = String(pic.en?.[key] || '')
+        const originalZh = String(pic.zh?.[key] || '')
+        const baseIsChinese = looksZh(baseVal)
+        
+        // 如果该字段的英文已被手动编辑过，跳过自动翻译
+        const isEnTouched = touched[key]
+        
+        if (!enVal && zhVal && !isEnTouched) {
           const t = await translateText(zhVal, 'auto', 'en')
           if (t) (toEn as any)[key] = t
         } else if (!zhVal && enVal) {
           const t = await translateText(enVal, 'auto', 'zh')
           if (t) (toZh as any)[key] = t
         } else if (!enVal && !zhVal && baseVal) {
-          if (looksZh(baseVal)) {
+          if (baseIsChinese) {
             (toZh as any)[key] = baseVal
-            const t = await translateText(baseVal, 'auto', 'en')
-            if (t) (toEn as any)[key] = t
+            if (!isEnTouched) {
+              const t = await translateText(baseVal, 'auto', 'en')
+              if (t) (toEn as any)[key] = t
+            }
           } else {
-            (toEn as any)[key] = baseVal
+            if (!isEnTouched) (toEn as any)[key] = baseVal
             const t = await translateText(baseVal, 'auto', 'zh')
             if (t) (toZh as any)[key] = t
           }
@@ -597,7 +672,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         // 最后保障：确保两侧都不为空
         const enNow = String((toEn as any)[key] || '')
         const zhNow = String((toZh as any)[key] || '')
-        if (!enNow && zhNow) {
+        if (!enNow && zhNow && !isEnTouched) {
           const t = await translateText(zhNow, 'auto', 'en')
           if (t) (toEn as any)[key] = t
         }
@@ -605,45 +680,135 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           const t = await translateText(enNow, 'auto', 'zh')
           if (t) (toZh as any)[key] = t
         }
+        const enAfter = String((toEn as any)[key] || '')
+        if (!enAfter && !isEnTouched) {
+          const fallback = originalEn && !looksZh(originalEn) ? originalEn : !baseIsChinese ? baseVal : ''
+          if (fallback && !looksZh(fallback)) (toEn as any)[key] = fallback
+        }
+        const zhAfter = String((toZh as any)[key] || '')
+        if (!zhAfter) {
+          const fallbackZh = originalZh && looksZh(originalZh) ? originalZh : baseIsChinese ? baseVal : ''
+          if (fallbackZh && looksZh(fallbackZh)) (toZh as any)[key] = fallbackZh
+        }
+      }
+      const updatedPicTouch: { title?: boolean; subtitle?: boolean; description?: boolean } = {}
+      for (const key of ['title','subtitle','description'] as const) {
+        const finalVal = String((toEn as any)[key] || '')
+        if (finalVal && !looksZh(finalVal)) {
+          updatedPicTouch[key] = true
+        }
+      }
+      if (Object.keys(updatedPicTouch).length) {
+        setPicEnTouched(prev => ({ ...prev, [idx]: { ...(prev[idx] || {}), ...updatedPicTouch } }))
       }
       setPictures(prev => prev.map((p, i) => i === idx ? { ...p, en: toEn, zh: toZh } : p))
-      // 不标记为 touched，方便后续再次点击可覆盖自动翻译结果（只在用户手动编辑时才标记）
+      // 标记已生成的英文内容为 touched，防止后续基础字段的自动同步把它们清空
     } finally {
       setIsTranslatingPic(prev => ({ ...prev, [idx]: false }))
     }
   }
 
-  const autoTranslateAll = async () => {
+  const forceCompleteSetTranslations = async (
+    baseVals: { title: string; subtitle: string; description: string },
+    currentEn: { title: string; subtitle: string; description: string },
+    currentZh: { title: string; subtitle: string; description: string },
+  ) => {
+    const nextEn = { ...currentEn }
+    const nextZh = { ...currentZh }
+    for (const key of ['title', 'subtitle', 'description'] as const) {
+      const baseVal = String(baseVals[key] || '').trim()
+      let enVal = String(nextEn[key] || '').trim()
+      let zhVal = String(nextZh[key] || '').trim()
+      if (!enVal && !zhVal && baseVal) {
+        if (looksZh(baseVal)) {
+          zhVal = baseVal
+          enVal = await translateText(baseVal, 'auto', 'en')
+        } else {
+          enVal = baseVal
+          zhVal = await translateText(baseVal, 'auto', 'zh')
+        }
+      }
+      if (!enVal && zhVal) {
+        enVal = await translateText(zhVal, 'auto', 'en')
+      }
+      if (!zhVal && enVal) {
+        zhVal = await translateText(enVal, 'auto', 'zh')
+      }
+      nextEn[key] = enVal
+      nextZh[key] = zhVal
+    }
+    return { en: nextEn, zh: nextZh }
+  }
+
+  const forceCompletePictureTranslations = async (pic: PictureFormData) => {
+    const base = {
+      title: String(pic.title || ''),
+      subtitle: String(pic.subtitle || ''),
+      description: String(pic.description || ''),
+    }
+    const currentEn = {
+      title: String(pic.en?.title || ''),
+      subtitle: String(pic.en?.subtitle || ''),
+      description: String(pic.en?.description || ''),
+    }
+    const currentZh = {
+      title: String(pic.zh?.title || ''),
+      subtitle: String(pic.zh?.subtitle || ''),
+      description: String(pic.zh?.description || ''),
+    }
+    const filled = await forceCompleteSetTranslations(base, currentEn, currentZh)
+    return {
+      ...pic,
+      en: { ...pic.en, ...filled.en },
+      zh: { ...pic.zh, ...filled.zh },
+    }
+  }
+
+  const autoTranslateAll = async (forceTranslate = false): Promise<{ en: typeof en; zh: typeof zh; pictures: typeof pictures }> => {
     setIsTranslatingAll(true)
+    console.log('🚀 autoTranslateAll called with forceTranslate:', forceTranslate)
     try {
       const nextEn = { ...en }
       const nextZh = { ...zh }
+      const updatedSetTouches: Partial<typeof enTouched> = {}
+      const nextPicTouches: { [idx: number]: { title?: boolean; subtitle?: boolean; description?: boolean } } = {}
       for (const key of ['title','subtitle','description'] as const) {
         const baseVal = String((key === 'title' ? title : key === 'subtitle' ? subtitle : description) || '')
         let enVal = String(nextEn[key] || '')
         let zhVal = String(nextZh[key] || '')
         const existingEn = String((en as any)[key] || '')
         const existingZh = String((zh as any)[key] || '')
+        const baseIsChinese = looksZh(baseVal)
+        
+        console.log(`🔍 Processing ${key}:`, { baseVal, enVal, zhVal, existingEn, existingZh })
+        
+        // forceTranslate=true 表示用户勾选了"自动补全"，强制翻译所有内容
+        const isEnTouched = forceTranslate ? false : enTouched[key]
+        console.log(`   isEnTouched for ${key}:`, isEnTouched, '(forceTranslate:', forceTranslate, ')')
 
-        if (!enVal && zhVal) {
+        if (!enVal && zhVal && !isEnTouched) {
+          console.log(`   🌐 Translating ${key} from zh to en:`, zhVal)
           const t = await translateText(zhVal, 'auto', 'en')
+          console.log(`   ✅ Translation result:`, t)
           if (t) enVal = t
         } else if (!zhVal && enVal) {
           const t = await translateText(enVal, 'auto', 'zh')
           if (t) zhVal = t
         } else if (!enVal && !zhVal && baseVal) {
-          if (looksZh(baseVal)) {
+          if (baseIsChinese) {
             zhVal = baseVal
-            const t = await translateText(baseVal, 'auto', 'en')
-            if (t) enVal = t
+            if (!isEnTouched) {
+              const t = await translateText(baseVal, 'auto', 'en')
+              if (t) enVal = t
+            }
           } else {
-            enVal = baseVal
+            if (!isEnTouched) enVal = baseVal
             const t = await translateText(baseVal, 'auto', 'zh')
             if (t) zhVal = t
           }
         }
         // 最后保障：两侧都不为空
-        if (!enVal && zhVal) {
+        if (!enVal && zhVal && !isEnTouched) {
           const t = await translateText(zhVal, 'auto', 'en')
           if (t) enVal = t
         }
@@ -651,20 +816,113 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           const t = await translateText(enVal, 'auto', 'zh')
           if (t) zhVal = t
         }
-        if (!enVal && baseVal) enVal = existingEn || baseVal
+        if (!enVal && !isEnTouched) {
+          if (existingEn && !looksZh(existingEn)) enVal = existingEn
+          else if (!baseIsChinese) enVal = baseVal
+        }
         if (!zhVal) {
           if (existingZh) zhVal = existingZh
-          else if (looksZh(baseVal)) zhVal = baseVal
+          else if (baseIsChinese) zhVal = baseVal
         }
         nextEn[key] = enVal
         nextZh[key] = zhVal
+        if (enVal && !looksZh(enVal)) {
+          updatedSetTouches[key] = true
+        }
+        console.log(`   📝 Final values for ${key}:`, { enVal, zhVal })
       }
       setEn(nextEn)
       setZh(nextZh)
-
-      for (let i = 0; i < pictures.length; i++) {
-        await autoTranslatePicture(i)
+      if (Object.keys(updatedSetTouches).length) {
+        setEnTouched(prev => ({ ...prev, ...updatedSetTouches }))
       }
+      console.log('✅ SET translation complete - nextEn:', nextEn, 'nextZh:', nextZh)
+
+      // 翻译所有图片并收集结果
+      const nextPictures = [...pictures]
+      for (let i = 0; i < nextPictures.length; i++) {
+        const pic = nextPictures[i]
+        if (!pic) continue
+        
+        const toEn: any = { ...(pic.en || {}) }
+        const toZh: any = { ...(pic.zh || {}) }
+  const touched = picEnTouched[i] || {}
+        
+        for (const key of ['title','subtitle','description'] as const) {
+          const baseVal = String((pic as any)[key] || '')
+          const enVal = String((toEn as any)[key] || '')
+          const zhVal = String((toZh as any)[key] || '')
+          const originalEn = String(pic.en?.[key] || '')
+          const originalZh = String(pic.zh?.[key] || '')
+          const baseIsChinese = looksZh(baseVal)
+          
+          const isEnTouched = forceTranslate ? false : touched[key]
+          
+          if (!enVal && zhVal && !isEnTouched) {
+            const t = await translateText(zhVal, 'auto', 'en')
+            if (t) (toEn as any)[key] = t
+          } else if (!zhVal && enVal) {
+            const t = await translateText(enVal, 'auto', 'zh')
+            if (t) (toZh as any)[key] = t
+          } else if (!enVal && !zhVal && baseVal) {
+            if (baseIsChinese) {
+              (toZh as any)[key] = baseVal
+              if (!isEnTouched) {
+                const t = await translateText(baseVal, 'auto', 'en')
+                if (t) (toEn as any)[key] = t
+              }
+            } else {
+              if (!isEnTouched) (toEn as any)[key] = baseVal
+              const t = await translateText(baseVal, 'auto', 'zh')
+              if (t) (toZh as any)[key] = t
+            }
+          }
+          const enNow = String((toEn as any)[key] || '')
+          const zhNow = String((toZh as any)[key] || '')
+          if (!enNow && zhNow && !isEnTouched) {
+            const t = await translateText(zhNow, 'auto', 'en')
+            if (t) (toEn as any)[key] = t
+          }
+          if (!zhNow && enNow) {
+            const t = await translateText(enNow, 'auto', 'zh')
+            if (t) (toZh as any)[key] = t
+          }
+          const enAfter = String((toEn as any)[key] || '')
+          if (!enAfter && !isEnTouched) {
+            const fallback = originalEn && !looksZh(originalEn) ? originalEn : !baseIsChinese ? baseVal : ''
+            if (fallback && !looksZh(fallback)) (toEn as any)[key] = fallback
+          }
+          const zhAfter = String((toZh as any)[key] || '')
+          if (!zhAfter) {
+            const fallbackZh = originalZh && looksZh(originalZh) ? originalZh : baseIsChinese ? baseVal : ''
+            if (fallbackZh && looksZh(fallbackZh)) (toZh as any)[key] = fallbackZh
+          }
+        }
+        const picTouch: { title?: boolean; subtitle?: boolean; description?: boolean } = {}
+        for (const key of ['title','subtitle','description'] as const) {
+          const finalVal = String((toEn as any)[key] || '')
+          if (finalVal && !looksZh(finalVal)) {
+            picTouch[key] = true
+          }
+        }
+        if (Object.keys(picTouch).length) {
+          nextPicTouches[i] = picTouch
+        }
+        nextPictures[i] = { ...pic, en: toEn, zh: toZh }
+      }
+      setPictures(nextPictures)
+      if (Object.keys(nextPicTouches).length) {
+        setPicEnTouched(prev => {
+          const merged = { ...prev }
+          for (const [idxStr, touch] of Object.entries(nextPicTouches)) {
+            const idx = Number(idxStr)
+            merged[idx] = { ...(merged[idx] || {}), ...touch }
+          }
+          return merged
+        })
+      }
+      
+      return { en: nextEn, zh: nextZh, pictures: nextPictures }
     } finally {
       setIsTranslatingAll(false)
     }
@@ -676,13 +934,19 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     try {
       const nextEn = { ...en }
       const nextZh = { ...zh }
+      const updatedSetTouches: Partial<typeof enTouched> = {}
       for (const key of ['title','subtitle','description'] as const) {
         const baseVal = String((key === 'title' ? title : key === 'subtitle' ? subtitle : description) || '')
         let enVal = String(nextEn[key] || '')
         let zhVal = String(nextZh[key] || '')
         const existingEn = String((en as any)[key] || '')
         const existingZh = String((zh as any)[key] || '')
-        if (!enVal && zhVal) {
+        const baseIsChinese = looksZh(baseVal)
+        
+        // 如果英文字段已被手动编辑过，跳过自动翻译该字段
+        const isEnTouched = enTouched[key]
+        
+        if (!enVal && zhVal && !isEnTouched) {
           const t = await translateText(zhVal, 'auto', 'en')
           if (t) enVal = t
         } else if (!zhVal && enVal) {
@@ -691,16 +955,18 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         } else if (!enVal && !zhVal && baseVal) {
           if (looksZh(baseVal)) {
             zhVal = baseVal
-            const t = await translateText(baseVal, 'auto', 'en')
-            if (t) enVal = t
+            if (!isEnTouched) {
+              const t = await translateText(baseVal, 'auto', 'en')
+              if (t) enVal = t
+            }
           } else {
-            enVal = baseVal
+            if (!isEnTouched) enVal = baseVal
             const t = await translateText(baseVal, 'auto', 'zh')
             if (t) zhVal = t
           }
         }
         // 最后保障：两侧都不为空
-        if (!enVal && zhVal) {
+        if (!enVal && zhVal && !isEnTouched) {
           const t = await translateText(zhVal, 'auto', 'en')
           if (t) enVal = t
         }
@@ -708,16 +974,25 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           const t = await translateText(enVal, 'auto', 'zh')
           if (t) zhVal = t
         }
-        if (!enVal && baseVal) enVal = existingEn || baseVal
+        if (!enVal && !isEnTouched) {
+          if (existingEn && !looksZh(existingEn)) enVal = existingEn
+          else if (!baseIsChinese) enVal = baseVal
+        }
         if (!zhVal) {
           if (existingZh) zhVal = existingZh
-          else if (looksZh(baseVal)) zhVal = baseVal
+          else if (baseIsChinese) zhVal = baseVal
         }
         nextEn[key] = enVal
         nextZh[key] = zhVal
+        if (enVal && !looksZh(enVal)) {
+          updatedSetTouches[key] = true
+        }
       }
       setEn(nextEn)
       setZh(nextZh)
+      if (Object.keys(updatedSetTouches).length) {
+        setEnTouched(prev => ({ ...prev, ...updatedSetTouches }))
+      }
     } finally {
       setIsTranslatingAll(false)
     }
@@ -756,26 +1031,76 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
   // dynamic autofill for set-level translations: follow base fields until user manually edits en.*
   useEffect(() => {
-    if ((!enTouched.title || !String(en.title || '').trim()) && String(title || '').trim()) {
-      setEn((prev) => ({ ...prev, title }))
+    if (isHydratingFromEdit.current) return
+    if (!hasSyncedBaseOnce.current.title) {
+      hasSyncedBaseOnce.current.title = true
+      return
     }
-    if (looksZh(title) && !((zh.title || '').trim())) setZh((prev) => ({ ...prev, title }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title])
+    const baseVal = String(title || '').trim()
+    // 如果基础字段为空，清空翻译区域（如果未被手动编辑）
+    if (!baseVal) {
+      if (!enTouched.title) setEn((prev) => ({ ...prev, title: '' }))
+      setZh((prev) => ({ ...prev, title: '' }))
+      return
+    }
+    // 识别语言并放入对应区域
+    const isChinese = looksZh(baseVal)
+    if (isChinese) {
+      // 中文：放入 zh，清空 en（如果未被手动编辑）
+      setZh((prev) => ({ ...prev, title: baseVal }))
+      if (!enTouched.title) {
+        setEn((prev) => ({ ...prev, title: '' }))
+      }
+    } else {
+      // 英文：放入 en（如果未被手动编辑），清空 zh
+      if (!enTouched.title) setEn((prev) => ({ ...prev, title: baseVal }))
+      setZh((prev) => ({ ...prev, title: '' }))
+    }
+  }, [title, enTouched.title])
+  
   useEffect(() => {
-    if ((!enTouched.subtitle || !String(en.subtitle || '').trim()) && String(subtitle || '').trim()) {
-      setEn((prev) => ({ ...prev, subtitle }))
+    if (isHydratingFromEdit.current) return
+    if (!hasSyncedBaseOnce.current.subtitle) {
+      hasSyncedBaseOnce.current.subtitle = true
+      return
     }
-    if (looksZh(subtitle) && !((zh.subtitle || '').trim())) setZh((prev) => ({ ...prev, subtitle }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtitle])
+    const baseVal = String(subtitle || '').trim()
+    if (!baseVal) {
+      if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle: '' }))
+      setZh((prev) => ({ ...prev, subtitle: '' }))
+      return
+    }
+    const isChinese = looksZh(baseVal)
+    if (isChinese) {
+      setZh((prev) => ({ ...prev, subtitle: baseVal }))
+      if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle: '' }))
+    } else {
+      if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle: baseVal }))
+      setZh((prev) => ({ ...prev, subtitle: '' }))
+    }
+  }, [subtitle, enTouched.subtitle])
+  
   useEffect(() => {
-    if ((!enTouched.description || !String(en.description || '').trim()) && String(description || '').trim()) {
-      setEn((prev) => ({ ...prev, description }))
+    if (isHydratingFromEdit.current) return
+    if (!hasSyncedBaseOnce.current.description) {
+      hasSyncedBaseOnce.current.description = true
+      return
     }
-    if (looksZh(description) && !((zh.description || '').trim())) setZh((prev) => ({ ...prev, description }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [description])
+    const baseVal = String(description || '').trim()
+    if (!baseVal) {
+      if (!enTouched.description) setEn((prev) => ({ ...prev, description: '' }))
+      setZh((prev) => ({ ...prev, description: '' }))
+      return
+    }
+    const isChinese = looksZh(baseVal)
+    if (isChinese) {
+      setZh((prev) => ({ ...prev, description: baseVal }))
+      if (!enTouched.description) setEn((prev) => ({ ...prev, description: '' }))
+    } else {
+      if (!enTouched.description) setEn((prev) => ({ ...prev, description: baseVal }))
+      setZh((prev) => ({ ...prev, description: '' }))
+    }
+  }, [description, enTouched.description])
 
   useEffect(() => {
     const cleanup = () => {
@@ -828,12 +1153,36 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     setIsSubmitting(true)
 
     try {
-      // 根据选项，自动补齐集合与图片语种
-      if (autoFillLocalesAll) {
-        await autoTranslateAll()
-      }
-      // 为未设置标签的图片自动生成标签（与现有标签做并集），并使用返回的 next 数组继续构造 payload，避免批量生成后 state 未同步
+      // 根据选项，自动补齐集合与图片语种，并获取翻译后的值
+      let translatedEn = en
+      let translatedZh = zh
       let picturesForPayload = pictures
+      
+      if (autoFillLocalesAll) {
+        // ✅ 提交时强制翻译，忽略 enTouched 限制
+        console.log('🔄 Before translation - en:', en, 'zh:', zh)
+        const result = await autoTranslateAll(true)
+        translatedEn = result.en
+        translatedZh = result.zh
+        picturesForPayload = result.pictures
+        console.log('✅ After translation - translatedEn:', translatedEn, 'translatedZh:', translatedZh)
+        const forcedSet = await forceCompleteSetTranslations(
+          {
+            title: title ?? '',
+            subtitle: subtitle ?? '',
+            description: description ?? '',
+          },
+          translatedEn,
+          translatedZh,
+        )
+        translatedEn = forcedSet.en
+        translatedZh = forcedSet.zh
+        picturesForPayload = await Promise.all(
+          picturesForPayload.map(async (pic) => await forceCompletePictureTranslations(pic))
+        )
+      }
+      
+      // 为未设置标签的图片自动生成标签（与现有标签做并集），并使用返回的 next 数组继续构造 payload，避免批量生成后 state 未同步
       if (autoGenerateTagsForUntagged) {
         picturesForPayload = await generateTagsForUntaggedPictures()
       }
@@ -845,22 +1194,36 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
       // upload helper to R2 via signed URL
       const uploadFile = async (file: File, objectName: string): Promise<string> => {
-        const res = await fetch("/api/upload-to-r2", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ objectName, contentType: file.type }),
-        })
-        if (!res.ok) throw new Error("Failed to get signed URL")
-        const { uploadUrl } = await res.json()
-        const buf = await file.arrayBuffer()
-        const uploadRes = await fetch(uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": file.type },
-          body: buf,
-        })
-        if (!uploadRes.ok) throw new Error("File upload failed")
-        // store key path like /picture/xxx
-        return `/${objectName}`
+        try {
+          const res = await fetch("/api/upload-to-r2", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ objectName, contentType: file.type }),
+          })
+          if (!res.ok) throw new Error("Failed to get signed URL")
+          const { uploadUrl } = await res.json()
+          
+          // 尝试读取文件内容，捕获 NotFoundError
+          let buf: ArrayBuffer
+          try {
+            buf = await file.arrayBuffer()
+          } catch (readError: any) {
+            console.error("Failed to read file arrayBuffer:", readError)
+            throw new Error(`无法读取文件 ${file.name}，文件可能已失效。请重新选择文件。`)
+          }
+          
+          const uploadRes = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: buf,
+          })
+          if (!uploadRes.ok) throw new Error("File upload failed")
+          // store key path like /picture/xxx
+          return `/${objectName}`
+        } catch (error: any) {
+          console.error(`Error uploading file ${file.name}:`, error)
+          throw error
+        }
       }
 
       // Cover upload (if provided)
@@ -957,6 +1320,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       const hasUp = selectedSectionNames.some(n => /\bup\b|top|上|顶/.test(n))
       const derivedPosition = hasDown ? 'down' : (hasUp ? 'up' : 'up')
 
+      console.log('📦 Building payload with translatedEn:', translatedEn, 'translatedZh:', translatedZh)
+
       const payload: PictureSetSubmitData = {
         title,
         subtitle,
@@ -974,8 +1339,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         primary_location_name: primaryLocationName || undefined,
         primary_location_latitude: typeof primaryLocationLat === 'number' ? primaryLocationLat : null,
         primary_location_longitude: typeof primaryLocationLng === 'number' ? primaryLocationLng : null,
-        en,
-        zh,
+        en: translatedEn,
+        zh: translatedZh,
         tags: tagsText
           .split(",")
           .map((t) => t.trim())
@@ -992,6 +1357,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       // 表单重置逻辑由父组件通过 editingPictureSet 的变化来触发
     } catch (error) {
       console.error("Error submitting form:", error)
+      // 重新抛出错误，让父组件的 toast 能够显示
+      throw error
     } finally {
       setIsSubmitting(false)
     }
@@ -1210,6 +1577,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
                   } else {
                     setEn(prev => ({ ...prev, [field]: val }))
+                    if (val.trim()) {
+                      setEnTouched(prev => ({ ...prev, [field]: true }))
+                    }
                     setZh(prev => ({ ...prev, [field]: '' }))
                   }
                 }}
@@ -1323,6 +1693,15 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               <Input placeholder={t('latitude')} value={primaryLocationLat} onChange={(e)=>setPrimaryLocationLat(e.target.value ? Number(e.target.value) : "")} />
               <Input placeholder={t('longitude')} value={primaryLocationLng} onChange={(e)=>setPrimaryLocationLng(e.target.value ? Number(e.target.value) : "")} />
             </div>
+            
+            {/* Location preview map */}
+            {primaryLocationLat && primaryLocationLng && (
+              <LocationPreviewMap 
+                latitude={primaryLocationLat}
+                longitude={primaryLocationLng}
+                locationName={primaryLocationName}
+              />
+            )}
           </div>
 
           {/* Set tags */}
@@ -1650,28 +2029,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                     />
                   </div>
 
-                  {/* Photography style selector */}
-                  <div className="space-y-2 border-t pt-3">
-                    <h4 className="text-base font-bold">{t('pictureStyle')}</h4>
-                    <Select
-                      value={pic.style ?? undefined}
-                      onValueChange={(value) => handlePictureChange(idx, 'style', value === 'none' ? null : value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('selectPictureStyle')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">{t('styleNone')}</SelectItem>
-                        {PHOTOGRAPHY_STYLES.map((style) => (
-                          <SelectItem key={style.id} value={style.id}>
-                            {t(style.i18nKey)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-gray-500">{t('pictureStyleHint')}</p>
-                  </div>
-
                   {/* Types (categories) */}
                   <div className="space-y-2 border-t pt-3">
                     <h4 className="text-base font-bold">{t('typesCategories')}</h4>
@@ -1742,6 +2099,15 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         <Input placeholder={t('latitude')} value={(pic as any).location_latitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_latitude', e.target.value ? Number(e.target.value) : null)} />
                         <Input placeholder={t('longitude')} value={(pic as any).location_longitude ?? ''} onChange={(e)=>handlePictureChange(idx, 'location_longitude', e.target.value ? Number(e.target.value) : null)} />
                       </div>
+                      
+                      {/* Location preview map */}
+                      {(pic as any).location_latitude && (pic as any).location_longitude && (
+                        <LocationPreviewMap 
+                          latitude={(pic as any).location_latitude}
+                          longitude={(pic as any).location_longitude}
+                          locationName={(pic as any).location_name}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1853,8 +2219,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         </div>
       )}
 
-      <div className="sticky bottom-0 bg-white py-4 border-t z-10 space-y-2">
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+      <div className="sticky bottom-0 bg-white py-4 border-t z-[9999] space-y-2">
+        <Button type="submit" disabled={isSubmitting} className="w-full relative z-[9999]">
           {isSubmitting ? t('submitting') : isEditMode ? t('updateSet') : t('submitSet')}
         </Button>
       </div>
