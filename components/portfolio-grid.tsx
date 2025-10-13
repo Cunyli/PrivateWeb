@@ -35,7 +35,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const [setResults, setSetResults] = useState<PictureSet[] | null>(null)
   const [pictureResults, setPictureResults] = useState<Picture[] | null>(null)
   const [pictureTransMap, setPictureTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
-  const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
+  const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
@@ -103,7 +103,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           try {
             const { data: locRows, error: locErr } = await supabase
               .from('picture_set_locations')
-              .select('picture_set_id, is_primary, location:locations(name, latitude, longitude)')
+              .select('picture_set_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
               .in('picture_set_id', ids)
               .eq('is_primary', true)
 
@@ -111,7 +111,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
               console.warn('Fetch primary locations failed:', locErr)
               setSetLocations({})
             } else {
-              const mapLoc: Record<number, { name?: string | null; latitude: number; longitude: number }> = {}
+              const mapLoc: Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }> = {}
               for (const row of locRows || []) {
                 const loc = (row as any).location || (row as any).locations
                 if (!loc) continue
@@ -120,6 +120,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 if (Number.isFinite(lat) && Number.isFinite(lng)) {
                   mapLoc[(row as any).picture_set_id] = {
                     name: (loc as any).name,
+                    name_en: (loc as any).name_en,
+                    name_zh: (loc as any).name_zh,
                     latitude: lat,
                     longitude: lng,
                   }
@@ -414,9 +416,26 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       const lng = Number(loc.longitude)
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
       const bucketKey = `${lat.toFixed(3)}:${lng.toFixed(3)}`
+      
+      // 根据当前语言选择地点名称
+      let locationName: string
+      if (locale === 'zh') {
+        locationName = (loc.name_zh && String(loc.name_zh).trim().length > 0) 
+          ? String(loc.name_zh) 
+          : (loc.name && String(loc.name).trim().length > 0) 
+            ? String(loc.name) 
+            : t('mapUnknownLocation')
+      } else {
+        locationName = (loc.name_en && String(loc.name_en).trim().length > 0) 
+          ? String(loc.name_en) 
+          : (loc.name && String(loc.name).trim().length > 0) 
+            ? String(loc.name) 
+            : t('mapUnknownLocation')
+      }
+      
       const existing = buckets.get(bucketKey) || {
         key: bucketKey,
-        name: (loc.name && String(loc.name).trim().length > 0) ? String(loc.name) : t('mapUnknownLocation'),
+        name: locationName,
         latitude: lat,
         longitude: lng,
         sets: [],
@@ -436,7 +455,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       ...bucket,
       sets: bucket.sets.sort((a, b) => a.title.localeCompare(b.title)),
     })).sort((a, b) => a.name.localeCompare(b.name))
-  }, [pictureSets, setLocations, baseUrl, getText, t])
+  }, [pictureSets, setLocations, baseUrl, getText, t, locale])
 
   const downGallerySection = !loading && visibleDownSets.length > 0 && (
     <section className="mt-16 sm:mt-24">
