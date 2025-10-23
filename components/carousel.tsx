@@ -34,6 +34,16 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
   const secondaryLocale = primaryLocale === 'zh' ? 'en' : 'zh'
   const bucketUrl = React.useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   
+  // 触摸和鼠标滑动状态
+  const [touchStart, setTouchStart] = React.useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = React.useState<number | null>(null)
+  const [isSwiping, setIsSwiping] = React.useState(false)
+  const [isDragging, setIsDragging] = React.useState(false)
+  const [mouseStart, setMouseStart] = React.useState<number | null>(null)
+  
+  // 最小滑动距离（像素）
+  const minSwipeDistance = 50
+  
   const goToPrevious = () => {
     const isFirstImage = currentIndex === 0
     const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1
@@ -51,6 +61,87 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
       window.open(bucketUrl + images[currentIndex].rawUrl, "_blank")
     }
   }
+  
+  // 触摸开始
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+    setIsSwiping(false)
+  }
+  
+  // 触摸移动
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+    if (touchStart !== null) {
+      const distance = Math.abs(e.targetTouches[0].clientX - touchStart)
+      if (distance > 10) {
+        setIsSwiping(true)
+        // 阻止浏览器的默认滑动行为（返回/前进）
+        e.preventDefault()
+      }
+    }
+  }
+  
+  // 触摸结束
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+    
+    if (isLeftSwipe) {
+      goToNext()
+    } else if (isRightSwipe) {
+      goToPrevious()
+    }
+    
+    setIsSwiping(false)
+    setTouchStart(null)
+    setTouchEnd(null)
+  }
+  
+  // 鼠标拖拽开始（桌面端）
+  const onMouseDown = (e: React.MouseEvent) => {
+    // 只在主按钮（左键）按下时触发
+    if (e.button !== 0) return
+    setIsDragging(true)
+    setMouseStart(e.clientX)
+    e.preventDefault() // 防止文本选择
+  }
+  
+  // 鼠标拖拽移动
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || mouseStart === null) return
+    
+    const distance = mouseStart - e.clientX
+    const isLeftDrag = distance > minSwipeDistance
+    const isRightDrag = distance < -minSwipeDistance
+    
+    if (isLeftDrag || isRightDrag) {
+      // 完成拖拽后立即重置状态
+      setIsDragging(false)
+      setMouseStart(null)
+      
+      if (isLeftDrag) {
+        goToNext()
+      } else if (isRightDrag) {
+        goToPrevious()
+      }
+    }
+  }
+  
+  // 鼠标拖拽结束
+  const onMouseUp = () => {
+    setIsDragging(false)
+    setMouseStart(null)
+  }
+  
+  // 鼠标离开区域时也要重置状态
+  const onMouseLeave = () => {
+    setIsDragging(false)
+    setMouseStart(null)
+  }
 
   if (!images || images.length === 0) {
     return <div>{t('noPictures') || 'No images'}</div>
@@ -65,16 +156,25 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
     <div className="flex flex-col w-full h-full">
       {/* Main image container */}
       <div
-        className="flex-1 flex items-center justify-center w-full relative group"
+        className="flex-1 flex items-center justify-center w-full relative group touch-none select-none"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
         {/* Image wrapper */}
-        <div className="w-full h-full flex items-center justify-center relative">
+        <div className="w-full h-full flex items-center justify-center relative select-none">
           <Image
             src={activeImage.url ? (bucketUrl + activeImage.url) : "/placeholder.svg"}
             alt={computedAlt}
             fill
-            className="object-contain corner-lg smooth-transition"
+            className="object-contain corner-lg smooth-transition pointer-events-none"
             priority
+            draggable={false}
           />
 
           {/* Download original button - appears on hover */}
@@ -82,18 +182,18 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
             <Button
               variant="secondary"
               onClick={handleOpenOriginal}
-              className="absolute bottom-4 right-4 bg-white/80 hover:bg-white shadow-md z-10 opacity-0 group-hover:opacity-100 smooth-transition transform translate-y-2 group-hover:translate-y-0"
+              className="absolute bottom-4 right-4 bg-white/80 hover:bg-white shadow-md z-10 opacity-0 md:group-hover:opacity-100 smooth-transition transform translate-y-2 md:group-hover:translate-y-0"
             >
               <Download className="h-4 w-4 mr-2" />
               {t('viewOriginal') || 'View Original'}
             </Button>
           )}
 
-          {/* Navigation buttons */}
+          {/* Navigation buttons - hidden on mobile, shown on desktop hover */}
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/75 rounded-full p-2 opacity-0 group-hover:opacity-100 smooth-transition transform -translate-x-2 group-hover:translate-x-0"
+            className="hidden md:block absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform -translate-x-1 group-hover:translate-x-0 shadow-md"
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-6 w-6" />
@@ -101,7 +201,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/75 rounded-full p-2 opacity-0 group-hover:opacity-100 smooth-transition transform translate-x-2 group-hover:translate-x-0"
+            className="hidden md:block absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform translate-x-1 group-hover:translate-x-0 shadow-md"
             onClick={goToNext}
           >
             <ChevronRight className="h-6 w-6" />
@@ -111,13 +211,13 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
 
       {/* Horizontal thumbnail carousel - only shown if showThumbnails is true */}
       {showThumbnails && (
-        <div className="mt-2 overflow-x-auto">
+        <div className="mt-2 overflow-x-auto scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-400">
           <div className="flex gap-2 py-2">
             {images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => onChangeImage(index)}
-                className={`flex-none w-24 aspect-[16/9] overflow-hidden rounded-md border-2 smooth-transition hover:scale-105 gpu-accelerated ${
+                className={`flex-none w-24 aspect-[16/9] overflow-hidden rounded-md border-2 smooth-transition hover:scale-105 gpu-accelerated snap-center ${
                   index === currentIndex ? "border-black ring-2 ring-black ring-opacity-20 scale-105" : "border-transparent hover:border-gray-300"
                 }`}
               >
