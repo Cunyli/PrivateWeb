@@ -41,8 +41,34 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
   const [isDragging, setIsDragging] = React.useState(false)
   const [mouseStart, setMouseStart] = React.useState<number | null>(null)
   
+  // 图片切换动画状态
+  const [isTransitioning, setIsTransitioning] = React.useState(false)
+  const [displayIndex, setDisplayIndex] = React.useState(currentIndex)
+  
   // 最小滑动距离（像素）
   const minSwipeDistance = 50
+  
+  // 监听 currentIndex 变化，触发过渡动画
+  React.useEffect(() => {
+    if (currentIndex !== displayIndex) {
+      setIsTransitioning(true)
+      
+      // 淡出当前图片
+      const fadeOutTimer = setTimeout(() => {
+        setDisplayIndex(currentIndex)
+      }, 150) // 淡出时间
+      
+      // 完成过渡
+      const fadeInTimer = setTimeout(() => {
+        setIsTransitioning(false)
+      }, 300) // 总过渡时间
+      
+      return () => {
+        clearTimeout(fadeOutTimer)
+        clearTimeout(fadeInTimer)
+      }
+    }
+  }, [currentIndex, displayIndex])
   
   const goToPrevious = () => {
     const isFirstImage = currentIndex === 0
@@ -147,7 +173,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
     return <div>{t('noPictures') || 'No images'}</div>
   }
 
-  const activeImage = images[currentIndex]
+  const activeImage = images[displayIndex]
   const activeText = activeImage.translations[primaryLocale]
   const fallbackText = activeImage.translations[secondaryLocale]
   const computedAlt = activeText.title || fallbackText.title || "Portfolio image"
@@ -169,10 +195,12 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
         {/* Image wrapper */}
         <div className="w-full h-full flex items-center justify-center relative select-none">
           <Image
+            key={displayIndex}
             src={activeImage.url ? (bucketUrl + activeImage.url) : "/placeholder.svg"}
             alt={computedAlt}
             fill
-            className="object-contain corner-lg smooth-transition pointer-events-none"
+            className="object-contain corner-lg pointer-events-none transition-opacity duration-300 ease-in-out"
+            style={{ opacity: isTransitioning ? 0 : 1 }}
             priority
             draggable={false}
           />

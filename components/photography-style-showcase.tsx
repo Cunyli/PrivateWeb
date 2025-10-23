@@ -635,7 +635,10 @@ export function PhotographyStyleShowcase() {
                               ? shouldContain ? "scale-100 duration-700" : "scale-[1.08] duration-700"
                               : shouldContain ? "scale-100 duration-1000" : "scale-[1.02] duration-1000"
                           )}
-                          onLoadingComplete={(img) => updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)}
+                          onLoad={(e) => {
+                            const img = e.target as HTMLImageElement
+                            updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)
+                          }}
                         />
                       ) : (
                         <div className="h-full w-full bg-gradient-to-br from-slate-300 via-slate-200 to-white" />
@@ -782,7 +785,10 @@ export function PhotographyStyleShowcase() {
                             style={{ willChange: "transform, opacity", transitionDuration: '1200ms' }}
                             priority={isActive}
                             loading={isActive ? "eager" : "lazy"}
-                            onLoadingComplete={(img) => updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)}
+                            onLoad={(e) => {
+                              const img = e.target as HTMLImageElement
+                              updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)
+                            }}
                           />
                         ) : (
                           <div className="h-full w-full bg-gradient-to-br from-slate-300 via-slate-200 to-white" />
@@ -866,7 +872,7 @@ export function PhotographyStyleShowcase() {
                 <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
                   <div className="space-y-2 md:space-y-4">
                     <div 
-                      className="relative aspect-[16/10] w-full overflow-hidden rounded-[2.5rem] bg-black/70 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.65)]"
+                      className="relative aspect-[16/11] md:aspect-[16/10] w-full overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-black/70 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.65)]"
                     >
                       {modalPictures.map((picture, idx) => {
                         const active = idx === modalIndex
@@ -888,9 +894,10 @@ export function PhotographyStyleShowcase() {
                                 : active ? 'scale-100' : 'scale-105'
                             )}
                             style={{ transitionDuration: '1400ms', transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-                            onLoadingComplete={(img) => {
+                            onLoad={(e) => {
                               // 避免在弹窗打开时频繁触发更新
                               if (!modalIndexInitialized.current) return
+                              const img = e.target as HTMLImageElement
                               updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
                             }}
                           />
@@ -944,7 +951,7 @@ export function PhotographyStyleShowcase() {
                   </div>
 
                     {currentModalPicture && (
-                      <div className="flex flex-wrap items-center justify-between gap-2 md:gap-3 rounded-xl md:rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 md:px-5 md:py-4 text-sm text-white/80">
+                      <div className="hidden md:flex flex-wrap items-center justify-between gap-2 md:gap-3 rounded-xl md:rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 md:px-5 md:py-4 text-sm text-white/80">
                         <div className="flex flex-col gap-0.5 md:gap-1">
                           <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-white/60">
                             {t('styleFromSeries')}
@@ -988,7 +995,10 @@ export function PhotographyStyleShowcase() {
                                   'transition duration-700 object-center',
                                   orientation === false ? 'object-contain group-hover:scale-100' : 'object-cover group-hover:scale-105'
                                 )}
-                                onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
+                                onLoad={(e) => {
+                                  const img = e.target as HTMLImageElement
+                                  updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
+                                }}
                               />
                               <div className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ${active ? 'opacity-5' : 'opacity-35 group-hover:opacity-15'}`} />
                               <div className="absolute left-3 top-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-white/70">
@@ -1061,7 +1071,10 @@ export function PhotographyStyleShowcase() {
                                     alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
                                     fill
                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                    onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
+                                    onLoad={(e) => {
+                                      const img = e.target as HTMLImageElement
+                                      updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
+                                    }}
                                     priority={active || isHovered}
                                   />
                                 </div>
@@ -1210,7 +1223,10 @@ export function PhotographyStyleShowcase() {
                                   alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
                                   fill
                                   className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                  onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
+                                  onLoad={(e) => {
+                                    const img = e.target as HTMLImageElement
+                                    updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
+                                  }}
                                   priority={active || isHovered}
                                 />
                               </div>

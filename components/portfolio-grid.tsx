@@ -505,7 +505,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                         className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                         priority={eager}
                         loading={eager ? 'eager' : 'lazy'}
-                        onLoadingComplete={(img) => handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)}
+                        onLoad={(e) => {
+                          const img = e.target as HTMLImageElement
+                          handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)
+                        }}
                       />
 
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
