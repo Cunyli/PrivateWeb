@@ -1040,61 +1040,126 @@ export function PhotographyStyleShowcase() {
                           style={{ height: '420px', WebkitOverflowScrolling: 'touch' }}
                         >
                           <div className="relative flex flex-row gap-4 justify-start items-center" style={{ height: '400px', minWidth: 'max-content', paddingLeft: 'max(0px, calc(50% - 120px))' }}>
-                          {portraitPictures.map((picture, idx) => {
-                            const globalIdx = modalPictures.indexOf(picture)
-                            const active = globalIdx === modalIndex
-                            const isHovered = hoveredMobileIndex === globalIdx
-                            const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
-                            const cardWidth = 240
-                            // 使用 picture 的 orderIndex 作为跳转参数，同时传递风格信息
-                            const imageIndex = picture.orderIndex ?? 0
-                            
-                            return (
-                              <Link
-                                key={`${picture.id}-portrait-${idx}`}
-                                href={`/work/${picture.pictureSetId}?index=${imageIndex}&style=${selectedStyleId}`}
-                                className={`group relative flex-shrink-0 snap-center overflow-hidden rounded-2xl border transition-all duration-500 block ${
-                                  active
-                                    ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)]'
-                                    : 'border-white/20 hover:border-white/60'
-                                }`}
-                                style={{
-                                  width: `${cardWidth}px`,
-                                  height: '380px',
-                                  transform: active ? 'scale(1.02)' : 'scale(1)',
-                                  transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                }}
-                              >
-                                <div className="absolute inset-0 z-10">
-                                  <Image
-                                    src={imageSrc || '/placeholder.svg'}
-                                    alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                                    fill
-                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                    onLoad={(e) => {
-                                      const img = e.target as HTMLImageElement
-                                      updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
-                                    }}
-                                    priority={active || isHovered}
-                                  />
-                                </div>
-                                
-                                <div className={`absolute inset-0 transition-opacity duration-500 z-5 ${
-                                  active ? 'bg-black/5 opacity-100' : 'bg-black/35 opacity-100 group-hover:opacity-50'
-                                }`} />
-                                
-                                <div className="absolute bottom-0 left-0 right-0 text-left text-[11px] leading-tight text-white z-20 px-2 py-2">
-                                  <div className="font-medium line-clamp-1 drop-shadow-md">
-                                    {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                            {portraitPictures.map((picture, idx) => {
+                              const globalIdx = modalPictures.indexOf(picture)
+                              const active = globalIdx === modalIndex
+                              const isHovered = hoveredMobileIndex === globalIdx
+                              const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
+                              const cardWidth = 240
+                              const overlapAmount = 80 // horizontal overlap when folded
+                              // 使用 picture 的 orderIndex 作为跳转参数，同时传递风格信息
+                              const imageIndex = picture.orderIndex ?? 0
+
+                              return (
+                                <a
+                                  key={`${picture.id}-portrait-${idx}`}
+                                  href={`/work/${picture.pictureSetId}?index=${imageIndex}&style=${selectedStyleId}`}
+                                  onClick={(e) => {
+                                    // 移动端：第一次点击展开，第二次点击跳转
+                                    if (window.innerWidth < 1024) {
+                                      if (hoveredMobileIndex !== globalIdx) {
+                                        e.preventDefault()
+
+                                        // 先收起所有卡片
+                                        const items = e.currentTarget.parentElement?.querySelectorAll('a, a, button')
+                                        if (items) {
+                                          items.forEach((item, itemIdx) => {
+                                            const htmlItem = item as HTMLElement
+                                            htmlItem.style.transform = 'translateX(0) scale(1)'
+                                            htmlItem.style.zIndex = String(portraitPictures.length - itemIdx)
+                                          })
+                                        }
+
+                                        // 展开当前卡片
+                                        setHoveredMobileIndex(globalIdx)
+                                        if (items) {
+                                          items.forEach((item, itemIdx) => {
+                                            const htmlItem = item as HTMLElement
+                                            if (itemIdx < idx) {
+                                              htmlItem.style.transform = `translateX(-${overlapAmount}px)`
+                                            } else if (itemIdx === idx) {
+                                              htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
+                                              htmlItem.style.zIndex = String(portraitPictures.length + 10)
+                                            } else {
+                                              htmlItem.style.transform = `translateX(${overlapAmount}px)`
+                                            }
+                                          })
+                                        }
+                                      }
+                                      // 否则已经展开，则允许跳转
+                                    }
+                                  }}
+                                  className={`group relative flex-shrink-0 snap-center overflow-hidden rounded-2xl border transition-all duration-500 block cursor-pointer ${
+                                    active
+                                      ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)]'
+                                      : 'border-white/20 hover:border-white/60'
+                                  }`}
+                                  style={{
+                                    width: `${cardWidth}px`,
+                                    height: '380px',
+                                    transform: active ? 'scale(1.02)' : 'scale(1)',
+                                    transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                    marginLeft: idx === 0 ? '0' : `-${overlapAmount}px`,
+                                    zIndex: portraitPictures.length - idx,
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    // desktop hover expands like poker draw
+                                    setHoveredMobileIndex(globalIdx)
+                                    const items = e.currentTarget.parentElement?.querySelectorAll('a, a, button')
+                                    if (!items) return
+                                    items.forEach((item, itemIdx) => {
+                                      const htmlItem = item as HTMLElement
+                                      if (itemIdx < idx) {
+                                        htmlItem.style.transform = `translateX(-${overlapAmount}px)`
+                                      } else if (itemIdx === idx) {
+                                        htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
+                                        htmlItem.style.zIndex = String(portraitPictures.length + 10)
+                                      } else {
+                                        htmlItem.style.transform = `translateX(${overlapAmount}px)`
+                                      }
+                                    })
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    setHoveredMobileIndex(null)
+                                    const items = e.currentTarget.parentElement?.querySelectorAll('a, a, button')
+                                    if (!items) return
+                                    items.forEach((item, itemIdx) => {
+                                      const htmlItem = item as HTMLElement
+                                      htmlItem.style.transform = 'translateX(0) scale(1)'
+                                      htmlItem.style.zIndex = String(portraitPictures.length - itemIdx)
+                                    })
+                                  }}
+                                >
+                                  <div className="absolute inset-0 z-10">
+                                    <Image
+                                      src={imageSrc || '/placeholder.svg'}
+                                      alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                                      fill
+                                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                      onLoad={(e) => {
+                                        const img = e.target as HTMLImageElement
+                                        updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
+                                      }}
+                                      priority={active || isHovered}
+                                    />
                                   </div>
-                                  <div className="opacity-75 line-clamp-1 drop-shadow-md">
-                                    {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
+
+                                  <div className={`absolute inset-0 transition-opacity duration-500 z-5 ${
+                                    active ? 'bg-black/5 opacity-100' : 'bg-black/35 opacity-100 group-hover:opacity-50'
+                                  }`} />
+
+                                  <div className="absolute bottom-0 left-0 right-0 text-left text-[11px] leading-tight text-white z-20 px-2 py-2">
+                                    <div className="font-medium line-clamp-1 drop-shadow-md">
+                                      {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
+                                    </div>
+                                    <div className="opacity-75 line-clamp-1 drop-shadow-md">
+                                      {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
+                                    </div>
                                   </div>
-                                </div>
-                              </Link>
-                            )
-                          })}
-                          </div>
+                                </a>
+                              )
+                            })}
+                            </div>
                         </div>
                       </div>
                     )
