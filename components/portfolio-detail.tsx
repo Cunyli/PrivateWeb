@@ -41,6 +41,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set());
+  const [showSetInfo, setShowSetInfo] = useState(false);
   const { locale, t } = useI18n()
   const router = useRouter()
   const bucketUrl = process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top'
@@ -231,13 +232,25 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
               {/* Main image container */}
               <div className="relative w-full min-h-[400px] h-[60vh] flex items-center justify-center rounded-[28px] overflow-hidden shadow-sm bg-gray-50">
                 {(displayTitle || displaySubtitle || displayDescription) && (
-                  <div className="group/info absolute left-4 top-4 lg:left-6 lg:top-6 z-20 flex flex-col items-start gap-3 max-w-sm">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-black/75 px-3.5 py-1.5 text-[10px] uppercase tracking-[0.32em] text-white shadow-md backdrop-blur-sm transition-all duration-200 group-hover/info:bg-black">
+                  <div className="absolute left-4 top-4 lg:left-6 lg:top-6 z-20 flex flex-col items-start gap-3 max-w-sm pointer-events-none">
+                    <button 
+                      className="group/info inline-flex items-center gap-2 rounded-full bg-black/75 px-3.5 py-1.5 text-[10px] uppercase tracking-[0.32em] text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-black pointer-events-auto"
+                      onMouseEnter={() => setShowSetInfo(true)}
+                      onMouseLeave={() => setShowSetInfo(false)}
+                      onClick={() => setShowSetInfo(!showSetInfo)}
+                    >
                       {locale === 'zh' ? '作品简介' : 'About Set'}
-                      <span className="text-[10px] transition-transform group-hover/info:rotate-180">▴</span>
-                    </div>
+                      <span className={`text-[10px] transition-transform ${showSetInfo ? 'rotate-180' : ''}`}>▴</span>
+                    </button>
 
-                    <div className="w-[min(70vw,280px)] rounded-3xl bg-white/95 border border-white/60 px-5 py-4 text-left text-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 translate-y-2 opacity-0 pointer-events-none group-hover/info:translate-y-0 group-hover/info:opacity-100 group-hover/info:pointer-events-auto">
+                    <div className={`w-[min(70vw,280px)] rounded-3xl bg-white/95 border border-white/60 px-5 py-4 text-left text-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 ${
+                      showSetInfo 
+                        ? 'translate-y-0 opacity-100 pointer-events-auto' 
+                        : 'translate-y-2 opacity-0 pointer-events-none'
+                    }`}
+                    onMouseEnter={() => setShowSetInfo(true)}
+                    onMouseLeave={() => setShowSetInfo(false)}
+                    >
                       {(displayTitle || displaySubtitle) && (
                         <div className="mb-3 border-b border-gray-200 pb-2">
                           {displayTitle && (

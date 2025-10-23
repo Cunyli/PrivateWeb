@@ -833,7 +833,7 @@ export function PhotographyStyleShowcase() {
       <Dialog open={!!selectedStyleId} onOpenChange={(open) => { if (!open) setSelectedStyleId(null) }}>
         <DialogContent className="flex max-h-[calc(100vh-2rem)] w-[min(100vw-2rem,80rem)] max-w-5xl flex-col overflow-hidden bg-background p-0 shadow-2xl">
           <div className="flex min-h-0 flex-1 flex-col">
-            <DialogHeader className="sticky top-0 z-20 gap-3 border-b border-border/60 bg-background/95 px-6 pt-6 pb-4 text-left backdrop-blur supports-[backdrop-filter]:bg-background/80">
+            <DialogHeader className="sticky top-0 z-20 border-b border-border/60 bg-background/95 px-6 pt-6 pb-4 text-left backdrop-blur supports-[backdrop-filter]:bg-background/80">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <DialogClose asChild>
                   <Button variant="ghost" size="sm" className="inline-flex items-center gap-2">
@@ -845,7 +845,9 @@ export function PhotographyStyleShowcase() {
                   <span className="text-xs text-muted-foreground">{t("loadingSets")}</span>
                 )}
               </div>
-              <div className="space-y-1 text-left">
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto px-6 pb-6">
+              <div className="space-y-1 text-left pt-6 pb-4">
                 <DialogTitle className="font-light text-2xl tracking-wide">
                   {selectedStyleConfig ? t(selectedStyleConfig.i18nKey) : t("styleShowcaseTitle")}
                 </DialogTitle>
@@ -855,8 +857,6 @@ export function PhotographyStyleShowcase() {
                   </DialogDescription>
                 )}
               </div>
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto px-6 pb-6">
               {isModalLoading ? (
                 <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                   {t("loadingSets")}
@@ -864,8 +864,10 @@ export function PhotographyStyleShowcase() {
               ) : modalPictures.length > 0 ? (
                 <div className="flex flex-col gap-6">
                 <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
-                  <div className="space-y-4">
-                    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[2.5rem] border border-white/15 bg-black/70 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.65)]">
+                  <div className="space-y-2 md:space-y-4">
+                    <div 
+                      className="relative aspect-[16/10] w-full overflow-hidden rounded-[2.5rem] bg-black/70 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.65)]"
+                    >
                       {modalPictures.map((picture, idx) => {
                         const active = idx === modalIndex
                         const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
@@ -894,68 +896,73 @@ export function PhotographyStyleShowcase() {
                           />
                         )
                       })}
+                      
                       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(99,102,241,0.28),transparent_55%),radial-gradient(circle_at_75%_10%,rgba(34,211,238,0.25),transparent_55%),linear-gradient(140deg,rgba(2,6,23,0.75) 10%,rgba(15,23,42,0.35) 45%,rgba(15,23,42,0.85) 100%)]" />
-                      <div className="absolute left-6 top-6 flex items-center gap-3 text-[10px] uppercase tracking-[0.45em] text-white/70">
+                      <div className="absolute left-3 md:left-6 top-3 md:top-6 flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.45em] text-white/70">
                         <span>{selectedStyleConfig ? t(selectedStyleConfig.i18nKey) : t('styleShowcaseTitle')}</span>
-                        <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 font-semibold tracking-[0.3em]">
+                        <span className="rounded-full border border-white/30 bg-white/10 px-2 md:px-3 py-0.5 md:py-1 font-semibold tracking-[0.2em] md:tracking-[0.3em]">
                           {String(modalIndex + 1).padStart(2, '0')} / {String(modalPictures.length).padStart(2, '0')}
                         </span>
                       </div>
                       {currentModalPicture && (
-                        <div className="absolute inset-x-6 bottom-6 flex flex-col gap-3 text-white drop-shadow-xl">
-                          <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.4em] text-white/70">
-                            <span>{currentModalPicture.set.translations[locale as 'zh' | 'en']?.title || currentModalPicture.set.title}</span>
-                            <span className="h-[1px] w-10 bg-white/40" />
-                            <span>{locale === 'zh' ? '大师影廊' : 'Master Series'}</span>
+                        <div className="absolute inset-x-3 md:inset-x-6 bottom-3 md:bottom-6 flex flex-col gap-1.5 md:gap-3 text-white drop-shadow-xl">
+                          <div className="flex flex-wrap items-center gap-1.5 md:gap-2 text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-white/70">
+                            <span className="truncate max-w-[150px] md:max-w-none">{currentModalPicture.set.translations[locale as 'zh' | 'en']?.title || currentModalPicture.set.title}</span>
+                            <span className="hidden md:block h-[1px] w-10 bg-white/40" />
+                            <span className="hidden md:inline">{locale === 'zh' ? '大师影廊' : 'Master Series'}</span>
                           </div>
-                          <h3 className="text-2xl md:text-3xl font-light leading-tight">
+                          <h3 className="text-lg md:text-2xl lg:text-3xl font-light leading-tight line-clamp-2 md:line-clamp-none">
                             {locale === 'zh'
                               ? currentModalPicture.translations.zh?.title || currentModalPicture.translations.en?.title
                               : currentModalPicture.translations.en?.title || currentModalPicture.translations.zh?.title || t('styleUntitled')}
                           </h3>
                           {(currentModalPicture.translations[locale as 'zh' | 'en']?.description || selectedStyleConfig?.tagline?.[locale as 'zh' | 'en']) && (
-                            <p className="max-w-2xl text-sm text-white/80">
+                            <p className="hidden md:block max-w-2xl text-sm text-white/80 line-clamp-2">
                               {currentModalPicture.translations[locale as 'zh' | 'en']?.description || selectedStyleConfig?.tagline?.[locale as 'zh' | 'en']}
                             </p>
                           )}
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1.5 md:gap-2">
                             {[...(currentModalPicture.categories || []), ...(currentModalPicture.tags || [])]
                               .filter(Boolean)
-                              .slice(0, 6)
+                              .slice(0, 3)
                               .map((label) => (
                                 <span
                                   key={`${currentModalPicture.id}-${label}`}
-                                  className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-white/75"
+                                  className="rounded-full border border-white/30 bg-white/10 px-2 md:px-3 py-0.5 md:py-1 text-[9px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/75"
                                 >
                                   {label}
                                 </span>
                               ))}
+                            {[...(currentModalPicture.categories || []), ...(currentModalPicture.tags || [])].filter(Boolean).length > 3 && (
+                              <span className="rounded-full border border-white/30 bg-white/10 px-2 md:px-3 py-0.5 md:py-1 text-[9px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/75">
+                                +{[...(currentModalPicture.categories || []), ...(currentModalPicture.tags || [])].filter(Boolean).length - 3}
+                              </span>
+                            )}
                           </div>
                         </div>
-                      )}
-                    </div>
+                    )}
+                  </div>
 
                     {currentModalPicture && (
-                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-sm text-white/80">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] uppercase tracking-[0.4em] text-white/60">
+                      <div className="flex flex-wrap items-center justify-between gap-2 md:gap-3 rounded-xl md:rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 md:px-5 md:py-4 text-sm text-white/80">
+                        <div className="flex flex-col gap-0.5 md:gap-1">
+                          <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-white/60">
                             {t('styleFromSeries')}
                           </span>
-                          <span className="text-base font-medium text-white">
+                          <span className="text-sm md:text-base font-medium text-white line-clamp-1">
                             {currentModalPicture.set.translations[locale as 'zh' | 'en']?.title || currentModalPicture.set.title}
                           </span>
                         </div>
-                        <Button variant="secondary" size="sm" className="bg-white/90 text-slate-900 hover:bg-white" asChild>
+                        <Button variant="secondary" size="sm" className="bg-white/90 text-slate-900 hover:bg-white text-xs md:text-sm h-8 md:h-9 px-3 md:px-4" asChild>
                           <Link href={`/work/${currentModalPicture.pictureSetId}?index=${currentModalPicture.orderIndex ?? 0}&style=${selectedStyleId}`}>
-                            {t('styleViewGallery')}
-                            <ArrowUpRight className="ml-2 h-4 w-4" />
+                            <span className="hidden md:inline">{t('styleViewGallery')}</span>
+                            <span className="md:hidden">{locale === 'zh' ? '查看' : 'View'}</span>
+                            <ArrowUpRight className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4" />
                           </Link>
                         </Button>
                       </div>
                     )}
-                  </div>
-
-                  <div className="hidden lg:block rounded-[2rem] border border-white/10 bg-white/10 p-4 shadow-[0_25px_70px_-50px_rgba(15,23,42,0.75)] backdrop-blur">
+                  </div>                  <div className="hidden lg:block rounded-[2rem] border border-white/10 bg-white/10 p-4 shadow-[0_25px_70px_-50px_rgba(15,23,42,0.75)] backdrop-blur">
                     <ScrollArea className="h-[440px] pr-2">
                       <div className="grid grid-cols-2 gap-3">
                         {modalPictures.map((picture, idx) => {
@@ -1003,7 +1010,7 @@ export function PhotographyStyleShowcase() {
                   </div>
                 </div>
 
-                <div className="lg:hidden space-y-8">
+                <div className="lg:hidden space-y-4 md:space-y-8">
                   {/* 竖向图片组 - 左右堆叠 */}
                   {(() => {
                     const portraitPictures = modalPictures.filter((picture) => {
@@ -1015,7 +1022,7 @@ export function PhotographyStyleShowcase() {
                     
                     return (
                       <div className="relative w-full">
-                        <h4 className="text-xs uppercase tracking-[0.4em] text-white/60 mb-4 text-center">
+                        <h4 className="text-xs uppercase tracking-[0.4em] text-white/60 mb-2 md:mb-4 text-center">
                           {locale === 'zh' ? '竖向作品' : 'Portrait'}
                         </h4>
                         <div 
@@ -1053,7 +1060,7 @@ export function PhotographyStyleShowcase() {
                                     src={imageSrc || '/placeholder.svg'}
                                     alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
                                     fill
-                                    className="object-contain transition-transform duration-500 group-hover:scale-105"
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                                     onLoadingComplete={(img) => updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)}
                                     priority={active || isHovered}
                                   />
@@ -1090,8 +1097,23 @@ export function PhotographyStyleShowcase() {
                     if (landscapePictures.length === 0) return null
                     
                     return (
-                      <div className="relative flex flex-col items-center">
-                        <h4 className="text-xs uppercase tracking-[0.4em] text-white/60 mb-4">
+                      <div 
+                        className="relative flex flex-col items-center"
+                        onClick={(e) => {
+                          // 如果点击的是容器本身（不是卡片），则收起所有展开的卡片
+                          if (e.target === e.currentTarget && window.innerWidth < 1024) {
+                            setHoveredMobileIndex(null)
+                            const items = e.currentTarget.querySelectorAll('a')
+                            if (!items) return
+                            items.forEach((item, itemIdx) => {
+                              const htmlItem = item as HTMLElement
+                              htmlItem.style.transform = 'translateY(0) scale(1)'
+                              htmlItem.style.zIndex = String(landscapePictures.length - itemIdx)
+                            })
+                          }
+                        }}
+                      >
+                        <h4 className="text-xs uppercase tracking-[0.4em] text-white/60 mb-2 md:mb-4">
                           {locale === 'zh' ? '横向作品' : 'Landscape'}
                         </h4>
                         {landscapePictures.map((picture, idx) => {
@@ -1105,10 +1127,45 @@ export function PhotographyStyleShowcase() {
                           const imageIndex = picture.orderIndex ?? 0
                           
                           return (
-                            <Link
+                            <a
                               key={`${picture.id}-landscape-${idx}`}
                               href={`/work/${picture.pictureSetId}?index=${imageIndex}&style=${selectedStyleId}`}
-                              className={`group relative w-full overflow-hidden rounded-2xl border transition-all duration-500 block ${
+                              onClick={(e) => {
+                                // 移动端逻辑：第一次点击展开，第二次点击跳转
+                                if (window.innerWidth < 1024) { // lg breakpoint
+                                  if (hoveredMobileIndex !== globalIdx) {
+                                    e.preventDefault()
+                                    
+                                    // 先收起所有卡片
+                                    const items = e.currentTarget.parentElement?.querySelectorAll('a')
+                                    if (items) {
+                                      items.forEach((item, itemIdx) => {
+                                        const htmlItem = item as HTMLElement
+                                        htmlItem.style.transform = 'translateY(0) scale(1)'
+                                        htmlItem.style.zIndex = String(landscapePictures.length - itemIdx)
+                                      })
+                                    }
+                                    
+                                    // 然后展开当前卡片
+                                    setHoveredMobileIndex(globalIdx)
+                                    if (items) {
+                                      items.forEach((item, itemIdx) => {
+                                        const htmlItem = item as HTMLElement
+                                        if (itemIdx < idx) {
+                                          htmlItem.style.transform = 'translateY(-45px)'
+                                        } else if (itemIdx === idx) {
+                                          htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
+                                          htmlItem.style.zIndex = String(landscapePictures.length + 10)
+                                        } else {
+                                          htmlItem.style.transform = 'translateY(45px)'
+                                        }
+                                      })
+                                    }
+                                  }
+                                  // 如果已经展开（hoveredMobileIndex === globalIdx），则允许跳转
+                                }
+                              }}
+                              className={`group relative w-full overflow-hidden rounded-2xl border transition-all duration-500 block cursor-pointer ${
                                 active
                                   ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)]'
                                   : 'border-white/20 hover:border-white/60'
@@ -1170,7 +1227,7 @@ export function PhotographyStyleShowcase() {
                                   {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
                                 </div>
                               </div>
-                            </Link>
+                            </a>
                           )
                         })}
                       </div>
