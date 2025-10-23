@@ -42,8 +42,8 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
   const [mouseStart, setMouseStart] = React.useState<number | null>(null)
   
   // 图片切换动画状态
-  const [isTransitioning, setIsTransitioning] = React.useState(false)
   const [displayIndex, setDisplayIndex] = React.useState(currentIndex)
+  const [fadeIn, setFadeIn] = React.useState(true)
   
   // 最小滑动距离（像素）
   const minSwipeDistance = 50
@@ -51,22 +51,16 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
   // 监听 currentIndex 变化，触发过渡动画
   React.useEffect(() => {
     if (currentIndex !== displayIndex) {
-      setIsTransitioning(true)
+      // 淡出
+      setFadeIn(false)
       
-      // 淡出当前图片
-      const fadeOutTimer = setTimeout(() => {
+      // 100ms 后切换图片并淡入
+      const timer = setTimeout(() => {
         setDisplayIndex(currentIndex)
-      }, 150) // 淡出时间
+        setFadeIn(true)
+      }, 100)
       
-      // 完成过渡
-      const fadeInTimer = setTimeout(() => {
-        setIsTransitioning(false)
-      }, 300) // 总过渡时间
-      
-      return () => {
-        clearTimeout(fadeOutTimer)
-        clearTimeout(fadeInTimer)
-      }
+      return () => clearTimeout(timer)
     }
   }, [currentIndex, displayIndex])
   
@@ -199,8 +193,8 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
             src={activeImage.url ? (bucketUrl + activeImage.url) : "/placeholder.svg"}
             alt={computedAlt}
             fill
-            className="object-contain corner-lg pointer-events-none transition-opacity duration-300 ease-in-out"
-            style={{ opacity: isTransitioning ? 0 : 1 }}
+            className="object-contain corner-lg pointer-events-none transition-opacity duration-200 ease-in-out"
+            style={{ opacity: fadeIn ? 1 : 0 }}
             priority
             draggable={false}
           />
