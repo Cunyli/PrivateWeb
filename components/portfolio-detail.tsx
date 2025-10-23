@@ -217,11 +217,86 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
               className="inline-flex items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:text-black"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('backToHome')}
+              {locale === 'zh' ? '返回' : 'Back'}
             </button>
-            <LangSwitcher className="h-8 w-8 text-gray-600 bg-white border border-gray-200 shadow-sm" />
+            <div className="flex items-center gap-3">
+              <LangSwitcher className="h-8 w-8 text-gray-600 bg-white border border-gray-200 shadow-sm" />
+
+              {/* Set Details button - shows set info when clicked */}
+              {(displayTitle || displaySubtitle || displayDescription) && (
+                <button
+                  type="button"
+                  onClick={() => setShowSetInfo(!showSetInfo)}
+                  aria-expanded={showSetInfo}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-all duration-150 hover:bg-gray-50"
+                >
+                  <span>{locale === 'zh' ? '作品集详情' : 'Set Details'}</span>
+                  <span className={`text-[10px] transition-transform duration-200 ${showSetInfo ? 'rotate-180' : ''}`}>▾</span>
+                </button>
+              )}
+            </div>
           </div>
         </header>
+
+        {/* Expandable About Set panel below header */}
+        {(displayTitle || displaySubtitle || displayDescription || displayImageTitle || displayImageSubtitle || displayImageDescription) && (
+          <div className={`-mx-4 lg:-mx-8 xl:-mx-16 border-b border-gray-200/70 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 overflow-hidden transition-all duration-300 ${
+            showSetInfo ? 'max-h-96' : 'max-h-0'
+          }`}>
+            <div className="max-w-[2000px] mx-auto px-4 lg:px-8 xl:px-16 py-4">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 text-left text-gray-700">
+                {(displayTitle || displaySubtitle) && (
+                  <div className="mb-3 border-b border-gray-200 pb-3">
+                    {displayTitle && (
+                      <h2 className="text-lg font-medium text-gray-900">
+                        {displayTitle}
+                      </h2>
+                    )}
+                    {displaySubtitle && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {displaySubtitle}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {displayDescription && (
+                  <div className="mb-3">
+                    <h3 className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">
+                      {locale === 'zh' ? '系列简介' : 'Set Overview'}
+                    </h3>
+                    <p className="text-sm leading-relaxed whitespace-pre-line text-gray-700">
+                      {displayDescription}
+                    </p>
+                  </div>
+                )}
+
+                {(displayImageTitle || displayImageSubtitle || displayImageDescription) && (
+                  <div className="pt-3 border-t border-gray-200">
+                    <h3 className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">
+                      {locale === 'zh' ? '当前作品' : 'Current Image'}
+                    </h3>
+                    {displayImageTitle && (
+                      <p className="text-sm font-medium text-gray-900">
+                        {displayImageTitle}
+                      </p>
+                    )}
+                    {displayImageSubtitle && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        {displayImageSubtitle}
+                      </p>
+                    )}
+                    {displayImageDescription && (
+                      <p className="text-sm leading-relaxed text-gray-700 mt-2 whitespace-pre-line">
+                        {displayImageDescription}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main content area - using flex layout */}
         <main className="flex flex-col flex-1">
@@ -230,79 +305,7 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
             {/* Left column: Main image and details */}
             <div className="flex flex-col w-full lg:pr-1">
               {/* Main image container */}
-              <div className="relative w-full min-h-[400px] h-[60vh] flex items-center justify-center rounded-[28px] overflow-hidden shadow-sm bg-gray-50">
-                {(displayTitle || displaySubtitle || displayDescription) && (
-                  <div className="absolute left-4 top-4 lg:left-6 lg:top-6 z-20 flex flex-col items-start gap-3 max-w-sm pointer-events-none">
-                    <button 
-                      className="group/info inline-flex items-center gap-2 rounded-full bg-black/75 px-3.5 py-1.5 text-[10px] uppercase tracking-[0.32em] text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-black pointer-events-auto"
-                      onMouseEnter={() => setShowSetInfo(true)}
-                      onMouseLeave={() => setShowSetInfo(false)}
-                      onClick={() => setShowSetInfo(!showSetInfo)}
-                    >
-                      {locale === 'zh' ? '作品简介' : 'About Set'}
-                      <span className={`text-[10px] transition-transform ${showSetInfo ? 'rotate-180' : ''}`}>▴</span>
-                    </button>
-
-                    <div className={`w-[min(70vw,280px)] rounded-3xl bg-white/95 border border-white/60 px-5 py-4 text-left text-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 ${
-                      showSetInfo 
-                        ? 'translate-y-0 opacity-100 pointer-events-auto' 
-                        : 'translate-y-2 opacity-0 pointer-events-none'
-                    }`}
-                    onMouseEnter={() => setShowSetInfo(true)}
-                    onMouseLeave={() => setShowSetInfo(false)}
-                    >
-                      {(displayTitle || displaySubtitle) && (
-                        <div className="mb-3 border-b border-gray-200 pb-2">
-                          {displayTitle && (
-                            <h2 className="text-base font-medium text-gray-900">
-                              {displayTitle}
-                            </h2>
-                          )}
-                          {displaySubtitle && (
-                            <p className="text-sm text-gray-500 mt-0.5">
-                              {displaySubtitle}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {displayDescription && (
-                        <div className="mb-4">
-                          <h3 className="text-xs uppercase tracking-[0.35em] text-gray-400 mb-2">
-                            {locale === 'zh' ? '系列简介' : 'Set Overview'}
-                          </h3>
-                          <p className="text-sm leading-relaxed whitespace-pre-line text-gray-700">
-                            {displayDescription}
-                          </p>
-                        </div>
-                      )}
-
-                      {(displayImageTitle || displayImageSubtitle || displayImageDescription) && (
-                        <div>
-                          <h3 className="text-xs uppercase tracking-[0.35em] text-gray-400 mb-2">
-                            {locale === 'zh' ? '当前作品' : 'Current Image'}
-                          </h3>
-                          {displayImageTitle && (
-                            <p className="text-sm font-medium text-gray-900">
-                              {displayImageTitle}
-                            </p>
-                          )}
-                          {displayImageSubtitle && (
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              {displayImageSubtitle}
-                            </p>
-                          )}
-                          {displayImageDescription && (
-                            <p className="text-sm leading-relaxed text-gray-700 mt-2 whitespace-pre-line">
-                              {displayImageDescription}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
+              <div className="relative w-full min-h-[400px] h-[60vh] flex items-center justify-center rounded-[28px] overflow-hidden shadow-sm bg-transparent">
                 <Carousel
                   images={images}
                   currentIndex={currentIndex}
@@ -311,9 +314,16 @@ export default function PortfolioDetail({ images, translations }: PortfolioDetai
                 />
               </div>
 
-              {/* Image details below the main image */}
-              <div className="mt-4">
+              {/* Image details and set info below the main image */}
+              <div className="mt-4 space-y-4">
                 <ImageDetails image={currentImage} />
+                
+                {/* Display current image description if exists */}
+                {displayImageDescription && (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                    <p className="leading-relaxed whitespace-pre-line">{displayImageDescription}</p>
+                  </div>
+                )}
               </div>
 
               {/* Mobile thumbnails section */}

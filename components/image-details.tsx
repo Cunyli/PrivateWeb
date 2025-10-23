@@ -26,10 +26,9 @@ export function ImageDetails({ image }: ImageDetailsProps) {
 
   const title = primary.title || secondary.title || ''
   const subtitle = primary.subtitle || secondary.subtitle || ''
-  const description = primary.description || secondary.description || ''
 
-  // If there's no content to display, return null
-  if (!title && !subtitle && !description) {
+  // If there's no title or subtitle to display, return null
+  if (!title && !subtitle) {
     return null
   }
 
@@ -39,7 +38,6 @@ export function ImageDetails({ image }: ImageDetailsProps) {
         {title && <h2 className="text-xl font-bold">{title}</h2>}
         {subtitle && <h3 className="text-lg text-gray-600">{subtitle}</h3>}
       </div>
-      {description && <p className="text-gray-700 mt-2">{description}</p>}
     </div>
   )
 }
