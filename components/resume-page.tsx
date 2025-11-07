@@ -243,7 +243,8 @@ export function ResumePage() {
   const [copiedContact, setCopiedContact] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const prefersReducedMotion = useReducedMotion()
-  const shouldReduceMotion = prefersReducedMotion || isMobile
+  const shouldReduceMotion = prefersReducedMotion
+  const disableScrollLinkedMotion = prefersReducedMotion || isMobile
 
   useEffect(() => {
     if (typeof window === "undefined" || !("matchMedia" in window)) return
@@ -274,7 +275,7 @@ export function ResumePage() {
     return {
       initial: "hidden" as const,
       whileInView: "visible" as const,
-      viewport: { once: true, amount: amount ?? (isMobile ? 0.35 : 0.6) },
+      viewport: { once: true, amount: amount ?? (isMobile ? 0.25 : 0.55) },
     }
   }
 
@@ -293,7 +294,7 @@ export function ResumePage() {
       variants: cardReveal,
       initial: "hidden" as const,
       whileInView: "visible" as const,
-      viewport: { once: true, amount: options?.viewportAmount ?? (isMobile ? 0.4 : 0.5) },
+      viewport: { once: true, amount: options?.viewportAmount ?? (isMobile ? 0.25 : 0.45) },
     }
   }
 
@@ -303,16 +304,19 @@ export function ResumePage() {
       variants: fadeInUp,
       initial: "hidden" as const,
       whileInView: "visible" as const,
-      viewport: { once: true, amount: amount ?? 0.4 },
+      viewport: { once: true, amount: amount ?? (isMobile ? 0.25 : 0.4) },
     }
   }
+
+  const maybeFade = shouldReduceMotion ? undefined : fadeInUp
+  const maybeSection = shouldReduceMotion ? undefined : sectionReveal
 
   return (
     <div ref={pageRef} className="relative min-h-[100svh] bg-zinc-50 text-zinc-900">
       <motion.div
         className="pointer-events-none fixed inset-x-0 top-0 z-30 h-[2px] origin-left bg-zinc-900/80"
         style={
-          shouldReduceMotion
+          disableScrollLinkedMotion
             ? { opacity: 0 }
             : {
                 scaleX: scrollYProgress,
@@ -324,14 +328,14 @@ export function ResumePage() {
       <motion.section
         className="relative isolate flex min-h-[100svh] items-center overflow-hidden border-b border-zinc-200 bg-white"
         {...createSectionMotionProps(isMobile ? 0.4 : 0.8)}
-        variants={fadeInUp}
+        variants={maybeFade}
       >
         <motion.div
           className="absolute inset-0 pointer-events-none opacity-60 [background:radial-gradient(circle_at_top,_rgba(17,24,39,0.08),_transparent_55%)]"
-          style={shouldReduceMotion ? undefined : { y: heroGlowY }}
+          style={disableScrollLinkedMotion ? undefined : { y: heroGlowY }}
         />
         <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-5 py-20 sm:px-10 lg:flex-row lg:items-center">
-          <motion.div className="max-w-2xl space-y-6" variants={fadeInUp}>
+          <motion.div className="max-w-2xl space-y-6" variants={maybeFade}>
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-500">Resume</p>
             <h1 className="text-4xl font-light leading-tight text-zinc-900 sm:text-5xl lg:text-6xl">
               Lijie Li · Data Scientist & Photographer
@@ -341,7 +345,7 @@ export function ResumePage() {
               for friends, travelers, and anyone chasing better portraits. Whether the medium is code or light, I try to make the
               process transparent, collaborative, and quietly artful.
             </p>
-            <motion.div className="flex flex-wrap gap-4" variants={fadeInUp}>
+            <motion.div className="flex flex-wrap gap-4" variants={maybeFade}>
               <Link
                 href="#contact"
                 className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-zinc-800"
@@ -360,7 +364,7 @@ export function ResumePage() {
           <motion.div
             className="grid w-full gap-6 rounded-3xl border border-zinc-100 bg-zinc-900/90 p-6 text-white shadow-xl sm:grid-cols-3 lg:w-auto lg:grid-cols-1"
             style={
-              shouldReduceMotion
+              disableScrollLinkedMotion
                 ? undefined
                 : {
                     y: statsLift,
@@ -387,7 +391,7 @@ export function ResumePage() {
 
       <motion.section
         className="border-b border-zinc-200 bg-white/60"
-        variants={sectionReveal}
+        variants={maybeSection}
         {...createSectionMotionProps()}
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-14 sm:px-10">
@@ -436,7 +440,7 @@ export function ResumePage() {
 
       <motion.section
         className="border-b border-zinc-200 bg-white"
-        variants={sectionReveal}
+        variants={maybeSection}
         {...createSectionMotionProps(0.3)}
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-14 sm:px-10">
@@ -474,7 +478,7 @@ export function ResumePage() {
 
       <motion.section
         className="border-b border-zinc-200 bg-white/60"
-        variants={sectionReveal}
+        variants={maybeSection}
         {...createSectionMotionProps(0.35)}
       >
         <div className="mx-auto max-w-4xl px-5 py-14 text-center sm:px-10">
@@ -490,7 +494,7 @@ export function ResumePage() {
 
       <motion.section
         className="border-b border-zinc-200 bg-white"
-        variants={sectionReveal}
+        variants={maybeSection}
         {...createSectionMotionProps(0.3)}
       >
         <div className="mx-auto max-w-6xl px-5 py-14 sm:px-10">
@@ -552,7 +556,7 @@ export function ResumePage() {
       <motion.section
         id="master-series"
         className="border-b border-zinc-200 bg-zinc-900 text-white"
-        variants={sectionReveal}
+        variants={maybeSection}
         {...createSectionMotionProps(0.25)}
       >
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-10">
@@ -576,7 +580,7 @@ export function ResumePage() {
 
       <motion.section
         className="border-b border-zinc-200 bg-white"
-        variants={sectionReveal}
+        variants={maybeSection}
         {...createSectionMotionProps(0.35)}
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-16 sm:px-10 lg:flex-row">
@@ -634,7 +638,7 @@ export function ResumePage() {
       <motion.section
         id="contact"
         className="bg-white"
-        variants={sectionReveal}
+        variants={maybeSection}
         {...createSectionMotionProps(0.4)}
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-16 text-center sm:px-10">

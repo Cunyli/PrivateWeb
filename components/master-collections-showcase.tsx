@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { CSSProperties } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
@@ -74,7 +75,18 @@ export function MasterShotsShowcase() {
   const [shots, setShots] = useState<MasterShot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dimensionsMap, setDimensionsMap] = useState<Record<number, { width: number; height: number }>>({})
+  const [mobileActiveIndex, setMobileActiveIndex] = useState<number | null>(null)
+  const [prefersTapExpand, setPrefersTapExpand] = useState(false)
   const bucketUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top", [])
+
+  const registerImageDimensions = useCallback((id: number, width?: number, height?: number) => {
+    if (!Number.isFinite(id) || !width || !height) return
+    setDimensionsMap((prev) => {
+      if (prev[id]) return prev
+      return { ...prev, [id]: { width, height } }
+    })
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -149,6 +161,19 @@ export function MasterShotsShowcase() {
     }
   }, [bucketUrl])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const mq = window.matchMedia("(hover: none)")
+    const update = () => setPrefersTapExpand(mq.matches)
+    update()
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", update)
+      return () => mq.removeEventListener("change", update)
+    }
+    mq.addListener(update)
+    return () => mq.removeListener(update)
+  }, [])
+
   if (loading) {
     return (
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -177,25 +202,148 @@ export function MasterShotsShowcase() {
     )
   }
 
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {shots.map((shot) => (
-        <Link
-          key={shot.id}
-          href={shot.pictureSetId ? `/work/${shot.pictureSetId}` : "#"}
-          className="group block overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/30"
-        >
-          <div className="relative aspect-[3/4] w-full">
-            <Image
-              src={shot.imageUrl}
-              alt={shot.styleLabel}
-              fill
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 320px"
-            />
-          </div>
-        </Link>
-      ))}
+  const overlapAmount = 70
+  const baseCardHeight = 220
+
+  const renderMobileStack = () => (
+    <div className="mx-auto w-full max-w-4xl lg:hidden">
+      <div
+        className="relative flex flex-col items-center"
+        onMouseLeave={() => setMobileActiveIndex(null)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            setMobileActiveIndex(null)
+          }
+        }}
+      >
+        {shots.map((shot, index) => {
+          const dims = dimensionsMap[shot.id]
+          const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+          const imageHeight = baseCardHeight
+          const isActive = mobileActiveIndex === index
+          const offset =
+            mobileActiveIndex === null
+              ? 0
+              : index < (mobileActiveIndex ?? 0)
+                ? -45
+                : index > (mobileActiveIndex ?? 0)
+                  ? 45
+                  : 0
+          const scale = isActive ? 1.03 : 1
+          const zIndex =
+            mobileActiveIndex === null
+              ? shots.length - index
+              : isActive
+                ? shots.length + 10
+                : shots.length - index - 1
+
+          return (
+            <div
+              key={shot.id}
+              className="w-full max-w-3xl"
+              style={{ marginTop: index === 0 ? 0 : -overlapAmount }}
+            >
+              <Link
+                href={shot.pictureSetId ? `/work/${shot.pictureSetId}` : "#"}
+                className="group relative block overflow-hidden rounded-[28px] border border-white/20 bg-white/5 shadow-[0_25px_80px_-45px_rgba(15,23,42,0.65)] transition-all duration-500"
+                style={{
+                  height: imageHeight,
+                  transform: `translateY(${offset}px) scale(${scale})`,
+                  zIndex,
+                }}
+                onMouseEnter={() => setMobileActiveIndex(index)}
+                onFocus={() => setMobileActiveIndex(index)}
+                onBlur={() => setMobileActiveIndex(null)}
+                onClick={(event) => {
+                  if (!prefersTapExpand) return
+                  if (mobileActiveIndex !== index) {
+                    event.preventDefault()
+                    setMobileActiveIndex(index)
+                  }
+                }}
+              >
+                <div className="absolute inset-0">
+                  <Image
+                    src={shot.imageUrl}
+                    alt={shot.styleLabel}
+                    fill
+                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 720px"
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                    onLoadingComplete={({ naturalWidth, naturalHeight }) =>
+                      registerImageDimensions(shot.id, naturalWidth, naturalHeight)
+                    }
+                    style={{
+                      objectPosition: aspectRatio && aspectRatio < 1 ? "center top" : "center",
+                    }}
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-70 transition group-hover:opacity-30" />
+                <div className="absolute inset-x-6 bottom-6 text-left text-white drop-shadow-lg">
+                  <p className="text-lg font-semibold">{shot.styleLabel}</p>
+                </div>
+              </Link>
+            </div>
+          )
+        })}
+      </div>
     </div>
+  )
+
+  const renderDesktopGrid = () => (
+    <div className="hidden w-full lg:block">
+      <div className="mx-auto w-full max-w-6xl">
+        <div
+          className="columns-2 gap-4 lg:columns-3 xl:columns-4"
+          style={{ columnFill: "balance" } as CSSProperties}
+        >
+          {shots.map((shot, index) => {
+            const dims = dimensionsMap[shot.id]
+            const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+            const fallbackRatio = aspectRatio && Number.isFinite(aspectRatio) ? aspectRatio : 0.75
+            return (
+              <div
+                key={shot.id}
+                className="mb-4 inline-block w-full transition-opacity duration-500 ease-out"
+                style={{
+                  breakInside: "avoid",
+                  WebkitColumnBreakInside: "avoid",
+                  opacity: 1,
+                  animationDelay: `${index * 80}ms`,
+                }}
+              >
+                <Link
+                  href={shot.pictureSetId ? `/work/${shot.pictureSetId}` : "#"}
+                  className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/30"
+                >
+                  <div className="relative w-full" style={{ aspectRatio: fallbackRatio }}>
+                    <Image
+                      src={shot.imageUrl}
+                      alt={shot.styleLabel}
+                      fill
+                      sizes="(max-width: 1024px) 45vw, (max-width: 1536px) 30vw, 400px"
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      onLoadingComplete={({ naturalWidth, naturalHeight }) =>
+                        registerImageDimensions(shot.id, naturalWidth, naturalHeight)
+                      }
+                    />
+                  </div>
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+                  <div className="pointer-events-none absolute inset-x-4 bottom-4 text-left text-white drop-shadow-lg">
+                    <p className="text-sm font-semibold">{shot.styleLabel}</p>
+                  </div>
+                </Link>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
+      {renderMobileStack()}
+      {renderDesktopGrid()}
+    </>
   )
 }
