@@ -1,8 +1,8 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
 import { Instagram, Linkedin, Mail, MessageCircle } from "lucide-react"
 import { MasterShotsShowcase } from "@/components/master-collections-showcase"
 import type { SVGProps } from "react"
@@ -241,6 +241,23 @@ const cardReveal = {
 export function ResumePage() {
   const pageRef = useRef<HTMLDivElement>(null)
   const [copiedContact, setCopiedContact] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  const shouldReduceMotion = prefersReducedMotion || isMobile
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("matchMedia" in window)) return
+    const mq = window.matchMedia("(max-width: 640px)")
+    const update = () => setIsMobile(mq.matches)
+    update()
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", update)
+      return () => mq.removeEventListener("change", update)
+    }
+    mq.addListener(update)
+    return () => mq.removeListener(update)
+  }, [])
+
   const { scrollYProgress } = useScroll({
     target: pageRef,
     offset: ["start start", "end start"],
@@ -252,25 +269,68 @@ export function ResumePage() {
   const statsShadow = useTransform(statsShadowDepth, (value) => `0 40px 120px rgba(15,15,15,${value})`)
   const progressOpacity = useTransform(scrollYProgress, [0, 0.05], [0, 1])
 
+  const createSectionMotionProps = (amount?: number) => {
+    if (shouldReduceMotion) return {}
+    return {
+      initial: "hidden" as const,
+      whileInView: "visible" as const,
+      viewport: { once: true, amount: amount ?? (isMobile ? 0.35 : 0.6) },
+    }
+  }
+
+  const getCardMotionProps = (index: number, options?: { viewportAmount?: number; immediate?: boolean }) => {
+    if (shouldReduceMotion) return {}
+    if (options?.immediate) {
+      return {
+        custom: index,
+        variants: cardReveal,
+        initial: "hidden" as const,
+        animate: "visible" as const,
+      }
+    }
+    return {
+      custom: index,
+      variants: cardReveal,
+      initial: "hidden" as const,
+      whileInView: "visible" as const,
+      viewport: { once: true, amount: options?.viewportAmount ?? (isMobile ? 0.4 : 0.5) },
+    }
+  }
+
+  const getFadeInViewProps = (amount?: number) => {
+    if (shouldReduceMotion) return {}
+    return {
+      variants: fadeInUp,
+      initial: "hidden" as const,
+      whileInView: "visible" as const,
+      viewport: { once: true, amount: amount ?? 0.4 },
+    }
+  }
+
   return (
-    <div ref={pageRef} className="relative min-h-screen bg-zinc-50 text-zinc-900">
+    <div ref={pageRef} className="relative min-h-[100svh] bg-zinc-50 text-zinc-900">
       <motion.div
         className="pointer-events-none fixed inset-x-0 top-0 z-30 h-[2px] origin-left bg-zinc-900/80"
-        style={{ scaleX: scrollYProgress, opacity: progressOpacity }}
+        style={
+          shouldReduceMotion
+            ? { opacity: 0 }
+            : {
+                scaleX: scrollYProgress,
+                opacity: progressOpacity,
+              }
+        }
       />
 
       <motion.section
-        className="relative isolate flex min-h-screen items-center overflow-hidden border-b border-zinc-200 bg-white"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.8 }}
+        className="relative isolate flex min-h-[100svh] items-center overflow-hidden border-b border-zinc-200 bg-white"
+        {...createSectionMotionProps(isMobile ? 0.4 : 0.8)}
         variants={fadeInUp}
       >
         <motion.div
           className="absolute inset-0 pointer-events-none opacity-60 [background:radial-gradient(circle_at_top,_rgba(17,24,39,0.08),_transparent_55%)]"
-          style={{ y: heroGlowY }}
+          style={shouldReduceMotion ? undefined : { y: heroGlowY }}
         />
-        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 py-24 sm:px-10 lg:flex-row lg:items-center">
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-5 py-20 sm:px-10 lg:flex-row lg:items-center">
           <motion.div className="max-w-2xl space-y-6" variants={fadeInUp}>
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-500">Resume</p>
             <h1 className="text-4xl font-light leading-tight text-zinc-900 sm:text-5xl lg:text-6xl">
@@ -298,11 +358,15 @@ export function ResumePage() {
           </motion.div>
 
           <motion.div
-            className="grid w-full gap-6 rounded-3xl border border-zinc-100 bg-zinc-900/90 p-8 text-white shadow-xl sm:grid-cols-3 lg:w-auto lg:grid-cols-1"
-            style={{
-              y: statsLift,
-              boxShadow: statsShadow,
-            }}
+            className="grid w-full gap-6 rounded-3xl border border-zinc-100 bg-zinc-900/90 p-6 text-white shadow-xl sm:grid-cols-3 lg:w-auto lg:grid-cols-1"
+            style={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    y: statsLift,
+                    boxShadow: statsShadow,
+                  }
+            }
           >
             {[
               { label: "Data / AI Systems", value: "12" },
@@ -311,10 +375,7 @@ export function ResumePage() {
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
-                custom={index}
-                variants={cardReveal}
-                initial="hidden"
-                animate="visible"
+                {...getCardMotionProps(index, { immediate: true })}
               >
                 <p className="text-sm uppercase tracking-wide text-zinc-200">{stat.label}</p>
                 <p className="mt-2 text-4xl font-light">{stat.value}</p>
@@ -327,11 +388,9 @@ export function ResumePage() {
       <motion.section
         className="border-b border-zinc-200 bg-white/60"
         variants={sectionReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.35 }}
+        {...createSectionMotionProps()}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-16 sm:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-14 sm:px-10">
           <div className="flex flex-col gap-3">
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Dual Practice</p>
             <h2 className="text-2xl font-light text-zinc-900">Analytical rigor meets cinematic intuition</h2>
@@ -346,11 +405,7 @@ export function ResumePage() {
               return (
                 <motion.article
                   key={card.title}
-                  variants={cardReveal}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.3 }}
+                  {...getCardMotionProps(index, { viewportAmount: 0.25 })}
                   className={`rounded-3xl border border-zinc-200 bg-gradient-to-br ${card.accent} p-8 shadow-sm`}
                 >
                   <p
@@ -382,11 +437,9 @@ export function ResumePage() {
       <motion.section
         className="border-b border-zinc-200 bg-white"
         variants={sectionReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
+        {...createSectionMotionProps(0.3)}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-16 sm:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-14 sm:px-10">
           <div className="flex flex-col gap-2">
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Hybrid Case Studies</p>
             <h2 className="text-2xl font-light text-zinc-900">Where data products and visuals converge</h2>
@@ -397,11 +450,7 @@ export function ResumePage() {
               <motion.article
                 key={study.title}
                 className="flex flex-col gap-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm"
-                variants={cardReveal}
-                custom={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
+                {...getCardMotionProps(index, { viewportAmount: 0.3 })}
               >
                 <div className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
                   <span>{study.disciplineTag}</span>
@@ -426,11 +475,9 @@ export function ResumePage() {
       <motion.section
         className="border-b border-zinc-200 bg-white/60"
         variants={sectionReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.35 }}
+        {...createSectionMotionProps(0.35)}
       >
-        <div className="mx-auto max-w-4xl px-6 py-16 text-center sm:px-10">
+        <div className="mx-auto max-w-4xl px-5 py-14 text-center sm:px-10">
           <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Studio Notes & Dialogue</p>
           <h2 className="mt-3 text-2xl font-light text-zinc-900">Build logs, moodboards, and open conversations</h2>
           <p className="mt-4 text-base leading-relaxed text-zinc-600">
@@ -444,11 +491,9 @@ export function ResumePage() {
       <motion.section
         className="border-b border-zinc-200 bg-white"
         variants={sectionReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
+        {...createSectionMotionProps(0.3)}
       >
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:px-10">
+        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-light text-zinc-900">Experience</h2>
@@ -476,11 +521,7 @@ export function ResumePage() {
                   <motion.div
                     key={role.title}
                     className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition will-change-transform hover:-translate-y-1 hover:shadow-md"
-                    variants={cardReveal}
-                    custom={index + columnIndex}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.3 }}
+                    {...getCardMotionProps(index + columnIndex, { viewportAmount: 0.35 })}
                   >
                     <div className="flex flex-col gap-3">
                       <div>
@@ -512,11 +553,9 @@ export function ResumePage() {
         id="master-series"
         className="border-b border-zinc-200 bg-zinc-900 text-white"
         variants={sectionReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.25 }}
+        {...createSectionMotionProps(0.25)}
       >
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:px-10">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">Master-tagged Sets</p>
@@ -538,17 +577,12 @@ export function ResumePage() {
       <motion.section
         className="border-b border-zinc-200 bg-white"
         variants={sectionReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.35 }}
+        {...createSectionMotionProps(0.35)}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-16 sm:px-10 lg:flex-row">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-16 sm:px-10 lg:flex-row">
           <motion.div
             className="w-full rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm"
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.4 }}
+            {...getFadeInViewProps(0.4)}
           >
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Capabilities</p>
             <h2 className="mt-3 text-2xl font-light text-zinc-900">Core skills</h2>
@@ -557,11 +591,7 @@ export function ResumePage() {
                 <motion.div
                   key={group.title}
                   className="rounded-2xl border border-zinc-100 bg-zinc-50 p-5"
-                  variants={fadeInUp}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.6 }}
+                  {...getFadeInViewProps(0.6)}
                 >
                   <p className="text-sm font-semibold uppercase tracking-wide text-zinc-500">{group.title}</p>
                   <ul className="mt-4 space-y-2 text-sm text-zinc-600">
@@ -579,10 +609,7 @@ export function ResumePage() {
 
           <motion.div
             className="w-full rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm"
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.4 }}
+            {...getFadeInViewProps(0.4)}
           >
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Commissions & Engagements</p>
             <h2 className="mt-3 text-2xl font-light text-zinc-900">Ways we can collaborate</h2>
@@ -591,11 +618,7 @@ export function ResumePage() {
                 <motion.div
                   key={service.label}
                   className="flex flex-1 flex-col justify-between rounded-3xl border border-zinc-100 bg-zinc-50/80 px-6 py-6 shadow-inner"
-                  variants={fadeInUp}
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.6 }}
+                  {...getFadeInViewProps(0.6)}
                 >
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-wide text-zinc-500">{service.label}</p>
@@ -612,11 +635,9 @@ export function ResumePage() {
         id="contact"
         className="bg-white"
         variants={sectionReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.4 }}
+        {...createSectionMotionProps(0.4)}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-16 text-center sm:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-16 text-center sm:px-10">
           <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Availability</p>
           <h2 className="text-3xl font-light text-zinc-900">Accepting shoots & data engagements</h2>
           <p className="text-base text-zinc-600">

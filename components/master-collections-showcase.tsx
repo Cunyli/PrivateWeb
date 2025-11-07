@@ -151,7 +151,7 @@ export function MasterShotsShowcase() {
 
   if (loading) {
     return (
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {[...Array(3)].map((_, idx) => (
           <div key={idx} className="rounded-2xl bg-white/5 p-6">
             <div className="h-48 w-full animate-pulse rounded-xl bg-white/10" />
@@ -178,21 +178,20 @@ export function MasterShotsShowcase() {
   }
 
   return (
-    <div className="columns-1 gap-6 sm:columns-2 lg:columns-3 [column-fill:balance]">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {shots.map((shot) => (
         <Link
           key={shot.id}
           href={shot.pictureSetId ? `/work/${shot.pictureSetId}` : "#"}
-          className="group mb-6 block overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/30"
+          className="group block overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/30"
         >
-          <div className="relative">
+          <div className="relative aspect-[3/4] w-full">
             <Image
               src={shot.imageUrl}
               alt={shot.styleLabel}
-              width={600}
-              height={720}
+              fill
               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 90vw, 320px"
+              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 320px"
             />
           </div>
         </Link>
