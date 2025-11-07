@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
+import type { PhotographyStyleId } from "@/lib/photography-styles"
 
 type PictureTranslation = {
   title?: string | null
@@ -89,7 +90,7 @@ export function MasterShotsShowcase() {
       const seenPictureIds = new Set<number>()
 
       Object.values(payload).forEach((style) => {
-        const meta = PHOTOGRAPHY_STYLE_BY_ID[style.id]
+        const meta = PHOTOGRAPHY_STYLE_BY_ID[style.id as PhotographyStyleId]
         const styleLabel = meta?.labels?.en || meta?.labels?.zh || style.tagName || "Master"
         for (const picture of style.pictures || []) {
           const pool = [...(picture.tags || []), ...(picture.categories || [])]
@@ -110,7 +111,7 @@ export function MasterShotsShowcase() {
 
     const fetchMasterShots = async () => {
       try {
-        const res = await fetch("/api/master-shots?limit=12", { cache: "no-store" })
+        const res = await fetch("/api/master-shots?limit=11", { cache: "no-store" })
         if (!res.ok) {
           throw new Error(`Failed to load master shots (${res.status})`)
         }

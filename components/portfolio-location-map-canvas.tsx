@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import type { Map as LeafletMap } from "leaflet"
@@ -36,6 +36,9 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [mapInstance, setMapInstance] = useState<LeafletMap | null>(null)
   const { locale } = useI18n()
+  const handleMapRef = useCallback((map: LeafletMap | null) => {
+    setMapInstance(map)
+  }, [])
 
   useEffect(() => {
     if (!locations.length) {
@@ -99,7 +102,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
             zoom={4}
             minZoom={2}
             maxZoom={12}
-            whenCreated={(map) => setMapInstance(map)}
+            ref={handleMapRef}
             className="h-full w-full focus:outline-none focus-visible:outline-none [&_.leaflet-control-container]:hidden"
             zoomControl={false}
             attributionControl={false}

@@ -1,13 +1,11 @@
-import { PortfolioGrid } from "@/components/portfolio-grid"
-import { fetchPortfolioInitialData } from "@/lib/portfolioInitialData.server"
+import { ResumePage } from "@/components/resume-page"
 
-export const revalidate = 60
+export const revalidate = 3600
 
-export default async function Home() {
-  const initialData = await fetchPortfolioInitialData()
+export default function Home() {
   return (
     <main className="min-h-screen bg-white">
-      <PortfolioGrid initialData={initialData || undefined} />
+      <ResumePage />
     </main>
   )
 }
