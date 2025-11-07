@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
+import type { CSSProperties } from "react"
 import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
@@ -16,6 +17,16 @@ import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 
 const INITIAL_DOWN_LIMIT = 15
 const LOAD_MORE_COUNT = 15
+
+const normalizePictureSets = (
+  rows: Array<Partial<PictureSet> | null | undefined>,
+): PictureSet[] =>
+  rows
+    .filter((row): row is Partial<PictureSet> => Boolean(row))
+    .map((row) => ({
+      pictures: [],
+      ...row,
+    })) as PictureSet[]
 
 interface PortfolioGridProps {
   initialData?: InitialPortfolioPayload
@@ -67,12 +78,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         setShuffledDownSets([])
       } else {
         console.log(`Found ${data?.length || 0} picture sets`)
-        const sets = data || []
-        setPictureSets(sets)
+        const normalizedSets = normalizePictureSets((data || []) as Partial<PictureSet>[])
+        setPictureSets(normalizedSets)
 
         // Fetch both en and zh translations for display switching
-        if (sets.length > 0) {
-          const ids = sets.map((s) => s.id)
+        if (normalizedSets.length > 0) {
+          const ids = normalizedSets.map((s) => s.id)
           const [{ data: enTrans }, { data: zhTrans }] = await Promise.all([
             supabase
               .from('picture_set_translations')
@@ -140,17 +151,17 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         
         // 根据 Sections 推导上下排（兼容 position）
         try {
-          const ids = sets.map(s => s.id)
+          const ids = normalizedSets.map(s => s.id)
           const [{ data: assigns }, { data: secs }] = await Promise.all([
             supabase.from('picture_set_section_assignments').select('picture_set_id, section_id').in('picture_set_id', ids),
             supabase.from('sections').select('id,name')
           ])
-          const { upCombined, downCombined } = derivePortfolioBuckets(sets, assigns || [], secs || [])
+          const { upCombined, downCombined } = derivePortfolioBuckets(normalizedSets, assigns || [], secs || [])
           setDerivedUpSets(upCombined)
           setShuffledDownSets(downCombined)
         } catch (e) {
           console.warn('Derive up/down by sections failed; fallback to position only', e)
-          const { upCombined, downCombined } = fallbackBuckets(sets)
+          const { upCombined, downCombined } = fallbackBuckets(normalizedSets)
           setDerivedUpSets(upCombined)
           setShuffledDownSets(downCombined)
         }
@@ -219,7 +230,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         }
 
         if (!alive) return
-        setSetResults(sets as PictureSet[])
+        const normalizedSearchSets = normalizePictureSets(sets as Partial<PictureSet>[])
+        setSetResults(normalizedSearchSets)
         setPictureResults(pics as Picture[])
 
         // Fetch translations for sets in results
@@ -477,16 +489,18 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 const isLoaded = !!downLoadedMap[item.id]
                 const eager = index < downEagerCount
 
+                const columnAwareStyle: CSSProperties = {
+                  opacity: 1,
+                  animationDelay: `${index * 100}ms`,
+                  breakInside: 'avoid-column',
+                  ['WebkitColumnBreakInside' as any]: 'avoid',
+                }
+
                 return (
                   <div
                     key={item.id}
                     className="group relative inline-block w-full transition-opacity duration-500 ease-out mb-2 sm:mb-3"
-                    style={{
-                      opacity: 1,
-                      animationDelay: `${index * 100}ms`,
-                      breakInside: 'avoid-column',
-                      WebkitColumnBreakInside: 'avoid',
-                    }}
+                    style={columnAwareStyle}
                   >
                     <Link
                       href={`/work/${item.id}`}
