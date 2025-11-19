@@ -18,6 +18,7 @@ import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 const DEFAULT_DOWN_TILE_ASPECT_RATIO = 3 / 4
 const INITIAL_DOWN_LIMIT = 16
 const DOWN_PREFETCH_LIMIT = 48
+const SCROLL_SPEED = 0.85
 const MIN_LOOPED_ROW_ITEMS = 12
 const widthPattern = ["w-[15%]", "w-[25%]", "w-[20%]", "w-[25%]", "w-[15%]"]
 const getTileWidthClass = (index: number) => widthPattern[index % widthPattern.length]
@@ -64,18 +65,60 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
+  const pointerInteractedRef = useRef(false)
   const [topRowPaused, setTopRowPaused] = useState(false)
   const [bottomRowPaused, setBottomRowPaused] = useState(false)
+  const topRowMaxScrollRef = useRef(0)
+  const bottomRowMaxScrollRef = useRef(0)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())
   const downPrefetchQueueRef = useRef<string[]>([])
   const downPrefetchingRef = useRef(false)
-  const pauseTopRow = useCallback(() => setTopRowPaused(true), [])
+  const pauseTopRow = useCallback(() => {
+    if (!pointerInteractedRef.current) return
+    setTopRowPaused(true)
+  }, [])
   const resumeTopRow = useCallback(() => setTopRowPaused(false), [])
-  const pauseBottomRow = useCallback(() => setBottomRowPaused(true), [])
+  const pauseBottomRow = useCallback(() => {
+    if (!pointerInteractedRef.current) return
+    setBottomRowPaused(true)
+  }, [])
   const resumeBottomRow = useCallback(() => setBottomRowPaused(false), [])
+  const forcePauseTopRow = useCallback(() => {
+    pointerInteractedRef.current = true
+    setTopRowPaused(true)
+  }, [])
+  const forcePauseBottomRow = useCallback(() => {
+    pointerInteractedRef.current = true
+    setBottomRowPaused(true)
+  }, [])
+  const measureRowOverflow = useCallback((row: HTMLDivElement | null) => {
+    if (typeof window === 'undefined' || !row) return 0
+    const nativeOverflow = row.scrollWidth - row.clientWidth
+    if (nativeOverflow > 1) return nativeOverflow
+    const styles = window.getComputedStyle(row)
+    const gapRaw = styles.columnGap || styles.gap || "0"
+    const gap = Number.parseFloat(gapRaw) || 0
+    const children = Array.from(row.children) as HTMLElement[]
+    if (!children.length) return 0
+    let totalChildWidth = 0
+    for (const child of children) {
+      const rect = child.getBoundingClientRect()
+      const childStyle = window.getComputedStyle(child)
+      const marginLeft = Number.parseFloat(childStyle.marginLeft) || 0
+      const marginRight = Number.parseFloat(childStyle.marginRight) || 0
+      totalChildWidth += rect.width + marginLeft + marginRight
+    }
+    const manualOverflow = totalChildWidth + gap * Math.max(0, children.length - 1) - row.clientWidth
+    return Math.max(nativeOverflow, manualOverflow, 0)
+  }, [])
+  const updateRowScrollBounds = useCallback(() => {
+    if (typeof window === 'undefined') return
+    topRowMaxScrollRef.current = measureRowOverflow(topRowRef.current)
+    bottomRowMaxScrollRef.current = measureRowOverflow(bottomRowRef.current)
+  }, [measureRowOverflow])
 
   const fetchPictureSets = async () => {
     setLoading(true)
@@ -363,6 +406,29 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [downPictureSets, baseUrl, enqueueDownPrefetch])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handlePointerActivity = () => {
+      pointerInteractedRef.current = true
+    }
+    window.addEventListener('pointerdown', handlePointerActivity, { passive: true })
+    window.addEventListener('pointermove', handlePointerActivity, { passive: true })
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerActivity)
+      window.removeEventListener('pointermove', handlePointerActivity)
+    }
+  }, [])
+
+  useEffect(() => {
+    updateRowScrollBounds()
+  }, [updateRowScrollBounds, loopedFirstRow.length, loopedSecondRow.length])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.addEventListener('resize', updateRowScrollBounds)
+    return () => window.removeEventListener('resize', updateRowScrollBounds)
+  }, [updateRowScrollBounds])
+
+  useEffect(() => {
     setDownLoadedMap((prev) => {
       if (downPictureSets.length === 0) return {}
       const next: Record<number, boolean> = {}
@@ -390,19 +456,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     const tick = () => {
       const top = topRowRef.current
       const bottom = bottomRowRef.current
-      if (top && loopedFirstRow.length && top.scrollWidth - top.clientWidth > 2 && !topRowPaused) {
-        if (top.scrollLeft >= top.scrollWidth - top.clientWidth - 2) {
-          top.scrollLeft = 0
-        } else {
-          top.scrollLeft += 1
-        }
+      const maxTop = topRowMaxScrollRef.current
+      const maxBottom = bottomRowMaxScrollRef.current
+      if (top && loopedFirstRow.length && maxTop > 0.5 && !topRowPaused) {
+        const next = top.scrollLeft + SCROLL_SPEED
+        top.scrollLeft = next >= maxTop ? 0 : next
       }
-      if (bottom && loopedSecondRow.length && bottom.scrollWidth - bottom.clientWidth > 2 && !bottomRowPaused) {
-        if (bottom.scrollLeft <= 2) {
-          bottom.scrollLeft = bottom.scrollWidth - bottom.clientWidth
-        } else {
-          bottom.scrollLeft -= 1
-        }
+      if (bottom && loopedSecondRow.length && maxBottom > 0.5 && !bottomRowPaused) {
+        const next = bottom.scrollLeft - SCROLL_SPEED
+        bottom.scrollLeft = next <= 0 ? maxBottom : next
       }
     }
 
@@ -416,15 +478,18 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   useEffect(() => {
     if (!loopedFirstRow.length) return
     const top = topRowRef.current
-    if (top) top.scrollLeft = 0
-  }, [loopedFirstRow.length])
+    if (!top) return
+    top.scrollLeft = 0
+    topRowMaxScrollRef.current = measureRowOverflow(top)
+  }, [loopedFirstRow.length, measureRowOverflow])
 
   useEffect(() => {
     const bottom = bottomRowRef.current
     if (!loopedSecondRow.length || !bottom) return
-    const maxScroll = bottom.scrollWidth - bottom.clientWidth
+    const maxScroll = measureRowOverflow(bottom)
+    bottomRowMaxScrollRef.current = maxScroll
     bottom.scrollLeft = maxScroll > 0 ? maxScroll : 0
-  }, [loopedSecondRow.length])
+  }, [loopedSecondRow.length, measureRowOverflow])
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -502,9 +567,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           {t('downGallerySubtitle')}
         </p>
       </div>
-      <div className="flex justify-center">
-        <div className="w-full max-w-6xl lg:max-w-7xl px-2 sm:px-4">
-          <div className="columns-2 sm:columns-2 lg:columns-3 xl:columns-4 gap-2 sm:gap-3" style={{ columnFill: 'balance' }}>
+      <div className="flex justify-center w-full">
+        <div className="w-full px-2 sm:px-4 mx-auto max-w-6xl xl:max-w-7xl 2xl:max-w-[100rem] min-[2200px]:max-w-[120rem]">
+          <div
+            className="columns-2 sm:columns-2 lg:columns-3 xl:columns-4 [column-fill:balance] [column-gap:0.5rem] sm:[column-gap:0.75rem] min-[900px]:[column-gap:0.9rem] 2xl:[column-count:auto] 2xl:[column-width:18rem] min-[1800px]:[column-width:16rem] min-[2200px]:[column-width:14rem]"
+          >
             {downPictureSets.map((item, index) => {
               const dims = coverDimensions[item.id]
               const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
@@ -537,7 +604,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                       src={coverSrc}
                       alt={getText(item, 'title') || item.title}
                       fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 25vw, (max-width: 1920px) 18vw, 12vw"
                       quality={60}
                       fetchPriority={eager ? 'high' : 'auto'}
                       className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -686,6 +753,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   onPointerLeave={resumeTopRow}
                   onPointerUp={resumeTopRow}
                   onPointerCancel={resumeTopRow}
+                  onPointerDown={forcePauseTopRow}
                 >
                   {loopedFirstRow.map((item, i) => {
                     const widthClass = getTileWidthClass(i)
@@ -740,6 +808,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     onPointerLeave={resumeBottomRow}
                     onPointerUp={resumeBottomRow}
                     onPointerCancel={resumeBottomRow}
+                    onPointerDown={forcePauseBottomRow}
                   >
                     {loopedSecondRow.map((item, i) => {
                       const widthClass = getTileWidthClass(i)
