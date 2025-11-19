@@ -18,6 +18,18 @@ import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 const DEFAULT_DOWN_TILE_ASPECT_RATIO = 3 / 4
 const INITIAL_DOWN_LIMIT = 16
 const DOWN_PREFETCH_LIMIT = 48
+const MIN_LOOPED_ROW_ITEMS = 12
+const widthPattern = ["w-[15%]", "w-[25%]", "w-[20%]", "w-[25%]", "w-[15%]"]
+const getTileWidthClass = (index: number) => widthPattern[index % widthPattern.length]
+const createLoopedRow = (row: PictureSet[]): PictureSet[] => {
+  if (!row.length) return []
+  const minCopies = Math.max(2, Math.ceil(MIN_LOOPED_ROW_ITEMS / row.length))
+  const result: PictureSet[] = []
+  for (let i = 0; i < minCopies; i++) {
+    result.push(...row)
+  }
+  return result
+}
 
 const normalizePictureSets = (
   rows: Array<Partial<PictureSet> | null | undefined>,
@@ -52,12 +64,18 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
+  const [topRowPaused, setTopRowPaused] = useState(false)
+  const [bottomRowPaused, setBottomRowPaused] = useState(false)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())
   const downPrefetchQueueRef = useRef<string[]>([])
   const downPrefetchingRef = useRef(false)
+  const pauseTopRow = useCallback(() => setTopRowPaused(true), [])
+  const resumeTopRow = useCallback(() => setTopRowPaused(false), [])
+  const pauseBottomRow = useCallback(() => setBottomRowPaused(true), [])
+  const resumeBottomRow = useCallback(() => setBottomRowPaused(false), [])
 
   const fetchPictureSets = async () => {
     setLoading(true)
@@ -290,9 +308,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   // 直接使用状态中的洗牌结果，不再进行额外洗牌
   const downPictureSets = shuffledDownSets
 
-  const mid = Math.ceil(upPictureSets.length / 2)
-  const firstRow = upPictureSets.slice(0, mid)
-  const secondRow = upPictureSets.slice(mid)
+  const { firstRow, secondRow } = useMemo(() => {
+    const midpoint = Math.ceil(upPictureSets.length / 2)
+    return {
+      firstRow: upPictureSets.slice(0, midpoint),
+      secondRow: upPictureSets.slice(midpoint),
+    }
+  }, [upPictureSets])
+  const loopedFirstRow = useMemo(() => createLoopedRow(firstRow), [firstRow])
+  const loopedSecondRow = useMemo(() => createLoopedRow(secondRow), [secondRow])
   const downEagerCount = useMemo(
     () => Math.min(downPictureSets.length, INITIAL_DOWN_LIMIT),
     [downPictureSets.length],
@@ -363,32 +387,44 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [])
 
   useEffect(() => {
-    if (!upPictureSets.length) return
-    const top = topRowRef.current
-    const bottom = bottomRowRef.current
-    if (!top || !bottom) return
-
     const tick = () => {
-      // refs might become null during unmount
-      if (!topRowRef.current || !bottomRowRef.current) return
-      const t = topRowRef.current
-      const b = bottomRowRef.current
-      if (!t || !b) return
-      if (!t.matches(":hover")) {
-        t.scrollLeft >= t.scrollWidth - t.clientWidth - 5
-          ? t.scrollTo({ left: 0, behavior: "auto" })
-          : t.scrollBy({ left: 1, behavior: "auto" })
+      const top = topRowRef.current
+      const bottom = bottomRowRef.current
+      if (top && loopedFirstRow.length && top.scrollWidth - top.clientWidth > 2 && !topRowPaused) {
+        if (top.scrollLeft >= top.scrollWidth - top.clientWidth - 2) {
+          top.scrollLeft = 0
+        } else {
+          top.scrollLeft += 1
+        }
       }
-      if (!b.matches(":hover")) {
-        b.scrollLeft <= 5
-          ? b.scrollTo({ left: b.scrollWidth - b.clientWidth, behavior: "auto" })
-          : b.scrollBy({ left: -1, behavior: "auto" })
+      if (bottom && loopedSecondRow.length && bottom.scrollWidth - bottom.clientWidth > 2 && !bottomRowPaused) {
+        if (bottom.scrollLeft <= 2) {
+          bottom.scrollLeft = bottom.scrollWidth - bottom.clientWidth
+        } else {
+          bottom.scrollLeft -= 1
+        }
       }
     }
 
+    if (!loopedFirstRow.length && !loopedSecondRow.length) return
+    if (!topRowRef.current && !bottomRowRef.current) return
+
     const id = window.setInterval(tick, 30)
     return () => window.clearInterval(id)
-  }, [upPictureSets])
+  }, [loopedFirstRow.length, loopedSecondRow.length, topRowPaused, bottomRowPaused])
+
+  useEffect(() => {
+    if (!loopedFirstRow.length) return
+    const top = topRowRef.current
+    if (top) top.scrollLeft = 0
+  }, [loopedFirstRow.length])
+
+  useEffect(() => {
+    const bottom = bottomRowRef.current
+    if (!loopedSecondRow.length || !bottom) return
+    const maxScroll = bottom.scrollWidth - bottom.clientWidth
+    bottom.scrollLeft = maxScroll > 0 ? maxScroll : 0
+  }, [loopedSecondRow.length])
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -643,10 +679,16 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
             {/* 上部两行自动滚动 - 移动端优化 */}
             {firstRow.length > 0 && (
               <div className="space-y-2 sm:space-y-3">
-                <div ref={topRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
-                  {[...firstRow, ...firstRow].map((item, i) => {
-                    const widthClass =
-                      i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
+                <div
+                  ref={topRowRef}
+                  className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
+                  onPointerEnter={pauseTopRow}
+                  onPointerLeave={resumeTopRow}
+                  onPointerUp={resumeTopRow}
+                  onPointerCancel={resumeTopRow}
+                >
+                  {loopedFirstRow.map((item, i) => {
+                    const widthClass = getTileWidthClass(i)
 
                     return (
                       <Link
@@ -690,11 +732,17 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 </div>
 
                 {/* 第二行 */}
-                {secondRow.length > 0 && (
-                  <div ref={bottomRowRef} className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full">
-                    {[...secondRow, ...secondRow].map((item, i) => {
-                      const widthClass =
-                        i % 5 === 0 || i % 5 === 4 ? "w-[15%]" : i % 5 === 1 || i % 5 === 3 ? "w-[25%]" : "w-[20%]"
+                {loopedSecondRow.length > 0 && (
+                  <div
+                    ref={bottomRowRef}
+                    className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
+                    onPointerEnter={pauseBottomRow}
+                    onPointerLeave={resumeBottomRow}
+                    onPointerUp={resumeBottomRow}
+                    onPointerCancel={resumeBottomRow}
+                  >
+                    {loopedSecondRow.map((item, i) => {
+                      const widthClass = getTileWidthClass(i)
 
                       return (
                         <Link
