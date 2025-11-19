@@ -15,8 +15,9 @@ import { PhotographyStyleShowcase } from "@/components/photography-style-showcas
 import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
 import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 
-const INITIAL_DOWN_LIMIT = 15
-const LOAD_MORE_COUNT = 15
+const DEFAULT_DOWN_TILE_ASPECT_RATIO = 3 / 4
+const INITIAL_DOWN_LIMIT = 16
+const DOWN_PREFETCH_LIMIT = 48
 
 const normalizePictureSets = (
   rows: Array<Partial<PictureSet> | null | undefined>,
@@ -57,11 +58,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const downPrefetchedRef = useRef<Set<string>>(new Set())
   const downPrefetchQueueRef = useRef<string[]>([])
   const downPrefetchingRef = useRef(false)
-  const [downVisibleCount, setDownVisibleCount] = useState(() => {
-    const initial = initialData?.downSets?.length || 0
-    if (!initial) return INITIAL_DOWN_LIMIT
-    return Math.min(INITIAL_DOWN_LIMIT, initial)
-  })
 
   const fetchPictureSets = async () => {
     setLoading(true)
@@ -297,11 +293,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const mid = Math.ceil(upPictureSets.length / 2)
   const firstRow = upPictureSets.slice(0, mid)
   const secondRow = upPictureSets.slice(mid)
-  const visibleDownSets = useMemo(
-    () => downPictureSets.slice(0, downVisibleCount),
-    [downPictureSets, downVisibleCount],
+  const downEagerCount = useMemo(
+    () => Math.min(downPictureSets.length, INITIAL_DOWN_LIMIT),
+    [downPictureSets.length],
   )
-  const downEagerCount = useMemo(() => Math.min(downVisibleCount, INITIAL_DOWN_LIMIT), [downVisibleCount])
 
   const processDownPrefetch = useCallback(() => {
     if (typeof window === 'undefined') return
@@ -335,21 +330,13 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const bufferCount = Math.min(downVisibleCount + 6, downPictureSets.length)
+    const bufferCount = Math.min(DOWN_PREFETCH_LIMIT, downPictureSets.length)
     const candidates = downPictureSets.slice(0, bufferCount)
     for (const item of candidates) {
       if (!item.cover_image_url) continue
       enqueueDownPrefetch(`${baseUrl}${item.cover_image_url}`)
     }
-  }, [downPictureSets, downVisibleCount, baseUrl, enqueueDownPrefetch])
-
-  useEffect(() => {
-    setDownVisibleCount((prev) => {
-      if (downPictureSets.length === 0) return INITIAL_DOWN_LIMIT
-      const baseline = Math.max(prev, INITIAL_DOWN_LIMIT)
-      return Math.min(baseline, downPictureSets.length)
-    })
-  }, [downPictureSets.length])
+  }, [downPictureSets, baseUrl, enqueueDownPrefetch])
 
   useEffect(() => {
     setDownLoadedMap((prev) => {
@@ -469,7 +456,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     })).sort((a, b) => a.name.localeCompare(b.name))
   }, [pictureSets, setLocations, baseUrl, getText, t, locale])
 
-  const downGallerySection = !loading && visibleDownSets.length > 0 && (
+  const downGallerySection = !loading && downPictureSets.length > 0 && (
     <section className="mt-16 sm:mt-24">
       <div className="text-center max-w-3xl mx-auto mb-2 sm:mb-4">
         <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
@@ -482,7 +469,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       <div className="flex justify-center">
         <div className="w-full max-w-6xl lg:max-w-7xl px-2 sm:px-4">
           <div className="columns-2 sm:columns-2 lg:columns-3 xl:columns-4 gap-2 sm:gap-3" style={{ columnFill: 'balance' }}>
-            {visibleDownSets.map((item, index) => {
+            {downPictureSets.map((item, index) => {
               const dims = coverDimensions[item.id]
               const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
               const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
@@ -505,7 +492,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   <Link
                     href={`/work/${item.id}`}
                     className="block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
-                    style={{ aspectRatio: aspectRatio || 0.75 }}
+                    style={{ aspectRatio: aspectRatio || DEFAULT_DOWN_TILE_ASPECT_RATIO }}
                   >
                     {!isLoaded && (
                       <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
@@ -540,18 +527,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         </div>
       </div>
 
-      {visibleDownSets.length < downPictureSets.length && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={() => {
-              setDownVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, downPictureSets.length))
-            }}
-            className="px-5 py-2 rounded-full bg-black text-white text-sm sm:text-base transition-transform duration-200 hover:scale-105"
-          >
-            加载更多
-          </button>
-        </div>
-      )}
     </section>
   )
 
