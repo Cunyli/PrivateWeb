@@ -148,7 +148,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           setTransMap({})
           setSetLocations({})
         }
-        
+
         // 根据 Sections 推导上下排（兼容 position）
         try {
           const ids = normalizedSets.map(s => s.id)
@@ -238,8 +238,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         const setIds = (sets || []).map((s: any) => s.id)
         if (setIds.length > 0) {
           const [{ data: enTrans }, { data: zhTrans }] = await Promise.all([
-            supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale','en').in('picture_set_id', setIds),
-            supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale','zh').in('picture_set_id', setIds),
+            supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale', 'en').in('picture_set_id', setIds),
+            supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale', 'zh').in('picture_set_id', setIds),
           ])
           const map: Record<number, any> = { ...transMap }
           for (const t of enTrans || []) {
@@ -255,8 +255,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         const picIds = (pics || []).map((p: any) => p.id)
         if (picIds.length > 0) {
           const [{ data: pen }, { data: pzh }] = await Promise.all([
-            supabase.from('picture_translations').select('picture_id, title, subtitle, description').eq('locale','en').in('picture_id', picIds),
-            supabase.from('picture_translations').select('picture_id, title, subtitle, description').eq('locale','zh').in('picture_id', picIds),
+            supabase.from('picture_translations').select('picture_id, title, subtitle, description').eq('locale', 'en').in('picture_id', picIds),
+            supabase.from('picture_translations').select('picture_id, title, subtitle, description').eq('locale', 'zh').in('picture_id', picIds),
           ])
           const pmap: Record<number, any> = {}
           for (const t of pen || []) pmap[(t as any).picture_id] = { ...(pmap[(t as any).picture_id] || {}), en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
@@ -428,23 +428,23 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       const lng = Number(loc.longitude)
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
       const bucketKey = `${lat.toFixed(3)}:${lng.toFixed(3)}`
-      
+
       // 根据当前语言选择地点名称
       let locationName: string
       if (locale === 'zh') {
-        locationName = (loc.name_zh && String(loc.name_zh).trim().length > 0) 
-          ? String(loc.name_zh) 
-          : (loc.name && String(loc.name).trim().length > 0) 
-            ? String(loc.name) 
+        locationName = (loc.name_zh && String(loc.name_zh).trim().length > 0)
+          ? String(loc.name_zh)
+          : (loc.name && String(loc.name).trim().length > 0)
+            ? String(loc.name)
             : t('mapUnknownLocation')
       } else {
-        locationName = (loc.name_en && String(loc.name_en).trim().length > 0) 
-          ? String(loc.name_en) 
-          : (loc.name && String(loc.name).trim().length > 0) 
-            ? String(loc.name) 
+        locationName = (loc.name_en && String(loc.name_en).trim().length > 0)
+          ? String(loc.name_en)
+          : (loc.name && String(loc.name).trim().length > 0)
+            ? String(loc.name)
             : t('mapUnknownLocation')
       }
-      
+
       const existing = buckets.get(bucketKey) || {
         key: bucketKey,
         name: locationName,
@@ -482,60 +482,61 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       <div className="flex justify-center">
         <div className="w-full max-w-6xl lg:max-w-7xl px-2 sm:px-4">
           <div className="columns-2 sm:columns-2 lg:columns-3 xl:columns-4 gap-2 sm:gap-3" style={{ columnFill: 'balance' }}>
-              {visibleDownSets.map((item, index) => {
-                const dims = coverDimensions[item.id]
-                const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-                const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
-                const isLoaded = !!downLoadedMap[item.id]
-                const eager = index < downEagerCount
+            {visibleDownSets.map((item, index) => {
+              const dims = coverDimensions[item.id]
+              const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+              const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
+              const isLoaded = !!downLoadedMap[item.id]
+              const eager = index < downEagerCount
 
-                const columnAwareStyle: CSSProperties = {
-                  opacity: 1,
-                  animationDelay: `${index * 100}ms`,
-                  breakInside: 'avoid-column',
-                  ['WebkitColumnBreakInside' as any]: 'avoid',
-                }
+              const columnAwareStyle: CSSProperties = {
+                opacity: 1,
+                animationDelay: `${index * 100}ms`,
+                breakInside: 'avoid-column',
+                ['WebkitColumnBreakInside' as any]: 'avoid',
+              }
 
-                return (
-                  <div
-                    key={item.id}
-                    className="group relative inline-block w-full transition-opacity duration-500 ease-out mb-2 sm:mb-3"
-                    style={columnAwareStyle}
+              return (
+                <div
+                  key={item.id}
+                  className="group relative inline-block w-full transition-opacity duration-500 ease-out mb-2 sm:mb-3"
+                  style={columnAwareStyle}
+                >
+                  <Link
+                    href={`/work/${item.id}`}
+                    className="block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
+                    style={{ aspectRatio: aspectRatio || 0.75 }}
                   >
-                    <Link
-                      href={`/work/${item.id}`}
-                      className="block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
-                      style={{ aspectRatio: aspectRatio || 0.75 }}
-                    >
-                      {!isLoaded && (
-                        <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
-                      )}
-                      <Image
-                        src={coverSrc}
-                        alt={getText(item, 'title') || item.title}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-                        fetchPriority={eager ? 'high' : 'auto'}
-                        className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                        priority={eager}
-                        loading={eager ? 'eager' : 'lazy'}
-                        onLoad={(e) => {
-                          const img = e.target as HTMLImageElement
-                          handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)
-                        }}
-                      />
+                    {!isLoaded && (
+                      <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
+                    )}
+                    <Image
+                      src={coverSrc}
+                      alt={getText(item, 'title') || item.title}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                      quality={60}
+                      fetchPriority={eager ? 'high' : 'auto'}
+                      className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      priority={eager}
+                      loading={eager ? 'eager' : 'lazy'}
+                      onLoad={(e) => {
+                        const img = e.target as HTMLImageElement
+                        handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)
+                      }}
+                    />
 
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
-                        <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
-                          <h3 className="text-lg font-medium mb-1">{getText(item, 'title')}</h3>
-                          <p className="text-sm opacity-80">{getText(item, 'subtitle')}</p>
-                        </div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
+                      <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
+                        <h3 className="text-lg font-medium mb-1">{getText(item, 'title')}</h3>
+                        <p className="text-sm opacity-80">{getText(item, 'subtitle')}</p>
                       </div>
-                    </Link>
-                  </div>
-                )
-              })}
-            </div>
+                    </div>
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -610,10 +611,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(setResults || []).map((item) => (
                           <Link key={item.id} href={`/work/${item.id}`} className="group block relative overflow-hidden rounded-md bg-gray-100">
-                            <Image src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"} alt={getText(item,'title')} width={400} height={250} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                            <Image src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"} alt={getText(item, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
                             <div className="p-2">
-                              <div className="text-sm font-medium line-clamp-1">{getText(item,'title')}</div>
-                              <div className="text-xs text-gray-500 line-clamp-1">{getText(item,'subtitle')}</div>
+                              <div className="text-sm font-medium line-clamp-1">{getText(item, 'title')}</div>
+                              <div className="text-xs text-gray-500 line-clamp-1">{getText(item, 'subtitle')}</div>
                             </div>
                           </Link>
                         ))}
@@ -632,10 +633,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(pictureResults || []).map((p) => (
                           <Link key={p.id} href={`/work/${p.picture_set_id}`} className="group block relative overflow-hidden rounded-md bg-gray-100">
-                            <Image src={p.image_url ? `${baseUrl}${p.image_url}` : "/placeholder.svg"} alt={getPicText(p,'title')} width={400} height={250} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                            <Image src={p.image_url ? `${baseUrl}${p.image_url}` : "/placeholder.svg"} alt={getPicText(p, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
                             <div className="p-2">
-                              <div className="text-sm font-medium line-clamp-1">{getPicText(p,'title')}</div>
-                              <div className="text-xs text-gray-500 line-clamp-1">{getPicText(p,'subtitle')}</div>
+                              <div className="text-sm font-medium line-clamp-1">{getPicText(p, 'title')}</div>
+                              <div className="text-xs text-gray-500 line-clamp-1">{getPicText(p, 'subtitle')}</div>
                             </div>
                           </Link>
                         ))}
@@ -682,6 +683,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
                           alt={item.title}
                           fill
+                          quality={60}
+                          sizes="(max-width: 640px) 33vw, 20vw"
                           className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
                         />
 
@@ -695,12 +698,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                             flex flex-col items-center justify-center text-white p-4 text-center
                           "
                         >
-                          <h2 
+                          <h2
                             className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
                           >
                             {getText(item, 'title')}
                           </h2>
-                          <p 
+                          <p
                             className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
                           >
                             {getText(item, 'subtitle')}
@@ -728,6 +731,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                             src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
                             alt={item.title}
                             fill
+                            quality={60}
+                            sizes="(max-width: 640px) 33vw, 20vw"
                             className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
                           />
 
@@ -741,12 +746,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                               flex flex-col items-center justify-center text-white p-4 text-center
                             "
                           >
-                            <h2 
+                            <h2
                               className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
                             >
                               {getText(item, 'title')}
                             </h2>
-                            <p 
+                            <p
                               className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
                             >
                               {getText(item, 'subtitle')}

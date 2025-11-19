@@ -115,7 +115,11 @@ export function MasterShotsShowcase() {
     const cols: MasterShot[][] = Array.from({ length: numColumns }, () => [])
     const colHeights = new Array(numColumns).fill(0)
 
-    shots.forEach((shot) => {
+    // Ensure we only show a multiple of numColumns to keep the grid even
+    const validCount = shots.length - (shots.length % numColumns)
+    const displayShots = shots.slice(0, validCount)
+
+    displayShots.forEach((shot) => {
       const dims = dimensionsMap[shot.id]
       const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : 0.75
       // We use inverse aspect ratio as a proxy for height (assuming equal widths)
@@ -183,7 +187,7 @@ export function MasterShotsShowcase() {
 
     const fetchMasterShots = async () => {
       try {
-        const res = await fetch("/api/master-shots?limit=11", { cache: "no-store" })
+        const res = await fetch("/api/master-shots?limit=24", { cache: "no-store" })
         if (!res.ok) {
           throw new Error(`Failed to load master shots (${res.status})`)
         }
@@ -201,7 +205,7 @@ export function MasterShotsShowcase() {
         try {
           const fallbackShots = await fetchFromPictureStyles()
           if (isMounted) {
-            setShots(fallbackShots.slice(0, 12))
+            setShots(fallbackShots.slice(0, 24))
             setError(null)
           }
         } catch (fallbackErr: any) {
