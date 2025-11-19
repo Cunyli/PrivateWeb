@@ -6,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
 import type { PhotographyStyleId } from "@/lib/photography-styles"
+import { useI18n } from "@/lib/i18n"
 
 type PictureTranslation = {
   title?: string | null
@@ -47,13 +48,26 @@ type MasterShot = {
   pictureSetId: number | null
   imageUrl: string
   styleLabel: string
+  styleLabelZh?: string
+}
+
+const masterCopy = {
+  empty: {
+    en: "No master-tagged images available right now. Please check back soon.",
+    zh: "暂时没有带有“大师”标签的作品，欢迎稍后再来。",
+  },
+  error: {
+    en: "Unable to load master shots at the moment.",
+    zh: "大师作品暂时无法加载。",
+  },
+  labelFallback: { en: "Master Series", zh: "大师影廊" },
 }
 
 const shuffle = <T,>(items: T[]) => {
   const array = [...items]
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[array[i], array[j]] = [array[j], array[i]]
+      ;[array[i], array[j]] = [array[j], array[i]]
   }
   return array
 }
@@ -72,6 +86,7 @@ const toAbsoluteUrl = (rawUrl?: string | null, bucketUrl?: string) => {
 }
 
 export function MasterShotsShowcase() {
+  const { locale } = useI18n()
   const [shots, setShots] = useState<MasterShot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +94,49 @@ export function MasterShotsShowcase() {
   const [mobileActiveIndex, setMobileActiveIndex] = useState<number | null>(null)
   const [prefersTapExpand, setPrefersTapExpand] = useState(false)
   const bucketUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top", [])
+
+  const [numColumns, setNumColumns] = useState(3)
+
+  useEffect(() => {
+    const updateColumns = () => {
+      if (window.innerWidth >= 1280) {
+        setNumColumns(4)
+      } else {
+        setNumColumns(3)
+      }
+    }
+
+    updateColumns()
+    window.addEventListener("resize", updateColumns)
+    return () => window.removeEventListener("resize", updateColumns)
+  }, [])
+
+  const columns = useMemo(() => {
+    const cols: MasterShot[][] = Array.from({ length: numColumns }, () => [])
+    const colHeights = new Array(numColumns).fill(0)
+
+    shots.forEach((shot) => {
+      const dims = dimensionsMap[shot.id]
+      const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : 0.75
+      // We use inverse aspect ratio as a proxy for height (assuming equal widths)
+      const height = 1 / aspectRatio
+
+      // Find the column with the minimum accumulated height
+      let minColIndex = 0
+      let minHeight = colHeights[0]
+
+      for (let i = 1; i < numColumns; i++) {
+        if (colHeights[i] < minHeight) {
+          minHeight = colHeights[i]
+          minColIndex = i
+        }
+      }
+
+      cols[minColIndex].push(shot)
+      colHeights[minColIndex] += height
+    })
+    return cols
+  }, [shots, numColumns, dimensionsMap])
 
   const registerImageDimensions = useCallback((id: number, width?: number, height?: number) => {
     if (!Number.isFinite(id) || !width || !height) return
@@ -104,6 +162,7 @@ export function MasterShotsShowcase() {
       Object.values(payload).forEach((style) => {
         const meta = PHOTOGRAPHY_STYLE_BY_ID[style.id as PhotographyStyleId]
         const styleLabel = meta?.labels?.en || meta?.labels?.zh || style.tagName || "Master"
+        const styleLabelZh = meta?.labels?.zh || meta?.labels?.en || style.tagName || "大师"
         for (const picture of style.pictures || []) {
           const pool = [...(picture.tags || []), ...(picture.categories || [])]
           if (!isMasterTagged(pool)) continue
@@ -114,6 +173,7 @@ export function MasterShotsShowcase() {
             pictureSetId: picture.set?.id || picture.pictureSetId || null,
             imageUrl: toAbsoluteUrl(picture.imageUrl, bucketUrl),
             styleLabel,
+            styleLabelZh,
           })
         }
       })
@@ -190,14 +250,16 @@ export function MasterShotsShowcase() {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50/20 p-6 text-sm text-red-200">{error}</div>
+      <div className="rounded-2xl border border-red-200 bg-red-50/20 p-6 text-sm text-red-200">
+        {masterCopy.error[locale]}
+      </div>
     )
   }
 
   if (!shots.length) {
     return (
       <div className="rounded-2xl border border-white/20 bg-white/5 p-6 text-sm text-white/70">
-        No master-tagged images available right now. Please check back soon.
+        {masterCopy.empty[locale]}
       </div>
     )
   }
@@ -236,6 +298,7 @@ export function MasterShotsShowcase() {
               : isActive
                 ? shots.length + 10
                 : shots.length - index - 1
+
 
           return (
             <div
@@ -278,9 +341,7 @@ export function MasterShotsShowcase() {
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-70 transition group-hover:opacity-30" />
-                <div className="absolute inset-x-6 bottom-6 text-left text-white drop-shadow-lg">
-                  <p className="text-lg font-semibold">{shot.styleLabel}</p>
-                </div>
+
               </Link>
             </div>
           )
@@ -289,52 +350,53 @@ export function MasterShotsShowcase() {
     </div>
   )
 
+
+
   const renderDesktopGrid = () => (
     <div className="hidden w-full lg:block">
       <div className="mx-auto w-full max-w-6xl">
-        <div
-          className="columns-2 gap-4 lg:columns-3 xl:columns-4"
-          style={{ columnFill: "balance" } as CSSProperties}
-        >
-          {shots.map((shot, index) => {
-            const dims = dimensionsMap[shot.id]
-            const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-            const fallbackRatio = aspectRatio && Number.isFinite(aspectRatio) ? aspectRatio : 0.75
-            return (
-              <div
-                key={shot.id}
-                className="mb-4 inline-block w-full transition-opacity duration-500 ease-out"
-                style={{
-                  breakInside: "avoid",
-                  WebkitColumnBreakInside: "avoid",
-                  opacity: 1,
-                  animationDelay: `${index * 80}ms`,
-                }}
-              >
-                <Link
-                  href={shot.pictureSetId ? `/work/${shot.pictureSetId}` : "#"}
-                  className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/30"
-                >
-                  <div className="relative w-full" style={{ aspectRatio: fallbackRatio }}>
-                    <Image
-                      src={shot.imageUrl}
-                      alt={shot.styleLabel}
-                      fill
-                      sizes="(max-width: 1024px) 45vw, (max-width: 1536px) 30vw, 400px"
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      onLoadingComplete={({ naturalWidth, naturalHeight }) =>
-                        registerImageDimensions(shot.id, naturalWidth, naturalHeight)
-                      }
-                    />
+        <div className="flex gap-4 items-start">
+          {columns.map((colShots, colIndex) => (
+            <div key={colIndex} className="flex-1 flex flex-col gap-4">
+              {colShots.map((shot, index) => {
+                const dims = dimensionsMap[shot.id]
+                const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
+                const fallbackRatio = aspectRatio && Number.isFinite(aspectRatio) ? aspectRatio : 0.75
+
+
+                return (
+                  <div
+                    key={shot.id}
+                    className="w-full transition-opacity duration-500 ease-out"
+                    style={{
+                      opacity: 1,
+                      animationDelay: `${(index * numColumns + colIndex) * 80}ms`,
+                    }}
+                  >
+                    <Link
+                      href={shot.pictureSetId ? `/work/${shot.pictureSetId}` : "#"}
+                      className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/30"
+                    >
+                      <div className="relative w-full" style={{ aspectRatio: fallbackRatio }}>
+                        <Image
+                          src={shot.imageUrl}
+                          alt={shot.styleLabel}
+                          fill
+                          sizes="(max-width: 1024px) 45vw, (max-width: 1536px) 30vw, 400px"
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          onLoadingComplete={({ naturalWidth, naturalHeight }) =>
+                            registerImageDimensions(shot.id, naturalWidth, naturalHeight)
+                          }
+                        />
+                      </div>
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+
+                    </Link>
                   </div>
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
-                  <div className="pointer-events-none absolute inset-x-4 bottom-4 text-left text-white drop-shadow-lg">
-                    <p className="text-sm font-semibold">{shot.styleLabel}</p>
-                  </div>
-                </Link>
-              </div>
-            )
-          })}
+                )
+              })}
+            </div>
+          ))}
         </div>
       </div>
     </div>

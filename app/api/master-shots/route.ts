@@ -87,6 +87,7 @@ const loadMasterShots = async (limit: number) => {
       pictureSetId: row.picture_set_id,
       imageUrl: row.publicUrl as string,
       styleLabel: "Master",
+      styleLabelZh: "大师甄选",
     }))
 }
 
