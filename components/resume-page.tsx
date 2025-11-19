@@ -597,6 +597,8 @@ export function ResumePage() {
           alt="Background"
           fill
           priority
+          quality={85}
+          sizes="100vw"
           containerClassName="absolute inset-0 -z-10"
           className="object-cover"
         />
@@ -670,6 +672,8 @@ export function ResumePage() {
           src="/private/roma.jpg"
           alt="Dual Practice Background"
           fill
+          quality={80}
+          sizes="100vw"
           containerClassName="absolute inset-0 -z-10"
           className="object-cover"
         />
@@ -719,6 +723,8 @@ export function ResumePage() {
           src="/private/camera4.jpg"
           alt="Case Studies Background"
           fill
+          quality={80}
+          sizes="100vw"
           containerClassName="absolute inset-0 -z-10"
           className="object-cover"
         />
@@ -765,6 +771,8 @@ export function ResumePage() {
           src="/private/DSC03210.jpeg"
           alt="Studio Notes Background"
           fill
+          quality={80}
+          sizes="100vw"
           containerClassName="absolute inset-0 -z-10"
           className="object-cover"
         />
@@ -787,9 +795,10 @@ export function ResumePage() {
                   src={img}
                   alt="Moodboard"
                   fill
+                  quality={75}
                   containerClassName="h-full w-full"
                   className="object-cover opacity-80 hover:opacity-100 transition-opacity"
-                  sizes="(max-width: 768px) 50vw, 25vw"
+                  sizes="(max-width: 640px) 50vw, 25vw"
                 />
               </div>
             ))}
