@@ -33,10 +33,13 @@ export function ImageDetails({ image }: ImageDetailsProps) {
   }
 
   return (
-    <div className="py-2">
-      <div className="flex flex-wrap items-baseline gap-x-4">
-        {title && <h2 className="text-xl font-bold">{title}</h2>}
-        {subtitle && <h3 className="text-lg text-gray-600">{subtitle}</h3>}
+    <div className="rounded-2xl border border-gray-200 bg-white/85 px-4 py-3 shadow-sm">
+      <p className="text-[11px] uppercase tracking-[0.35em] text-gray-500">
+        {locale === 'zh' ? '当前作品' : 'Current Frame'}
+      </p>
+      <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        {title && <h2 className="text-xl font-semibold text-gray-900">{title}</h2>}
+        {subtitle && <h3 className="text-base text-gray-600">{subtitle}</h3>}
       </div>
     </div>
   )

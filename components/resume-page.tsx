@@ -53,11 +53,15 @@ const heroCopy = {
   badge: { en: "Resume", zh: "简历" },
   title: {
     en: "Lijie Li · Data Scientist & Photographer",
-    zh: "李力洁 · 数据科学家与摄影师",
+    zh: "李立杰 · 数据科学家与摄影师",
+  },
+  schools: {
+    en: ["Aalto University", "KTH Royal Institute of Technology"],
+    zh: ["阿尔托大学", "瑞典皇家工学院"],
   },
   description: {
-    en: "I build multilingual AI systems for knowledge-intensive teams, and I keep a freelance-but-playful photo practice for friends, travelers, and anyone chasing better portraits. Whether the medium is code or light, I try to make the process transparent, collaborative, and quietly artful.",
-    zh: "我为知识密集型团队构建多语言 AI 系统，也维持一个松弛的自由摄影实践，陪伴朋友、旅人与寻找好照片的人。无论是代码还是光线，我都希望过程透明、合作，并保留一份克制的审美。",
+    en: "I build multilingual AI systems for knowledge-intensive teams, and I keep a freelance-but-playful photo practice for friends, travelers, and anyone chasing better portraits. Whether I'm shaping code or light, I keep the process open, co-created, and guided by a restrained aesthetic.",
+    zh: "我为知识密集型团队构建多语言 AI 系统，也维持一个松弛的自由摄影实践，陪伴朋友、旅人与寻找好照片的人。不论处理代码还是光线，我坚持开放、共创的流程，也守住一份克制的审美。",
   },
   primaryCta: { en: "Talk Data Work", zh: "联系数据合作" },
   secondaryCta: { en: "Master Collections", zh: "大师系列" },
@@ -614,6 +618,16 @@ export function ResumePage() {
             <h1 className="text-4xl font-light leading-tight text-white sm:text-5xl lg:text-6xl">
               {heroCopy.title[locale]}
             </h1>
+            <div className="flex flex-wrap gap-3">
+              {heroCopy.schools[locale].map((school) => (
+                <span
+                  key={school}
+                  className="rounded-full border border-white/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+                >
+                  {school}
+                </span>
+              ))}
+            </div>
             <p className="text-lg leading-relaxed text-zinc-200">{heroCopy.description[locale]}</p>
             <motion.div className="flex flex-wrap gap-4" variants={maybeFade}>
               <Link
@@ -621,6 +635,12 @@ export function ResumePage() {
                 className="rounded-full bg-white px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-zinc-900 transition hover:bg-zinc-200"
               >
                 {heroCopy.primaryCta[locale]}
+              </Link>
+              <Link
+                href="/portfolio"
+                className="rounded-full border border-white/70 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-white/10"
+              >
+                {heroCopy.secondaryCta[locale]}
               </Link>
             </motion.div>
           </motion.div>
@@ -821,7 +841,7 @@ export function ResumePage() {
         {...createSectionMotionProps(0.3)}
       >
         <ProtectedImage
-          src="/private/valorant.jpg"
+          src="/private/master4.jpg"
           alt="Experience Background"
           fill
           containerClassName="absolute inset-0 -z-10"

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
-import { supabase } from "@/utils/supabase"
+import { supabaseAdmin } from "@/utils/supabaseAdmin"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
 
@@ -11,7 +11,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
   console.log(`Fetching pictures for set ID: ${params.id}`)
 
   // Fetch pictures based on picture_set_id
-  const { data: pictures, error: pictureError } = await supabase
+  const { data: pictures, error: pictureError } = await supabaseAdmin
     .from("pictures")
     .select("*")
     .eq("picture_set_id", params.id)
@@ -32,7 +32,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
   const pictureIds = pictures.map((p) => p.id)
 
   const { data: pictureTranslations } = pictureIds.length
-    ? await supabase
+    ? await supabaseAdmin
         .from('picture_translations')
         .select('picture_id, locale, title, subtitle, description')
         .in('picture_id', pictureIds)
@@ -100,13 +100,13 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
     }
   })
 
-  const { data: pictureSet } = await supabase
+  const { data: pictureSet } = await supabaseAdmin
     .from('picture_sets')
-    .select('title, subtitle, description')
+    .select('title, subtitle, description, primary_location_name, primary_location_latitude, primary_location_longitude')
     .eq('id', params.id)
     .single()
 
-  const { data: setTranslations } = await supabase
+  const { data: setTranslations } = await supabaseAdmin
     .from('picture_set_translations')
     .select('locale, title, subtitle, description')
     .eq('picture_set_id', params.id)
@@ -135,12 +135,52 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
   if (!setEntry.zh.subtitle && looksZh(pictureSet?.subtitle)) setEntry.zh.subtitle = pictureSet?.subtitle ?? ''
   if (!setEntry.zh.description && looksZh(pictureSet?.description)) setEntry.zh.description = pictureSet?.description ?? ''
 
+  const { data: setLocationRows, error: setLocationError } = await supabaseAdmin
+    .from('picture_set_locations')
+    .select('id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
+    .eq('picture_set_id', params.id)
+
+  if (setLocationError) {
+    console.warn('Failed to fetch set locations:', setLocationError)
+  }
+
+  const locations =
+    setLocationRows
+      ?.map((row) => {
+        const loc = (row as any).location || (row as any).locations
+        if (!loc) return null
+        return {
+          id: row.id,
+          isPrimary: row.is_primary,
+          name: loc.name as string | null | undefined,
+          name_en: loc.name_en as string | null | undefined,
+          name_zh: loc.name_zh as string | null | undefined,
+          latitude: typeof loc.latitude === 'number' ? loc.latitude : Number(loc.latitude),
+          longitude: typeof loc.longitude === 'number' ? loc.longitude : Number(loc.longitude),
+        }
+      })
+      .filter(Boolean) ?? []
+
+  const resolvedLocations = [...locations]
+  if (resolvedLocations.length === 0 && pictureSet?.primary_location_name) {
+    resolvedLocations.push({
+      id: `primary-${params.id}`,
+      isPrimary: true,
+      name: pictureSet.primary_location_name,
+      name_en: pictureSet.primary_location_name,
+      name_zh: pictureSet.primary_location_name,
+      latitude: pictureSet.primary_location_latitude ?? null,
+      longitude: pictureSet.primary_location_longitude ?? null,
+    })
+  }
+
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <PortfolioDetail
         id={params.id}
         images={images}
         translations={setEntry}
+        locations={resolvedLocations}
       />
     </Suspense>
   )
