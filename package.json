@@ -85,7 +85,8 @@
     "overrides": {
       "@babel/runtime": "7.28.4",
       "brace-expansion": "2.0.2",
-      "@supabase/auth-js": "2.75.0"
+      "@supabase/auth-js": "2.75.0",
+      "glob": "10.5.0"
     }
   }
 }

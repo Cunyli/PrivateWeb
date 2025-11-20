@@ -140,6 +140,10 @@ export default function PortfolioDetail({ images, translations, locations = [] }
                     className="relative inline-flex"
                     onMouseEnter={() => setDescriptionHovered(true)}
                     onMouseLeave={() => setDescriptionHovered(false)}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      setDescriptionHovered((prev) => !prev)
+                    }}
                   >
                     <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-4 py-2 text-xs font-semibold text-gray-600 shadow-sm">
                       <span className="uppercase tracking-[0.35em] text-gray-500">
@@ -147,9 +151,9 @@ export default function PortfolioDetail({ images, translations, locations = [] }
                       </span>
                     </div>
                     <div
-                      className={`absolute left-1/2 -translate-x-1/2 top-full z-30 mt-2 w-72 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-xs leading-relaxed text-gray-600 shadow-xl transition-all duration-200 ${
+                      className={`absolute top-full z-30 mt-2 w-[min(18rem,calc(100vw-2.5rem))] rounded-2xl border border-gray-200 bg-white px-4 py-3 text-xs leading-relaxed text-gray-600 shadow-xl transition-all duration-200 ${
                         descriptionHovered ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 -translate-y-1"
-                      }`}
+                      } lg:left-1/2 lg:-translate-x-1/2 lg:w-72`}
                     >
                       <p className="whitespace-pre-line">{displayDescription}</p>
                     </div>
@@ -162,8 +166,8 @@ export default function PortfolioDetail({ images, translations, locations = [] }
               </div>
               {(displayTitle || displaySubtitle) && (
                 <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center px-4">
-                  {displayTitle && (
-                    <span className="text-lg font-light text-gray-900 leading-tight truncate max-w-[70vw]">
+                {displayTitle && (
+                  <span className="text-base font-light text-gray-900 leading-tight truncate max-w-[65vw] sm:text-lg">
                       {displayTitle}
                     </span>
                   )}
