@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
 import type { CSSProperties, PointerEvent } from "react"
 import { useI18n } from "@/lib/i18n"
 
@@ -38,6 +39,8 @@ const gateCopy = {
 export function EntryGate() {
   const { locale, setLocale } = useI18n()
   const gateLocale: Locale = locale === "zh" ? "zh" : "en"
+  const router = useRouter()
+  const [isExiting, setIsExiting] = useState(false)
   const sceneRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null)
   const targetRef = useRef({
@@ -138,6 +141,15 @@ export function EntryGate() {
     setLocale(locale === "zh" ? "en" : "zh")
   }
 
+  const handleNavigate = (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    if (isExiting) return
+    setIsExiting(true)
+    window.setTimeout(() => {
+      router.push(href)
+    }, 420)
+  }
+
   useEffect(() => {
     return () => {
       if (rafRef.current !== null) {
@@ -151,7 +163,7 @@ export function EntryGate() {
       ref={sceneRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className="relative min-h-screen overflow-hidden bg-transparent text-zinc-900 font-['Manrope']"
+      className={`relative min-h-screen overflow-hidden bg-transparent text-zinc-900 font-['Manrope'] transition-all duration-500 ${isExiting ? "scale-[0.98] opacity-0" : "opacity-100"}`}
       style={
         {
           perspective: "1200px",
@@ -219,6 +231,7 @@ export function EntryGate() {
               <Link
                 href="/portfolio"
                 className="group relative -translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:-translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
+                onClick={handleNavigate("/portfolio")}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.85),_transparent_70%)] opacity-0 transition duration-500 group-hover:opacity-100" />
                 <div className="relative z-10 flex h-full flex-col gap-4 text-center">
@@ -244,6 +257,7 @@ export function EntryGate() {
               <Link
                 href="/resume"
                 className="group relative translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
+                onClick={handleNavigate("/resume")}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.85),_transparent_70%)] opacity-0 transition duration-500 group-hover:opacity-100" />
                 <div className="relative z-10 flex h-full flex-col gap-4 text-center">

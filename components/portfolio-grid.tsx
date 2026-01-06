@@ -70,6 +70,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const [bottomRowPaused, setBottomRowPaused] = useState(false)
   const topRowMaxScrollRef = useRef(0)
   const bottomRowMaxScrollRef = useRef(0)
+  const topRowScrollRef = useRef(0)
+  const bottomRowScrollRef = useRef(0)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
@@ -429,6 +431,18 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [updateRowScrollBounds])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (typeof ResizeObserver === 'undefined') return
+    const top = topRowRef.current
+    const bottom = bottomRowRef.current
+    if (!top && !bottom) return
+    const observer = new ResizeObserver(() => updateRowScrollBounds())
+    if (top) observer.observe(top)
+    if (bottom) observer.observe(bottom)
+    return () => observer.disconnect()
+  }, [updateRowScrollBounds])
+
+  useEffect(() => {
     setDownLoadedMap((prev) => {
       if (downPictureSets.length === 0) return {}
       const next: Record<number, boolean> = {}
@@ -453,25 +467,34 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [])
 
   useEffect(() => {
+    if (!loopedFirstRow.length && !loopedSecondRow.length) return
+    if (!topRowRef.current && !bottomRowRef.current) return
+
+    let lastTime = performance.now()
+    const speedPerMs = SCROLL_SPEED / 30
     const tick = () => {
+      const now = performance.now()
+      const delta = now - lastTime
+      lastTime = now
       const top = topRowRef.current
       const bottom = bottomRowRef.current
       const maxTop = topRowMaxScrollRef.current
       const maxBottom = bottomRowMaxScrollRef.current
       if (top && loopedFirstRow.length && maxTop > 0.5 && !topRowPaused) {
-        const next = top.scrollLeft + SCROLL_SPEED
-        top.scrollLeft = next >= maxTop ? 0 : next
+        const next = topRowScrollRef.current + delta * speedPerMs
+        const wrapped = next >= maxTop ? 0 : next
+        topRowScrollRef.current = wrapped
+        top.scrollLeft = wrapped
       }
       if (bottom && loopedSecondRow.length && maxBottom > 0.5 && !bottomRowPaused) {
-        const next = bottom.scrollLeft - SCROLL_SPEED
-        bottom.scrollLeft = next <= 0 ? maxBottom : next
+        const next = bottomRowScrollRef.current - delta * speedPerMs
+        const wrapped = next <= 0 ? maxBottom : next
+        bottomRowScrollRef.current = wrapped
+        bottom.scrollLeft = wrapped
       }
     }
 
-    if (!loopedFirstRow.length && !loopedSecondRow.length) return
-    if (!topRowRef.current && !bottomRowRef.current) return
-
-    const id = window.setInterval(tick, 30)
+    const id = window.setInterval(tick, 16)
     return () => window.clearInterval(id)
   }, [loopedFirstRow.length, loopedSecondRow.length, topRowPaused, bottomRowPaused])
 
@@ -480,6 +503,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     const top = topRowRef.current
     if (!top) return
     top.scrollLeft = 0
+    topRowScrollRef.current = 0
     topRowMaxScrollRef.current = measureRowOverflow(top)
   }, [loopedFirstRow.length, measureRowOverflow])
 
@@ -488,7 +512,9 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     if (!loopedSecondRow.length || !bottom) return
     const maxScroll = measureRowOverflow(bottom)
     bottomRowMaxScrollRef.current = maxScroll
-    bottom.scrollLeft = maxScroll > 0 ? maxScroll : 0
+    const start = maxScroll > 0 ? maxScroll : 0
+    bottomRowScrollRef.current = start
+    bottom.scrollLeft = start
   }, [loopedSecondRow.length, measureRowOverflow])
 
   const scrollToTop = () => {
@@ -764,14 +790,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                         href={`/work/${item.id}`}
                         className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                       >
-                        <Image
-                          src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
-                          alt={item.title}
-                          fill
-                          quality={60}
-                          sizes="(max-width: 640px) 33vw, 20vw"
-                          className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
-                        />
+                      <Image
+                        src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
+                        alt={item.title}
+                        fill
+                        quality={60}
+                        sizes="(max-width: 640px) 33vw, 20vw"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                        onLoadingComplete={updateRowScrollBounds}
+                      />
 
                         <div
                           className="
@@ -819,14 +846,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           href={`/work/${item.id}`}
                           className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                         >
-                          <Image
-                            src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
-                            alt={item.title}
-                            fill
-                            quality={60}
-                            sizes="(max-width: 640px) 33vw, 20vw"
-                            className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
-                          />
+                        <Image
+                          src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
+                          alt={item.title}
+                          fill
+                          quality={60}
+                          sizes="(max-width: 640px) 33vw, 20vw"
+                          className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                          onLoadingComplete={updateRowScrollBounds}
+                        />
 
                           <div
                             className="
@@ -887,6 +915,36 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       )}
 
       {downGallerySection}
+
+      <footer className="mt-16 sm:mt-24 pb-6 sm:pb-8 border-t border-slate-200/70">
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-6 text-xs tracking-[0.24em] text-slate-500/80">
+          <a
+            href="https://www.instagram.com/cunyli_lijie/"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-slate-900"
+          >
+            {locale === "zh" ? "Instagram" : "Instagram"}
+          </a>
+          <span aria-hidden className="text-slate-300">
+            /
+          </span>
+          <a
+            href="https://www.xiaohongshu.com/user/profile/608e62a5000000000100bc40"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-slate-900"
+          >
+            {locale === "zh" ? "小红书" : "Xiaohongshu"}
+          </a>
+          <span aria-hidden className="text-slate-300">
+            /
+          </span>
+          <span className="text-slate-500/80 normal-case">
+            {locale === "zh" ? "微信" : "WeChat"} Llj773882712
+          </span>
+        </div>
+      </footer>
 
       {/* Scroll to top button */}
       {showScrollToTop && (
