@@ -9,7 +9,7 @@ const config: Config = {
     "*.{js,ts,jsx,tsx,mdx}"
   ],
   theme: {
-  	extend: {
+  		extend: {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -67,11 +67,43 @@ const config: Config = {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
-  		keyframes: {
-  			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
+  			keyframes: {
+				'float-slow': {
+					'0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+					'50%': { transform: 'translate3d(0, -12px, 0)' }
+				},
+				'float-slower': {
+					'0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+					'50%': { transform: 'translate3d(0, 14px, 0)' }
+				},
+				'hand-left': {
+					'0%, 100%': { transform: 'translate3d(0, 0, 0) rotate(-6deg)' },
+					'50%': { transform: 'translate3d(12px, -8px, 0) rotate(-2deg)' }
+				},
+				'hand-right': {
+					'0%, 100%': { transform: 'translate3d(0, 0, 0) rotate(6deg)' },
+					'50%': { transform: 'translate3d(-12px, -10px, 0) rotate(2deg)' }
+				},
+				'orb-pulse': {
+					'0%, 100%': { opacity: '0.65', transform: 'scale(0.95)' },
+					'50%': { opacity: '1', transform: 'scale(1.05)' }
+				},
+				'line-sweep': {
+					'0%': { transform: 'translateX(-12%)' },
+					'100%': { transform: 'translateX(12%)' }
+				},
+				'spin-slower': {
+					from: { transform: 'rotate(0deg)' },
+					to: { transform: 'rotate(360deg)' }
+				},
+				'fade-rise': {
+					'0%': { opacity: '0', transform: 'translate3d(0, 16px, 0)' },
+					'100%': { opacity: '1', transform: 'translate3d(0, 0, 0)' }
+				},
+  				'accordion-down': {
+  					from: {
+  						height: '0'
+  					},
   				to: {
   					height: 'var(--radix-accordion-content-height)'
   				}
@@ -85,11 +117,19 @@ const config: Config = {
   				}
   			}
   		},
-  		animation: {
-  			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			animation: {
+				'float-slow': 'float-slow 7s ease-in-out infinite',
+				'float-slower': 'float-slower 10s ease-in-out infinite',
+				'hand-left': 'hand-left 9s ease-in-out infinite',
+				'hand-right': 'hand-right 9s ease-in-out infinite',
+				'orb-pulse': 'orb-pulse 6s ease-in-out infinite',
+				'line-sweep': 'line-sweep 5s ease-in-out infinite alternate',
+				'spin-slower': 'spin-slower 40s linear infinite',
+				'fade-rise': 'fade-rise 1s ease-out forwards',
+  				'accordion-down': 'accordion-down 0.2s ease-out',
+  				'accordion-up': 'accordion-up 0.2s ease-out'
+  			}
   		}
-  	}
   },
   plugins: [require("tailwindcss-animate")],
 };

@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useRef } from "react"
+import type { CSSProperties, PointerEvent } from "react"
 import { useI18n } from "@/lib/i18n"
 
 type Locale = "en" | "zh"
@@ -13,71 +15,249 @@ const gateCopy = {
     en: "Choose a path and jump directly to the content you need.",
     zh: "选择入口，直接进入你需要的内容。",
   },
-  hrTitle: { en: "Resume & Experience", zh: "简历与经历" },
+  vintage: {
+    en: "A VINTAGE PROLOGUE TO A NEW CRAFT.",
+    zh: "复古序章，通往新的技艺。",
+  },
+  hint: {
+    en: "TWO PORTALS. TWO FUTURES.",
+    zh: "两条路径，两种未来。",
+  },
+  hrTitle: { en: "Got a job?", zh: "有坑位吗" },
   hrBody: {
-    en: "A concise view for hiring managers: background, skills, and roles.",
-    zh: "给招聘经理的版本：经历、能力与岗位匹配。",
+    en: "Quick resume, no joke.",
+    zh: "CV来喽，不忽悠。",
   },
-  hrCta: { en: "View Resume", zh: "查看简历" },
-  portfolioTitle: { en: "Portfolio & Bookings", zh: "作品集与约拍" },
+  portfolioTitle: { en: "Wanna see pics?", zh: "想看作品吗" },
   portfolioBody: {
-    en: "Selected photography work with ways to get in touch for sessions.",
-    zh: "摄影作品精选与约拍联系方式。",
+    en: "The good stuff is here.",
+    zh: "好看的都在这。",
   },
-  portfolioCta: { en: "View Portfolio", zh: "查看作品集" },
 }
 
 export function EntryGate() {
-  const { locale } = useI18n()
+  const { locale, setLocale } = useI18n()
   const gateLocale: Locale = locale === "zh" ? "zh" : "en"
+  const sceneRef = useRef<HTMLDivElement>(null)
+  const rafRef = useRef<number | null>(null)
+  const targetRef = useRef({
+    tiltX: 0,
+    tiltY: 0,
+    parallaxX: 0,
+    parallaxY: 0,
+    focusScale: 1,
+    focusOpacity: 0.35,
+    focusBlur: 18,
+    focusDepth: 12,
+  })
+  const currentRef = useRef({ ...targetRef.current })
+
+  const animateScene = () => {
+    const node = sceneRef.current
+    if (!node) {
+      rafRef.current = null
+      return
+    }
+    const current = currentRef.current
+    const target = targetRef.current
+    const ease = 0.08
+    const lerp = (from: number, to: number) => from + (to - from) * ease
+
+    current.tiltX = lerp(current.tiltX, target.tiltX)
+    current.tiltY = lerp(current.tiltY, target.tiltY)
+    current.parallaxX = lerp(current.parallaxX, target.parallaxX)
+    current.parallaxY = lerp(current.parallaxY, target.parallaxY)
+    current.focusScale = lerp(current.focusScale, target.focusScale)
+    current.focusOpacity = lerp(current.focusOpacity, target.focusOpacity)
+    current.focusBlur = lerp(current.focusBlur, target.focusBlur)
+    current.focusDepth = lerp(current.focusDepth, target.focusDepth)
+
+    node.style.setProperty("--tilt-x", `${current.tiltX.toFixed(2)}deg`)
+    node.style.setProperty("--tilt-y", `${current.tiltY.toFixed(2)}deg`)
+    node.style.setProperty("--parallax-x", `${current.parallaxX.toFixed(2)}px`)
+    node.style.setProperty("--parallax-y", `${current.parallaxY.toFixed(2)}px`)
+    node.style.setProperty("--focus-scale", `${current.focusScale.toFixed(3)}`)
+    node.style.setProperty("--focus-opacity", `${current.focusOpacity.toFixed(3)}`)
+    node.style.setProperty("--focus-blur", `${current.focusBlur.toFixed(2)}px`)
+    node.style.setProperty("--focus-depth", `${current.focusDepth.toFixed(2)}px`)
+
+    const shouldContinue =
+      Math.abs(current.tiltX - target.tiltX) > 0.01 ||
+      Math.abs(current.tiltY - target.tiltY) > 0.01 ||
+      Math.abs(current.parallaxX - target.parallaxX) > 0.1 ||
+      Math.abs(current.parallaxY - target.parallaxY) > 0.1 ||
+      Math.abs(current.focusScale - target.focusScale) > 0.001
+
+    rafRef.current = shouldContinue ? requestAnimationFrame(animateScene) : null
+  }
+
+  const scheduleAnimation = () => {
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(animateScene)
+    }
+  }
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const node = sceneRef.current
+    if (!node) return
+    const rect = node.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width
+    const y = (event.clientY - rect.top) / rect.height
+    targetRef.current.tiltX = (0.5 - y) * 10
+    targetRef.current.tiltY = (x - 0.5) * 12
+    targetRef.current.parallaxX = (x - 0.5) * 28
+    targetRef.current.parallaxY = (y - 0.5) * 28
+
+    const focusX = 0.64
+    const focusY = 0.36
+    const dx = x - focusX
+    const dy = y - focusY
+    const distance = Math.sqrt(dx * dx + dy * dy)
+    const intensity = Math.max(0, 1 - distance * 2.2)
+    targetRef.current.focusScale = 1 + intensity * 0.18
+    targetRef.current.focusOpacity = 0.35 + intensity * 0.35
+    targetRef.current.focusBlur = 18 - intensity * 6
+    targetRef.current.focusDepth = 12 + intensity * 10
+
+    scheduleAnimation()
+  }
+
+  const handlePointerLeave = () => {
+    targetRef.current.tiltX = 0
+    targetRef.current.tiltY = 0
+    targetRef.current.parallaxX = 0
+    targetRef.current.parallaxY = 0
+    targetRef.current.focusScale = 1
+    targetRef.current.focusOpacity = 0.35
+    targetRef.current.focusBlur = 18
+    targetRef.current.focusDepth = 12
+    scheduleAnimation()
+  }
+
+  const handleToggleLocale = () => {
+    setLocale(locale === "zh" ? "en" : "zh")
+  }
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [])
 
   return (
-    <main className="min-h-screen bg-white text-zinc-900">
-      <section className="relative isolate overflow-hidden px-6 py-24 sm:px-10">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(17,24,39,0.06),_transparent_60%)]" />
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-10 text-center">
-          <div className="space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
-              {gateCopy.badge[gateLocale]}
-            </p>
-            <h1 className="text-3xl font-light text-zinc-900 sm:text-4xl">
-              {gateCopy.title[gateLocale]}
-            </h1>
-            <p className="text-base text-zinc-600">{gateCopy.subtitle[gateLocale]}</p>
+    <main
+      ref={sceneRef}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      className="relative min-h-screen overflow-hidden bg-transparent text-zinc-900 font-['Manrope']"
+      style={
+        {
+          perspective: "1200px",
+          "--focus-scale": "1",
+          "--focus-opacity": "0.35",
+          "--focus-blur": "18px",
+          "--focus-depth": "12px",
+          "--parallax-x": "0px",
+          "--parallax-y": "0px",
+        } as CSSProperties
+      }
+    >
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="absolute inset-0 bg-cover bg-no-repeat will-change-transform"
+          style={{
+            backgroundImage: "url('/hand_with_hand.png')",
+            backgroundPosition: "37% center",
+            transform:
+              "translate3d(calc(var(--parallax-x, 0px) * 0.2), calc(var(--parallax-y, 0px) * 0.2), 0)",
+          }}
+        />
+      </div>
+
+      <section className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-24 sm:px-10">
+        <div className="relative w-full">
+          <button
+            type="button"
+            onClick={handleToggleLocale}
+            className="absolute right-[8%] top-[18%] z-20 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-1 py-1 text-[8px] font-semibold uppercase tracking-[0.24em] text-zinc-700 shadow-[0_14px_32px_-24px_rgba(58,44,35,0.6)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-26px_rgba(58,44,35,0.7)]"
+            style={{
+              transform:
+                "translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 50px)",
+            }}
+            aria-label="翻译 / Translate"
+          >
+            翻译 / Translate
+          </button>
+          <div className="pointer-events-none absolute left-[62%] top-[34%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 opacity-[var(--focus-opacity,0.35)] motion-safe:animate-orb-pulse"
+            style={{
+              transform:
+                "translate3d(-50%, -50%, var(--focus-depth, 12px)) scale(var(--focus-scale, 1))",
+              filter: "blur(var(--focus-blur, 18px))",
+            }}
+          >
+            <div className="h-full w-full rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.9),_rgba(255,255,255,0.25)_55%,_transparent_70%)]" />
           </div>
 
-          <div className="grid w-full gap-6 md:grid-cols-2">
-            <Link
-              href="/resume"
-              className="group rounded-3xl border border-zinc-200 bg-white p-8 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+          <div
+            className="grid gap-10 text-left md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]"
+            style={{
+              transform:
+                "rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))",
+              transformStyle: "preserve-3d",
+              transition: "transform 300ms ease",
+            }}
+          >
+            <div
+              className="grid gap-6"
+              style={{
+                transform:
+                  "translate3d(calc(var(--parallax-x, 0px) * 0.4), calc(var(--parallax-y, 0px) * 0.4), 42px)",
+              }}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
-                {gateCopy.hrTitle[gateLocale]}
-              </p>
-              <p className="mt-3 text-lg font-medium text-zinc-900">
-                {gateCopy.hrBody[gateLocale]}
-              </p>
-              <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-900">
-                {gateCopy.hrCta[gateLocale]}
-                <span className="transition group-hover:translate-x-1">→</span>
-              </div>
-            </Link>
+              <Link
+                href="/portfolio"
+                className="group relative -translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:-translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.85),_transparent_70%)] opacity-0 transition duration-500 group-hover:opacity-100" />
+                <div className="relative z-10 flex h-full flex-col gap-4 text-center">
+                  <div className="flex items-center justify-center">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+                      {gateCopy.portfolioTitle[gateLocale]}
+                    </p>
+                  </div>
+                  <p className="mt-2 text-lg font-medium text-zinc-900 sm:text-xl">
+                    {gateCopy.portfolioBody[gateLocale]}
+                  </p>
+                </div>
+              </Link>
+            </div>
 
-            <Link
-              href="/portfolio"
-              className="group rounded-3xl border border-zinc-200 bg-white p-8 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+            <div
+              className="grid gap-6 md:mt-8"
+              style={{
+                transform:
+                  "translate3d(calc(var(--parallax-x, 0px) * 0.7), calc(var(--parallax-y, 0px) * 0.7), 70px)",
+              }}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
-                {gateCopy.portfolioTitle[gateLocale]}
-              </p>
-              <p className="mt-3 text-lg font-medium text-zinc-900">
-                {gateCopy.portfolioBody[gateLocale]}
-              </p>
-              <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-900">
-                {gateCopy.portfolioCta[gateLocale]}
-                <span className="transition group-hover:translate-x-1">→</span>
-              </div>
-            </Link>
+              <Link
+                href="/resume"
+                className="group relative translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.85),_transparent_70%)] opacity-0 transition duration-500 group-hover:opacity-100" />
+                <div className="relative z-10 flex h-full flex-col gap-4 text-center">
+                  <div className="flex items-center justify-center">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
+                      {gateCopy.hrTitle[gateLocale]}
+                    </p>
+                  </div>
+                  <p className="text-lg font-medium text-zinc-900 sm:text-xl">
+                    {gateCopy.hrBody[gateLocale]}
+                  </p>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
