@@ -4,21 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
 import { Instagram, Linkedin, Mail, MessageCircle } from "lucide-react"
-import { MasterShotsShowcase } from "@/components/master-collections-showcase"
-import type { SVGProps } from "react"
 import { useI18n } from "@/lib/i18n"
 import { LangSwitcher } from "@/components/lang-switcher"
-import { ProtectedImage } from "@/components/protected-image"
-
-const XiaohongshuIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" width="1em" height="1em" {...props}>
-    <rect x="2" y="2" width="20" height="20" rx="5" fill="#ff2442" />
-    <path
-      d="M6.5 8h2l1 1.6L10.5 8h2l-1.9 3 1.9 3h-2L9.5 12.4 8.5 14h-2l2-3zm6.3 0h1.6v2h1.3V8h1.6v6h-1.6v-2h-1.3v2h-1.6zm5.7 0c1.4 0 2.2.7 2.2 1.7 0 .8-.4 1.3-1 1.5.7.1 1.1.7 1.1 1.5 0 1.1-.9 1.9-2.3 1.9h-2.3V8zM18.7 10h-.9v1.1h.9c.4 0 .7-.2.7-.5s-.3-.6-.7-.6zm0 2.3h-1v1.2h1c.5 0 .8-.3.8-.6s-.3-.6-.8-.6z"
-      fill="#fff"
-    />
-  </svg>
-)
 
 type Locale = "en" | "zh"
 type LocalizedString = Record<Locale, string>
@@ -30,7 +17,7 @@ type Experience = {
   period: LocalizedString
   summary: LocalizedString
   highlights: LocalizedString[]
-  discipline: "ai" | "photo"
+  discipline: "ai"
 }
 
 type FocusCard = {
@@ -52,19 +39,19 @@ type CaseStudy = {
 const heroCopy = {
   badge: { en: "Resume", zh: "简历" },
   title: {
-    en: "Lijie Li · Data Scientist & Photographer",
-    zh: "李立杰 · 数据科学家与摄影师",
+    en: "Lijie Li · Data Scientist",
+    zh: "李立杰 · 数据科学家",
   },
   schools: {
     en: ["Aalto University", "KTH Royal Institute of Technology"],
     zh: ["阿尔托大学", "瑞典皇家工学院"],
   },
   description: {
-    en: "I build multilingual AI systems for knowledge-intensive teams, and I keep a freelance-but-playful photo practice for friends, travelers, and anyone chasing better portraits. Whether I'm shaping code or light, I keep the process open, co-created, and guided by a restrained aesthetic.",
-    zh: "我为知识密集型团队构建多语言 AI 系统，也维持一个松弛的自由摄影实践，陪伴朋友、旅人与寻找好照片的人。不论处理代码还是光线，我坚持开放、共创的流程，也守住一份克制的审美。",
+    en: "Data scientist focused on multilingual retrieval, applied ML, and AI products. This site highlights selected systems work and case studies.",
+    zh: "专注多语检索、应用机器学习与 AI 产品的数据科学家。这里展示系统项目与案例。",
   },
-  primaryCta: { en: "Talk Data Work", zh: "联系数据合作" },
-  secondaryCta: { en: "Master Collections", zh: "大师系列" },
+  primaryCta: { en: "Contact", zh: "联系我" },
+  secondaryCta: { en: "View Case Studies", zh: "查看案例" },
 }
 
 const techStack = [
@@ -80,21 +67,17 @@ const techStack = [
     category: { en: "Data & Analytics", zh: "数据与分析" },
     items: ["SQL", "Tableau", "MongoDB", "SPSS", "Visualization", "Statistics"],
   },
-  {
-    category: { en: "Photography & Art", zh: "摄影与艺术" },
-    items: ["Sony Alpha", "Capture One", "Color Grading", "Studio Lighting", "Composition", "Visual Storytelling"],
-  },
 ]
 
 const dualPracticeCopy = {
-  badge: { en: "Dual Practice", zh: "双轨实践" },
+  badge: { en: "Focus", zh: "方向" },
   heading: {
-    en: "Analytical rigor meets cinematic intuition",
-    zh: "理性分析与电影感直觉交汇",
+    en: "Research depth with product delivery",
+    zh: "研究深度与产品交付并重",
   },
   body: {
-    en: "Research notebooks, lighting studies, and retrieval diagrams live in the same workspace. Data modeling informs how I choreograph light; field recordings inspire interaction flows.",
-    zh: "研究笔记、用光草图与检索流程图放在同一个工作台。建模思路影响我如何布光，声音与实地记录又反过来启发交互与系统结构。",
+    en: "I build multilingual retrieval systems and production ML workflows, with an emphasis on measurable impact and clear evaluation.",
+    zh: "专注多语检索系统与可落地的 ML 工作流，强调可量化的业务影响与评估。",
   },
 }
 
@@ -115,18 +98,18 @@ const focusCards: FocusCard[] = [
     tone: "light",
   },
   {
-    title: { en: "Freelance Photography Journal", zh: "自由摄影记录" },
+    title: { en: "Applied ML Delivery", zh: "应用 ML 交付" },
     description: {
-      en: "Photography is a lifelong hobby and dialogue space. I freelance selectively, document rituals, and use this site to talk with friends about taste and visual research.",
-      zh: "摄影是长期的兴趣和对话场。我会挑选项目，记录仪式感，并在这里和朋友讨论美学与视觉研究。",
+      en: "Hands-on delivery of ML products: data pipelines, evaluation frameworks, and reliable deployments.",
+      zh: "聚焦 ML 产品落地：数据流水线、评估体系与稳定部署。",
     },
     list: [
-      { en: "Gallery conversations & residencies", zh: "与画廊的对话与驻地" },
-      { en: "Slow-fashion capsule stories", zh: "慢时尚胶囊故事" },
-      { en: "Experimental lighting notebooks", zh: "实验用光手记" },
-      { en: "Community photo salons", zh: "社区摄影沙龙" },
+      { en: "Retrieval evaluation & monitoring", zh: "检索评估与监控" },
+      { en: "Multilingual QA & reranking", zh: "多语问答与重排" },
+      { en: "Latency-aware inference stacks", zh: "低延迟推理栈" },
+      { en: "Experiment design & reporting", zh: "实验设计与报告" },
     ],
-    accent: "from-rose-50 via-white to-zinc-50",
+    accent: "from-zinc-50 via-white to-slate-50",
     tone: "light",
   },
 ]
@@ -249,19 +232,6 @@ const caseStudies: CaseStudy[] = [
   },
 ]
 
-const studioNotesCopy = {
-  badge: { en: "Studio Notes & Dialogue", zh: "工作室札记" },
-  heading: {
-    en: "Build logs, moodboards, and open conversations",
-    zh: "建造日志、灵感板与开放对话",
-  },
-  body: {
-    en: "My background spans research-heavy programs, yet the work I share here stays grounded in shipped systems, experiments, and visual notebooks. I publish working notes, lighting studies, and retrieval diagrams so friends can drop by, swap tactics, or plan a casual photo walk.",
-    zh: "学习背景偏研究，但我更愿意分享真正上线的系统、实验与视觉手帐。这里公开工作记录、用光研究与检索图，方便朋友随时交流战术或约一场轻松的拍摄。",
-  },
-  link: { en: "View Gallery", zh: "浏览画廊" },
-}
-
 const experiences: Experience[] = [
   {
     title: { en: "Data Scientist", zh: "数据科学家" },
@@ -305,72 +275,15 @@ const experiences: Experience[] = [
       },
     ],
   },
-  {
-    title: { en: "Portrait & Travel Sessions Photographer", zh: "人像与旅拍摄影师" },
-    organization: { en: "Freelance Studio", zh: "自由工作室" },
-    location: { en: "Stockholm · On-location", zh: "斯德哥尔摩 · 外景" },
-    period: { en: "2024 — Present", zh: "2024 — 至今" },
-    discipline: "photo",
-    summary: {
-      en: "Think of me as the friend who carries cameras, chats through nerves, and helps you leave with portraits you actually like—whether it’s passport refreshes or playful travel diaries.",
-      zh: "像朋友一样陪你拍照：带着相机、聊天缓解紧张，从证件照到旅拍都能带走喜欢的照片。",
-    },
-    highlights: [
-      {
-        en: "Deliver same-day biometric-friendly headshots for visas and IDs, plus natural retouching (skin tones, stray hairs) without the heavy filter look.",
-        zh: "当天交付符合标准的证件与签证照，轻量润饰肤色与碎发，不做过度滤镜。",
-      },
-      {
-        en: "Join shoots as a travel buddy—mapping quiet alleys, cafés, or ferries—so the day feels like hanging out rather than a formal booking.",
-        zh: "以旅伴身份同行，规划小巷、咖啡馆或渡轮，让拍摄像散步而非正式预约。",
-      },
-      {
-        en: "Help prep outfits and pacing, but note I can’t stamp or certify official documents—everything stays casual and personal.",
-        zh: "协助准备服装与节奏，但不提供官方盖章或认证，保持私人与轻松感。",
-      },
-    ],
-  },
-  {
-    title: { en: "Street & Candid Sessions", zh: "街头与纪实漫拍" },
-    organization: { en: "Self-initiated", zh: "自发项目" },
-    location: { en: "Stockholm", zh: "斯德哥尔摩" },
-    period: { en: "2023 — Present", zh: "2023 — 至今" },
-    discipline: "photo",
-    summary: {
-      en: "Lead relaxed portrait walks through Gamla Stan, Södermalm backstreets, and lakeside trails—no stylists, just a friend with a camera and plenty of time.",
-      zh: "带你在老城、南城小路与湖畔散步拍照，没有造型师，像朋友约会一样。",
-    },
-    highlights: [
-      {
-        en: "Guide you in prepping outfits and playlists, then stroll together so the shoot feels like catching up rather than performing.",
-        zh: "一起挑服装、准备歌单，再慢慢散步，拍摄更像聊天。",
-      },
-      {
-        en: "Capture both candid street frames and clean portraits, retouching lightly while keeping your features and mood intact.",
-        zh: "记录街拍瞬间与正式人像，只做轻度润饰，保留神态。",
-      },
-      {
-        en: "Share albums plus editing notes so you can re-export or print with the same color story later.",
-        zh: "提供相册和调色笔记，方便之后再导出或打印。",
-      },
-    ],
-  },
 ]
 
 const experienceSectionCopy = {
   heading: { en: "Experience", zh: "经历" },
-  badge: { en: "Parallel tracks", zh: "双线发展" },
+  badge: { en: "Professional experience", zh: "职业经历" },
   link: { en: "View full CV on LinkedIn ↗", zh: "在 LinkedIn 查看完整履历 ↗" },
   columns: [
     { label: { en: "AI / Data Roles", zh: "AI / 数据角色" }, discipline: "ai" as const },
-    { label: { en: "Creative Commissions", zh: "创意委托" }, discipline: "photo" as const },
   ],
-}
-
-const masterSectionCopy = {
-  badge: { en: "Master-tagged Sets", zh: "大师标签合集" },
-  heading: { en: "Curated Showcase", zh: "策展精选" },
-  link: { en: "Explore all sets →", zh: "浏览所有作品 →" },
 }
 
 const skills = [
@@ -382,14 +295,6 @@ const skills = [
       { en: "ASR & NLP fine-tuning (DeBERTaV3, Wav2Vec2, multilingual BERT)", zh: "ASR / NLP 微调（DeBERTaV3、Wav2Vec2、多语 BERT）" },
     ],
   },
-  {
-    title: { en: "Photography Practice", zh: "摄影实践" },
-    items: [
-      { en: "Portrait direction & candid street sessions", zh: "人像引导与街头纪实" },
-      { en: "On-location natural light planning (Stockholm / EU / Shenzhen)", zh: "外景自然光规划（斯德哥尔摩 / 欧盟 / 深圳）" },
-      { en: "Color-proofing, light post-processing, and proof print prep", zh: "色彩校准、轻后期与试印准备" },
-    ],
-  },
 ]
 
 const capabilitiesCopy = {
@@ -399,24 +304,17 @@ const capabilitiesCopy = {
 
 const services = [
   {
-    label: { en: "Portrait Sessions", zh: "人像拍摄" },
+    label: { en: "Data Science Roles", zh: "数据科学岗位" },
     description: {
-      en: "Book me as a portrait/travel friend—passport renewals, casual street walks, light retouching included (official stamped docs not supported).",
-      zh: "以旅伴/朋友的方式约拍：证件照、街头散步、轻润饰均可（不提供官方盖章）。",
-    },
-  },
-  {
-    label: { en: "Data Systems Engagements", zh: "数据系统合作" },
-    description: {
-      en: "Open to full-time roles or embedded sprints for retrieval, multilingual QA, ASR research, or evaluation pipelines.",
-      zh: "可接受全职或短期驻场，聚焦检索、多语 QA、ASR 研究与评估流水线。",
+      en: "Open to full-time roles in ML/NLP, retrieval, and applied research; short consulting is possible.",
+      zh: "开放 ML/NLP、检索与应用研究方向的全职岗位，也可短期咨询合作。",
     },
   },
 ]
 
 const servicesSectionCopy = {
-  badge: { en: "Commissions & Engagements", zh: "委托与合作" },
-  heading: { en: "Ways we can collaborate", zh: "可以如何合作" },
+  badge: { en: "Opportunities", zh: "合作意向" },
+  heading: { en: "Roles & consulting", zh: "岗位与咨询" },
 }
 
 const contactLinks = [
@@ -428,25 +326,11 @@ const contactLinks = [
     icon: Mail,
   },
   {
-    key: "instagram",
-    label: { en: "Instagram", zh: "Instagram" },
-    value: "instagram.com",
-    href: "https://www.instagram.com",
-    icon: Instagram,
-  },
-  {
     key: "linkedin",
     label: { en: "LinkedIn", zh: "LinkedIn" },
     value: "linkedin.com/in/cunyli",
     href: "https://www.linkedin.com/in/cunyli",
     icon: Linkedin,
-  },
-  {
-    key: "xiaohongshu",
-    label: { en: "Xiaohongshu", zh: "小红书" },
-    value: "xhslink.com/m/3mrL9nhJm4E",
-    href: "https://xhslink.com/m/3mrL9nhJm4E",
-    icon: XiaohongshuIcon,
   },
   {
     key: "wechat",
@@ -458,10 +342,10 @@ const contactLinks = [
 
 const availabilityCopy = {
   badge: { en: "Availability", zh: "当前档期" },
-  heading: { en: "Accepting shoots & data engagements", zh: "接受拍摄与数据合作" },
+  heading: { en: "Open to data science roles", zh: "开放数据科学岗位" },
   body: {
-    en: "Currently booking portrait sessions across Europe and Shenzhen, and taking on remote/onsite data science engagements that run from retrieval architecture to ASR research sprints.",
-    zh: "目前开放欧洲与深圳的人像预约，也接受远程/驻场的数据项目：从检索架构到 ASR 研究冲刺。",
+    en: "Based in Stockholm. Open to onsite or remote ML roles across Europe and global teams.",
+    zh: "常驻斯德哥尔摩，可接受欧洲或全球团队的线下/远程 ML 岗位。",
   },
   footer: {
     en: "Based in Stockholm · Shenzhen friendly · English / 中文",
@@ -502,6 +386,7 @@ export function ResumePage() {
   const shouldReduceMotion = prefersReducedMotion
   const disableScrollLinkedMotion = prefersReducedMotion || isMobile
   const { locale } = useI18n()
+  const heroLocale: Locale = locale === "zh" ? "zh" : "en"
   const contactLabelMap = useMemo(() => {
     return contactLinks.reduce((acc, link) => {
       acc[link.key] = link.label[locale]
@@ -575,7 +460,7 @@ export function ResumePage() {
   const maybeSection = shouldReduceMotion ? undefined : sectionReveal
 
   return (
-    <div ref={pageRef} className="relative min-h-[100svh] bg-zinc-50 text-zinc-900">
+    <div ref={pageRef} className="relative min-h-[100svh] bg-zinc-50 text-zinc-900 antialiased">
       <motion.div
         className="pointer-events-none fixed inset-x-0 top-0 z-30 h-[2px] origin-left bg-zinc-900/80"
         style={
@@ -589,64 +474,52 @@ export function ResumePage() {
       />
 
       <motion.section
-        className="relative isolate flex min-h-[92svh] items-center overflow-hidden"
+        className="relative isolate flex min-h-[100svh] items-center overflow-hidden border-b border-zinc-200/60 bg-zinc-50"
         {...createSectionMotionProps(isMobile ? 0.4 : 0.8)}
         variants={maybeFade}
       >
         <div className="absolute right-4 top-4 z-20">
           <LangSwitcher className="h-10 w-10 border border-zinc-200 bg-white/80 text-zinc-800" />
         </div>
-        <ProtectedImage
-          src="/private/arua.jpg"
-          alt="Background"
-          fill
-          priority
-          quality={85}
-          sizes="100vw"
-          containerClassName="absolute inset-0 -z-10"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/60 to-transparent" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         <motion.div
           className="absolute inset-0 pointer-events-none opacity-60 [background:radial-gradient(circle_at_top,_rgba(17,24,39,0.08),_transparent_55%)]"
           style={disableScrollLinkedMotion ? undefined : { y: heroGlowY }}
         />
-        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-5 py-10 sm:px-10 lg:flex-row lg:items-center lg:justify-center items-center">
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-12 px-5 py-24 sm:px-10 lg:flex-row lg:items-center">
           <motion.div className="max-w-2xl space-y-6" variants={maybeFade}>
-            <p className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-400">{heroCopy.badge[locale]}</p>
-            <h1 className="text-4xl font-light leading-tight text-white sm:text-5xl lg:text-6xl">
-              {heroCopy.title[locale]}
+            <p className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-500">{heroCopy.badge[heroLocale]}</p>
+            <h1 className="text-4xl font-light leading-tight text-zinc-900 sm:text-5xl lg:text-6xl">
+              {heroCopy.title[heroLocale]}
             </h1>
             <div className="flex flex-wrap gap-3">
-              {heroCopy.schools[locale].map((school) => (
+              {heroCopy.schools[heroLocale].map((school) => (
                 <span
                   key={school}
-                  className="rounded-full border border-white/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+                  className="rounded-full border border-zinc-900/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-700"
                 >
                   {school}
                 </span>
               ))}
             </div>
-            <p className="text-lg leading-relaxed text-zinc-200">{heroCopy.description[locale]}</p>
+            <p className="text-lg leading-relaxed text-zinc-600">{heroCopy.description[heroLocale]}</p>
             <motion.div className="flex flex-wrap gap-4" variants={maybeFade}>
               <Link
                 href="#contact"
-                className="rounded-full bg-white px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-zinc-900 transition hover:bg-zinc-200"
+                className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-zinc-800"
               >
-                {heroCopy.primaryCta[locale]}
+                {heroCopy.primaryCta[heroLocale]}
               </Link>
               <Link
-                href="/portfolio"
-                className="rounded-full border border-white/70 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-white/10"
+                href="#case-studies"
+                className="rounded-full border border-zinc-900 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-zinc-900 transition hover:bg-zinc-900 hover:text-white"
               >
-                {heroCopy.secondaryCta[locale]}
+                {heroCopy.secondaryCta[heroLocale]}
               </Link>
             </motion.div>
           </motion.div>
 
           <motion.div
-            className="w-full rounded-3xl border border-white/10 bg-black/20 p-6 text-white shadow-2xl backdrop-blur-md lg:w-[480px]"
+            className="w-full rounded-3xl border border-zinc-200/80 bg-white/90 p-6 text-zinc-900 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:w-[480px]"
             style={
               disableScrollLinkedMotion
                 ? undefined
@@ -663,14 +536,14 @@ export function ResumePage() {
                   {...getCardMotionProps(index, { immediate: true })}
                   className="space-y-3"
                 >
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-white/60">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
                     {stack.category[locale]}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {stack.items.map((item) => (
                       <span
                         key={item}
-                        className="rounded-md bg-white/10 px-2 py-1 text-[10px] font-medium text-white/90 backdrop-blur-sm transition hover:bg-white/20"
+                        className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-600 transition hover:bg-zinc-200"
                       >
                         {item}
                       </span>
@@ -684,45 +557,40 @@ export function ResumePage() {
       </motion.section>
 
       <motion.section
-        className="relative isolate overflow-hidden"
+        className="border-b border-zinc-200/60 bg-white/70"
         variants={maybeSection}
         {...createSectionMotionProps()}
       >
-        <ProtectedImage
-          src="/private/roma.jpg"
-          alt="Dual Practice Background"
-          fill
-          quality={80}
-          sizes="100vw"
-          containerClassName="absolute inset-0 -z-10"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-black/70" />
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-14 sm:px-10">
+        <div className="mx-auto flex max-w-5xl flex-col gap-8 px-5 py-16 sm:px-10">
           <div className="flex flex-col gap-3">
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{dualPracticeCopy.badge[locale]}</p>
-            <h2 className="text-2xl font-light text-white">{dualPracticeCopy.heading[locale]}</h2>
-            <p className="text-base text-zinc-200">{dualPracticeCopy.body[locale]}</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{dualPracticeCopy.badge[locale]}</p>
+            <h2 className="text-2xl font-light text-zinc-900">{dualPracticeCopy.heading[locale]}</h2>
+            <p className="text-base text-zinc-600">{dualPracticeCopy.body[locale]}</p>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             {focusCards.map((card, index) => {
+              const isDark = card.tone === "dark"
               return (
                 <motion.article
                   key={card.title.en}
                   {...getCardMotionProps(index, { viewportAmount: 0.25 })}
-                  className="rounded-3xl border border-white/10 bg-black/40 p-8 shadow-sm backdrop-blur-md"
+                  className={`rounded-3xl border border-zinc-200/70 bg-gradient-to-br ${card.accent} p-8 shadow-[0_12px_32px_rgba(15,23,42,0.06)]`}
                 >
-                  <p className="text-sm uppercase tracking-wide text-zinc-400">
+                  <p
+                    className={`text-sm uppercase tracking-wide ${isDark ? "text-white/70" : "text-zinc-500"}`}
+                  >
                     {locale === "zh" ? `实践 #${index + 1}` : `Practice #${index + 1}`}
                   </p>
-                  <h3 className="mt-2 text-xl font-semibold text-white">
+                  <h3 className={`mt-2 text-xl font-semibold ${isDark ? "text-white" : "text-zinc-900"}`}>
                     {card.title[locale]}
                   </h3>
-                  <p className="mt-3 text-base text-zinc-300">{card.description[locale]}</p>
-                  <ul className="mt-6 space-y-2 text-sm text-zinc-400">
+                  <p className={`mt-3 text-base ${isDark ? "text-white/85" : "text-zinc-700"}`}>
+                    {card.description[locale]}
+                  </p>
+                  <ul className={`mt-6 space-y-2 text-sm ${isDark ? "text-white/80" : "text-zinc-600"}`}>
                     {card.list.map((item) => (
                       <li key={`${card.title.en}-${item.en}`} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-white" />
+                        <span className={`mt-1 h-1.5 w-1.5 rounded-full ${isDark ? "bg-white" : "bg-zinc-900"}`} />
                         <span>{item[locale]}</span>
                       </li>
                     ))}
@@ -735,43 +603,34 @@ export function ResumePage() {
       </motion.section>
 
       <motion.section
-        className="relative isolate overflow-hidden"
+        id="case-studies"
+        className="border-b border-zinc-200/60 bg-white"
         variants={maybeSection}
         {...createSectionMotionProps(0.3)}
       >
-        <ProtectedImage
-          src="/private/camera4.jpg"
-          alt="Case Studies Background"
-          fill
-          quality={80}
-          sizes="100vw"
-          containerClassName="absolute inset-0 -z-10"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-black/80" />
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-14 sm:px-10">
+        <div className="mx-auto flex max-w-5xl flex-col gap-8 px-5 py-16 sm:px-10">
           <div className="flex flex-col gap-2">
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{caseStudySectionCopy.badge[locale]}</p>
-            <h2 className="text-2xl font-light text-white">{caseStudySectionCopy.heading[locale]}</h2>
-            <p className="text-base text-zinc-300">{caseStudySectionCopy.summary[locale]}</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{caseStudySectionCopy.badge[locale]}</p>
+            <h2 className="text-2xl font-light text-zinc-900">{caseStudySectionCopy.heading[locale]}</h2>
+            <p className="text-base text-zinc-600">{caseStudySectionCopy.summary[locale]}</p>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
             {caseStudies.map((study, index) => (
               <motion.article
                 key={study.title.en}
-                className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm backdrop-blur-sm transition hover:bg-white/10"
+                className="flex flex-col gap-4 rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
                 {...getCardMotionProps(index, { viewportAmount: 0.3 })}
               >
                 <div className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
                   <span>{study.disciplineTag[locale]}</span>
                   <span>{study.context[locale]}</span>
                 </div>
-                <h3 className="text-lg font-medium text-white">{study.title[locale]}</h3>
-                <p className="text-sm text-zinc-300">{study.result[locale]}</p>
-                <ul className="mt-2 space-y-2 text-sm text-zinc-400">
+                <h3 className="text-lg font-medium text-zinc-900">{study.title[locale]}</h3>
+                <p className="text-sm text-zinc-500">{study.result[locale]}</p>
+                <ul className="mt-2 space-y-2 text-sm text-zinc-600">
                   {study.highlights.map((item) => (
                     <li key={`${study.title.en}-${item.en}`} className="flex items-start gap-2">
-                      <span className="mt-1 h-1 w-1 rounded-full bg-white" />
+                      <span className="mt-1 h-1 w-1 rounded-full bg-zinc-900" />
                       <span>{item[locale]}</span>
                     </li>
                   ))}
@@ -783,113 +642,52 @@ export function ResumePage() {
       </motion.section>
 
       <motion.section
-        className="relative isolate overflow-hidden"
-        variants={maybeSection}
-        {...createSectionMotionProps(0.35)}
-      >
-        <ProtectedImage
-          src="/private/DSC03210.jpeg"
-          alt="Studio Notes Background"
-          fill
-          quality={80}
-          sizes="100vw"
-          containerClassName="absolute inset-0 -z-10"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-black/80" />
-        <div className="mx-auto max-w-4xl px-5 py-14 text-center sm:px-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{studioNotesCopy.badge[locale]}</p>
-          <h2 className="mt-3 text-2xl font-light text-white">{studioNotesCopy.heading[locale]}</h2>
-          <p className="mt-4 text-base leading-relaxed text-zinc-300">{studioNotesCopy.body[locale]}</p>
-
-          {/* Moodboard Grid */}
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[
-              "/private/master1.jpg",
-              "/private/master2.jpg",
-              "/private/master3.jpg",
-              "/private/master4.jpg"
-            ].map((img, i) => (
-              <div key={img} className={`relative aspect-square overflow-hidden rounded-xl bg-white/5 ${i % 2 === 0 ? 'rotate-2' : '-rotate-2'} transition hover:rotate-0 hover:scale-105 hover:z-10 duration-300`}>
-                <ProtectedImage
-                  src={img}
-                  alt="Moodboard"
-                  fill
-                  quality={75}
-                  containerClassName="h-full w-full"
-                  className="object-cover opacity-80 hover:opacity-100 transition-opacity"
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10">
-            <Link
-              href="/portfolio"
-              className="text-sm uppercase tracking-wide text-zinc-300 underline underline-offset-4 transition hover:text-white"
-            >
-              {studioNotesCopy.link[locale]}
-            </Link>
-          </div>
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="relative isolate overflow-hidden"
+        className="border-b border-zinc-200/60 bg-white"
         variants={maybeSection}
         {...createSectionMotionProps(0.3)}
       >
-        <ProtectedImage
-          src="/private/master4.jpg"
-          alt="Experience Background"
-          fill
-          containerClassName="absolute inset-0 -z-10"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-black/80" />
-        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-10">
+        <div className="mx-auto max-w-5xl px-5 py-16 sm:px-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-light text-white">{experienceSectionCopy.heading[locale]}</h2>
-              <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{experienceSectionCopy.badge[locale]}</p>
+              <h2 className="text-2xl font-light text-zinc-900">{experienceSectionCopy.heading[locale]}</h2>
+              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{experienceSectionCopy.badge[locale]}</p>
             </div>
             <Link
               href="https://www.linkedin.com/in/cunyli"
               target="_blank"
-              className="text-sm font-medium text-zinc-300 underline underline-offset-4 hover:text-white"
+              className="text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
             >
               {experienceSectionCopy.link[locale]}
             </Link>
           </div>
-          <div className="mt-10 grid gap-8 lg:grid-cols-2">
+          <div className="mt-10 grid gap-8">
             {experienceSectionCopy.columns.map((column, columnIndex) => (
               <div key={column.label.en} className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{column.label[locale]}</p>
-                  <div className="ml-4 h-px flex-1 bg-white/20" />
+                  <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{column.label[locale]}</p>
+                  <div className="ml-4 h-px flex-1 bg-zinc-200" />
                 </div>
                 {experiences
                   .filter((role) => role.discipline === column.discipline)
                   .map((role, index) => (
                     <motion.div
                       key={`${role.title.en}-${role.period.en}`}
-                      className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm transition will-change-transform hover:-translate-y-1 hover:bg-white/10"
+                      className="rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition will-change-transform hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
                       {...getCardMotionProps(index + columnIndex, { viewportAmount: 0.35 })}
                     >
                       <div className="flex flex-col gap-3">
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-zinc-400">{role.period[locale]}</p>
-                          <h3 className="mt-1 text-lg font-medium text-white">{role.title[locale]}</h3>
-                          <p className="text-sm text-zinc-400">
+                          <p className="text-xs uppercase tracking-wide text-zinc-500">{role.period[locale]}</p>
+                          <h3 className="mt-1 text-lg font-medium text-zinc-900">{role.title[locale]}</h3>
+                          <p className="text-sm text-zinc-500">
                             {role.organization[locale]} · {role.location[locale]}
                           </p>
                         </div>
-                        <p className="text-sm text-zinc-300">{role.summary[locale]}</p>
-                        <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+                        <p className="text-sm text-zinc-600">{role.summary[locale]}</p>
+                        <ul className="mt-4 space-y-2 text-sm text-zinc-600">
                           {role.highlights.map((item) => (
                             <li key={`${role.title.en}-${item.en}`} className="flex items-start gap-2">
-                              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-white" />
+                              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zinc-900" />
                               <span>{item[locale]}</span>
                             </li>
                           ))}
@@ -906,88 +704,15 @@ export function ResumePage() {
 
 
       <motion.section
-        className="relative isolate overflow-hidden"
-        variants={maybeSection}
-        {...createSectionMotionProps(0.35)}
-      >
-        <ProtectedImage
-          src="/private/camera2.jpg"
-          alt="Capabilities Background"
-          fill
-          containerClassName="absolute inset-0 -z-10"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-black/80" />
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-16 sm:px-10 lg:flex-row">
-          <motion.div
-            className="w-full rounded-3xl border border-white/10 bg-white/5 p-8 shadow-sm backdrop-blur-sm"
-            {...getFadeInViewProps(0.4)}
-          >
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{capabilitiesCopy.badge[locale]}</p>
-            <h2 className="mt-3 text-2xl font-light text-white">{capabilitiesCopy.heading[locale]}</h2>
-            <div className="mt-6 grid gap-6 lg:grid-cols-2">
-              {skills.map((group, index) => (
-                <motion.div
-                  key={group.title.en}
-                  className="rounded-2xl border border-white/10 bg-black/20 p-5"
-                  {...getFadeInViewProps(0.6)}
-                >
-                  <p className="text-sm font-semibold uppercase tracking-wide text-zinc-300">{group.title[locale]}</p>
-                  <ul className="mt-4 space-y-2 text-sm text-zinc-400">
-                    {group.items.map((item) => (
-                      <li key={`${group.title.en}-${item.en}`} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-white" />
-                        <span>{item[locale]}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="w-full rounded-3xl border border-white/10 bg-white/5 p-8 shadow-sm backdrop-blur-sm"
-            {...getFadeInViewProps(0.4)}
-          >
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{servicesSectionCopy.badge[locale]}</p>
-            <h2 className="mt-3 text-2xl font-light text-white">{servicesSectionCopy.heading[locale]}</h2>
-            <div className="mt-6 flex flex-col gap-4 lg:flex-row">
-              {services.map((service, index) => (
-                <motion.div
-                  key={service.label.en}
-                  className="flex flex-1 flex-col justify-between rounded-3xl border border-white/10 bg-black/20 px-6 py-6 shadow-inner"
-                  {...getFadeInViewProps(0.6)}
-                >
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-zinc-300">{service.label[locale]}</p>
-                    <p className="mt-3 text-base text-zinc-400">{service.description[locale]}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      <motion.section
         id="contact"
-        className="relative isolate overflow-hidden"
+        className="bg-zinc-50"
         variants={maybeSection}
         {...createSectionMotionProps(0.4)}
       >
-        <ProtectedImage
-          src="/private/selfish.jpg"
-          alt="Contact Background"
-          fill
-          containerClassName="absolute inset-0 -z-10"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-black/80" />
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-16 text-center sm:px-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">{availabilityCopy.badge[locale]}</p>
-          <h2 className="text-3xl font-light text-white">{availabilityCopy.heading[locale]}</h2>
-          <p className="text-base text-zinc-300">{availabilityCopy.body[locale]}</p>
+        <div className="mx-auto flex max-w-5xl flex-col gap-6 px-5 py-20 text-center sm:px-10">
+          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{availabilityCopy.badge[locale]}</p>
+          <h2 className="text-3xl font-light text-zinc-900">{availabilityCopy.heading[locale]}</h2>
+          <p className="text-base text-zinc-600">{availabilityCopy.body[locale]}</p>
           <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-4">
             {contactLinks.map((contact) => {
               const Icon = contact.icon
@@ -998,7 +723,7 @@ export function ResumePage() {
                     type="button"
                     title={`${copyFeedback.copyPrefix[locale]} ${contact.label[locale]}`}
                     aria-label={`${copyFeedback.copyPrefix[locale]} ${contact.label[locale]}`}
-                    className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-zinc-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200/80 bg-white text-zinc-600 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md"
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(contact.copyValue || "")
@@ -1026,7 +751,7 @@ export function ResumePage() {
                   rel="noreferrer"
                   title={contact.label[locale]}
                   aria-label={contact.label[locale]}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-zinc-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200/80 bg-white text-zinc-600 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md"
                 >
                   <Icon className="h-5 w-5" />
                   <span className="sr-only">{contact.label[locale]}</span>
@@ -1036,7 +761,7 @@ export function ResumePage() {
           </div>
           {copyStatus && (
             <p
-              className={`text-xs ${copyStatus.type === "error" ? "text-red-400" : "text-emerald-400"}`}
+              className={`text-xs ${copyStatus.type === "error" ? "text-red-500" : "text-emerald-600"}`}
               role="status"
             >
               {copyStatus.type === "error"
@@ -1044,7 +769,7 @@ export function ResumePage() {
                 : `${(copyStatus.key && contactLabelMap[copyStatus.key]) || ""} ${copyFeedback.copiedSuffix[locale]}`.trim()}
             </p>
           )}
-          <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">{availabilityCopy.footer[locale]}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-zinc-400">{availabilityCopy.footer[locale]}</p>
         </div>
       </motion.section>
     </div>

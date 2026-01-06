@@ -1,11 +1,7 @@
-import { ResumePage } from "@/components/resume-page"
+import { EntryGate } from "@/components/entry-gate"
 
 export const revalidate = 3600
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-white">
-      <ResumePage />
-    </main>
-  )
+  return <EntryGate />
 }
