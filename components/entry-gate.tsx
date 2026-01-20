@@ -26,13 +26,13 @@ const gateCopy = {
   },
   hrTitle: { en: "Got a job?", zh: "有坑位吗" },
   hrBody: {
-    en: "Quick resume, no joke.",
-    zh: "CV来喽，不忽悠。",
+    en: "Quick resume.",
+    zh: "CV来喽",
   },
   portfolioTitle: { en: "Wanna see pics?", zh: "想看作品吗" },
   portfolioBody: {
     en: "The good stuff is here.",
-    zh: "好看的都在这。",
+    zh: "好看的都在这",
   },
 }
 
@@ -41,6 +41,7 @@ export function EntryGate() {
   const gateLocale: Locale = locale === "zh" ? "zh" : "en"
   const router = useRouter()
   const [isExiting, setIsExiting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const sceneRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null)
   const targetRef = useRef({
@@ -151,6 +152,32 @@ export function EntryGate() {
   }
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)")
+    const handleChange = () => setIsMobile(mediaQuery.matches)
+    handleChange()
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange)
+      return () => mediaQuery.removeEventListener("change", handleChange)
+    }
+
+    mediaQuery.addListener(handleChange)
+    return () => mediaQuery.removeListener(handleChange)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) return
+    const originalOverflow = document.body.style.overflow
+    const originalOverscroll = document.documentElement.style.overscrollBehavior
+    document.body.style.overflow = "hidden"
+    document.documentElement.style.overscrollBehavior = "none"
+    return () => {
+      document.body.style.overflow = originalOverflow
+      document.documentElement.style.overscrollBehavior = originalOverscroll
+    }
+  }, [isMobile])
+
+  useEffect(() => {
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current)
@@ -163,7 +190,7 @@ export function EntryGate() {
       ref={sceneRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className={`relative min-h-screen overflow-hidden bg-transparent text-zinc-900 font-['Manrope'] transition-all duration-500 ${isExiting ? "scale-[0.98] opacity-0" : "opacity-100"}`}
+      className={`relative min-h-[100svh] overflow-hidden bg-transparent text-zinc-900 font-['Manrope'] transition-all duration-500 ${isExiting ? "scale-[0.98] opacity-0" : "opacity-100"} ${isMobile ? "entry-animate" : ""}`}
       style={
         {
           perspective: "1200px",
@@ -181,26 +208,30 @@ export function EntryGate() {
           className="absolute inset-0 bg-cover bg-no-repeat will-change-transform"
           style={{
             backgroundImage: "url('/hand_with_hand.png')",
-            backgroundPosition: "37% center",
+            backgroundPosition: isMobile ? "50% 20%" : "37% center",
+            backgroundSize: "cover",
             transform:
-              "translate3d(calc(var(--parallax-x, 0px) * 0.2), calc(var(--parallax-y, 0px) * 0.2), 0)",
+              isMobile
+                ? "translate3d(calc(var(--parallax-x, 0px) * 0.1), calc(var(--parallax-y, 0px) * 0.1), 0) rotate(90deg) scale(1.35)"
+                : "translate3d(calc(var(--parallax-x, 0px) * 0.2), calc(var(--parallax-y, 0px) * 0.2), 0)",
+            transformOrigin: "center",
           }}
         />
       </div>
 
-      <section className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-24 sm:px-10">
+      <section className="entry-section relative mx-auto flex min-h-[100svh] max-w-6xl items-center justify-center px-6 py-16 sm:px-10 sm:py-24">
         <div className="relative w-full">
           <button
             type="button"
             onClick={handleToggleLocale}
-            className="absolute right-[8%] top-[18%] z-20 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-1 py-1 text-[8px] font-semibold uppercase tracking-[0.24em] text-zinc-700 shadow-[0_14px_32px_-24px_rgba(58,44,35,0.6)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-26px_rgba(58,44,35,0.7)]"
+            className="entry-chip absolute right-[8%] top-[18%] z-20 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-1 py-1 text-[8px] font-semibold uppercase tracking-[0.24em] text-zinc-700 shadow-[0_14px_32px_-24px_rgba(58,44,35,0.6)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-26px_rgba(58,44,35,0.7)]"
             style={{
               transform:
                 "translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 50px)",
             }}
             aria-label="翻译 / Translate"
           >
-            翻译 / Translate
+            {gateLocale === "zh" ? "语言" : "Language"}
           </button>
           <div className="pointer-events-none absolute left-[62%] top-[34%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 opacity-[var(--focus-opacity,0.35)] motion-safe:animate-orb-pulse"
             style={{
@@ -230,7 +261,7 @@ export function EntryGate() {
             >
               <Link
                 href="/portfolio"
-                className="group relative -translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:-translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
+                className="entry-card entry-card-left group relative -translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:-translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
                 onClick={handleNavigate("/portfolio")}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.85),_transparent_70%)] opacity-0 transition duration-500 group-hover:opacity-100" />
@@ -256,7 +287,7 @@ export function EntryGate() {
             >
               <Link
                 href="/resume"
-                className="group relative translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
+                className="entry-card entry-card-right group relative translate-y-28 overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/75 p-7 text-left shadow-[0_28px_70px_-50px_rgba(58,44,35,0.55)] backdrop-blur transition duration-500 hover:translate-y-24 hover:shadow-[0_40px_90px_-60px_rgba(58,44,35,0.65)]"
                 onClick={handleNavigate("/resume")}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.85),_transparent_70%)] opacity-0 transition duration-500 group-hover:opacity-100" />
@@ -275,6 +306,55 @@ export function EntryGate() {
           </div>
         </div>
       </section>
+      <style jsx>{`
+        .entry-animate .entry-section {
+          animation: entry-fade 520ms ease-out both;
+        }
+
+        .entry-animate .entry-chip {
+          animation: entry-rise 520ms ease-out 120ms both;
+        }
+
+        .entry-animate .entry-card {
+          animation: entry-rise 620ms ease-out both;
+        }
+
+        .entry-animate .entry-card-left {
+          animation-delay: 160ms;
+        }
+
+        .entry-animate .entry-card-right {
+          animation-delay: 260ms;
+        }
+
+        @keyframes entry-fade {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes entry-rise {
+          from {
+            opacity: 0;
+            filter: blur(6px);
+          }
+          to {
+            opacity: 1;
+            filter: blur(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .entry-animate .entry-section,
+          .entry-animate .entry-chip,
+          .entry-animate .entry-card {
+            animation: none;
+          }
+        }
+      `}</style>
     </main>
   )
 }
