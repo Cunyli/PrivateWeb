@@ -205,14 +205,16 @@ export function EntryGate() {
     >
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div
-          className="absolute inset-0 bg-cover bg-no-repeat will-change-transform"
+          className={`absolute bg-cover bg-no-repeat will-change-transform ${isMobile ? "left-1/2 top-1/2" : "inset-0"}`}
           style={{
             backgroundImage: "url('/hand_with_hand.png')",
-            backgroundPosition: isMobile ? "50% 20%" : "37% center",
+            backgroundPosition: isMobile ? "50% 50%" : "37% center",
             backgroundSize: "cover",
+            width: isMobile ? "165vmax" : "100%",
+            height: isMobile ? "165vmax" : "100%",
             transform:
               isMobile
-                ? "translate3d(calc(var(--parallax-x, 0px) * 0.1), calc(var(--parallax-y, 0px) * 0.1), 0) rotate(90deg) scale(1.35)"
+                ? "translate3d(-50%, -50%, 0) rotate(90deg) scale(1.05)"
                 : "translate3d(calc(var(--parallax-x, 0px) * 0.2), calc(var(--parallax-y, 0px) * 0.2), 0)",
             transformOrigin: "center",
           }}
