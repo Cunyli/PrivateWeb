@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight, Download } from "lucide-react"
+import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 interface LocalizedContent {
   title?: string
@@ -15,6 +16,7 @@ interface LocalizedContent {
 interface ImageItem {
   url: string
   rawUrl?: string | null
+  setId?: number | string | null
   translations: {
     en: LocalizedContent
     zh: LocalizedContent
@@ -26,10 +28,12 @@ interface CarouselProps {
   currentIndex: number
   onChangeImage: (index: number) => void
   showThumbnails?: boolean
+  overlayControls?: React.ReactNode
 }
 
-export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true }: CarouselProps) {
+export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true, overlayControls }: CarouselProps) {
   const { t, locale } = useI18n()
+  const router = useRouter()
   const primaryLocale = locale === 'zh' ? 'zh' : 'en'
   const secondaryLocale = primaryLocale === 'zh' ? 'en' : 'zh'
   const bucketUrl = React.useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
@@ -76,10 +80,10 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
     onChangeImage(newIndex)
   }
 
-  const handleOpenOriginal = () => {
-    if (images[currentIndex].rawUrl) {
-      window.open(bucketUrl + images[currentIndex].rawUrl, "_blank")
-    }
+  const handleViewSet = () => {
+    const setId = images[currentIndex]?.setId
+    if (setId == null) return
+    router.push(`/work/${setId}`)
   }
   
   // 触摸开始
@@ -199,17 +203,25 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
             draggable={false}
           />
 
-          {/* Download original button - appears on hover */}
-          {activeImage.rawUrl && (
-            <Button
-              variant="secondary"
-              onClick={handleOpenOriginal}
-              className="absolute bottom-4 right-4 bg-white/80 hover:bg-white shadow-md z-10 opacity-0 md:group-hover:opacity-100 smooth-transition transform translate-y-2 md:group-hover:translate-y-0"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {t('viewOriginal') || 'View Original'}
-            </Button>
-          )}
+          <div className="absolute bottom-4 right-4 z-10 flex flex-col items-center gap-2">
+            {overlayControls && (
+              <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 transform translate-y-2 md:translate-y-2 md:group-hover:translate-y-0">
+                {overlayControls}
+              </div>
+            )}
+
+            {/* View set button - appears on hover */}
+            {activeImage.setId && (
+              <Button
+                variant="secondary"
+                onClick={handleViewSet}
+                className="min-w-[140px] justify-center bg-white/80 hover:bg-white shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 smooth-transition transform translate-y-0 md:translate-y-2 md:group-hover:translate-y-0"
+              >
+                <ArrowUpRight className="h-4 w-4 mr-2" />
+                {t('viewSet') || 'View Set'}
+              </Button>
+            )}
+          </div>
 
           {/* Navigation buttons - hidden on mobile, shown on desktop hover */}
           <Button

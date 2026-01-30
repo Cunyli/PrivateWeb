@@ -6,6 +6,7 @@ import type { CSSProperties } from "react"
 import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
+import clsx from "clsx"
 import { supabase } from "@/utils/supabase"
 import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
@@ -16,8 +17,12 @@ import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
 import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 
 const DEFAULT_DOWN_TILE_ASPECT_RATIO = 3 / 4
-const INITIAL_DOWN_LIMIT = 16
-const DOWN_PREFETCH_LIMIT = 48
+const INITIAL_DOWN_LIMIT = 8
+const DOWN_PREFETCH_LIMIT = 16
+const DOWN_THUMB_QUALITY = 45
+const DOWN_THUMB_PREFETCH_WIDTH = 640
+const DOWN_IMAGE_SIZES =
+  "(min-width: 2200px) 14rem, (min-width: 1800px) 16rem, (min-width: 1536px) 18rem, (min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw"
 const SCROLL_SPEED = 0.85
 const MIN_LOOPED_ROW_ITEMS = 12
 const widthPattern = ["w-[15%]", "w-[25%]", "w-[20%]", "w-[25%]", "w-[15%]"]
@@ -31,6 +36,9 @@ const createLoopedRow = (row: PictureSet[]): PictureSet[] => {
   }
   return result
 }
+
+const buildOptimizedImageUrl = (src: string, width: number, quality: number) =>
+  `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`
 
 const normalizePictureSets = (
   rows: Array<Partial<PictureSet> | null | undefined>,
@@ -399,11 +407,16 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    const conn = (navigator as any).connection
+    if (conn?.saveData) return
+    if (conn?.effectiveType && ['slow-2g', '2g'].includes(conn.effectiveType)) return
+
     const bufferCount = Math.min(DOWN_PREFETCH_LIMIT, downPictureSets.length)
     const candidates = downPictureSets.slice(0, bufferCount)
     for (const item of candidates) {
       if (!item.cover_image_url) continue
-      enqueueDownPrefetch(`${baseUrl}${item.cover_image_url}`)
+      const src = `${baseUrl}${item.cover_image_url}`
+      enqueueDownPrefetch(buildOptimizedImageUrl(src, DOWN_THUMB_PREFETCH_WIDTH, DOWN_THUMB_QUALITY))
     }
   }, [downPictureSets, baseUrl, enqueueDownPrefetch])
 
@@ -583,15 +596,20 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     })).sort((a, b) => a.name.localeCompare(b.name))
   }, [pictureSets, setLocations, baseUrl, getText, t, locale])
 
+  const downGallerySubtitle = t('downGallerySubtitle')
+  const hasDownGallerySubtitle = downGallerySubtitle.trim().length > 0
+
   const downGallerySection = !loading && downPictureSets.length > 0 && (
-    <section className="mt-16 sm:mt-24">
-      <div className="text-center max-w-3xl mx-auto mb-2 sm:mb-4">
+    <section className="mt-12 sm:mt-20">
+      <div className={clsx("text-center max-w-3xl mx-auto", hasDownGallerySubtitle ? "mb-2 sm:mb-4" : "mb-4 sm:mb-6")}>
         <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
           {t('downGalleryTitle')}
         </h2>
-        <p className="mt-1 text-xs sm:text-sm text-slate-500/80">
-          {t('downGallerySubtitle')}
-        </p>
+        {hasDownGallerySubtitle && (
+          <p className="mt-1 text-xs sm:text-sm text-slate-500/80">
+            {downGallerySubtitle}
+          </p>
+        )}
       </div>
       <div className="flex justify-center w-full">
         <div className="w-full px-2 sm:px-4 mx-auto max-w-6xl xl:max-w-7xl 2xl:max-w-[100rem] min-[2200px]:max-w-[120rem]">
@@ -630,9 +648,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                       src={coverSrc}
                       alt={getText(item, 'title') || item.title}
                       fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 25vw, (max-width: 1920px) 18vw, 12vw"
-                      quality={60}
-                      fetchPriority={eager ? 'high' : 'auto'}
+                      quality={DOWN_THUMB_QUALITY}
+                      fetchPriority={eager ? 'high' : 'low'}
+                      decoding="async"
+                      sizes={DOWN_IMAGE_SIZES}
                       className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                       priority={eager}
                       loading={eager ? 'eager' : 'lazy'}
