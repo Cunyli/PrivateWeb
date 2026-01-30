@@ -119,6 +119,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [overrideExistingPictureProps, setOverrideExistingPictureProps] = useState<boolean>(false)
   const [propagateCategoriesToPictures, setPropagateCategoriesToPictures] = useState<boolean>(true)
   const [autoFillLocalesAll, setAutoFillLocalesAll] = useState<boolean>(true)
+  const [asyncEnrich, setAsyncEnrich] = useState<boolean>(true)
   const [isBulkTagsGenerating, setIsBulkTagsGenerating] = useState<boolean>(false)
   const [autoGenerateTagsForUntagged, setAutoGenerateTagsForUntagged] = useState<boolean>(true)
   const [showAITrans, setShowAITrans] = useState<boolean>(false)
@@ -1158,7 +1159,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       let translatedZh = zh
       let picturesForPayload = pictures
       
-      if (autoFillLocalesAll) {
+      if (autoFillLocalesAll && !asyncEnrich) {
         // ✅ 提交时强制翻译，忽略 enTouched 限制
         console.log('🔄 Before translation - en:', en, 'zh:', zh)
         const result = await autoTranslateAll(true)
@@ -1183,7 +1184,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       }
       
       // 为未设置标签的图片自动生成标签（与现有标签做并集），并使用返回的 next 数组继续构造 payload，避免批量生成后 state 未同步
-      if (autoGenerateTagsForUntagged) {
+      if (autoGenerateTagsForUntagged && !asyncEnrich) {
         picturesForPayload = await generateTagsForUntaggedPictures()
       }
       // Debug: log intended picture order before upload/submit
@@ -1201,7 +1202,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             body: JSON.stringify({ objectName, contentType: file.type }),
           })
           if (!res.ok) throw new Error("Failed to get signed URL")
-          const { uploadUrl } = await res.json()
+          const { uploadUrl, contentType } = await res.json()
           
           // 尝试读取文件内容，捕获 NotFoundError
           let buf: ArrayBuffer
@@ -1214,7 +1215,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           
           const uploadRes = await fetch(uploadUrl, {
             method: "PUT",
-            headers: { "Content-Type": file.type },
+            headers: { "Content-Type": contentType || file.type || "application/octet-stream" },
             body: buf,
           })
           if (!uploadRes.ok) throw new Error("File upload failed")
@@ -1243,13 +1244,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           let raw_image_url = pic.raw_image_url || ""
 
           if (pic.cover instanceof File) {
-            // upload raw
-            raw_image_url = await uploadFile(
+            // Upload raw and compress in parallel to reduce total time
+            const rawUploadPromise = uploadFile(
               pic.cover,
               `picture/original-${Date.now()}-${idx}-${pic.cover.name}`,
             )
-            // compress + upload
-            const { file: comp, didCompress } = await compressImage(pic.cover)
+            const compressPromise = compressImage(pic.cover)
+            raw_image_url = await rawUploadPromise
+            const { file: comp, didCompress } = await compressPromise
             if (didCompress) {
               image_url = await uploadFile(
                 comp,
@@ -1350,6 +1352,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         propagate_categories_to_pictures: propagateCategoriesToPictures,
         fill_missing_from_set: fillMissingFromSet,
         autogen_titles_subtitles: autogenTitlesSubtitles,
+        async_enrich: asyncEnrich,
+        auto_generate_tags_untagged: autoGenerateTagsForUntagged,
+        auto_fill_locales_all: autoFillLocalesAll,
       }
 
       await onSubmit(payload, editingId ?? editingPictureSet?.id)
@@ -1540,6 +1545,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             <label className="flex items-center gap-2 text-sm">
               <input id="fill_missing_from_set" type="checkbox" checked={fillMissingFromSet} onChange={(e)=>setFillMissingFromSet(e.target.checked)} />
               <span>{t('optionsFillMissing')}</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input id="async_enrich" type="checkbox" checked={asyncEnrich} onChange={(e)=>setAsyncEnrich(e.target.checked)} />
+              <span>{t('asyncEnrich')}</span>
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input id="propagate_categories_to_pictures" type="checkbox" checked={propagateCategoriesToPictures} onChange={(e)=>setPropagateCategoriesToPictures(e.target.checked)} />

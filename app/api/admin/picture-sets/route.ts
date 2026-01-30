@@ -29,6 +29,80 @@ async function translateText(text: string, target: 'en' | 'zh'): Promise<string>
 
 const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
 
+async function asyncPool<T, R>(
+  limit: number,
+  items: T[],
+  worker: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let nextIndex = 0
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const idx = nextIndex++
+      if (idx >= items.length) break
+      results[idx] = await worker(items[idx], idx)
+    }
+  })
+  await Promise.all(runners)
+  return results
+}
+
+async function upsertSetTranslationsRaw(picture_set_id: number, payload: any) {
+  const en = payload?.en
+  const zh = payload?.zh
+  const ops: Promise<any>[] = []
+  if (en) {
+    ops.push(
+      supabaseAdmin.from('picture_set_translations').upsert(
+        { picture_set_id, locale: 'en', title: en.title || '', subtitle: en.subtitle || null, description: en.description || null },
+        { onConflict: 'picture_set_id,locale' },
+      )
+    )
+  }
+  if (zh) {
+    ops.push(
+      supabaseAdmin.from('picture_set_translations').upsert(
+        { picture_set_id, locale: 'zh', title: zh.title || '', subtitle: zh.subtitle || null, description: zh.description || null },
+        { onConflict: 'picture_set_id,locale' },
+      )
+    )
+  }
+  if (ops.length) await Promise.all(ops)
+}
+
+async function upsertPictureTranslationsRaw(picture_id: number, p: any) {
+  const en = p?.en
+  const zh = p?.zh
+  const ops: Promise<any>[] = []
+  if (en) {
+    ops.push(
+      supabaseAdmin.from('picture_translations').upsert(
+        { picture_id, locale: 'en', title: en.title || '', subtitle: en.subtitle || null, description: en.description || null },
+        { onConflict: 'picture_id,locale' },
+      )
+    )
+  }
+  if (zh) {
+    ops.push(
+      supabaseAdmin.from('picture_translations').upsert(
+        { picture_id, locale: 'zh', title: zh.title || '', subtitle: zh.subtitle || null, description: zh.description || null },
+        { onConflict: 'picture_id,locale' },
+      )
+    )
+  }
+  if (ops.length) await Promise.all(ops)
+}
+
+function triggerAsyncEnrich(picture_set_id: number, payload: any) {
+  const url = `${getBaseUrl()}/api/admin/picture-sets/${picture_set_id}/enrich`
+  const body = JSON.stringify({ ...payload, async_enrich: false })
+  queueMicrotask(() => {
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch((err) => {
+      console.error('Async enrich trigger failed:', err)
+    })
+  })
+}
+
 async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }> {
   console.log('🔧 fillSetTranslationsBi received payload.en:', payload.en)
   console.log('🔧 fillSetTranslationsBi received payload.zh:', payload.zh)
@@ -144,6 +218,7 @@ async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promi
 export async function POST(request: Request) {
   try {
     const payload = await request.json()
+    const asyncEnrich = !!payload.async_enrich
     const setRow = {
       title: payload.title || "",
       subtitle: payload.subtitle || "",
@@ -197,7 +272,7 @@ export async function POST(request: Request) {
       return ''
     }
 
-    if (autoGen) {
+    if (autoGen && !asyncEnrich) {
       const candidateSources = [
         makePublicUrl(payload.cover_image_url),
         makePublicUrl(pictures.find((p: any) => p?.image_url)?.image_url),
@@ -293,21 +368,25 @@ export async function POST(request: Request) {
         await supabaseAdmin.from('picture_set_categories').insert(rows)
       }
 
-      // set 翻译（双向自动补全）
+      // set 翻译（双向自动补全）- async 时跳过翻译，仅保存已填内容
       try {
-        const filled = await fillSetTranslationsBi(payload)
-        await supabaseAdmin
-          .from('picture_set_translations')
-          .upsert(
-            { picture_set_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
-            { onConflict: 'picture_set_id,locale' },
-          )
-        await supabaseAdmin
-          .from('picture_set_translations')
-          .upsert(
-            { picture_set_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
-            { onConflict: 'picture_set_id,locale' },
-          )
+        if (asyncEnrich) {
+          await upsertSetTranslationsRaw(picture_set_id, payload)
+        } else {
+          const filled = await fillSetTranslationsBi(payload)
+          await supabaseAdmin
+            .from('picture_set_translations')
+            .upsert(
+              { picture_set_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
+              { onConflict: 'picture_set_id,locale' },
+            )
+          await supabaseAdmin
+            .from('picture_set_translations')
+            .upsert(
+              { picture_set_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
+              { onConflict: 'picture_set_id,locale' },
+            )
+        }
       } catch {}
 
       // set 主位置
@@ -341,14 +420,16 @@ export async function POST(request: Request) {
       // picture 扩展：翻译、类型标签、主位置、分类（picture_categories）
       const propagateCategories = !!payload.propagate_categories_to_pictures
       const styleTagIdCache: Record<string, number | null> = {}
-      for (let i = 0; i < pictures.length; i++) {
-        const p = pictures[i]
+      const locCache = new Map<string, number>()
+      const concurrency = Math.max(1, Math.min(6, Number(process.env.PICTURE_JOB_CONCURRENCY || 4)))
+
+      await asyncPool(concurrency, pictures, async (p, i) => {
         const picture_id = picIdByIndex[i]
-        if (!picture_id) continue
+        if (!picture_id) return
 
         // 自动生成标题/副标题（仅当缺失且能构造公网 URL）
         try {
-          if (autoGen) {
+          if (autoGen && !asyncEnrich) {
             const imgUrl = makePublicUrl(p.image_url || p.raw_image_url)
             if (imgUrl) {
               if (!String(p.title || '').trim()) {
@@ -363,99 +444,118 @@ export async function POST(request: Request) {
           }
         } catch {}
 
+        const tasks: Promise<any>[] = []
+
         // 翻译（双向自动补全）
-        try {
-          const filled = await fillPictureTranslationsBi(p)
-          await supabaseAdmin
-            .from('picture_translations')
-            .upsert(
-              { picture_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
-              { onConflict: 'picture_id,locale' },
-            )
-          await supabaseAdmin
-            .from('picture_translations')
-            .upsert(
-              { picture_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
-              { onConflict: 'picture_id,locale' },
-            )
-        } catch {}
+        tasks.push((async () => {
+          try {
+            if (asyncEnrich) {
+              await upsertPictureTranslationsRaw(picture_id, p)
+            } else {
+              const filled = await fillPictureTranslationsBi(p)
+              await Promise.all([
+                supabaseAdmin
+                  .from('picture_translations')
+                  .upsert(
+                    { picture_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
+                    { onConflict: 'picture_id,locale' },
+                  ),
+                supabaseAdmin
+                  .from('picture_translations')
+                  .upsert(
+                    { picture_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
+                    { onConflict: 'picture_id,locale' },
+                  ),
+              ])
+            }
+          } catch {}
+        })())
 
         // 类型标签：图片自己的 topic tags + per-picture categories；可选传播 set 的 category/season tags
-        const pictureTopicTags: string[] = Array.isArray(p.tags) ? p.tags : []
-        const pTopicIds = await ensureTagIds(pictureTopicTags, 'topic')
-        let pCatTagIds: number[] = []
-        const picCatIds = Array.isArray(p.picture_category_ids) ? p.picture_category_ids : []
-        if (picCatIds.length > 0) {
-          const { data: catRows } = await supabaseAdmin.from('categories').select('id,name').in('id', picCatIds)
-          const names = (catRows || []).map((r: any) => r.name).filter(Boolean)
-          pCatTagIds = await ensureTagIds(names, 'category')
-        }
-        // 若开启传播，则无论图片是否已有类别，均将 set 的类别/季节 typed tags 一并加入（并集）
-        if (propagateCategories) {
-          pCatTagIds = Array.from(new Set([...(pCatTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
-        }
-        let styleTagIds: number[] = []
-        const styleKey = typeof p.style === 'string' ? p.style : ''
-        if (styleKey && PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]) {
-          const tagName = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID].tagName
-          const cached = styleTagIdCache[styleKey]
-          if (typeof cached === 'number') {
-            styleTagIds = [cached]
-          } else {
-            const ensured = await ensureTagIds([tagName], 'style')
-            const firstId = ensured[0] ?? null
-            styleTagIdCache[styleKey] = firstId
-            if (typeof firstId === 'number') styleTagIds = [firstId]
+        tasks.push((async () => {
+          const pictureTopicTags: string[] = Array.isArray(p.tags) ? p.tags : []
+          const pTopicIds = await ensureTagIds(pictureTopicTags, 'topic')
+          let pCatTagIds: number[] = []
+          const picCatIds = Array.isArray(p.picture_category_ids) ? p.picture_category_ids : []
+          if (picCatIds.length > 0) {
+            const { data: catRows } = await supabaseAdmin.from('categories').select('id,name').in('id', picCatIds)
+            const names = (catRows || []).map((r: any) => r.name).filter(Boolean)
+            pCatTagIds = await ensureTagIds(names, 'category')
           }
-        }
-
-        const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || []), ...(styleTagIds || [])]))
-        if (combined.length) {
-          const rows = combined.map((tid: number) => ({ picture_id, tag_id: tid }))
-          await supabaseAdmin.from('picture_taggings').insert(rows)
-        }
+          if (propagateCategories) {
+            pCatTagIds = Array.from(new Set([...(pCatTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
+          }
+          let styleTagIds: number[] = []
+          const styleKey = typeof p.style === 'string' ? p.style : ''
+          if (styleKey && PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]) {
+            const tagName = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID].tagName
+            const cached = styleTagIdCache[styleKey]
+            if (typeof cached === 'number') {
+              styleTagIds = [cached]
+            } else {
+              const ensured = await ensureTagIds([tagName], 'style')
+              const firstId = ensured[0] ?? null
+              styleTagIdCache[styleKey] = firstId
+              if (typeof firstId === 'number') styleTagIds = [firstId]
+            }
+          }
+          const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || []), ...(styleTagIds || [])]))
+          if (combined.length) {
+            const rows = combined.map((tid: number) => ({ picture_id, tag_id: tid }))
+            await supabaseAdmin.from('picture_taggings').insert(rows)
+          }
+        })())
 
         // 主位置（若提供）
-        const lnm = (p.location_name || '').trim()
-        const llat = typeof p.location_latitude === 'number' ? p.location_latitude : null
-        const llng = typeof p.location_longitude === 'number' ? p.location_longitude : null
-        if (lnm && typeof llat === 'number' && typeof llng === 'number') {
-          let locId: number | undefined
-          const { data: found } = await supabaseAdmin
-            .from('locations')
-            .select('id')
-            .eq('name', lnm)
-            .eq('latitude', llat)
-            .eq('longitude', llng)
-            .maybeSingle()
-          if (found?.id) locId = found.id
-          else {
-            const { data: created, error: locErr } = await supabaseAdmin
-              .from('locations')
-              .insert({ name: lnm, latitude: llat, longitude: llng })
-              .select('id')
-              .single()
-            if (locErr) throw locErr
-            locId = created!.id
+        tasks.push((async () => {
+          const lnm = (p.location_name || '').trim()
+          const llat = typeof p.location_latitude === 'number' ? p.location_latitude : null
+          const llng = typeof p.location_longitude === 'number' ? p.location_longitude : null
+          if (lnm && typeof llat === 'number' && typeof llng === 'number') {
+            const cacheKey = `${lnm}|${llat}|${llng}`
+            let locId = locCache.get(cacheKey)
+            if (!locId) {
+              const { data: found } = await supabaseAdmin
+                .from('locations')
+                .select('id')
+                .eq('name', lnm)
+                .eq('latitude', llat)
+                .eq('longitude', llng)
+                .maybeSingle()
+              if (found?.id) locId = found.id
+              else {
+                const { data: created, error: locErr } = await supabaseAdmin
+                  .from('locations')
+                  .insert({ name: lnm, latitude: llat, longitude: llng })
+                  .select('id')
+                  .single()
+                if (locErr) throw locErr
+                locId = created!.id
+              }
+              if (locId) locCache.set(cacheKey, locId)
+            }
+            if (locId) await supabaseAdmin.from('picture_locations').insert({ picture_id, location_id: locId, is_primary: true })
           }
-          if (locId) await supabaseAdmin.from('picture_locations').insert({ picture_id, location_id: locId, is_primary: true })
-        }
+        })())
 
         // 分类（picture_categories）：按勾选保存
-        const pCatIdsRaw: number[] = Array.isArray(p.picture_category_ids) ? (p.picture_category_ids as number[]) : []
-        let pCatCats = Array.from(new Set(pCatIdsRaw)) as number[]
-        if (propagateCategories) {
-          // 将集合选择的类别与图片现有类别做并集
-          const setCats: number[] = Array.isArray(payload.category_ids)
-            ? (Array.from(new Set(payload.category_ids as number[])) as number[])
-            : []
-          pCatCats = Array.from(new Set([...(pCatCats || []), ...(setCats || [])])) as number[]
-        }
-        if (pCatCats.length) {
-          const rows = pCatCats.map((cid: number) => ({ picture_id, category_id: cid, is_primary: false }))
-          await supabaseAdmin.from('picture_categories').insert(rows)
-        }
-      }
+        tasks.push((async () => {
+          const pCatIdsRaw: number[] = Array.isArray(p.picture_category_ids) ? (p.picture_category_ids as number[]) : []
+          let pCatCats = Array.from(new Set(pCatIdsRaw)) as number[]
+          if (propagateCategories) {
+            const setCats: number[] = Array.isArray(payload.category_ids)
+              ? (Array.from(new Set(payload.category_ids as number[])) as number[])
+              : []
+            pCatCats = Array.from(new Set([...(pCatCats || []), ...(setCats || [])])) as number[]
+          }
+          if (pCatCats.length) {
+            const rows = pCatCats.map((cid: number) => ({ picture_id, category_id: cid, is_primary: false }))
+            await supabaseAdmin.from('picture_categories').insert(rows)
+          }
+        })())
+
+        await Promise.all(tasks)
+      })
     }
 
     // sections 赋值：payload.section_ids + 根据 position 推断的一个默认 section（若存在）
@@ -475,6 +575,9 @@ export async function POST(request: Request) {
       }
     } catch {}
 
+    if (asyncEnrich) {
+      triggerAsyncEnrich(picture_set_id, payload)
+    }
     return NextResponse.json({ id: picture_set_id })
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })

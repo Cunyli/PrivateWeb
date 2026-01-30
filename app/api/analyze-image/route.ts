@@ -213,7 +213,8 @@ shooting techniques (depth of field, composition, angle), lighting (type/directi
         if (!r.ok) throw new Error(`fetch image failed: ${r.status}`)
         const buf = Buffer.from(await r.arrayBuffer())
         const mime = r.headers.get('content-type') || 'image/jpeg'
-        imageContent = { type: 'input_image', image_data: { data: buf.toString('base64'), mime_type: mime } }
+        const b64 = buf.toString('base64')
+        imageContent = { type: 'input_image', image_url: `data:${mime};base64,${b64}` }
       } else {
         // Azure Responses API often accepts plain string for image_url
         imageContent = { type: 'input_image', image_url: imageUrl as any }
