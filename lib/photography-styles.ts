@@ -52,10 +52,10 @@ export const PHOTOGRAPHY_STYLES: PhotographyStyleConfig[] = [
     id: 'travel',
     tagName: 'Travel',
     i18nKey: 'styleTravel',
-    labels: { en: 'Travel', zh: '旅拍' },
+    labels: { en: 'Recent', zh: '最近' },
     tagline: {
-      en: 'Adventures across destinations & cultures',
-      zh: '旅途中的足迹和人文情绪',
+      en: 'Latest uploads curated from recent work',
+      zh: '最近上传的作品精选',
     },
   },
 ]

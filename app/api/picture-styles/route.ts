@@ -5,6 +5,7 @@ import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
 export const runtime = "nodejs"
 
 const MAX_PICTURES_PER_STYLE = 80
+const RECENT_STYLE_ID = "travel"
 
 const safeTime = (value: string | null | undefined) => {
   if (!value) return 0
@@ -171,6 +172,22 @@ export async function GET(request: Request) {
       candidateIdsByStyle[styleId] = rawIds
         .filter((id) => Number.isFinite(id) && id > 0)
         .slice(0, MAX_PICTURES_PER_STYLE * 3)
+    }
+
+    if (styleIds.includes(RECENT_STYLE_ID)) {
+      const { data: recentRows, error: recentErr } = await supabaseAdmin
+        .from("pictures")
+        .select("id, image_url, is_published, created_at")
+        .order("created_at", { ascending: false })
+        .limit(MAX_PICTURES_PER_STYLE * 3)
+      if (recentErr) {
+        return NextResponse.json({ error: recentErr.message }, { status: 500 })
+      }
+      const recentIds = (recentRows || [])
+        .filter((row: any) => row && row.image_url && row.is_published !== false)
+        .map((row: any) => row.id as number)
+        .filter((id: number) => Number.isFinite(id) && id > 0)
+      candidateIdsByStyle[RECENT_STYLE_ID] = recentIds
     }
 
     const allPictureIds = Array.from(

@@ -2,13 +2,82 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
 
 export const revalidate = 0 // Disable caching for this route
 
-export default async function WorkPage({ params }: { params: { id: string } }) {
+const normalizeText = (value?: string | null) => String(value || "").toLowerCase().trim()
+
+const resolveStylePictureIds = async (styleConfig: { tagName: string; labels?: { en?: string; zh?: string } }, pictureIds: number[]) => {
+  const matches = new Set<number>()
+  if (!pictureIds.length) return matches
+
+  const styleTagName = normalizeText(styleConfig.tagName)
+  if (styleTagName) {
+    const { data: tagRows } = await supabaseAdmin
+      .from("tags")
+      .select("id,name,type")
+      .eq("type", "style")
+      .ilike("name", styleConfig.tagName)
+
+    const tagId = tagRows?.[0]?.id as number | undefined
+    if (tagId) {
+      const { data: taggingRows } = await supabaseAdmin
+        .from("picture_taggings")
+        .select("picture_id, tag_id")
+        .eq("tag_id", tagId)
+        .in("picture_id", pictureIds)
+
+      for (const row of taggingRows || []) {
+        const pid = (row as any).picture_id
+        if (Number.isFinite(pid)) matches.add(pid as number)
+      }
+    }
+  }
+
+  const aliasSet = new Set<string>()
+  if (styleConfig.tagName) aliasSet.add(normalizeText(styleConfig.tagName))
+  if (styleConfig.labels?.en) aliasSet.add(normalizeText(styleConfig.labels.en))
+  if (styleConfig.labels?.zh) aliasSet.add(normalizeText(styleConfig.labels.zh))
+
+  if (aliasSet.size > 0) {
+    const { data: categoryRows } = await supabaseAdmin
+      .from("categories")
+      .select("id,name")
+
+    const categoryIds: number[] = []
+    for (const row of categoryRows || []) {
+      const name = normalizeText((row as any).name)
+      if (!name || !aliasSet.has(name)) continue
+      const id = (row as any).id
+      if (Number.isFinite(id)) categoryIds.push(id as number)
+    }
+
+    if (categoryIds.length > 0) {
+      const { data: pictureCategoryRows } = await supabaseAdmin
+        .from("picture_categories")
+        .select("picture_id, category_id")
+        .in("category_id", categoryIds)
+        .in("picture_id", pictureIds)
+
+      for (const row of pictureCategoryRows || []) {
+        const pid = (row as any).picture_id
+        if (Number.isFinite(pid)) matches.add(pid as number)
+      }
+    }
+  }
+
+  return matches
+}
+
+export default async function WorkPage({ params, searchParams }: { params: { id: string }; searchParams?: { style?: string } }) {
   console.log(`Fetching pictures for set ID: ${params.id}`)
+  const requestedStyle = typeof searchParams?.style === "string" ? searchParams.style : null
+  const styleConfig = requestedStyle
+    ? PHOTOGRAPHY_STYLE_BY_ID[requestedStyle as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]
+    : undefined
 
   // Fetch pictures based on picture_set_id
   const { data: pictures, error: pictureError } = await supabaseAdmin
@@ -24,12 +93,36 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
 
   console.log(`Found ${pictures?.length || 0} pictures for set ID: ${params.id}`)
 
-  if (!pictures || pictures.length === 0) {
+  const rawPictures = pictures || []
+  if (rawPictures.length === 0) {
     console.log("No pictures found, returning 404")
     notFound()
   }
 
-  const pictureIds = pictures.map((p) => p.id)
+  let filteredPictures = rawPictures
+  if (styleConfig && requestedStyle) {
+    const styleKey = requestedStyle.toLowerCase()
+    const directMatches = rawPictures.filter((pic: any) => String(pic.style || "").toLowerCase() === styleKey)
+    if (directMatches.length > 0) {
+      filteredPictures = directMatches
+    } else {
+      const pictureIds = rawPictures.map((p) => p.id)
+      const resolvedIds = await resolveStylePictureIds(styleConfig, pictureIds)
+      if (resolvedIds.size > 0) {
+        filteredPictures = rawPictures.filter((pic: any) => resolvedIds.has(pic.id))
+      } else {
+        filteredPictures = []
+      }
+    }
+    console.log(`Filtered to ${filteredPictures.length} pictures for style ${requestedStyle} in set ${params.id}`)
+  }
+
+  if (styleConfig && filteredPictures.length === 0) {
+    console.log("No matching style pictures found, returning 404")
+    notFound()
+  }
+
+  const pictureIds = filteredPictures.map((p) => p.id)
 
   const { data: pictureTranslations } = pictureIds.length
     ? await supabaseAdmin
@@ -40,7 +133,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
 
   const pictureTranslationsMap = new Map<number, { en: { title?: string | null; subtitle?: string | null; description?: string | null }; zh: { title?: string | null; subtitle?: string | null; description?: string | null } }>()
 
-  for (const pic of pictures) {
+  for (const pic of filteredPictures) {
     pictureTranslationsMap.set(pic.id, {
       en: {
         title: pic.title ?? '',
@@ -64,7 +157,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
     if (row.description) target.description = row.description
   }
 
-  for (const pic of pictures) {
+  for (const pic of filteredPictures) {
     const entry = pictureTranslationsMap.get(pic.id)
     if (!entry) continue
     const baseTitle = pic.title ?? ''
@@ -80,7 +173,7 @@ export default async function WorkPage({ params }: { params: { id: string } }) {
     if (!entry.zh.description && looksZh(baseDescription)) entry.zh.description = baseDescription
   }
 
-  const images = pictures.map((pic) => {
+  const images = filteredPictures.map((pic) => {
     const translationEntry = pictureTranslationsMap.get(pic.id) || { en: {}, zh: {} }
     return {
       url: pic.image_url || "/placeholder.svg",

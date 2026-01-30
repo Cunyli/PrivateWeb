@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import type { Map as LeafletMap } from "leaflet"
 import { LatLngBounds } from "leaflet"
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet"
+import { MapContainer, TileLayer, CircleMarker } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import { useI18n } from "@/lib/i18n"
 
@@ -61,11 +61,6 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
     return locations.find((loc) => loc.key === activeKey) ?? null
   }, [activeKey, locations])
 
-  const formattedCTA = useMemo(() => {
-    if (!activeLocation) return emptyLabel
-    return viewAllLabel.replace("{{count}}", String(activeLocation.sets.length))
-  }, [activeLocation, emptyLabel, viewAllLabel])
-
   const tileConfig = useMemo(() => {
     if (locale === 'zh') {
       return {
@@ -93,7 +88,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
   return (
     <div className="w-full">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center">
         <div className="relative h-[420px] w-full overflow-hidden rounded-[2.5rem] border border-slate-200/60 shadow-[0_40px_90px_-45px_rgba(15,23,42,0.7)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.18),transparent_55%),radial-gradient(circle_at_80%_15%,rgba(56,189,248,0.18),transparent_55%),radial-gradient(circle_at_50%_80%,rgba(129,140,248,0.16),transparent_65%)]" />
           <div className="absolute inset-0 mix-blend-screen opacity-40" style={{ backgroundImage: "repeating-linear-gradient(0deg, rgba(148,163,184,0.1), rgba(148,163,184,0.1) 1px, transparent 1px, transparent 48px), repeating-linear-gradient(90deg, rgba(148,163,184,0.08), rgba(148,163,184,0.08) 1px, transparent 1px, transparent 64px)" }} />
@@ -135,43 +130,26 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
                   }}
                   className="transition-all duration-300"
                 >
-                  <Popup>
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold text-slate-900">{loc.name}</p>
-                      <p className="text-xs text-slate-500">
-                        {viewAllLabel.replace("{{count}}", String(loc.sets.length))}
-                      </p>
-                    </div>
-                  </Popup>
-                </CircleMarker>
-              )
-            })}
-          </MapContainer>
-        </div>
+              </CircleMarker>
+            )
+          })}
+        </MapContainer>
+      </div>
 
         <div className="rounded-3xl border border-slate-200/60 bg-white/80 p-6 sm:p-8 shadow-[0_30px_70px_-35px_rgba(30,41,59,0.6)] backdrop-blur">
           {activeLocation ? (
             <div className="flex h-full flex-col gap-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{formattedCTA}</p>
-                  <h3 className="text-xl sm:text-2xl font-semibold text-slate-900">
-                    {activeLocation.name}
-                  </h3>
-                </div>
-                <div className="text-xs sm:text-sm font-mono uppercase tracking-[0.4em] text-slate-400">
-                  {`LAT ${activeLocation.latitude.toFixed(2)}° • LON ${activeLocation.longitude.toFixed(2)}°`}
-                </div>
-              </div>
-
-              <div className="grid gap-4 overflow-y-auto pr-1 sm:grid-cols-1 md:grid-cols-2" style={{ maxHeight: "22rem" }}>
+              <div
+                className={`grid gap-4 overflow-y-auto pr-1 sm:grid-cols-1 ${activeLocation.sets.length === 1 ? "" : "md:grid-cols-2"}`}
+                style={{ maxHeight: "22rem" }}
+              >
                 {activeLocation.sets.map((set) => (
                   <Link
                     key={set.id}
                     href={`/work/${set.id}`}
-                    className="group overflow-hidden rounded-2xl border border-slate-200/60 bg-white/50 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_-25px_rgba(30,41,59,0.45)]"
+                    className={`group overflow-hidden rounded-2xl border border-slate-200/60 bg-white/50 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_-25px_rgba(30,41,59,0.45)] ${activeLocation.sets.length === 1 ? "w-full" : ""}`}
                   >
-                    <div className="relative aspect-[5/4] overflow-hidden">
+                    <div className={`relative overflow-hidden ${activeLocation.sets.length === 1 ? "aspect-[16/10]" : "aspect-[5/4]"}`}>
                       <Image
                         src={set.coverUrl}
                         alt={set.title}

@@ -2,15 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import clsx from "clsx"
-import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
+import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
 import { useI18n } from "@/lib/i18n"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, ArrowUpRight } from "lucide-react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useSearchParams, useRouter } from "next/navigation"
+import { ArrowUpRight } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 type PictureTranslation = {
   title?: string | null
@@ -55,7 +51,6 @@ const HOVER_INTENT_DELAY_MS = 90
 
 export function PhotographyStyleShowcase() {
   const { t, locale } = useI18n()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const bucketUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top", [])
 
@@ -64,16 +59,12 @@ export function PhotographyStyleShowcase() {
   const [error, setError] = useState<string | null>(null)
   const [activeStyle, setActiveStyle] = useState<string | null>(null)
   const [visibleIndex, setVisibleIndex] = useState<Record<string, number>>({})
-  const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null)
-  const [modalIndex, setModalIndex] = useState(0)
-  const [styleLoading, setStyleLoading] = useState<string | null>(null)
   const rotationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [landscapeMap, setLandscapeMap] = useState<Record<string, Record<number, boolean>>>({})
   const [, startHighlightTransition] = useTransition()
   const hoverTimerRef = useRef<number | null>(null)
   const prefetchedImagesRef = useRef<Set<string>>(new Set())
   const [hoveredMobileIndex, setHoveredMobileIndex] = useState<number | null>(null)
-  const modalIndexInitialized = useRef(false) // 用于标记 modalIndex 是否已初始化
   const [activeMobileStyleId, setActiveMobileStyleId] = useState<string | null>(null) // 追踪手机端当前激活的风格
   const scrollThrottleTimer = useRef<number | null>(null) // 滚动节流定时器
   const lastVibrateStyleId = useRef<string | null>(null) // 记录上次触发震动的风格ID
@@ -204,48 +195,6 @@ export function PhotographyStyleShowcase() {
     }
   }, [])
 
-  const ensureStylePictures = useCallback(async (styleId: string) => {
-    if (styleLoading === styleId) return
-    try {
-      setStyleLoading(styleId)
-      const res = await fetch(`/api/picture-styles?style=${styleId}`)
-      if (!res.ok) {
-        throw new Error(`${res.status} ${res.statusText}`)
-      }
-      const data = await res.json()
-      const payload = (data?.styles || {}) as Record<string, StyleApiResponse>
-      if (!payload[styleId]) return
-      const normalizedStyle: StyleApiResponse = {
-        ...payload[styleId],
-        pictures: (payload[styleId]?.pictures || []).map((picture) => ({
-          ...picture,
-          tags: Array.isArray(picture.tags) ? picture.tags : [],
-          categories: Array.isArray(picture.categories) ? picture.categories : [],
-        })),
-      }
-      setStylesData((prev) => {
-        const next = { ...prev }
-        next[styleId] = normalizedStyle
-        return next
-      })
-      setVisibleIndex((prev) => {
-        const next = { ...prev }
-        const pictures = normalizedStyle.pictures || []
-        if (pictures.length) {
-          const baseIndex = prev[styleId] ?? 0
-          next[styleId] = Math.min(Math.max(baseIndex, 0), pictures.length - 1)
-        } else {
-          next[styleId] = -1
-        }
-        return next
-      })
-    } catch (err) {
-      console.error("Failed to refresh style pictures", err)
-    } finally {
-      setStyleLoading((current) => (current === styleId ? null : current))
-    }
-  }, [styleLoading])
-
   useEffect(() => {
     fetchStyles().catch(() => {})
   }, [fetchStyles])
@@ -290,32 +239,8 @@ export function PhotographyStyleShowcase() {
   }, [getEligibleIndices, pickNextEligibleIndex, stylesData])
 
   const handleOpenStyle = useCallback((styleId: string) => {
-    void ensureStylePictures(styleId)
-    const pictures = stylesData[styleId]?.pictures || []
-    const eligible = getEligibleIndices(styleId)
-    const currentIdx = visibleIndex[styleId] ?? 0
-    const safeIdx = eligible.length
-      ? eligible.includes(currentIdx) ? currentIdx : eligible[0]
-      : (pictures.length ? Math.max(0, Math.min(pictures.length - 1, currentIdx)) : 0)
-    setSelectedStyleId(styleId)
-    setModalIndex(safeIdx)
-    modalIndexInitialized.current = true // 标记已初始化
-  }, [ensureStylePictures, getEligibleIndices, stylesData, visibleIndex])
-  
-  // 检查 URL 参数中是否有风格参数，自动打开对应的风格弹窗
-  useEffect(() => {
-    const styleFromUrl = searchParams.get('style')
-    if (styleFromUrl && stylesData[styleFromUrl] && !loading) {
-      // 自动打开对应的风格弹窗
-      handleOpenStyle(styleFromUrl)
-      // 清除 URL 参数，避免页面刷新时再次打开
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href)
-        url.searchParams.delete('style')
-        router.replace(url.pathname + url.search, { scroll: false })
-      }
-    }
-  }, [searchParams, stylesData, loading, handleOpenStyle, router])
+    router.push(`/work/style/${styleId}`)
+  }, [router])
 
   const prefetchPreview = useCallback((styleId: string | null) => {
     if (typeof window === 'undefined') return
@@ -373,21 +298,6 @@ export function PhotographyStyleShowcase() {
   }, [])
 
   useEffect(() => {
-    if (!selectedStyleId) {
-      modalIndexInitialized.current = false // 重置标记
-      return
-    }
-    // 只在弹窗刚打开且 modalIndex 未初始化时设置一次
-    if (modalIndexInitialized.current) return
-    
-    const pictures = stylesData[selectedStyleId]?.pictures || []
-    if (!pictures.length) return
-    const idx = visibleIndex[selectedStyleId] ?? 0
-    setModalIndex(Math.max(0, Math.min(pictures.length - 1, idx)))
-    modalIndexInitialized.current = true
-  }, [selectedStyleId, stylesData, visibleIndex])
-
-  useEffect(() => {
     setVisibleIndex((prev) => {
       let changed = false
       const next = { ...prev }
@@ -429,11 +339,7 @@ export function PhotographyStyleShowcase() {
     })
   }, [getEligibleIndices, stylesData])
 
-  const selectedStyleConfig = selectedStyleId ? PHOTOGRAPHY_STYLE_BY_ID[selectedStyleId as keyof typeof PHOTOGRAPHY_STYLE_BY_ID] : undefined
-  const modalPictures = selectedStyleId ? stylesData[selectedStyleId]?.pictures || [] : []
-  const currentModalPicture = modalPictures[modalIndex]
-  const isModalLoading = !!selectedStyleId && styleLoading === selectedStyleId && modalPictures.length === 0
-  const highlightStyleId = activeStyle ?? selectedStyleId ?? null
+  const highlightStyleId = activeStyle ?? null
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -454,14 +360,10 @@ export function PhotographyStyleShowcase() {
     const preview = activeIndex >= 0 ? pictures[activeIndex] : undefined
     const orientationMap = landscapeMap[style.id] || {}
     const previewOrientation = preview ? orientationMap[preview.id] : undefined
-  const isActive = highlightStyleId === style.id
-  const isSelected = selectedStyleId === style.id
-    const flexGrow = activeStyle ? (isActive ? 2.2 : 0.78) : 1
-    const flexBasis = activeStyle ? (isActive ? "50%" : "16%") : "auto"
+    const isActive = highlightStyleId === style.id
     const translateY = isActive ? "-8px" : "0px"
+    const scale = activeStyle ? (isActive ? 1.035 : 0.98) : 1
     const hasContent = eligible.length > 0
-    const badge = locale === "zh" ? "风格" : "Style"
-    const tagline = style.tagline?.[locale] || style.tagline?.en || ""
     const isFirst = idx === 0
     const isLast = idx === PHOTOGRAPHY_STYLES.length - 1
 
@@ -473,34 +375,25 @@ export function PhotographyStyleShowcase() {
       activeIndex,
       preview,
       isActive,
-      flexGrow,
-      flexBasis,
       translateY,
+      scale,
       hasContent,
-      badge,
-      tagline,
       isFirst,
       isLast,
       previewOrientation,
-      isSelected,
     }
   })
 
   return (
     <section className="mt-16 sm:mt-24">
       <div className="flex flex-col gap-4 md:gap-6">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-          <div className="text-center md:text-left">
-            <h2 className="text-lg md:text-2xl font-medium tracking-[0.08em] md:tracking-[0.1em] uppercase text-slate-900/95">
-              {t("styleShowcaseTitle")}
-            </h2>
-            <p className="text-xs md:text-sm text-muted-foreground/70 max-w-2xl mx-auto md:mx-0">
-              {t("styleShowcaseSubtitle")}
-            </p>
-          </div>
-          <div className="hidden md:block text-xs text-muted-foreground/70 uppercase tracking-[0.4em]">
-            {t("styleShowcaseInstruction")}
-          </div>
+        <div className="text-center max-w-3xl mx-auto mb-2 sm:mb-4">
+          <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
+            {t("styleShowcaseTitle")}
+          </h2>
+          <p className="mt-1 text-xs sm:text-sm text-slate-500/80">
+            {t("styleShowcaseSubtitle")}
+          </p>
         </div>
 
         {loadingState && (
@@ -590,15 +483,14 @@ export function PhotographyStyleShowcase() {
                   })
                 }}
               >
-                {styleCards.map(({ style, preview, hasContent, pictures, badge, tagline, previewOrientation, isSelected, isActive, isFirst, isLast }, cardIdx) => {
-                  const shouldContain = previewOrientation === false && (isSelected || isActive)
+                {styleCards.map(({ style, preview, hasContent, pictures, previewOrientation, isActive, isFirst, isLast }, cardIdx) => {
+                  const isMobileActive = activeMobileStyleId === style.id
+                  const shouldContain = previewOrientation === false && (isActive || isMobileActive)
                   const clipPath = isFirst
                     ? "polygon(0% 0, 100% 0, 94% 100%, 0% 100%)"
                     : isLast
                       ? "polygon(6% 0, 100% 0, 100% 100%, 0% 100%)"
                       : "polygon(6% 0, 100% 0, 94% 100%, 0% 100%)"
-                  
-                  const isMobileActive = activeMobileStyleId === style.id
                   
                   return (
                   <button
@@ -655,17 +547,14 @@ export function PhotographyStyleShowcase() {
 
                     <div className="relative z-10 flex h-full flex-col justify-between p-6 transition-all duration-500">
                       <div 
-                        className="flex items-center gap-3 text-white/70 transition-all duration-500"
+                        className="flex w-full items-center gap-3 text-white/70 transition-all duration-500"
                         style={{ 
                           opacity: isMobileActive ? 1 : 0.8,
                           transform: isMobileActive ? 'translateY(0)' : 'translateY(4px)'
                         }}
                       >
-                        <span className="text-[10px] uppercase tracking-[0.5em]">
-                          {badge}
-                        </span>
                         {hasContent && (
-                          <span className="text-[10px] uppercase tracking-[0.4em] text-white/55">
+                          <span className="ml-auto text-[10px] uppercase tracking-[0.4em] text-white/55">
                             {pictures.length} {locale === "zh" ? "张" : "photos"}
                           </span>
                         )}
@@ -680,24 +569,21 @@ export function PhotographyStyleShowcase() {
                         <h3 className="text-[2rem] font-extralight text-white drop-shadow-xl">
                           {t(style.i18nKey)}
                         </h3>
-                        {tagline && (
-                          <p className="max-w-[26ch] text-[0.95rem] leading-relaxed text-white/85">
-                            {tagline}
-                          </p>
-                        )}
                       </div>
                       <div 
-                        className="flex items-center gap-2 transition-all duration-500"
+                        className="flex w-full items-center gap-2 transition-all duration-500"
                         style={{ 
                           opacity: isMobileActive ? 1 : 0.8,
                           transform: isMobileActive ? 'translateX(0)' : 'translateX(-4px)'
                         }}
                       >
-                        <span className="text-[11px] uppercase tracking-[0.45em] text-white/80">
-                          {hasContent ? t("styleViewGallery") : t("styleEmpty")}
-                        </span>
+                        {!hasContent && (
+                          <span className="text-[11px] uppercase tracking-[0.45em] text-white/80">
+                            {t("styleEmpty")}
+                          </span>
+                        )}
                         <ArrowUpRight 
-                          className="h-4 w-4 text-white/85 transition-all duration-500" 
+                          className="ml-auto h-4 w-4 text-white/85 transition-all duration-500" 
                           style={{
                             transform: isMobileActive ? 'translate(4px, -4px)' : 'translate(0, 0)'
                           }}
@@ -739,13 +625,13 @@ export function PhotographyStyleShowcase() {
             </div>
 
             <div className="hidden md:flex md:flex-row [clip-path:polygon(0_0,100%_0,100%_100%,0_100%)] overflow-hidden">
-              {styleCards.map(({ style, preview, hasContent, pictures, badge, tagline, isFirst, isLast, isActive, isSelected, flexGrow, flexBasis, translateY, previewOrientation }) => {
+              {styleCards.map(({ style, preview, hasContent, pictures, isFirst, isLast, isActive, translateY, scale, previewOrientation }) => {
                 const clipPath = isFirst
                   ? "polygon(0% 0, 100% 0, 94% 100%, 0% 100%)"
                   : isLast
                     ? "polygon(6% 0, 100% 0, 100% 100%, 0% 100%)"
                     : "polygon(6% 0, 100% 0, 94% 100%, 0% 100%)"
-                const shouldContain = previewOrientation === false && (isActive || isSelected)
+                const shouldContain = previewOrientation === false && isActive
 
                 return (
                   <button
@@ -762,11 +648,10 @@ export function PhotographyStyleShowcase() {
                       marginRight: isLast ? undefined : "-5%",
                       marginLeft: isFirst ? undefined : "-5%",
                       zIndex: isActive ? 25 : 10,
-                      flexGrow,
-                      flexBasis,
-                      transform: `translateY(${translateY})`,
-                      transition: "flex-grow 480ms cubic-bezier(0.27,0.8,0.25,1), flex-basis 480ms cubic-bezier(0.27,0.8,0.25,1), transform 360ms cubic-bezier(0.24,1,0.32,1)",
-                      willChange: "transform, flex-basis, flex-grow",
+                      transform: `translateY(${translateY}) scale(${scale})`,
+                      transition: "transform 360ms cubic-bezier(0.24,1,0.32,1), box-shadow 360ms cubic-bezier(0.24,1,0.32,1)",
+                      willChange: "transform",
+                      contain: "paint",
                     }}
                   >
                     <div className="absolute inset-0 pointer-events-none">
@@ -801,12 +686,9 @@ export function PhotographyStyleShowcase() {
                     </div>
 
                     <div className="relative z-10 flex h-full flex-col justify-between px-6 py-8 md:px-8 md:py-10 space-y-6 transition-opacity duration-300 ease-out">
-                      <div className="flex items-center gap-3 text-white/70">
-                        <span className="text-[10px] uppercase tracking-[0.5em]">
-                          {badge}
-                        </span>
+                      <div className="flex w-full items-center gap-3 text-white/70">
                         {hasContent && (
-                          <span className="text-[10px] uppercase tracking-[0.4em] text-white/50">
+                          <span className="ml-auto text-[10px] uppercase tracking-[0.4em] text-white/50">
                             {pictures.length} {locale === "zh" ? "张" : "photos"}
                           </span>
                         )}
@@ -815,17 +697,14 @@ export function PhotographyStyleShowcase() {
                         <h3 className="text-[1.9rem] md:text-[2.2rem] font-extralight text-white drop-shadow-lg transition-transform duration-500 ease-out group-hover:-translate-y-[3px]">
                           {t(style.i18nKey)}
                         </h3>
-                        {tagline && (
-                          <p className="max-w-[24ch] text-sm md:text-[0.95rem] leading-relaxed text-white/80 transition-opacity duration-500 ease-out group-hover:opacity-95">
-                            {tagline}
-                          </p>
-                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] uppercase tracking-[0.45em] text-white/75 transition-transform duration-500 ease-out group-hover:translate-x-1">
-                          {hasContent ? t("styleViewGallery") : t("styleEmpty")}
-                        </span>
-                        <ArrowUpRight className="h-4 w-4 text-white/80 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:-translate-y-1.5" />
+                      <div className="flex w-full items-center gap-2">
+                        {!hasContent && (
+                          <span className="text-[11px] uppercase tracking-[0.45em] text-white/75 transition-transform duration-500 ease-out group-hover:translate-x-1">
+                            {t("styleEmpty")}
+                          </span>
+                        )}
+                        <ArrowUpRight className="ml-auto h-4 w-4 text-white/80 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:-translate-y-1.5" />
                       </div>
                     </div>
                   </button>
@@ -835,503 +714,6 @@ export function PhotographyStyleShowcase() {
           </>
         )}
       </div>
-
-      <Dialog open={!!selectedStyleId} onOpenChange={(open) => { if (!open) setSelectedStyleId(null) }}>
-        <DialogContent className="flex max-h-[calc(100vh-2rem)] w-[min(100vw-2rem,80rem)] max-w-5xl flex-col overflow-hidden bg-background p-0 shadow-2xl">
-          <div className="flex min-h-0 flex-1 flex-col">
-            <DialogHeader className="sticky top-0 z-20 border-b border-border/60 bg-background/95 px-6 pt-6 pb-4 text-left backdrop-blur supports-[backdrop-filter]:bg-background/80">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <DialogClose asChild>
-                  <Button variant="ghost" size="sm" className="inline-flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    {t("backToHome")}
-                  </Button>
-                </DialogClose>
-                {isModalLoading && (
-                  <span className="text-xs text-muted-foreground">{t("loadingSets")}</span>
-                )}
-              </div>
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto px-6 pb-6">
-              <div className="space-y-1 text-left pt-6 pb-4">
-                <DialogTitle className="font-light text-2xl tracking-wide">
-                  {selectedStyleConfig ? t(selectedStyleConfig.i18nKey) : t("styleShowcaseTitle")}
-                </DialogTitle>
-                {selectedStyleConfig?.tagline && (
-                  <DialogDescription className="text-sm text-muted-foreground">
-                    {selectedStyleConfig.tagline[locale] || selectedStyleConfig.tagline.en}
-                  </DialogDescription>
-                )}
-              </div>
-              {isModalLoading ? (
-                <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-                  {t("loadingSets")}
-                </div>
-              ) : modalPictures.length > 0 ? (
-                <div className="flex flex-col gap-6">
-                <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
-                  <div className="space-y-2 md:space-y-4">
-                    <div 
-                      className="relative aspect-[16/11] md:aspect-[16/10] w-full overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-black/70 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.65)]"
-                    >
-                      {modalPictures.map((picture, idx) => {
-                        const active = idx === modalIndex
-                        const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
-                        const orientation = selectedStyleId ? landscapeMap[selectedStyleId]?.[picture.id] : undefined
-                        return (
-                          <Image
-                            key={`${selectedStyleId}-${picture.id}-hero`}
-                            src={imageSrc || '/placeholder.svg'}
-                            alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                            fill
-                            priority={idx === modalIndex}
-                            className={clsx(
-                              'absolute inset-0 transition-all object-center',
-                              orientation === false ? 'object-contain' : 'object-cover',
-                              active ? 'opacity-100 scale-100' : 'opacity-0',
-                              orientation === false
-                                ? active ? 'scale-100' : 'scale-100'
-                                : active ? 'scale-100' : 'scale-105'
-                            )}
-                            style={{ transitionDuration: '1400ms', transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-                            onLoad={(e) => {
-                              // 避免在弹窗打开时频繁触发更新
-                              if (!modalIndexInitialized.current) return
-                              const img = e.target as HTMLImageElement
-                              updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
-                            }}
-                          />
-                        )
-                      })}
-                      
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(99,102,241,0.28),transparent_55%),radial-gradient(circle_at_75%_10%,rgba(34,211,238,0.25),transparent_55%),linear-gradient(140deg,rgba(2,6,23,0.75) 10%,rgba(15,23,42,0.35) 45%,rgba(15,23,42,0.85) 100%)]" />
-                      <div className="absolute left-3 md:left-6 top-3 md:top-6 flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.45em] text-white/70">
-                        <span>{selectedStyleConfig ? t(selectedStyleConfig.i18nKey) : t('styleShowcaseTitle')}</span>
-                        <span className="rounded-full border border-white/30 bg-white/10 px-2 md:px-3 py-0.5 md:py-1 font-semibold tracking-[0.2em] md:tracking-[0.3em]">
-                          {String(modalIndex + 1).padStart(2, '0')} / {String(modalPictures.length).padStart(2, '0')}
-                        </span>
-                      </div>
-                      {currentModalPicture && (
-                        <div className="absolute inset-x-3 md:inset-x-6 bottom-3 md:bottom-6 flex flex-col gap-1.5 md:gap-3 text-white drop-shadow-xl">
-                          <div className="flex flex-wrap items-center gap-1.5 md:gap-2 text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-white/70">
-                            <span className="truncate max-w-[150px] md:max-w-none">{currentModalPicture.set.translations[locale as 'zh' | 'en']?.title || currentModalPicture.set.title}</span>
-                            <span className="hidden md:block h-[1px] w-10 bg-white/40" />
-                            <span className="hidden md:inline">{locale === 'zh' ? '大师影廊' : 'Master Series'}</span>
-                          </div>
-                          <h3 className="text-lg md:text-2xl lg:text-3xl font-light leading-tight line-clamp-2 md:line-clamp-none">
-                            {locale === 'zh'
-                              ? currentModalPicture.translations.zh?.title || currentModalPicture.translations.en?.title
-                              : currentModalPicture.translations.en?.title || currentModalPicture.translations.zh?.title || t('styleUntitled')}
-                          </h3>
-                          {(currentModalPicture.translations[locale as 'zh' | 'en']?.description || selectedStyleConfig?.tagline?.[locale as 'zh' | 'en']) && (
-                            <p className="hidden md:block max-w-2xl text-sm text-white/80 line-clamp-2">
-                              {currentModalPicture.translations[locale as 'zh' | 'en']?.description || selectedStyleConfig?.tagline?.[locale as 'zh' | 'en']}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap gap-1.5 md:gap-2">
-                            {[...(currentModalPicture.categories || []), ...(currentModalPicture.tags || [])]
-                              .filter(Boolean)
-                              .slice(0, 3)
-                              .map((label) => (
-                                <span
-                                  key={`${currentModalPicture.id}-${label}`}
-                                  className="rounded-full border border-white/30 bg-white/10 px-2 md:px-3 py-0.5 md:py-1 text-[9px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/75"
-                                >
-                                  {label}
-                                </span>
-                              ))}
-                            {[...(currentModalPicture.categories || []), ...(currentModalPicture.tags || [])].filter(Boolean).length > 3 && (
-                              <span className="rounded-full border border-white/30 bg-white/10 px-2 md:px-3 py-0.5 md:py-1 text-[9px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/75">
-                                +{[...(currentModalPicture.categories || []), ...(currentModalPicture.tags || [])].filter(Boolean).length - 3}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                    )}
-                  </div>
-
-                    {currentModalPicture && (
-                      <div className="hidden md:flex flex-wrap items-center justify-between gap-2 md:gap-3 rounded-xl md:rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 md:px-5 md:py-4 text-sm text-white/80">
-                        <div className="flex flex-col gap-0.5 md:gap-1">
-                          <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-white/60">
-                            {t('styleFromSeries')}
-                          </span>
-                          <span className="text-sm md:text-base font-medium text-white line-clamp-1">
-                            {currentModalPicture.set.translations[locale as 'zh' | 'en']?.title || currentModalPicture.set.title}
-                          </span>
-                        </div>
-                        <Button variant="secondary" size="sm" className="bg-white/90 text-slate-900 hover:bg-white text-xs md:text-sm h-8 md:h-9 px-3 md:px-4" asChild>
-                          <Link href={`/work/${currentModalPicture.pictureSetId}?index=${currentModalPicture.orderIndex ?? 0}&style=${selectedStyleId}`}>
-                            <span className="hidden md:inline">{t('styleViewGallery')}</span>
-                            <span className="md:hidden">{locale === 'zh' ? '查看' : 'View'}</span>
-                            <ArrowUpRight className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    )}
-                  </div>                  <div className="hidden lg:block rounded-[2rem] border border-white/10 bg-white/10 p-4 shadow-[0_25px_70px_-50px_rgba(15,23,42,0.75)] backdrop-blur">
-                    <ScrollArea className="h-[440px] pr-2">
-                      <div className="grid grid-cols-2 gap-3">
-                        {modalPictures.map((picture, idx) => {
-                          const active = idx === modalIndex
-                          const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
-                          const orientation = selectedStyleId ? landscapeMap[selectedStyleId]?.[picture.id] : undefined
-                          return (
-                            <button
-                              key={`${selectedStyleId}-${picture.id}-thumb`}
-                              type="button"
-                              onClick={() => setModalIndex(idx)}
-                              className={`group relative aspect-[4/3] w-full overflow-hidden rounded-2xl border transition-all duration-500 ${
-                                active
-                                  ? 'border-white shadow-[0_20px_55px_-35px_rgba(59,130,246,0.6)] scale-[1.01]'
-                                  : 'border-white/15 hover:border-white/45 hover:scale-[1.01]'
-                              }`}
-                            >
-                              <Image
-                                src={imageSrc || '/placeholder.svg'}
-                                alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                                fill
-                                className={clsx(
-                                  'transition duration-700 object-center',
-                                  orientation === false ? 'object-contain group-hover:scale-100' : 'object-cover group-hover:scale-105'
-                                )}
-                                onLoad={(e) => {
-                                  const img = e.target as HTMLImageElement
-                                  updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
-                                }}
-                              />
-                              <div className={`absolute inset-0 bg-black/35 transition-opacity duration-500 ${active ? 'opacity-5' : 'opacity-35 group-hover:opacity-15'}`} />
-                              <div className="absolute left-3 top-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-white/70">
-                                <span>{String(idx + 1).padStart(2, '0')}</span>
-                              </div>
-                              <div className="absolute bottom-3 left-3 right-3 text-left text-[11px] leading-tight text-white drop-shadow-md">
-                                <div className="font-medium line-clamp-1">
-                                  {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                                </div>
-                                <div className="opacity-75 line-clamp-1">
-                                  {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
-                                </div>
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </div>
-
-                <div className="lg:hidden space-y-4 md:space-y-8">
-                  {/* 竖向图片组 - 左右堆叠 */}
-                  {(() => {
-                    const portraitPictures = modalPictures.filter((picture) => {
-                      const orientation = selectedStyleId ? landscapeMap[selectedStyleId]?.[picture.id] : undefined
-                      return orientation === false
-                    })
-                    
-                    if (portraitPictures.length === 0) return null
-                    
-                    return (
-                      <div className="relative w-full">
-                        <h4 className="text-xs uppercase tracking-[0.4em] text-white/60 mb-2 md:mb-4 text-center">
-                          {locale === 'zh' ? '竖向作品' : 'Portrait'}
-                        </h4>
-                        <div 
-                          className="relative overflow-x-auto overflow-y-hidden pb-4 -mx-4 px-4 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-white/10 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-white/50" 
-                          style={{ height: '420px', WebkitOverflowScrolling: 'touch' }}
-                        >
-                          <div className="relative flex flex-row gap-4 justify-start items-center" style={{ height: '400px', minWidth: 'max-content', paddingLeft: 'max(0px, calc(50% - 120px))' }}>
-                            {portraitPictures.map((picture, idx) => {
-                              const globalIdx = modalPictures.indexOf(picture)
-                              const active = globalIdx === modalIndex
-                              const isHovered = hoveredMobileIndex === globalIdx
-                              const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
-                              const cardWidth = 240
-                              const overlapAmount = 80 // horizontal overlap when folded
-                              // 使用 picture 的 orderIndex 作为跳转参数，同时传递风格信息
-                              const imageIndex = picture.orderIndex ?? 0
-
-                              return (
-                                <a
-                                  key={`${picture.id}-portrait-${idx}`}
-                                  href={`/work/${picture.pictureSetId}?index=${imageIndex}&style=${selectedStyleId}`}
-                                  onClick={(e) => {
-                                    // 移动端：第一次点击展开，第二次点击跳转
-                                    if (window.innerWidth < 1024) {
-                                      if (hoveredMobileIndex !== globalIdx) {
-                                        e.preventDefault()
-
-                                        // 先收起所有卡片
-                                        const items = e.currentTarget.parentElement?.querySelectorAll('a, a, button')
-                                        if (items) {
-                                          items.forEach((item, itemIdx) => {
-                                            const htmlItem = item as HTMLElement
-                                            htmlItem.style.transform = 'translateX(0) scale(1)'
-                                            htmlItem.style.zIndex = String(portraitPictures.length - itemIdx)
-                                          })
-                                        }
-
-                                        // 展开当前卡片
-                                        setHoveredMobileIndex(globalIdx)
-                                        if (items) {
-                                          items.forEach((item, itemIdx) => {
-                                            const htmlItem = item as HTMLElement
-                                            if (itemIdx < idx) {
-                                              htmlItem.style.transform = `translateX(-${overlapAmount}px)`
-                                            } else if (itemIdx === idx) {
-                                              htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
-                                              htmlItem.style.zIndex = String(portraitPictures.length + 10)
-                                            } else {
-                                              htmlItem.style.transform = `translateX(${overlapAmount}px)`
-                                            }
-                                          })
-                                        }
-                                      }
-                                      // 否则已经展开，则允许跳转
-                                    }
-                                  }}
-                                  className={`group relative flex-shrink-0 snap-center overflow-hidden rounded-2xl border transition-all duration-500 block cursor-pointer ${
-                                    active
-                                      ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)]'
-                                      : 'border-white/20 hover:border-white/60'
-                                  }`}
-                                  style={{
-                                    width: `${cardWidth}px`,
-                                    height: '380px',
-                                    transform: active ? 'scale(1.02)' : 'scale(1)',
-                                    transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                    marginLeft: idx === 0 ? '0' : `-${overlapAmount}px`,
-                                    zIndex: portraitPictures.length - idx,
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    // desktop hover expands like poker draw
-                                    setHoveredMobileIndex(globalIdx)
-                                    const items = e.currentTarget.parentElement?.querySelectorAll('a, a, button')
-                                    if (!items) return
-                                    items.forEach((item, itemIdx) => {
-                                      const htmlItem = item as HTMLElement
-                                      if (itemIdx < idx) {
-                                        htmlItem.style.transform = `translateX(-${overlapAmount}px)`
-                                      } else if (itemIdx === idx) {
-                                        htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
-                                        htmlItem.style.zIndex = String(portraitPictures.length + 10)
-                                      } else {
-                                        htmlItem.style.transform = `translateX(${overlapAmount}px)`
-                                      }
-                                    })
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    setHoveredMobileIndex(null)
-                                    const items = e.currentTarget.parentElement?.querySelectorAll('a, a, button')
-                                    if (!items) return
-                                    items.forEach((item, itemIdx) => {
-                                      const htmlItem = item as HTMLElement
-                                      htmlItem.style.transform = 'translateX(0) scale(1)'
-                                      htmlItem.style.zIndex = String(portraitPictures.length - itemIdx)
-                                    })
-                                  }}
-                                >
-                                  <div className="absolute inset-0 z-10">
-                                    <Image
-                                      src={imageSrc || '/placeholder.svg'}
-                                      alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                                      fill
-                                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                      onLoad={(e) => {
-                                        const img = e.target as HTMLImageElement
-                                        updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
-                                      }}
-                                      priority={active || isHovered}
-                                    />
-                                  </div>
-
-                                  <div className={`absolute inset-0 transition-opacity duration-500 z-5 ${
-                                    active ? 'bg-black/5 opacity-100' : 'bg-black/35 opacity-100 group-hover:opacity-50'
-                                  }`} />
-
-                                  <div className="absolute bottom-0 left-0 right-0 text-left text-[11px] leading-tight text-white z-20 px-2 py-2">
-                                    <div className="font-medium line-clamp-1 drop-shadow-md">
-                                      {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                                    </div>
-                                    <div className="opacity-75 line-clamp-1 drop-shadow-md">
-                                      {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
-                                    </div>
-                                  </div>
-                                </a>
-                              )
-                            })}
-                            </div>
-                        </div>
-                      </div>
-                    )
-                  })()}
-                  
-                  {/* 横向图片组 - 上下堆叠 */}
-                  {(() => {
-                    const landscapePictures = modalPictures.filter((picture) => {
-                      const orientation = selectedStyleId ? landscapeMap[selectedStyleId]?.[picture.id] : undefined
-                      return orientation === true || orientation === undefined
-                    })
-                    
-                    if (landscapePictures.length === 0) return null
-                    
-                    return (
-                      <div 
-                        className="relative flex flex-col items-center"
-                        onClick={(e) => {
-                          // 如果点击的是容器本身（不是卡片），则收起所有展开的卡片
-                          if (e.target === e.currentTarget && window.innerWidth < 1024) {
-                            setHoveredMobileIndex(null)
-                            const items = e.currentTarget.querySelectorAll('a')
-                            if (!items) return
-                            items.forEach((item, itemIdx) => {
-                              const htmlItem = item as HTMLElement
-                              htmlItem.style.transform = 'translateY(0) scale(1)'
-                              htmlItem.style.zIndex = String(landscapePictures.length - itemIdx)
-                            })
-                          }
-                        }}
-                      >
-                        <h4 className="text-xs uppercase tracking-[0.4em] text-white/60 mb-2 md:mb-4">
-                          {locale === 'zh' ? '横向作品' : 'Landscape'}
-                        </h4>
-                        {landscapePictures.map((picture, idx) => {
-                          const globalIdx = modalPictures.indexOf(picture)
-                          const active = globalIdx === modalIndex
-                          const isHovered = hoveredMobileIndex === globalIdx
-                          const imageSrc = picture.imageUrl?.startsWith('http') ? picture.imageUrl : (picture.imageUrl ? `${bucketUrl}${picture.imageUrl}` : '/placeholder.svg')
-                          const cardHeight = 180
-                          const overlapAmount = 45
-                          // 使用 picture 的 orderIndex 作为跳转参数，同时传递风格信息
-                          const imageIndex = picture.orderIndex ?? 0
-                          
-                          return (
-                            <a
-                              key={`${picture.id}-landscape-${idx}`}
-                              href={`/work/${picture.pictureSetId}?index=${imageIndex}&style=${selectedStyleId}`}
-                              onClick={(e) => {
-                                // 移动端逻辑：第一次点击展开，第二次点击跳转
-                                if (window.innerWidth < 1024) { // lg breakpoint
-                                  if (hoveredMobileIndex !== globalIdx) {
-                                    e.preventDefault()
-                                    
-                                    // 先收起所有卡片
-                                    const items = e.currentTarget.parentElement?.querySelectorAll('a')
-                                    if (items) {
-                                      items.forEach((item, itemIdx) => {
-                                        const htmlItem = item as HTMLElement
-                                        htmlItem.style.transform = 'translateY(0) scale(1)'
-                                        htmlItem.style.zIndex = String(landscapePictures.length - itemIdx)
-                                      })
-                                    }
-                                    
-                                    // 然后展开当前卡片
-                                    setHoveredMobileIndex(globalIdx)
-                                    if (items) {
-                                      items.forEach((item, itemIdx) => {
-                                        const htmlItem = item as HTMLElement
-                                        if (itemIdx < idx) {
-                                          htmlItem.style.transform = 'translateY(-45px)'
-                                        } else if (itemIdx === idx) {
-                                          htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
-                                          htmlItem.style.zIndex = String(landscapePictures.length + 10)
-                                        } else {
-                                          htmlItem.style.transform = 'translateY(45px)'
-                                        }
-                                      })
-                                    }
-                                  }
-                                  // 如果已经展开（hoveredMobileIndex === globalIdx），则允许跳转
-                                }
-                              }}
-                              className={`group relative w-full overflow-hidden rounded-2xl border transition-all duration-500 block cursor-pointer ${
-                                active
-                                  ? 'border-white shadow-[0_25px_60px_-35px_rgba(59,130,246,0.65)]'
-                                  : 'border-white/20 hover:border-white/60'
-                              }`}
-                              style={{
-                                height: `${cardHeight}px`,
-                                marginTop: idx === 0 ? '0' : `-${overlapAmount}px`,
-                                zIndex: landscapePictures.length - idx,
-                                transform: active ? 'scale(1.02)' : 'scale(1)',
-                                transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                              }}
-                              onMouseEnter={(e) => {
-                                setHoveredMobileIndex(globalIdx)
-                                const items = e.currentTarget.parentElement?.querySelectorAll('a')
-                                if (!items) return
-                                items.forEach((item, itemIdx) => {
-                                  const htmlItem = item as HTMLElement
-                                  if (itemIdx < idx) {
-                                    htmlItem.style.transform = 'translateY(-45px)'
-                                  } else if (itemIdx === idx) {
-                                    htmlItem.style.transform = active ? 'scale(1.03)' : 'scale(1.02)'
-                                    htmlItem.style.zIndex = String(landscapePictures.length + 10)
-                                  } else {
-                                    htmlItem.style.transform = 'translateY(45px)'
-                                  }
-                                })
-                              }}
-                              onMouseLeave={(e) => {
-                                setHoveredMobileIndex(null)
-                                const items = e.currentTarget.parentElement?.querySelectorAll('a')
-                                if (!items) return
-                                items.forEach((item, itemIdx) => {
-                                  const htmlItem = item as HTMLElement
-                                  htmlItem.style.transform = 'translateY(0) scale(1)'
-                                  htmlItem.style.zIndex = String(landscapePictures.length - itemIdx)
-                                })
-                              }}
-                            >
-                              <div className="absolute inset-0 z-10">
-                                <Image
-                                  src={imageSrc || '/placeholder.svg'}
-                                  alt={picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                                  fill
-                                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                  onLoad={(e) => {
-                                    const img = e.target as HTMLImageElement
-                                    updateOrientation(selectedStyleId, picture.id, img.naturalWidth, img.naturalHeight)
-                                  }}
-                                  priority={active || isHovered}
-                                />
-                              </div>
-                              
-                              <div className={`absolute inset-0 transition-opacity duration-500 z-5 ${
-                                active ? 'bg-black/5 opacity-100' : 'bg-black/35 opacity-100 group-hover:opacity-50'
-                              }`} />
-                              
-                              <div className="absolute bottom-0 left-0 right-0 text-left text-[11px] leading-tight text-white z-20 px-2 py-2">
-                                <div className="font-medium line-clamp-1 drop-shadow-md">
-                                  {picture.translations[locale as 'zh' | 'en']?.title || picture.translations.en?.title || picture.set.title}
-                                </div>
-                                <div className="opacity-75 line-clamp-1 drop-shadow-md">
-                                  {picture.set.translations[locale as 'zh' | 'en']?.title || picture.set.title}
-                                </div>
-                              </div>
-                            </a>
-                          )
-                        })}
-                      </div>
-                    )
-                  })()}
-                </div>
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-border/40 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-                  {t("styleEmpty")}
-                </div>
-              )}
-              <div className="mt-6 flex justify-end">
-                <DialogClose asChild>
-                  <Button variant="ghost">
-                    {t("close")}
-                  </Button>
-                </DialogClose>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   )
 }
