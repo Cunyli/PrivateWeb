@@ -48,6 +48,12 @@ type StyleApiResponse = {
 const FALLBACK_DELAY_MS = 15_000
 const DELAY_VARIANCE_MS = 6_000
 const HOVER_INTENT_DELAY_MS = 90
+const PREVIEW_QUALITY = 55
+const PREVIEW_PREFETCH_WIDTH = 800
+const PREVIEW_SIZES = "(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
+
+const buildOptimizedImageUrl = (src: string, width: number, quality: number) =>
+  `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`
 
 export function PhotographyStyleShowcase() {
   const { t, locale } = useI18n()
@@ -254,10 +260,13 @@ export function PhotographyStyleShowcase() {
     const src = candidate.imageUrl?.startsWith("http")
       ? candidate.imageUrl
       : `${bucketUrl}${candidate.imageUrl}`
-    if (!src || prefetchedImagesRef.current.has(src)) return
+    if (!src) return
+    const optimizedSrc = buildOptimizedImageUrl(src, PREVIEW_PREFETCH_WIDTH, PREVIEW_QUALITY)
+    if (prefetchedImagesRef.current.has(optimizedSrc)) return
     const img = new window.Image()
-    img.src = src
-    prefetchedImagesRef.current.add(src)
+    img.decoding = "async"
+    img.src = optimizedSrc
+    prefetchedImagesRef.current.add(optimizedSrc)
   }, [bucketUrl, getEligibleIndices, stylesData])
 
   const handleHighlightChange = useCallback((next: string | null) => {
@@ -517,9 +526,11 @@ export function PhotographyStyleShowcase() {
                           src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
                           alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                           fill
+                          quality={PREVIEW_QUALITY}
+                          sizes={PREVIEW_SIZES}
                           // 图片优先级优化：第一张优先加载，第二张预加载，其余懒加载
-                          priority={cardIdx === 0}
-                          loading={cardIdx === 0 ? undefined : cardIdx === 1 ? 'eager' : 'lazy'}
+                          priority={cardIdx < 4}
+                          loading={cardIdx < 4 ? "eager" : "lazy"}
                           className={clsx(
                             "transition-all ease-out object-center",
                             shouldContain ? "object-contain" : "object-cover",
@@ -625,7 +636,7 @@ export function PhotographyStyleShowcase() {
             </div>
 
             <div className="hidden md:flex md:flex-row [clip-path:polygon(0_0,100%_0,100%_100%,0_100%)] overflow-hidden">
-              {styleCards.map(({ style, preview, hasContent, pictures, isFirst, isLast, isActive, translateY, scale, previewOrientation }) => {
+              {styleCards.map(({ style, preview, hasContent, pictures, isFirst, isLast, isActive, translateY, scale, previewOrientation }, cardIdx) => {
                 const clipPath = isFirst
                   ? "polygon(0% 0, 100% 0, 94% 100%, 0% 100%)"
                   : isLast
@@ -662,14 +673,16 @@ export function PhotographyStyleShowcase() {
                             src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
                             alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                             fill
+                            quality={PREVIEW_QUALITY}
+                            sizes={PREVIEW_SIZES}
                             className={clsx(
                               "image-fade-soft transform-gpu transition-transform ease-out object-center",
                               shouldContain ? "object-contain" : "object-cover",
                               shouldContain ? "scale-100 group-hover:scale-100" : "scale-[1.02] group-hover:scale-[1.08]"
                             )}
                             style={{ willChange: "transform, opacity", transitionDuration: '1200ms' }}
-                            priority={isActive}
-                            loading={isActive ? "eager" : "lazy"}
+                            priority={cardIdx < 4}
+                            loading={cardIdx < 4 ? "eager" : "lazy"}
                             onLoad={(e) => {
                               const img = e.target as HTMLImageElement
                               updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)
