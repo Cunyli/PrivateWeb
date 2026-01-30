@@ -26,6 +26,80 @@ async function translateText(text: string, target: 'en' | 'zh'): Promise<string>
 
 const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
 
+async function asyncPool<T, R>(
+  limit: number,
+  items: T[],
+  worker: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let nextIndex = 0
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const idx = nextIndex++
+      if (idx >= items.length) break
+      results[idx] = await worker(items[idx], idx)
+    }
+  })
+  await Promise.all(runners)
+  return results
+}
+
+async function upsertSetTranslationsRaw(picture_set_id: number, payload: any) {
+  const en = payload?.en
+  const zh = payload?.zh
+  const ops: Promise<any>[] = []
+  if (en) {
+    ops.push(
+      supabaseAdmin.from('picture_set_translations').upsert(
+        { picture_set_id, locale: 'en', title: en.title || '', subtitle: en.subtitle || null, description: en.description || null },
+        { onConflict: 'picture_set_id,locale' },
+      )
+    )
+  }
+  if (zh) {
+    ops.push(
+      supabaseAdmin.from('picture_set_translations').upsert(
+        { picture_set_id, locale: 'zh', title: zh.title || '', subtitle: zh.subtitle || null, description: zh.description || null },
+        { onConflict: 'picture_set_id,locale' },
+      )
+    )
+  }
+  if (ops.length) await Promise.all(ops)
+}
+
+async function upsertPictureTranslationsRaw(picture_id: number, p: any) {
+  const en = p?.en
+  const zh = p?.zh
+  const ops: Promise<any>[] = []
+  if (en) {
+    ops.push(
+      supabaseAdmin.from('picture_translations').upsert(
+        { picture_id, locale: 'en', title: en.title || '', subtitle: en.subtitle || null, description: en.description || null },
+        { onConflict: 'picture_id,locale' },
+      )
+    )
+  }
+  if (zh) {
+    ops.push(
+      supabaseAdmin.from('picture_translations').upsert(
+        { picture_id, locale: 'zh', title: zh.title || '', subtitle: zh.subtitle || null, description: zh.description || null },
+        { onConflict: 'picture_id,locale' },
+      )
+    )
+  }
+  if (ops.length) await Promise.all(ops)
+}
+
+function triggerAsyncEnrich(picture_set_id: number, payload: any) {
+  const url = `${getBaseUrl()}/api/admin/picture-sets/${picture_set_id}/enrich`
+  const body = JSON.stringify({ ...payload, async_enrich: false })
+  queueMicrotask(() => {
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch((err) => {
+      console.error('Async enrich trigger failed:', err)
+    })
+  })
+}
+
 async function fillSetTranslationsBi(payload: any): Promise<{ en: any; zh: any }> {
   console.log('🔧 [PUT] fillSetTranslationsBi received payload.en:', payload.en)
   console.log('🔧 [PUT] fillSetTranslationsBi received payload.zh:', payload.zh)
@@ -208,6 +282,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const idNum = Number(ctx.params.id)
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
     const payload = await request.json()
+    const asyncEnrich = !!payload.async_enrich
     const pictures: any[] = Array.isArray(payload.pictures) ? payload.pictures : []
 
     const autoGen = !!payload.autogen_titles_subtitles
@@ -232,7 +307,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
       return ''
     }
 
-    if (autoGen) {
+    if (autoGen && !asyncEnrich) {
       const candidateSources = [
         makePublicUrl(payload.cover_image_url),
         makePublicUrl(pictures.find((p: any) => p?.image_url)?.image_url),
@@ -257,10 +332,12 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 400 })
 
     // reset relations
-    await supabaseAdmin.from('picture_set_categories').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_taggings').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_locations').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_section_assignments').delete().eq('picture_set_id', idNum)
+    await Promise.all([
+      supabaseAdmin.from('picture_set_categories').delete().eq('picture_set_id', idNum),
+      supabaseAdmin.from('picture_set_taggings').delete().eq('picture_set_id', idNum),
+      supabaseAdmin.from('picture_set_locations').delete().eq('picture_set_id', idNum),
+      supabaseAdmin.from('picture_set_section_assignments').delete().eq('picture_set_id', idNum),
+    ])
 
     // categories
     const selectedCategoryIds: number[] = Array.isArray(payload.category_ids) ? Array.from(new Set(payload.category_ids as number[])) : []
@@ -271,9 +348,21 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
 
     // translations
     try {
-      const filled = await fillSetTranslationsBi(payload)
-      await supabaseAdmin.from('picture_set_translations').upsert({ picture_set_id: idNum, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null }, { onConflict: 'picture_set_id,locale' })
-      await supabaseAdmin.from('picture_set_translations').upsert({ picture_set_id: idNum, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null }, { onConflict: 'picture_set_id,locale' })
+      if (asyncEnrich) {
+        await upsertSetTranslationsRaw(idNum, payload)
+      } else {
+        const filled = await fillSetTranslationsBi(payload)
+        await Promise.all([
+          supabaseAdmin.from('picture_set_translations').upsert(
+            { picture_set_id: idNum, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
+            { onConflict: 'picture_set_id,locale' },
+          ),
+          supabaseAdmin.from('picture_set_translations').upsert(
+            { picture_set_id: idNum, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
+            { onConflict: 'picture_set_id,locale' },
+          ),
+        ])
+      }
     } catch {}
 
     // primary location
@@ -304,34 +393,17 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const desiredSectionIds: number[] = Array.isArray(payload.section_ids) ? Array.from(new Set(payload.section_ids)) : []
     if (desiredSectionIds.length) await supabaseAdmin.from('picture_set_section_assignments').insert(desiredSectionIds.map((sid: number) => ({ picture_set_id: idNum, section_id: sid, page_context: 'default', display_order: 0 })))
 
-    // ✅ 保存 SET 级别的翻译
-    try {
-      const filled = await fillSetTranslationsBi(payload)
-      await supabaseAdmin
-        .from('picture_set_translations')
-        .upsert(
-          { picture_set_id: idNum, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
-          { onConflict: 'picture_set_id,locale' }
-        )
-      await supabaseAdmin
-        .from('picture_set_translations')
-        .upsert(
-          { picture_set_id: idNum, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
-          { onConflict: 'picture_set_id,locale' }
-        )
-    } catch (e) {
-      console.error('Error saving set translations:', e)
-    }
-
     // pictures: delete and recreate
     const { data: existingPics } = await supabaseAdmin.from('pictures').select('id').eq('picture_set_id', idNum)
     const existingIds = (existingPics || []).map((p: any) => p.id)
     if (existingIds.length) {
-      await supabaseAdmin.from('picture_taggings').delete().in('picture_id', existingIds)
-      await supabaseAdmin.from('picture_categories').delete().in('picture_id', existingIds)
-      await supabaseAdmin.from('picture_locations').delete().in('picture_id', existingIds)
-      await supabaseAdmin.from('picture_translations').delete().in('picture_id', existingIds)
-      await supabaseAdmin.from('pictures').delete().in('id', existingIds)
+      await Promise.all([
+        supabaseAdmin.from('picture_taggings').delete().in('picture_id', existingIds),
+        supabaseAdmin.from('picture_categories').delete().in('picture_id', existingIds),
+        supabaseAdmin.from('picture_locations').delete().in('picture_id', existingIds),
+        supabaseAdmin.from('picture_translations').delete().in('picture_id', existingIds),
+        supabaseAdmin.from('pictures').delete().in('id', existingIds),
+      ])
     }
 
     // Apply set props flags similar to POST
@@ -365,13 +437,14 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
         const { data: insertedPics, error: insErr } = await supabaseAdmin.from('pictures').insert(rows).select('id,order_index')
         if (insErr) return NextResponse.json({ error: insErr.message }, { status: 400 })
         const byIndex: Record<number, number> = {}; for (const r of insertedPics || []) byIndex[(r as any).order_index] = (r as any).id
+        const concurrency = Math.max(1, Math.min(6, Number(process.env.PICTURE_JOB_CONCURRENCY || 4)))
+        const locCache = new Map<string, number>()
 
-        for (let i = 0; i < toInsert.length; i++) {
-          const p = toInsert[i]
-          const picture_id = byIndex[i]; if (!picture_id) continue
+        await asyncPool(concurrency, toInsert, async (p, i) => {
+          const picture_id = byIndex[i]; if (!picture_id) return
           // Auto-generate title/subtitle if requested and missing
           try {
-            if (payload?.autogen_titles_subtitles) {
+            if (payload?.autogen_titles_subtitles && !asyncEnrich) {
               const imgUrl = makePublicUrl(p.image_url || p.raw_image_url)
               if (imgUrl) {
                 if (!String(p.title || '').trim()) {
@@ -385,62 +458,99 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
               }
             }
           } catch {}
-          try {
-            const filled = await fillPictureTranslationsBi(p)
-            await supabaseAdmin.from('picture_translations').upsert({ picture_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null }, { onConflict: 'picture_id,locale' })
-            await supabaseAdmin.from('picture_translations').upsert({ picture_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null }, { onConflict: 'picture_id,locale' })
-          } catch {}
-          const pTopicIds = await ensureTagIds((Array.isArray(p.tags) ? p.tags : []), 'topic')
-          let pCatTagIds: number[] = []
-          const picCatIds: number[] = Array.isArray(p.picture_category_ids) ? p.picture_category_ids : []
-          if (picCatIds.length) {
-            const { data: catRows } = await supabaseAdmin.from('categories').select('id,name').in('id', picCatIds)
-            pCatTagIds = await ensureTagIds((catRows || []).map((r: any) => r.name), 'category')
-          }
-          if (propagateCategories) {
-            pCatTagIds = Array.from(new Set([...(pCatTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
-          }
-          let styleTagIds: number[] = []
-          const styleKey = typeof p.style === 'string' ? p.style : ''
-          if (styleKey && PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]) {
-            const tagName = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID].tagName
-            const cached = styleTagIdCache[styleKey]
-            if (typeof cached === 'number') {
-              styleTagIds = [cached]
-            } else {
-              const ensured = await ensureTagIds([tagName], 'style')
-              const firstId = ensured[0] ?? null
-              styleTagIdCache[styleKey] = firstId
-              if (typeof firstId === 'number') styleTagIds = [firstId]
-            }
-          }
 
-          const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || []), ...(styleTagIds || [])]))
-          if (combined.length) await supabaseAdmin.from('picture_taggings').insert(combined.map((tid: number) => ({ picture_id, tag_id: tid })))
-          const selectedCatIds: number[] = Array.isArray(payload.category_ids)
-            ? (Array.from(new Set(payload.category_ids as number[])) as number[])
-            : []
-          let unionCats = Array.from(new Set([...(picCatIds || []), ...(propagateCategories ? selectedCatIds : [])]))
-          if (unionCats.length) {
-            await supabaseAdmin.from('picture_categories').insert(unionCats.map((cid: number) => ({ picture_id, category_id: cid, is_primary: false })))
-          }
-          let lnm = (p.location_name || '').trim(); let llat = typeof p.location_latitude === 'number' ? p.location_latitude : null; let llng = typeof p.location_longitude === 'number' ? p.location_longitude : null
-          const hasPicLoc = !!lnm || (typeof llat === 'number' && typeof llng === 'number')
-          if (allowApplySetProps && hasSetLoc && (allowOverride || !hasPicLoc)) {
-            lnm = setLocName || lnm
-            llat = (typeof setLocLat === 'number' ? setLocLat : llat)
-            llng = (typeof setLocLng === 'number' ? setLocLng : llng)
-          }
-          if (lnm && typeof llat === 'number' && typeof llng === 'number') {
-            let locId: number | undefined
-            const { data: found } = await supabaseAdmin.from('locations').select('id').eq('name', lnm).eq('latitude', llat).eq('longitude', llng).maybeSingle()
-            if (found?.id) locId = found.id; else { const { data: created } = await supabaseAdmin.from('locations').insert({ name: lnm, latitude: llat, longitude: llng }).select('id').single(); locId = created?.id }
-            if (locId) await supabaseAdmin.from('picture_locations').insert({ picture_id, location_id: locId, is_primary: true })
-          }
-        }
+          const tasks: Promise<any>[] = []
+
+          tasks.push((async () => {
+            try {
+              if (asyncEnrich) {
+                await upsertPictureTranslationsRaw(picture_id, p)
+              } else {
+                const filled = await fillPictureTranslationsBi(p)
+                await Promise.all([
+                  supabaseAdmin.from('picture_translations').upsert(
+                    { picture_id, locale: 'en', title: filled.en.title || '', subtitle: filled.en.subtitle || null, description: filled.en.description || null },
+                    { onConflict: 'picture_id,locale' },
+                  ),
+                  supabaseAdmin.from('picture_translations').upsert(
+                    { picture_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
+                    { onConflict: 'picture_id,locale' },
+                  ),
+                ])
+              }
+            } catch {}
+          })())
+
+          tasks.push((async () => {
+            const pTopicIds = await ensureTagIds((Array.isArray(p.tags) ? p.tags : []), 'topic')
+            let pCatTagIds: number[] = []
+            const picCatIds: number[] = Array.isArray(p.picture_category_ids) ? p.picture_category_ids : []
+            if (picCatIds.length) {
+              const { data: catRows } = await supabaseAdmin.from('categories').select('id,name').in('id', picCatIds)
+              pCatTagIds = await ensureTagIds((catRows || []).map((r: any) => r.name), 'category')
+            }
+            if (propagateCategories) {
+              pCatTagIds = Array.from(new Set([...(pCatTagIds || []), ...(categoryTagIds || []), ...(seasonTagIds || [])]))
+            }
+            let styleTagIds: number[] = []
+            const styleKey = typeof p.style === 'string' ? p.style : ''
+            if (styleKey && PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]) {
+              const tagName = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID].tagName
+              const cached = styleTagIdCache[styleKey]
+              if (typeof cached === 'number') {
+                styleTagIds = [cached]
+              } else {
+                const ensured = await ensureTagIds([tagName], 'style')
+                const firstId = ensured[0] ?? null
+                styleTagIdCache[styleKey] = firstId
+                if (typeof firstId === 'number') styleTagIds = [firstId]
+              }
+            }
+            const combined = Array.from(new Set([...(pTopicIds || []), ...(pCatTagIds || []), ...(styleTagIds || [])]))
+            if (combined.length) await supabaseAdmin.from('picture_taggings').insert(combined.map((tid: number) => ({ picture_id, tag_id: tid })))
+            const selectedCatIds: number[] = Array.isArray(payload.category_ids)
+              ? (Array.from(new Set(payload.category_ids as number[])) as number[])
+              : []
+            let unionCats = Array.from(new Set([...(picCatIds || []), ...(propagateCategories ? selectedCatIds : [])]))
+            if (unionCats.length) {
+              await supabaseAdmin.from('picture_categories').insert(unionCats.map((cid: number) => ({ picture_id, category_id: cid, is_primary: false })))
+            }
+          })())
+
+          tasks.push((async () => {
+            let lnm = (p.location_name || '').trim()
+            let llat = typeof p.location_latitude === 'number' ? p.location_latitude : null
+            let llng = typeof p.location_longitude === 'number' ? p.location_longitude : null
+            const hasPicLoc = !!lnm || (typeof llat === 'number' && typeof llng === 'number')
+            if (allowApplySetProps && hasSetLoc && (allowOverride || !hasPicLoc)) {
+              lnm = setLocName || lnm
+              llat = (typeof setLocLat === 'number' ? setLocLat : llat)
+              llng = (typeof setLocLng === 'number' ? setLocLng : llng)
+            }
+            if (lnm && typeof llat === 'number' && typeof llng === 'number') {
+              const cacheKey = `${lnm}|${llat}|${llng}`
+              let locId = locCache.get(cacheKey)
+              if (!locId) {
+                const { data: found } = await supabaseAdmin.from('locations').select('id').eq('name', lnm).eq('latitude', llat).eq('longitude', llng).maybeSingle()
+                if (found?.id) locId = found.id
+                else {
+                  const { data: created } = await supabaseAdmin.from('locations').insert({ name: lnm, latitude: llat, longitude: llng }).select('id').single()
+                  locId = created?.id
+                }
+                if (locId) locCache.set(cacheKey, locId)
+              }
+              if (locId) await supabaseAdmin.from('picture_locations').insert({ picture_id, location_id: locId, is_primary: true })
+            }
+          })())
+
+          await Promise.all(tasks)
+        })
       }
     }
 
+    if (asyncEnrich) {
+      triggerAsyncEnrich(idNum, payload)
+    }
     return NextResponse.json({ id: idNum })
   } catch (e: any) { return NextResponse.json({ error: String(e?.message || e) }, { status: 500 }) }
 }

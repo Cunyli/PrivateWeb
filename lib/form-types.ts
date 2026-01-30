@@ -59,6 +59,9 @@ export interface PictureSetFormData {
   // simplified flags
   fill_missing_from_set?: boolean
   autogen_titles_subtitles?: boolean
+  async_enrich?: boolean
+  auto_generate_tags_untagged?: boolean
+  auto_fill_locales_all?: boolean
 }
 
 export interface PictureSetSubmitData extends Omit<PictureSet, "id" | "created_at" | "updated_at" | "pictures"> {
@@ -75,6 +78,9 @@ export interface PictureSetSubmitData extends Omit<PictureSet, "id" | "created_a
   propagate_categories_to_pictures?: boolean
   fill_missing_from_set?: boolean
   autogen_titles_subtitles?: boolean
+  async_enrich?: boolean
+  auto_generate_tags_untagged?: boolean
+  auto_fill_locales_all?: boolean
 }
 
 export interface LocaleTexts {
