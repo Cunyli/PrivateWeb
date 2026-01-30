@@ -80,12 +80,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const bottomRowMaxScrollRef = useRef(0)
   const topRowScrollRef = useRef(0)
   const bottomRowScrollRef = useRef(0)
+  const pageScrollRef = useRef<HTMLDivElement>(null)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())
   const downPrefetchQueueRef = useRef<string[]>([])
   const downPrefetchingRef = useRef(false)
+  const [activeVideoIndex, setActiveVideoIndex] = useState(0)
   const pauseTopRow = useCallback(() => {
     if (!pointerInteractedRef.current) return
     setTopRowPaused(true)
@@ -349,12 +351,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
   // Monitor scroll position to show/hide scroll to top button
   useEffect(() => {
+    const node = pageScrollRef.current
+    if (!node) return
     const handleScroll = () => {
-      setShowScrollToTop(window.scrollY > 300)
+      setShowScrollToTop(node.scrollTop > 300)
     }
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
+    node.addEventListener("scroll", handleScroll)
+    return () => node.removeEventListener("scroll", handleScroll)
   }, [])
 
   const upPictureSets = derivedUpSets
@@ -531,7 +535,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [loopedSecondRow.length, measureRowOverflow])
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    pageScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const getText = useCallback((s: PictureSet, key: 'title' | 'subtitle' | 'description') => {
@@ -679,30 +683,103 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   )
 
   return (
-    <div className="w-full mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col min-h-screen">
-      <div className="relative mb-4 sm:mb-8">
-        <h1 className="text-2xl sm:text-4xl font-light tracking-wide text-center text-slate-900/90">
-          {t('galleriesTitle')}
-        </h1>
-        {/* Header controls (search) */}
-        <div className="absolute right-0 top-0 flex items-center gap-2">
-          <LangSwitcher className="bg-white text-gray-700" />
-          {/* Search panel trigger */}
-          <button
-            onClick={() => {
-              setSearchOpen(true)
-              setTimeout(() => searchInputRef.current?.focus(), 0)
-            }}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm bg-white text-gray-700 hover:shadow"
-            title={t('search')}
-            aria-label={t('openSearch')}
-          >
-            🔍
-          </button>
+    <div ref={pageScrollRef} className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
+      <section className="snap-start min-h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">
+        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[90rem] flex flex-col gap-4 sm:gap-6">
+          <div className="flex flex-col gap-4 md:grid md:grid-cols-[auto,minmax(0,1fr),auto] md:items-center md:gap-3">
+            <button
+              type="button"
+              aria-label="Previous video"
+              className="hidden md:inline-flex h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md items-center justify-center"
+              onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
+            >
+              ‹
+            </button>
+            <div className="relative mx-auto w-full max-w-[900px] overflow-hidden bg-transparent aspect-[3/2]">
+              {activeVideoIndex === 0 ? (
+                <iframe
+                  key="yt-0"
+                  src="https://www.youtube.com/embed/LLVJtDjDHrA?si=BdXz0Kl75BTRMoGm&rel=0&modestbranding=1&iv_load_policy=3"
+                  title="YouTube video player"
+                  className="absolute inset-0 h-full w-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              ) : (
+                <iframe
+                  key="yt-1"
+                  src="https://www.youtube.com/embed/GFKieTQabW4?si=OcQbh_KPwkcE1trL&rel=0&modestbranding=1&iv_load_policy=3"
+                  title="YouTube video player"
+                  className="absolute inset-0 h-full w-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              )}
+            </div>
+            <button
+              type="button"
+              aria-label="Next video"
+              className="hidden md:inline-flex h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md items-center justify-center"
+              onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
+            >
+              ›
+            </button>
+            <div className="flex items-center justify-center gap-3 md:hidden">
+              <button
+                type="button"
+                aria-label="Previous video"
+                className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                aria-label="Next video"
+                className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
+              >
+                ›
+              </button>
+            </div>
+          </div>
+          <div className="scroll-hint">
+            <span className="scroll-glow" />
+            <span className="scroll-chevron" />
+            <span className="scroll-chevron" />
+            <span className="scroll-chevron" />
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Lightweight search panel (overlay) */}
+      <section className="snap-start min-h-[100svh] px-2 sm:px-4 py-8 sm:py-16 flex flex-col">
+        <div className="relative mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-light tracking-wide text-center text-slate-900/90">
+            {t('galleriesTitle')}
+          </h1>
+          {/* Header controls (search) */}
+          <div className="absolute right-0 top-0 flex items-center gap-2">
+            <LangSwitcher className="bg-white text-gray-700" />
+            {/* Search panel trigger */}
+            <button
+              onClick={() => {
+                setSearchOpen(true)
+                setTimeout(() => searchInputRef.current?.focus(), 0)
+              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm bg-white text-gray-700 hover:shadow"
+              title={t('search')}
+              aria-label={t('openSearch')}
+            >
+              🔍
+            </button>
+          </div>
+        </div>
+
+        {/* Lightweight search panel (overlay) */}
       {searchOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setSearchOpen(false)}>
           <div className="absolute inset-x-0 top-16 mx-auto max-w-3xl" onClick={(e) => e.stopPropagation()}>
@@ -964,6 +1041,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           </span>
         </div>
       </footer>
+      </section>
 
       {/* Scroll to top button */}
       {showScrollToTop && (
@@ -974,6 +1052,74 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           <ArrowUp className="w-5 h-5" />
         </button>
       )}
+      <style jsx>{`
+        .scroll-hint {
+          position: relative;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          color: rgba(100, 116, 139, 0.9);
+        }
+
+        .scroll-chevron {
+          width: 14px;
+          height: 14px;
+          border-right: 2px solid currentColor;
+          border-bottom: 2px solid currentColor;
+          transform: rotate(45deg);
+          opacity: 0.65;
+          animation: chevronPulse 1.6s ease-in-out infinite;
+        }
+
+        .scroll-chevron:nth-of-type(2) {
+          animation-delay: 0.2s;
+        }
+
+        .scroll-chevron:nth-of-type(3) {
+          animation-delay: 0.4s;
+        }
+
+        .scroll-glow {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          width: 26px;
+          height: 40px;
+          transform: translateX(-50%);
+          background: linear-gradient(180deg, rgba(148, 163, 184, 0), rgba(148, 163, 184, 0.6), rgba(148, 163, 184, 0));
+          filter: blur(6px);
+          opacity: 0.6;
+          animation: glowSlide 1.6s ease-in-out infinite;
+        }
+
+        @keyframes chevronPulse {
+          0%,
+          100% {
+            opacity: 0.3;
+            transform: rotate(45deg) translateY(-2px);
+          }
+          50% {
+            opacity: 0.9;
+            transform: rotate(45deg) translateY(2px);
+          }
+        }
+
+        @keyframes glowSlide {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -6px);
+          }
+          40% {
+            opacity: 0.8;
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, 24px);
+          }
+        }
+      `}</style>
     </div>
   )
 }
