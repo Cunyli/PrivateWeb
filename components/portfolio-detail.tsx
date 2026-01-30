@@ -133,7 +133,7 @@ export default function PortfolioDetail({ images, translations, locations = [] }
             {/* Main image and overlay */}
             <div className="flex flex-col w-full">
               <div className="relative">
-                <div className="relative w-full min-h-[520px] h-screen flex items-center justify-center rounded-none overflow-hidden border border-white/30 bg-white/10 shadow-2xl backdrop-blur">
+                <div className="relative w-full min-h-[100svh] h-[100svh] max-h-[100svh] supports-[height:100dvh]:min-h-[100dvh] supports-[height:100dvh]:h-[100dvh] supports-[height:100dvh]:max-h-[100dvh] sm:min-h-[520px] flex items-center justify-center rounded-none overflow-hidden border border-white/30 bg-white/10 shadow-2xl backdrop-blur">
                   <Carousel
                     images={images}
                     currentIndex={currentIndex}

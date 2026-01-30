@@ -180,7 +180,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
     <div className="flex flex-col w-full h-full">
       {/* Main image container */}
       <div
-        className="flex-1 flex items-center justify-center w-full relative group touch-none select-none"
+        className="flex-1 flex items-center justify-center w-full relative group touch-pan-y select-none"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
