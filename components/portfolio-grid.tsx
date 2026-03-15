@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
 import clsx from "clsx"
+import { useSearchParams } from "next/navigation"
 import { supabase } from "@/utils/supabase"
 import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
@@ -21,6 +22,8 @@ const INITIAL_DOWN_LIMIT = 8
 const DOWN_PREFETCH_LIMIT = 16
 const DOWN_THUMB_QUALITY = 45
 const DOWN_THUMB_PREFETCH_WIDTH = 640
+const DOWN_DIMENSION_PREFETCH_WIDTH = 64
+const DOWN_DIMENSION_PREFETCH_QUALITY = 30
 const DOWN_IMAGE_SIZES =
   "(min-width: 2200px) 14rem, (min-width: 1800px) 16rem, (min-width: 1536px) 18rem, (min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw"
 const SCROLL_SPEED = 0.85
@@ -40,6 +43,35 @@ const createLoopedRow = (row: PictureSet[]): PictureSet[] => {
 const buildOptimizedImageUrl = (src: string, width: number, quality: number) =>
   `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`
 
+const normalizeSearchInput = (value: string) =>
+  value
+    .normalize("NFKC")
+    .replace(/[’‘`]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim()
+
+const buildSearchTerms = (value: string) => {
+  const normalized = normalizeSearchInput(value).toLowerCase()
+  if (!normalized) return []
+  const parts = normalized.split(" ").filter(Boolean)
+  return Array.from(new Set([normalized, ...parts.filter((part) => part.length >= 2)]))
+}
+
+const escapeIlike = (value: string) =>
+  value.replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim()
+
+const buildSearchOrClause = (fields: string[], terms: string[]) =>
+  fields.flatMap((field) => terms.map((term) => `${field}.ilike.%${escapeIlike(term)}%`)).join(",")
+
+const dedupeById = <T extends { id: number }>(rows: T[]) => {
+  const seen = new Set<number>()
+  return rows.filter((row) => {
+    if (seen.has(row.id)) return false
+    seen.add(row.id)
+    return true
+  })
+}
+
 const normalizePictureSets = (
   rows: Array<Partial<PictureSet> | null | undefined>,
 ): PictureSet[] =>
@@ -56,6 +88,7 @@ interface PortfolioGridProps {
 
 export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const { locale, t } = useI18n()
+  const searchParams = useSearchParams()
   const [pictureSets, setPictureSets] = useState<PictureSet[]>(initialData?.pictureSets || [])
   const [loading, setLoading] = useState(!initialData)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -81,12 +114,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const topRowScrollRef = useRef(0)
   const bottomRowScrollRef = useRef(0)
   const pageScrollRef = useRef<HTMLDivElement>(null)
+  const restoreAppliedRef = useRef(false)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
-  const [downLoadedMap, setDownLoadedMap] = useState<Record<number, boolean>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())
   const downPrefetchQueueRef = useRef<string[]>([])
   const downPrefetchingRef = useRef(false)
+  const downDimensionQueuedRef = useRef<Set<number>>(new Set())
+  const downDimensionQueueRef = useRef<Array<{ id: number; url: string }>>([])
+  const downDimensionPrefetchingRef = useRef(false)
   const [activeVideoIndex, setActiveVideoIndex] = useState(0)
   const pauseTopRow = useCallback(() => {
     if (!pointerInteractedRef.current) return
@@ -244,8 +280,9 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
   // Debounced search over sets and pictures
   useEffect(() => {
-    const q = searchQuery.trim()
-    if (!q) {
+    const normalizedQuery = normalizeSearchInput(searchQuery)
+    const searchTerms = buildSearchTerms(normalizedQuery)
+    if (!normalizedQuery) {
       setSetResults(null)
       setPictureResults(null)
       return
@@ -254,74 +291,154 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     const t = setTimeout(async () => {
       setSearchLoading(true)
       try {
-        // Search sets
-        let sets: any[] = []
-        {
-          const fts = await supabase
-            .from('picture_sets')
-            .select('*')
-            .textSearch('search_vector', q, { type: 'websearch', config: 'english' })
-            .order('updated_at', { ascending: false })
-            .limit(80)
-          if (fts.error) console.warn('Set FTS error:', fts.error)
-          if (fts.data && fts.data.length > 0) {
-            sets = fts.data
-          } else {
-            const terms = q.split(/\s+/).filter(Boolean)
-            let builder: any = supabase.from('picture_sets').select('*')
-            for (const t of terms) builder = builder.ilike('search_text', `%${t}%`)
-            const andRes = await builder.order('updated_at', { ascending: false }).limit(80)
-            if (andRes.error) console.warn('Set ILIKE error:', andRes.error)
-            sets = andRes.data || []
-          }
-        }
+        const setOrClause = buildSearchOrClause(["search_text"], searchTerms)
+        const pictureOrClause = buildSearchOrClause(["search_text"], searchTerms)
+        const translationOrClause = buildSearchOrClause(["title", "subtitle", "description"], searchTerms)
 
-        // Search pictures
-        let pics: any[] = []
-        {
-          const fts = await supabase
-            .from('pictures')
-            .select('*')
-            .textSearch('search_vector', q, { type: 'websearch', config: 'english' })
-            .order('updated_at', { ascending: false })
-            .limit(100)
-          if (fts.error) console.warn('Pic FTS error:', fts.error)
-          if (fts.data && fts.data.length > 0) {
-            pics = fts.data
-          } else {
-            const terms = q.split(/\s+/).filter(Boolean)
-            let builder: any = supabase.from('pictures').select('*')
-            for (const t of terms) builder = builder.ilike('search_text', `%${t}%`)
-            const andRes = await builder.order('updated_at', { ascending: false }).limit(100)
-            if (andRes.error) console.warn('Pic ILIKE error:', andRes.error)
-            pics = andRes.data || []
-          }
-        }
+        const [
+          setFts,
+          setText,
+          pictureFts,
+          pictureText,
+          setTransEn,
+          setTransZh,
+          pictureTransEn,
+          pictureTransZh,
+        ] = await Promise.all([
+          supabase
+            .from("picture_sets")
+            .select("*")
+            .textSearch("search_vector", normalizedQuery, { type: "websearch", config: "english" })
+            .order("updated_at", { ascending: false })
+            .limit(80),
+          supabase
+            .from("picture_sets")
+            .select("*")
+            .or(setOrClause)
+            .order("updated_at", { ascending: false })
+            .limit(80),
+          supabase
+            .from("pictures")
+            .select("*")
+            .textSearch("search_vector", normalizedQuery, { type: "websearch", config: "english" })
+            .order("updated_at", { ascending: false })
+            .limit(100),
+          supabase
+            .from("pictures")
+            .select("*")
+            .or(pictureOrClause)
+            .order("updated_at", { ascending: false })
+            .limit(100),
+          supabase
+            .from("picture_set_translations")
+            .select("picture_set_id")
+            .eq("locale", "en")
+            .or(translationOrClause)
+            .limit(80),
+          supabase
+            .from("picture_set_translations")
+            .select("picture_set_id")
+            .eq("locale", "zh")
+            .or(translationOrClause)
+            .limit(80),
+          supabase
+            .from("picture_translations")
+            .select("picture_id")
+            .eq("locale", "en")
+            .or(translationOrClause)
+            .limit(100),
+          supabase
+            .from("picture_translations")
+            .select("picture_id")
+            .eq("locale", "zh")
+            .or(translationOrClause)
+            .limit(100),
+        ])
+
+        if (setFts.error) console.warn("Set FTS error:", setFts.error)
+        if (setText.error) console.warn("Set text search error:", setText.error)
+        if (pictureFts.error) console.warn("Pic FTS error:", pictureFts.error)
+        if (pictureText.error) console.warn("Pic text search error:", pictureText.error)
+        if (setTransEn.error) console.warn("Set EN translation search error:", setTransEn.error)
+        if (setTransZh.error) console.warn("Set ZH translation search error:", setTransZh.error)
+        if (pictureTransEn.error) console.warn("Pic EN translation search error:", pictureTransEn.error)
+        if (pictureTransZh.error) console.warn("Pic ZH translation search error:", pictureTransZh.error)
+
+        const baseSets = dedupeById(
+          normalizePictureSets([
+            ...((setFts.data || []) as Partial<PictureSet>[]),
+            ...((setText.data || []) as Partial<PictureSet>[]),
+          ]),
+        )
+        const basePictures = dedupeById([
+          ...((pictureFts.data || []) as Picture[]),
+          ...((pictureText.data || []) as Picture[]),
+        ])
+
+        const setIdsFromTranslations = Array.from(
+          new Set([
+            ...((setTransEn.data || []).map((row: any) => row.picture_set_id)),
+            ...((setTransZh.data || []).map((row: any) => row.picture_set_id)),
+          ].filter((id): id is number => Number.isFinite(id))),
+        )
+        const pictureIdsFromTranslations = Array.from(
+          new Set([
+            ...((pictureTransEn.data || []).map((row: any) => row.picture_id)),
+            ...((pictureTransZh.data || []).map((row: any) => row.picture_id)),
+          ].filter((id): id is number => Number.isFinite(id))),
+        )
+
+        const missingSetIds = setIdsFromTranslations.filter((id) => !baseSets.some((item) => item.id === id))
+        const missingPictureIds = pictureIdsFromTranslations.filter((id) => !basePictures.some((item) => item.id === id))
+
+        const [extraSetsRes, extraPicturesRes] = await Promise.all([
+          missingSetIds.length
+            ? supabase.from("picture_sets").select("*").in("id", missingSetIds).order("updated_at", { ascending: false }).limit(80)
+            : Promise.resolve({ data: [] as any[], error: null }),
+          missingPictureIds.length
+            ? supabase.from("pictures").select("*").in("id", missingPictureIds).order("updated_at", { ascending: false }).limit(100)
+            : Promise.resolve({ data: [] as any[], error: null }),
+        ])
+
+        if ("error" in extraSetsRes && extraSetsRes.error) console.warn("Extra set fetch error:", extraSetsRes.error)
+        if ("error" in extraPicturesRes && extraPicturesRes.error) console.warn("Extra picture fetch error:", extraPicturesRes.error)
+
+        const sets = dedupeById([
+          ...baseSets,
+          ...normalizePictureSets((extraSetsRes.data || []) as Partial<PictureSet>[]),
+        ])
+        const pics = dedupeById([
+          ...basePictures,
+          ...((extraPicturesRes.data || []) as Picture[]),
+        ])
 
         if (!alive) return
-        const normalizedSearchSets = normalizePictureSets(sets as Partial<PictureSet>[])
-        setSetResults(normalizedSearchSets)
-        setPictureResults(pics as Picture[])
+        setSetResults(sets)
+        setPictureResults(pics)
 
         // Fetch translations for sets in results
-        const setIds = (sets || []).map((s: any) => s.id)
+        const setIds = sets.map((s) => s.id)
         if (setIds.length > 0) {
           const [{ data: enTrans }, { data: zhTrans }] = await Promise.all([
             supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale', 'en').in('picture_set_id', setIds),
             supabase.from('picture_set_translations').select('picture_set_id, title, subtitle, description').eq('locale', 'zh').in('picture_set_id', setIds),
           ])
-          const map: Record<number, any> = { ...transMap }
-          for (const t of enTrans || []) {
-            map[(t as any).picture_set_id] = { ...(map[(t as any).picture_set_id] || {}), en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+          if (alive) {
+            setTransMap((prev) => {
+              const map: Record<number, any> = { ...prev }
+              for (const t of enTrans || []) {
+                map[(t as any).picture_set_id] = { ...(map[(t as any).picture_set_id] || {}), en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+              }
+              for (const t of zhTrans || []) {
+                map[(t as any).picture_set_id] = { ...(map[(t as any).picture_set_id] || {}), zh: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+              }
+              return map
+            })
           }
-          for (const t of zhTrans || []) {
-            map[(t as any).picture_set_id] = { ...(map[(t as any).picture_set_id] || {}), zh: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
-          }
-          if (alive) setTransMap(map)
         }
 
         // Fetch translations for pictures in results
-        const picIds = (pics || []).map((p: any) => p.id)
+        const picIds = pics.map((p) => p.id)
         if (picIds.length > 0) {
           const [{ data: pen }, { data: pzh }] = await Promise.all([
             supabase.from('picture_translations').select('picture_id, title, subtitle, description').eq('locale', 'en').in('picture_id', picIds),
@@ -409,6 +526,49 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     }
   }, [processDownPrefetch])
 
+  const processDownDimensionPrefetch = useCallback(() => {
+    if (typeof window === "undefined") return
+    if (downDimensionPrefetchingRef.current) return
+    const next = downDimensionQueueRef.current.shift()
+    if (!next) return
+
+    downDimensionPrefetchingRef.current = true
+    const img = new window.Image()
+    img.decoding = "async"
+    img.onload = img.onerror = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        setCoverDimensions((prev) => {
+          if (prev[next.id]) return prev
+          return {
+            ...prev,
+            [next.id]: {
+              width: img.naturalWidth,
+              height: img.naturalHeight,
+            },
+          }
+        })
+      }
+      downDimensionPrefetchingRef.current = false
+      processDownDimensionPrefetch()
+    }
+    img.src = next.url
+  }, [])
+
+  const enqueueDownDimensionPrefetch = useCallback((id: number, url: string) => {
+    if (!url) return
+    if (downDimensionQueuedRef.current.has(id)) return
+    downDimensionQueuedRef.current.add(id)
+    downDimensionQueueRef.current.push({ id, url })
+    if (typeof window !== "undefined") {
+      const idle = (window as any).requestIdleCallback
+      if (typeof idle === "function") {
+        idle(() => processDownDimensionPrefetch())
+      } else {
+        window.setTimeout(processDownDimensionPrefetch, 16)
+      }
+    }
+  }, [processDownDimensionPrefetch])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const conn = (navigator as any).connection
@@ -423,6 +583,23 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       enqueueDownPrefetch(buildOptimizedImageUrl(src, DOWN_THUMB_PREFETCH_WIDTH, DOWN_THUMB_QUALITY))
     }
   }, [downPictureSets, baseUrl, enqueueDownPrefetch])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const conn = (navigator as any).connection
+    if (conn?.saveData) return
+    if (conn?.effectiveType && ["slow-2g", "2g"].includes(conn.effectiveType)) return
+
+    for (const item of downPictureSets) {
+      if (!item.cover_image_url) continue
+      if (coverDimensions[item.id]) continue
+      const src = `${baseUrl}${item.cover_image_url}`
+      enqueueDownDimensionPrefetch(
+        item.id,
+        buildOptimizedImageUrl(src, DOWN_DIMENSION_PREFETCH_WIDTH, DOWN_DIMENSION_PREFETCH_QUALITY),
+      )
+    }
+  }, [downPictureSets, baseUrl, coverDimensions, enqueueDownDimensionPrefetch])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -459,22 +636,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     return () => observer.disconnect()
   }, [updateRowScrollBounds])
 
-  useEffect(() => {
-    setDownLoadedMap((prev) => {
-      if (downPictureSets.length === 0) return {}
-      const next: Record<number, boolean> = {}
-      for (const item of downPictureSets) {
-        if (prev[item.id]) next[item.id] = true
-      }
-      return next
-    })
-  }, [downPictureSets])
-
   const handleDownImageLoaded = useCallback((id: number, width?: number, height?: number) => {
-    setDownLoadedMap((prev) => {
-      if (prev[id]) return prev
-      return { ...prev, [id]: true }
-    })
     if (width && height) {
       setCoverDimensions((prev) => {
         if (prev[id]) return prev
@@ -537,6 +699,75 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const scrollToTop = () => {
     pageScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
   }
+
+  const savePortfolioReturnState = useCallback(() => {
+    if (typeof window === "undefined") return
+    const scrollTop = pageScrollRef.current?.scrollTop ?? window.scrollY ?? 0
+    window.sessionStorage.setItem("portfolio:return-scroll", String(scrollTop))
+    window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRowRef.current?.scrollLeft ?? topRowScrollRef.current ?? 0))
+    window.sessionStorage.setItem("portfolio:return-bottom-row-scroll", String(bottomRowRef.current?.scrollLeft ?? bottomRowScrollRef.current ?? 0))
+  }, [])
+
+  const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null }) => {
+    const params = new URLSearchParams()
+    params.set("origin", "portfolio")
+    params.set("returnSet", String(setId))
+    if (typeof opts?.index === "number" && Number.isFinite(opts.index)) {
+      params.set("index", String(opts.index))
+    }
+    return `/work/${setId}?${params.toString()}`
+  }, [])
+
+  useEffect(() => {
+    if (restoreAppliedRef.current || loading) return
+
+    const wantsRestore = searchParams.get("restore") === "1"
+    const focusSet = searchParams.get("focusSet")
+    const focusSection = searchParams.get("focusSection")
+    if (!wantsRestore && !focusSet && !focusSection) return
+
+    restoreAppliedRef.current = true
+
+    const run = () => {
+      const node = pageScrollRef.current
+      if (!node) return
+
+      const storedScrollTop = typeof window !== "undefined"
+        ? window.sessionStorage.getItem("portfolio:return-scroll")
+        : null
+
+      if (wantsRestore && storedScrollTop) {
+        const value = Number(storedScrollTop)
+        if (Number.isFinite(value)) {
+          node.scrollTo({ top: value, behavior: "auto" })
+          const topRowScroll = Number(window.sessionStorage.getItem("portfolio:return-top-row-scroll"))
+          const bottomRowScroll = Number(window.sessionStorage.getItem("portfolio:return-bottom-row-scroll"))
+          if (topRowRef.current && Number.isFinite(topRowScroll)) {
+            topRowRef.current.scrollLeft = topRowScroll
+            topRowScrollRef.current = topRowScroll
+          }
+          if (bottomRowRef.current && Number.isFinite(bottomRowScroll)) {
+            bottomRowRef.current.scrollLeft = bottomRowScroll
+            bottomRowScrollRef.current = bottomRowScroll
+          }
+          return
+        }
+      }
+
+      if (focusSet) {
+        const target = node.querySelector(`[data-set-id="${focusSet}"]`) as HTMLElement | null
+        target?.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" })
+        return
+      }
+
+      if (focusSection) {
+        const target = node.querySelector(`[data-portfolio-section="${focusSection}"]`) as HTMLElement | null
+        target?.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" })
+      }
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(run))
+  }, [loading, searchParams])
 
   const getText = useCallback((s: PictureSet, key: 'title' | 'subtitle' | 'description') => {
     const translations = transMap[s.id]
@@ -624,7 +855,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
               const dims = coverDimensions[item.id]
               const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
               const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
-              const isLoaded = !!downLoadedMap[item.id]
               const eager = index < downEagerCount
 
               const columnAwareStyle: CSSProperties = {
@@ -641,13 +871,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   style={columnAwareStyle}
                 >
                   <Link
-                    href={`/work/${item.id}`}
-                    className="block relative overflow-hidden gpu-accelerated rounded-lg transition-transform duration-300 ease-out hover:scale-[1.02]"
+                    href={buildWorkHref(item.id)}
+                    data-set-id={item.id}
+                    onClick={savePortfolioReturnState}
+                    className="block relative overflow-hidden gpu-accelerated rounded-lg"
                     style={{ aspectRatio: aspectRatio || DEFAULT_DOWN_TILE_ASPECT_RATIO }}
                   >
-                    {!isLoaded && (
-                      <div className="pointer-events-none absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
-                    )}
                     <Image
                       src={coverSrc}
                       alt={getText(item, 'title') || item.title}
@@ -656,7 +885,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                       fetchPriority={eager ? 'high' : 'low'}
                       decoding="async"
                       sizes={DOWN_IMAGE_SIZES}
-                      className={`object-cover transition-transform duration-300 ease-out group-hover:scale-105 transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      className="object-cover"
                       priority={eager}
                       loading={eager ? 'eager' : 'lazy'}
                       onLoad={(e) => {
@@ -665,8 +894,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                       }}
                     />
 
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 ease-out flex items-center justify-center">
-                      <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out p-4">
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20 p-4 text-white opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
+                      <div className="text-center">
                         <h3 className="text-lg font-medium mb-1">{getText(item, 'title')}</h3>
                         <p className="text-sm opacity-80">{getText(item, 'subtitle')}</p>
                       </div>
@@ -683,8 +912,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   )
 
   return (
-    <div ref={pageScrollRef} className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
-      <section className="snap-start min-h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">
+    <div ref={pageScrollRef} data-portfolio-scroll-root className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
+      <section className="snap-start snap-always h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">
         <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[90rem] flex flex-col gap-4 sm:gap-6">
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[auto,minmax(0,1fr),auto] md:items-center md:gap-3">
             <button
@@ -756,7 +985,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         </div>
       </section>
 
-      <section className="snap-start min-h-[100svh] px-2 sm:px-4 py-8 sm:py-16 flex flex-col">
+      <section className="snap-start snap-always min-h-[100svh] px-2 sm:px-4 py-8 sm:py-16 flex flex-col">
         <div className="relative mb-4 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl font-light tracking-wide text-center text-slate-900/90">
             {t('galleriesTitle')}
@@ -810,7 +1039,13 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     ) : (
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(setResults || []).map((item) => (
-                          <Link key={item.id} href={`/work/${item.id}`} className="group block relative overflow-hidden rounded-md bg-gray-100">
+                          <Link
+                            key={item.id}
+                            href={buildWorkHref(item.id)}
+                            data-set-id={item.id}
+                            onClick={savePortfolioReturnState}
+                            className="group block relative overflow-hidden rounded-md bg-gray-100"
+                          >
                             <Image src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"} alt={getText(item, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
                             <div className="p-2">
                               <div className="text-sm font-medium line-clamp-1">{getText(item, 'title')}</div>
@@ -832,7 +1067,13 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     ) : (
                       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
                         {(pictureResults || []).map((p) => (
-                          <Link key={p.id} href={`/work/${p.picture_set_id}`} className="group block relative overflow-hidden rounded-md bg-gray-100">
+                          <Link
+                            key={p.id}
+                            href={buildWorkHref(p.picture_set_id, { index: Number.isFinite((p as any).order_index) ? Number((p as any).order_index) : null })}
+                            data-set-id={p.picture_set_id}
+                            onClick={savePortfolioReturnState}
+                            className="group block relative overflow-hidden rounded-md bg-gray-100"
+                          >
                             <Image src={p.image_url ? `${baseUrl}${p.image_url}` : "/placeholder.svg"} alt={getPicText(p, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
                             <div className="p-2">
                               <div className="text-sm font-medium line-clamp-1">{getPicText(p, 'title')}</div>
@@ -870,6 +1111,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
               <div className="space-y-2 sm:space-y-3">
                 <div
                   ref={topRowRef}
+                  data-portfolio-row="top"
                   className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
                   onPointerEnter={pauseTopRow}
                   onPointerLeave={resumeTopRow}
@@ -883,7 +1125,9 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     return (
                       <Link
                         key={`${item.id}-${i}`}
-                        href={`/work/${item.id}`}
+                        href={buildWorkHref(item.id)}
+                        data-set-id={item.id}
+                        onClick={savePortfolioReturnState}
                         className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                       >
                       <Image
@@ -926,6 +1170,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 {loopedSecondRow.length > 0 && (
                   <div
                     ref={bottomRowRef}
+                    data-portfolio-row="bottom"
                     className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
                     onPointerEnter={pauseBottomRow}
                     onPointerLeave={resumeBottomRow}
@@ -939,7 +1184,9 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                       return (
                         <Link
                           key={`${item.id}-${i}`}
-                          href={`/work/${item.id}`}
+                          href={buildWorkHref(item.id)}
+                          data-set-id={item.id}
+                          onClick={savePortfolioReturnState}
                           className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                         >
                         <Image
@@ -985,9 +1232,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       </div>
 
       {!loading && (
+        <section data-portfolio-section="styles">
         <Suspense fallback={<div className="py-8 text-center text-gray-500">Loading...</div>}>
           <PhotographyStyleShowcase />
         </Suspense>
+        </section>
       )}
 
       {locationClusters.length > 0 && (

@@ -1,8 +1,8 @@
 "use client"
 
-import { ArrowLeft, ChevronDown, Grid, Info } from "lucide-react"
+import { ChevronDown, Grid, Home, Info } from "lucide-react"
 import Image from "next/image"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Carousel } from "@/components/carousel"
 import { useI18n } from "@/lib/i18n"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -13,6 +13,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface LocalizedContent {
   title?: string
@@ -38,15 +39,27 @@ interface PortfolioDetailProps {
     zh: LocalizedContent
   }
   locations?: unknown[]
+  returnContext?: {
+    type: "portfolio" | "style"
+    returnSetId?: number | string | null
+    styleKey?: string | null
+    styleIndex?: number | null
+    focusSection?: string | null
+    restore?: boolean
+  }
+  viewSetContext?: {
+    type: "style"
+    styleKey: string
+  } | null
 }
 
-export default function PortfolioDetail({ images, translations, locations = [] }: PortfolioDetailProps) {
+export default function PortfolioDetail({ images, translations, locations = [], returnContext, viewSetContext = null }: PortfolioDetailProps) {
   const searchParams = useSearchParams()
   const initialIndex = parseInt(searchParams.get('index') || '0', 10)
-  const styleParam = searchParams.get('style') // 获取风格参数
   const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(initialIndex, images.length - 1)));
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const mobileThumbnailsRef = useRef<HTMLDivElement | null>(null)
   const { locale } = useI18n()
   const router = useRouter()
   const bucketUrl = process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top'
@@ -62,7 +75,6 @@ export default function PortfolioDetail({ images, translations, locations = [] }
   const fallbackImageContent = locale === 'zh' ? currentImage?.translations.en : currentImage?.translations.zh
   const displayImageTitle = activeImageContent?.title || fallbackImageContent?.title || ''
   const displayImageDescription = activeImageContent?.description || fallbackImageContent?.description || ''
-
   const locationBadges = (locations || []).map((loc: any, index: number) => {
     const preferred =
       locale === 'zh'
@@ -84,21 +96,54 @@ export default function PortfolioDetail({ images, translations, locations = [] }
     setCurrentIndex(index)
   }
 
+  const resolveHomeHref = useCallback(() => {
+    if (returnContext?.type === "style" && returnContext.styleKey) {
+      const params = new URLSearchParams()
+      const styleIndex = typeof returnContext.styleIndex === "number" ? returnContext.styleIndex : 0
+      params.set("index", String(styleIndex))
+      return `/work/style/${returnContext.styleKey}?${params.toString()}`
+    }
+
+    if (returnContext?.type === "portfolio") {
+      const params = new URLSearchParams()
+      if (returnContext.restore !== false) {
+        params.set("restore", "1")
+      }
+      if (returnContext.returnSetId != null) {
+        params.set("focusSet", String(returnContext.returnSetId))
+      }
+      if (returnContext.focusSection) {
+        params.set("focusSection", returnContext.focusSection)
+      }
+      const query = params.toString()
+      return query ? `/portfolio?${query}` : "/portfolio"
+    }
+
+    return "/portfolio"
+  }, [returnContext])
+
   const handleBack = useCallback(() => {
     if (isLeaving) return
     setIsLeaving(true)
-    // allow the flash animation to read before navigation
+    const targetHref = resolveHomeHref()
     window.setTimeout(() => {
-      // 如果有风格参数，返回到首页并自动打开对应的风格弹窗
-      if (styleParam) {
-        router.push(`/?style=${styleParam}`)
-      } else if (typeof window !== 'undefined' && window.history.length > 1) {
-        router.back()
-      } else {
-        router.push('/')
-      }
+      router.push(targetHref)
     }, 180)
-  }, [isLeaving, router, styleParam])
+  }, [isLeaving, resolveHomeHref, router])
+
+  const handleViewSet = useCallback((setId: number | string) => {
+    if (viewSetContext?.type === "style") {
+      const params = new URLSearchParams()
+      params.set("style", viewSetContext.styleKey)
+      params.set("origin", "style")
+      params.set("originStyle", viewSetContext.styleKey)
+      params.set("originIndex", String(currentIndex))
+      router.push(`/work/${setId}?${params.toString()}`)
+      return
+    }
+
+    router.push(`/work/${setId}`)
+  }, [currentIndex, router, viewSetContext])
 
 
   // Add keyboard navigation
@@ -117,6 +162,20 @@ export default function PortfolioDetail({ images, translations, locations = [] }
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [currentIndex, images.length])
 
+  useEffect(() => {
+    if (!showThumbnails || typeof window === "undefined") return
+    if (!window.matchMedia("(max-width: 1023px)").matches) return
+
+    const timer = window.setTimeout(() => {
+      mobileThumbnailsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
+    }, 120)
+
+    return () => window.clearTimeout(timer)
+  }, [showThumbnails])
+
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-white via-[#f8f6f1] to-[#eaf0ff] text-gray-900">
       <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_top,_rgba(15,23,42,0.08),_transparent_45%)]" />
@@ -127,7 +186,7 @@ export default function PortfolioDetail({ images, translations, locations = [] }
       <div className="relative flex min-h-screen flex-col">
         <div className="w-full flex flex-col">
         {/* Main content area */}
-        <main className="flex flex-1 flex-col">
+        <main className={`flex flex-1 flex-col transition-[padding] duration-300 ${showThumbnails ? "lg:pr-[19rem]" : "lg:pr-0"}`}>
           {/* Image gallery section */}
           <div className="flex flex-1 flex-col">
             {/* Main image and overlay */}
@@ -139,24 +198,36 @@ export default function PortfolioDetail({ images, translations, locations = [] }
                     currentIndex={currentIndex}
                     onChangeImage={handleImageChange}
                     showThumbnails={false}
+                    onViewSet={handleViewSet}
                     overlayControls={
-                      <>
+                      <div className="flex items-center overflow-hidden rounded-full border border-gray-200/80 bg-white/88 shadow-sm backdrop-blur-md">
+                        <button
+                          type="button"
+                          onClick={handleBack}
+                          className="inline-flex h-9 w-10 items-center justify-center text-gray-700 transition-colors duration-200 hover:bg-white hover:text-black"
+                          aria-label={locale === 'zh' ? '返回首页' : 'Home'}
+                        >
+                          <Home className="h-4 w-4" />
+                        </button>
+                        <span className="h-5 w-px bg-gray-200/90" />
                         <button
                           type="button"
                           onClick={() => setShowThumbnails((prev) => !prev)}
-                          className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white/90 h-9 w-9 text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:text-black"
-                          aria-label={locale === 'zh' ? '缩略图' : 'Thumbnails'}
+                          className="inline-flex h-9 w-10 items-center justify-center text-gray-700 transition-colors duration-200 hover:bg-white hover:text-black lg:hidden"
+                          aria-label={showThumbnails ? 'Hide gallery' : 'Show gallery'}
                         >
                           <Grid className="h-4 w-4" />
                         </button>
-                        <span className="rounded-full border border-gray-200 bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-gray-600 shadow-sm">
+                        <span className="h-5 w-px bg-gray-200/90 lg:hidden" />
+                        <span className="px-3 py-2 text-[11px] font-semibold tracking-[0.28em] text-gray-600">
                           {currentIndex + 1}/{images.length}
                         </span>
+                        <span className="h-5 w-px bg-gray-200/90" />
                         <Drawer>
                           <DrawerTrigger asChild>
                             <button
                               type="button"
-                              className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white/90 h-9 w-9 text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-300 hover:text-black"
+                              className="inline-flex h-9 w-10 items-center justify-center text-gray-700 transition-colors duration-200 hover:bg-white hover:text-black"
                               aria-label={locale === 'zh' ? '查看详情' : 'View details'}
                             >
                               <Info className="h-4 w-4" />
@@ -229,73 +300,16 @@ export default function PortfolioDetail({ images, translations, locations = [] }
                             </div>
                           </DrawerContent>
                         </Drawer>
-                      </>
+                      </div>
                     }
                   />
-                </div>
-                <div className="absolute left-3 top-3 z-30 sm:left-4 sm:top-4">
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className="inline-flex items-center justify-center h-9 w-9 text-gray-700 transition-all duration-200 hover:text-black"
-                    aria-label={locale === 'zh' ? '返回' : 'Back'}
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </button>
-                </div>
-                <div
-                  className={`hidden lg:block absolute bottom-20 right-4 z-30 w-[320px] origin-bottom-right transform transition-all duration-500 ${
-                    showThumbnails ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2 pointer-events-none"
-                  }`}
-                  onMouseLeave={() => setShowThumbnails(false)}
-                >
-                  <div className="rounded-[28px] border border-gray-200/80 bg-white/95 backdrop-blur-md shadow-2xl">
-                    <div className="max-h-[360px] overflow-hidden p-6">
-                      <div className="grid grid-cols-3 gap-3">
-                        {images.map((image, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleImageChange(index)}
-                            className={`aspect-square overflow-hidden rounded-lg border-2 transition-all duration-200 hover:scale-105 relative ${
-                              index === currentIndex
-                                ? "border-black ring-2 ring-black/20 scale-105 shadow-lg"
-                                : "border-transparent hover:border-gray-300 hover:shadow-md"
-                            }`}
-                          >
-                            <Image
-                              src={image.url ? bucketUrl + image.url : "/placeholder.svg"}
-                              alt={`Thumbnail ${index + 1}`}
-                              fill
-                              sizes="120px"
-                              className="object-cover w-full h-full"
-                              loading="lazy"
-                            />
-                            <div
-                              className={`absolute inset-0 bg-black/10 pointer-events-none ${
-                                index === currentIndex ? "opacity-100" : "opacity-0"
-                              }`}
-                              style={{ transition: "opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1)" }}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Mobile thumbnails section */}
-          <div className="lg:hidden mt-4">
-            <button 
-              onClick={() => setShowThumbnails(!showThumbnails)}
-              className="text-gray-600 hover:text-black smooth-transition mb-3 flex items-center hover:translate-x-1"
-              aria-label={showThumbnails ? 'Hide gallery' : 'Show gallery'}
-            >
-              <ChevronDown className={`h-4 w-4 transform smooth-transition ${showThumbnails ? 'rotate-180' : ''}`} />
-            </button>
-            
+          <div ref={mobileThumbnailsRef} className="lg:hidden mt-4">
             <div className={`overflow-hidden smooth-transition-slow ${showThumbnails ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pb-4">
                 {images.map((image, index) => (
@@ -325,7 +339,58 @@ export default function PortfolioDetail({ images, translations, locations = [] }
           </div>
         </main>
       </div>
-
+      <button
+        type="button"
+        className={`hidden lg:flex fixed inset-y-0 right-0 z-30 w-5 items-center justify-center border-l border-gray-200/60 bg-white/48 backdrop-blur-sm transition-opacity duration-300 ${
+          showThumbnails ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
+        onMouseEnter={() => setShowThumbnails(true)}
+        onFocus={() => setShowThumbnails(true)}
+        aria-label={locale === 'zh' ? '打开图片缩略图' : 'Open thumbnails'}
+      >
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200/70 bg-white/82 text-gray-500 shadow-sm">
+          <Grid className="h-3.5 w-3.5" />
+        </div>
+      </button>
+      <aside
+        className={`hidden lg:flex fixed inset-y-4 right-3 z-40 w-[16.5rem] flex-col overflow-hidden rounded-[2rem] border border-gray-200/80 bg-white/90 shadow-[0_24px_80px_rgba(15,23,42,0.14)] backdrop-blur-xl transition-all duration-300 ${
+          showThumbnails ? "translate-x-0 opacity-100" : "pointer-events-none translate-x-8 opacity-0"
+        }`}
+        onMouseEnter={() => setShowThumbnails(true)}
+        onMouseLeave={() => setShowThumbnails(false)}
+      >
+        <ScrollArea className="h-full min-h-0">
+          <div className="grid grid-cols-3 gap-1.5 p-2">
+            {images.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  handleImageChange(index)
+                }}
+                className={`group rounded-[0.55rem] border p-1 text-left transition-all duration-200 ${
+                  index === currentIndex
+                    ? "z-10 scale-[1.08] border-[3px] border-black bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_0_18px_rgba(0,0,0,0.28),0_14px_30px_rgba(15,23,42,0.16)]"
+                    : "border-transparent bg-white/72 text-gray-900 hover:border-gray-200/90 hover:bg-white"
+                }`}
+              >
+                <div className="relative aspect-square overflow-hidden rounded-[0.4rem] bg-gray-100">
+                  <Image
+                    src={image.url ? bucketUrl + image.url : "/placeholder.svg"}
+                    alt={`Thumbnail ${index + 1}`}
+                    fill
+                    sizes="96px"
+                    className={`object-cover transition-transform duration-300 ${index === currentIndex ? "scale-[1.03]" : "group-hover:scale-[1.03]"}`}
+                    loading="lazy"
+                  />
+                  <div className={`absolute inset-0 transition-opacity duration-300 ${
+                    index === currentIndex ? "opacity-100 bg-black/0" : "opacity-0 group-hover:opacity-100 bg-black/0"
+                  }`} />
+                </div>
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
+      </aside>
     </div>
   </div>
   )

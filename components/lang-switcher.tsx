@@ -1,7 +1,6 @@
 "use client"
 
 import clsx from "clsx"
-import { Globe } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 
 interface LangSwitcherProps {
@@ -28,7 +27,9 @@ export function LangSwitcher({ className }: LangSwitcherProps) {
         className,
       )}
     >
-      <Globe className="h-4 w-4" />
+      <span aria-hidden="true" className="text-[15px] leading-none">
+        🌍
+      </span>
       <span className="sr-only">{nextLocale === "en" ? "Switch to English" : "切换到中文"}</span>
     </button>
   )

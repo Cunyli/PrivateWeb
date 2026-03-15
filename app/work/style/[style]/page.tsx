@@ -71,7 +71,17 @@ const getBaseUrl = () => {
   return `${protocol}://${host}`
 }
 
-export default async function StyleCollectionPage({ params }: { params: { style: string } }) {
+export default async function StyleCollectionPage({
+  params,
+  searchParams,
+}: {
+  params: { style: string }
+  searchParams?: {
+    origin?: string
+    restore?: string
+    returnSection?: string
+  }
+}) {
   const styleKey = params.style
   const styleConfig = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]
   if (!styleConfig) {
@@ -149,6 +159,12 @@ export default async function StyleCollectionPage({ params }: { params: { style:
         images={images}
         translations={translations}
         locations={[]}
+        returnContext={{
+          type: "portfolio",
+          focusSection: searchParams?.returnSection === "styles" ? "styles" : undefined,
+          restore: searchParams?.restore === "1" || searchParams?.origin === "portfolio",
+        }}
+        viewSetContext={{ type: "style", styleKey }}
       />
     </Suspense>
   )

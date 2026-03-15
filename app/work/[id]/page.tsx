@@ -72,9 +72,25 @@ const resolveStylePictureIds = async (styleConfig: { tagName: string; labels?: {
   return matches
 }
 
-export default async function WorkPage({ params, searchParams }: { params: { id: string }; searchParams?: { style?: string } }) {
+export default async function WorkPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams?: {
+    style?: string
+    origin?: string
+    originStyle?: string
+    originIndex?: string
+    returnSet?: string
+  }
+}) {
   console.log(`Fetching pictures for set ID: ${params.id}`)
   const requestedStyle = typeof searchParams?.style === "string" ? searchParams.style : null
+  const origin = typeof searchParams?.origin === "string" ? searchParams.origin : null
+  const originStyle = typeof searchParams?.originStyle === "string" ? searchParams.originStyle : null
+  const returnSet = typeof searchParams?.returnSet === "string" ? searchParams.returnSet : null
+  const originIndex = typeof searchParams?.originIndex === "string" ? Number(searchParams.originIndex) : null
   const styleConfig = requestedStyle
     ? PHOTOGRAPHY_STYLE_BY_ID[requestedStyle as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]
     : undefined
@@ -274,6 +290,18 @@ export default async function WorkPage({ params, searchParams }: { params: { id:
         images={images}
         translations={setEntry}
         locations={resolvedLocations}
+        returnContext={
+          origin === "style" && originStyle
+            ? {
+                type: "style",
+                styleKey: originStyle,
+                styleIndex: Number.isFinite(originIndex as number) ? originIndex : 0,
+              }
+            : {
+                type: "portfolio",
+                returnSetId: returnSet || params.id,
+              }
+        }
       />
     </Suspense>
   )

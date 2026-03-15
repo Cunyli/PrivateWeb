@@ -55,6 +55,18 @@ const PREVIEW_SIZES = "(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
 const buildOptimizedImageUrl = (src: string, width: number, quality: number) =>
   `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`
 
+const savePortfolioReturnState = () => {
+  if (typeof window === "undefined") return
+
+  const scrollRoot = document.querySelector<HTMLDivElement>("[data-portfolio-scroll-root]")
+  const topRow = document.querySelector<HTMLDivElement>('[data-portfolio-row="top"]')
+  const bottomRow = document.querySelector<HTMLDivElement>('[data-portfolio-row="bottom"]')
+
+  window.sessionStorage.setItem("portfolio:return-scroll", String(scrollRoot?.scrollTop ?? window.scrollY ?? 0))
+  window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRow?.scrollLeft ?? 0))
+  window.sessionStorage.setItem("portfolio:return-bottom-row-scroll", String(bottomRow?.scrollLeft ?? 0))
+}
+
 export function PhotographyStyleShowcase() {
   const { t, locale } = useI18n()
   const router = useRouter()
@@ -245,7 +257,12 @@ export function PhotographyStyleShowcase() {
   }, [getEligibleIndices, pickNextEligibleIndex, stylesData])
 
   const handleOpenStyle = useCallback((styleId: string) => {
-    router.push(`/work/style/${styleId}`)
+    savePortfolioReturnState()
+    const params = new URLSearchParams()
+    params.set("origin", "portfolio")
+    params.set("returnSection", "styles")
+    params.set("restore", "1")
+    router.push(`/work/style/${styleId}?${params.toString()}`)
   }, [router])
 
   const prefetchPreview = useCallback((styleId: string | null) => {

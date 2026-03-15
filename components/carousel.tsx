@@ -29,9 +29,10 @@ interface CarouselProps {
   onChangeImage: (index: number) => void
   showThumbnails?: boolean
   overlayControls?: React.ReactNode
+  onViewSet?: (setId: number | string) => void
 }
 
-export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true, overlayControls }: CarouselProps) {
+export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true, overlayControls, onViewSet }: CarouselProps) {
   const { t, locale } = useI18n()
   const router = useRouter()
   const primaryLocale = locale === 'zh' ? 'zh' : 'en'
@@ -83,6 +84,10 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
   const handleViewSet = () => {
     const setId = images[currentIndex]?.setId
     if (setId == null) return
+    if (onViewSet) {
+      onViewSet(setId)
+      return
+    }
     router.push(`/work/${setId}`)
   }
   
@@ -227,7 +232,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:block absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform -translate-x-1 group-hover:translate-x-0 shadow-md"
+            className="hidden md:block absolute left-12 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform -translate-x-1 group-hover:translate-x-0 shadow-md"
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-6 w-6" />
@@ -235,7 +240,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:block absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform translate-x-1 group-hover:translate-x-0 shadow-md"
+            className="hidden md:block absolute right-12 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform translate-x-1 group-hover:translate-x-0 shadow-md"
             onClick={goToNext}
           >
             <ChevronRight className="h-6 w-6" />

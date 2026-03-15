@@ -118,14 +118,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [applySetPropsToPictures, setApplySetPropsToPictures] = useState<boolean>(true)
   const [overrideExistingPictureProps, setOverrideExistingPictureProps] = useState<boolean>(false)
   const [propagateCategoriesToPictures, setPropagateCategoriesToPictures] = useState<boolean>(true)
-  const [autoFillLocalesAll, setAutoFillLocalesAll] = useState<boolean>(true)
+  const [autoFillLocalesAll, setAutoFillLocalesAll] = useState<boolean>(false)
   const [asyncEnrich, setAsyncEnrich] = useState<boolean>(true)
   const [isBulkTagsGenerating, setIsBulkTagsGenerating] = useState<boolean>(false)
   const [autoGenerateTagsForUntagged, setAutoGenerateTagsForUntagged] = useState<boolean>(true)
   const [showAITrans, setShowAITrans] = useState<boolean>(false)
   // simplified flags per your request
   const [fillMissingFromSet, setFillMissingFromSet] = useState<boolean>(true)
-  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(true)
+  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(false)
   const [showPictureTagsEditor, setShowPictureTagsEditor] = useState<{[key:number]: boolean}>({})
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
@@ -147,15 +147,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [showAIAnalysis, setShowAIAnalysis] = useState(false)
   const [showPictureAIAnalysis, setShowPictureAIAnalysis] = useState<{[key: number]: boolean}>({})
   const [showPictureTranslations, setShowPictureTranslations] = useState<{[key: number]: boolean}>({})
-  // 进入编辑页后，对集合执行一次“仅补齐集合的语种”
-  const autoTranslatedSetOnceId = useRef<number | null>(null)
-  const autoTranslateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isHydratingFromEdit = useRef(false)
-  const hasSyncedBaseOnce = useRef<{ title: boolean; subtitle: boolean; description: boolean }>({
-    title: false,
-    subtitle: false,
-    description: false,
-  })
   // translation autofill touching flags
   const [enTouched, setEnTouched] = useState<{title:boolean; subtitle:boolean; description:boolean}>({ title: false, subtitle: false, description: false })
   const [picEnTouched, setPicEnTouched] = useState<{[idx:number]: { title?: boolean; subtitle?: boolean; description?: boolean }}>({})
@@ -204,24 +196,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       const result = await analyzeImage(coverPreview, field)
       if (result.success) {
         const val = result.result || ''
-        const looksZh = /[\u4e00-\u9fff]/
-        // 更新基础字段
         if (field === 'title') setTitle(val)
         if (field === 'subtitle') setSubtitle(val)
         if (field === 'description') setDescription(val)
-        // 同步到翻译区：AI 生成视为“可覆盖自动值”，忽略 touched 限制
-        const isZh = looksZh.test(val)
-        if (isZh) {
-          setZh(prev => ({ ...prev, [field]: val }))
-          // 不强行覆盖用户手动输入过的英文，但若当前英文为空则清空保持一致
-          setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
-        } else {
-          setEn(prev => ({ ...prev, [field]: val }))
-          if (val.trim()) {
-            setEnTouched(prev => ({ ...prev, [field]: true }))
-          }
-          setZh(prev => ({ ...prev, [field]: '' }))
-        }
       }
     } catch (error) {
       console.error(`生成${field}失败:`, error)
@@ -333,8 +310,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       
       lastLoadedIdRef.current = editingPictureSet.id
       isHydratingFromEdit.current = true
-      // In edit mode, mark as already synced to prevent useEffect from overwriting loaded translations
-      hasSyncedBaseOnce.current = { title: true, subtitle: true, description: true }
       setIsEditMode(true)
       setEditingId(editingPictureSet.id)
       setTitle(editingPictureSet.title || "")
@@ -344,16 +319,15 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setCoverPreview(editingPictureSet.cover_image_url ? `${process.env.NEXT_PUBLIC_BUCKET_URL}${editingPictureSet.cover_image_url}` : null)
       setPosition(editingPictureSet.position || "up")
       // translations and tags (optional on type)
-      // Prefill en from DB; if missing, fall back to base fields
       const enData = {
-        title: editingPictureSet.en?.title || editingPictureSet.title || "",
-        subtitle: editingPictureSet.en?.subtitle || editingPictureSet.subtitle || "",
-        description: editingPictureSet.en?.description || editingPictureSet.description || "",
+        title: editingPictureSet.en?.title || "",
+        subtitle: editingPictureSet.en?.subtitle || "",
+        description: editingPictureSet.en?.description || "",
       }
       const zhData = {
-        title: editingPictureSet.zh?.title || (looksZh(editingPictureSet.title) ? (editingPictureSet.title || "") : ""),
-        subtitle: editingPictureSet.zh?.subtitle || (looksZh(editingPictureSet.subtitle) ? (editingPictureSet.subtitle || "") : ""),
-        description: editingPictureSet.zh?.description || (looksZh(editingPictureSet.description) ? (editingPictureSet.description || "") : ""),
+        title: editingPictureSet.zh?.title || "",
+        subtitle: editingPictureSet.zh?.subtitle || "",
+        description: editingPictureSet.zh?.description || "",
       }
       const touchedData = {
         title: !!(editingPictureSet.en?.title && editingPictureSet.en.title.trim()),
@@ -397,9 +371,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             picture_category_ids: (pic as any).picture_category_ids || [],
             tags: pic.tags || [],
             en: {
-              title: pic.en?.title || pic.title || "",
-              subtitle: pic.en?.subtitle || pic.subtitle || "",
-              description: pic.en?.description || pic.description || "",
+              title: pic.en?.title || "",
+              subtitle: pic.en?.subtitle || "",
+              description: pic.en?.description || "",
             },
             zh: {
               title: pic.zh?.title || "",
@@ -427,27 +401,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       setTimeout(() => {
         isHydratingFromEdit.current = false
       }, 0)
-
-      // 自动对集合翻译进行一次补齐（每个集合只执行一次）
-      try {
-        if (autoTranslatedSetOnceId.current !== editingPictureSet.id) {
-          const needsAutoTranslate = (['title', 'subtitle', 'description'] as const).some((key) => {
-            const enVal = String(editingPictureSet.en?.[key] || '').trim()
-            const zhVal = String(editingPictureSet.zh?.[key] || '').trim()
-            return !(enVal && zhVal)
-          })
-          autoTranslatedSetOnceId.current = editingPictureSet.id
-          // DON'T run auto-translate in edit mode - data is already loaded from DB
-          // The auto-translate function reads from stale closure values and will overwrite loaded data
-          // if (needsAutoTranslate) {
-          //   setTimeout(() => { autoTranslateSetOnly().catch(() => {}) }, 0)
-          // }
-        }
-      } catch {}
     } else if (editingPictureSet === null && (isEditMode || editingId !== undefined)) {
       lastLoadedIdRef.current = null
       isHydratingFromEdit.current = false
-      hasSyncedBaseOnce.current = { title: false, subtitle: false, description: false }
       // 只有当明确从编辑模式切换到非编辑模式时才重置表单
       setIsEditMode(false)
       setEditingId(undefined)
@@ -580,35 +536,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           }
           if (root === 'zh') {
             return { ...pic, zh: { ...(pic.zh || {}), [key]: value } }
-          }
-        }
-
-        // dynamic autofill to en/zh from base fields with clear rules
-        if (field === 'title' || field === 'subtitle' || field === 'description') {
-          const key = field as 'title' | 'subtitle' | 'description'
-          const looksZh = /[\u4e00-\u9fff]/
-          const touched = picEnTouched[index] || {}
-          const currentEn = { ...(pic.en || {}) }
-          const currentZh = { ...(pic.zh || {}) }
-
-          // If cleared, also clear translations (respect en touched)
-          if (!String(value || '').length) {
-            if (!touched[key]) currentEn[key] = ''
-            currentZh[key] = ''
-            return { ...pic, [field]: '', en: currentEn, zh: currentZh }
-          }
-
-          const isZh = looksZh.test(String(value))
-          if (isZh) {
-            // Base is Chinese: copy to zh, clear en for this key if not touched to avoid stale pinyin/english
-            currentZh[key] = String(value)
-            if (!touched[key]) currentEn[key] = ''
-            return { ...pic, [field]: value, en: currentEn, zh: currentZh }
-          } else {
-            // Base is non-Chinese: copy to en (if not touched), and clear zh to avoid leftover hanzi
-            if (!touched[key]) currentEn[key] = String(value)
-            currentZh[key] = ''
-            return { ...pic, [field]: value, en: currentEn, zh: currentZh }
           }
         }
 
@@ -1031,124 +958,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   }
 
   // dynamic autofill for set-level translations: follow base fields until user manually edits en.*
-  useEffect(() => {
-    if (isHydratingFromEdit.current) return
-    if (!hasSyncedBaseOnce.current.title) {
-      hasSyncedBaseOnce.current.title = true
-      return
-    }
-    const baseVal = String(title || '').trim()
-    // 如果基础字段为空，清空翻译区域（如果未被手动编辑）
-    if (!baseVal) {
-      if (!enTouched.title) setEn((prev) => ({ ...prev, title: '' }))
-      setZh((prev) => ({ ...prev, title: '' }))
-      return
-    }
-    // 识别语言并放入对应区域
-    const isChinese = looksZh(baseVal)
-    if (isChinese) {
-      // 中文：放入 zh，清空 en（如果未被手动编辑）
-      setZh((prev) => ({ ...prev, title: baseVal }))
-      if (!enTouched.title) {
-        setEn((prev) => ({ ...prev, title: '' }))
-      }
-    } else {
-      // 英文：放入 en（如果未被手动编辑），清空 zh
-      if (!enTouched.title) setEn((prev) => ({ ...prev, title: baseVal }))
-      setZh((prev) => ({ ...prev, title: '' }))
-    }
-  }, [title, enTouched.title])
-  
-  useEffect(() => {
-    if (isHydratingFromEdit.current) return
-    if (!hasSyncedBaseOnce.current.subtitle) {
-      hasSyncedBaseOnce.current.subtitle = true
-      return
-    }
-    const baseVal = String(subtitle || '').trim()
-    if (!baseVal) {
-      if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle: '' }))
-      setZh((prev) => ({ ...prev, subtitle: '' }))
-      return
-    }
-    const isChinese = looksZh(baseVal)
-    if (isChinese) {
-      setZh((prev) => ({ ...prev, subtitle: baseVal }))
-      if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle: '' }))
-    } else {
-      if (!enTouched.subtitle) setEn((prev) => ({ ...prev, subtitle: baseVal }))
-      setZh((prev) => ({ ...prev, subtitle: '' }))
-    }
-  }, [subtitle, enTouched.subtitle])
-  
-  useEffect(() => {
-    if (isHydratingFromEdit.current) return
-    if (!hasSyncedBaseOnce.current.description) {
-      hasSyncedBaseOnce.current.description = true
-      return
-    }
-    const baseVal = String(description || '').trim()
-    if (!baseVal) {
-      if (!enTouched.description) setEn((prev) => ({ ...prev, description: '' }))
-      setZh((prev) => ({ ...prev, description: '' }))
-      return
-    }
-    const isChinese = looksZh(baseVal)
-    if (isChinese) {
-      setZh((prev) => ({ ...prev, description: baseVal }))
-      if (!enTouched.description) setEn((prev) => ({ ...prev, description: '' }))
-    } else {
-      if (!enTouched.description) setEn((prev) => ({ ...prev, description: baseVal }))
-      setZh((prev) => ({ ...prev, description: '' }))
-    }
-  }, [description, enTouched.description])
-
-  useEffect(() => {
-    const cleanup = () => {
-      if (autoTranslateTimeout.current) {
-        clearTimeout(autoTranslateTimeout.current)
-        autoTranslateTimeout.current = null
-      }
-    }
-
-    const fields: Array<{ key: 'title' | 'subtitle' | 'description'; base: string }> = [
-      { key: 'title', base: title },
-      { key: 'subtitle', base: subtitle },
-      { key: 'description', base: description },
-    ]
-
-    const needs = fields.some(({ key, base }) => {
-      const baseVal = String(base || '').trim()
-      if (!baseVal) return false
-      const enVal = String((en as any)[key] || '').trim()
-      const zhVal = String((zh as any)[key] || '').trim()
-      return !enVal || !zhVal
-    })
-
-    if (!needs || isTranslatingAll) {
-      cleanup()
-      return cleanup
-    }
-
-    cleanup()
-    autoTranslateTimeout.current = setTimeout(() => {
-      autoTranslateSetOnly().catch(() => {})
-    }, 600)
-
-    return cleanup
-  }, [
-    title,
-    subtitle,
-    description,
-    en.title,
-    en.subtitle,
-    en.description,
-    zh.title,
-    zh.subtitle,
-    zh.description,
-    isTranslatingAll,
-  ])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -1158,30 +967,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       let translatedEn = en
       let translatedZh = zh
       let picturesForPayload = pictures
-      
-      if (autoFillLocalesAll && !asyncEnrich) {
-        // ✅ 提交时强制翻译，忽略 enTouched 限制
-        console.log('🔄 Before translation - en:', en, 'zh:', zh)
-        const result = await autoTranslateAll(true)
-        translatedEn = result.en
-        translatedZh = result.zh
-        picturesForPayload = result.pictures
-        console.log('✅ After translation - translatedEn:', translatedEn, 'translatedZh:', translatedZh)
-        const forcedSet = await forceCompleteSetTranslations(
-          {
-            title: title ?? '',
-            subtitle: subtitle ?? '',
-            description: description ?? '',
-          },
-          translatedEn,
-          translatedZh,
-        )
-        translatedEn = forcedSet.en
-        translatedZh = forcedSet.zh
-        picturesForPayload = await Promise.all(
-          picturesForPayload.map(async (pic) => await forceCompletePictureTranslations(pic))
-        )
-      }
       
       // 为未设置标签的图片自动生成标签（与现有标签做并集），并使用返回的 next 数组继续构造 payload，避免批量生成后 state 未同步
       if (autoGenerateTagsForUntagged && !asyncEnrich) {
@@ -1455,11 +1240,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
           
           {/* 翻译（常显） */}
           <div className="grid grid-cols-2 gap-4 border border-gray-200 rounded-lg p-3">
-            <div className="col-span-2 flex items-center justify-between">
+            <div className="col-span-2">
               <h3 className="text-lg font-bold">{t('translations')}</h3>
-              <Button type="button" size="sm" variant="outline" onClick={autoTranslateSetOnly} disabled={isTranslatingAll}>
-                {isTranslatingAll ? '…' : t('autoTranslateSetOnly')}
-              </Button>
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -1555,10 +1337,6 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               <span>{t('optionsPropagateCategories')}</span>
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input id="auto_fill_locales_all" type="checkbox" checked={autoFillLocalesAll} onChange={(e)=>setAutoFillLocalesAll(e.target.checked)} />
-              <span>{t('autoTranslateSet')}</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm">
               <input id="auto_generate_tags_untagged" type="checkbox" checked={autoGenerateTagsForUntagged} onChange={(e)=>setAutoGenerateTagsForUntagged(e.target.checked)} />
               <span>{t('generateTagsForUntagged')}</span>
             </label>
@@ -1576,21 +1354,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                 imageUrl={coverPreview}
                 onResultUpdate={(field, result) => {
                   const val = result || ''
-                  const looksZh = /[\u4e00-\u9fff]/
                   if (field === 'title') setTitle(val)
                   if (field === 'subtitle') setSubtitle(val)
                   if (field === 'description') setDescription(val)
-                  const isZh = looksZh.test(val)
-                  if (isZh) {
-                    setZh(prev => ({ ...prev, [field]: val }))
-                    setEn(prev => ({ ...prev, [field]: prev[field] ? prev[field] : '' }))
-                  } else {
-                    setEn(prev => ({ ...prev, [field]: val }))
-                    if (val.trim()) {
-                      setEnTouched(prev => ({ ...prev, [field]: true }))
-                    }
-                    setZh(prev => ({ ...prev, [field]: '' }))
-                  }
                 }}
               />
             </div>
@@ -1881,11 +1647,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
                   {/* Picture translation fields (always visible) */}
                   <div className="mt-4 border border-gray-200 rounded-md p-3">
-                    <div className="col-span-2 flex items-center justify-between pb-2">
+                    <div className="col-span-2 pb-2">
                       <h4 className="text-base font-bold">{t('translations')}</h4>
-                      <Button type="button" size="sm" variant="outline" onClick={() => autoTranslatePicture(idx)} disabled={!!isTranslatingPic[idx]}>
-                        {isTranslatingPic[idx] ? t('generating') : t('autoTranslatePicture')}
-                      </Button>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">

@@ -47,7 +47,7 @@ async function asyncPool<T, R>(
 async function upsertSetTranslationsRaw(picture_set_id: number, payload: any) {
   const en = payload?.en
   const zh = payload?.zh
-  const ops: Promise<any>[] = []
+  const ops: any[] = []
   if (en) {
     ops.push(
       supabaseAdmin.from('picture_set_translations').upsert(
@@ -70,7 +70,7 @@ async function upsertSetTranslationsRaw(picture_set_id: number, payload: any) {
 async function upsertPictureTranslationsRaw(picture_id: number, p: any) {
   const en = p?.en
   const zh = p?.zh
-  const ops: Promise<any>[] = []
+  const ops: any[] = []
   if (en) {
     ops.push(
       supabaseAdmin.from('picture_translations').upsert(
@@ -283,6 +283,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
     const payload = await request.json()
     const asyncEnrich = !!payload.async_enrich
+    const autoFillLocalesAll = !!payload.auto_fill_locales_all
     const pictures: any[] = Array.isArray(payload.pictures) ? payload.pictures : []
 
     const autoGen = !!payload.autogen_titles_subtitles
@@ -346,11 +347,9 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
       await supabaseAdmin.from('picture_set_categories').insert(rows)
     }
 
-    // translations
+    // translations: only auto-fill when explicitly enabled
     try {
-      if (asyncEnrich) {
-        await upsertSetTranslationsRaw(idNum, payload)
-      } else {
+      if (autoFillLocalesAll && !asyncEnrich) {
         const filled = await fillSetTranslationsBi(payload)
         await Promise.all([
           supabaseAdmin.from('picture_set_translations').upsert(
@@ -362,6 +361,8 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
             { onConflict: 'picture_set_id,locale' },
           ),
         ])
+      } else {
+        await upsertSetTranslationsRaw(idNum, payload)
       }
     } catch {}
 
@@ -463,9 +464,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
 
           tasks.push((async () => {
             try {
-              if (asyncEnrich) {
-                await upsertPictureTranslationsRaw(picture_id, p)
-              } else {
+              if (autoFillLocalesAll && !asyncEnrich) {
                 const filled = await fillPictureTranslationsBi(p)
                 await Promise.all([
                   supabaseAdmin.from('picture_translations').upsert(
@@ -477,6 +476,8 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
                     { onConflict: 'picture_id,locale' },
                   ),
                 ])
+              } else {
+                await upsertPictureTranslationsRaw(picture_id, p)
               }
             } catch {}
           })())

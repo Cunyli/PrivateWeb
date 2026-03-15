@@ -226,14 +226,17 @@ export function EntryGate() {
           <button
             type="button"
             onClick={handleToggleLocale}
-            className="entry-chip absolute right-[8%] top-[18%] z-20 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-1 py-1 text-[8px] font-semibold uppercase tracking-[0.24em] text-zinc-700 shadow-[0_14px_32px_-24px_rgba(58,44,35,0.6)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-26px_rgba(58,44,35,0.7)]"
+            className="entry-chip absolute right-[8%] top-[18%] z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/80 text-zinc-700 shadow-[0_14px_32px_-24px_rgba(58,44,35,0.6)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-26px_rgba(58,44,35,0.7)]"
             style={{
               transform:
                 "translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 50px)",
             }}
-            aria-label="翻译 / Translate"
+            aria-label={gateLocale === "zh" ? "切换语言" : "Change language"}
+            title={gateLocale === "zh" ? "切换语言" : "Change language"}
           >
-            {gateLocale === "zh" ? "语言" : "Language"}
+            <span aria-hidden="true" className="text-[15px] leading-none">
+              🌍
+            </span>
           </button>
           <div className="pointer-events-none absolute left-[62%] top-[34%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 opacity-[var(--focus-opacity,0.35)] motion-safe:animate-orb-pulse"
             style={{

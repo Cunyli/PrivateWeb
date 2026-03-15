@@ -50,7 +50,7 @@ async function asyncPool<T, R>(
 async function upsertSetTranslationsRaw(picture_set_id: number, payload: any) {
   const en = payload?.en
   const zh = payload?.zh
-  const ops: Promise<any>[] = []
+  const ops: any[] = []
   if (en) {
     ops.push(
       supabaseAdmin.from('picture_set_translations').upsert(
@@ -73,7 +73,7 @@ async function upsertSetTranslationsRaw(picture_set_id: number, payload: any) {
 async function upsertPictureTranslationsRaw(picture_id: number, p: any) {
   const en = p?.en
   const zh = p?.zh
-  const ops: Promise<any>[] = []
+  const ops: any[] = []
   if (en) {
     ops.push(
       supabaseAdmin.from('picture_translations').upsert(
@@ -219,6 +219,7 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json()
     const asyncEnrich = !!payload.async_enrich
+    const autoFillLocalesAll = !!payload.auto_fill_locales_all
     const setRow = {
       title: payload.title || "",
       subtitle: payload.subtitle || "",
@@ -368,11 +369,9 @@ export async function POST(request: Request) {
         await supabaseAdmin.from('picture_set_categories').insert(rows)
       }
 
-      // set 翻译（双向自动补全）- async 时跳过翻译，仅保存已填内容
+      // set 翻译：仅在显式启用时自动补全，否则只保存手填内容
       try {
-        if (asyncEnrich) {
-          await upsertSetTranslationsRaw(picture_set_id, payload)
-        } else {
+        if (autoFillLocalesAll && !asyncEnrich) {
           const filled = await fillSetTranslationsBi(payload)
           await supabaseAdmin
             .from('picture_set_translations')
@@ -386,6 +385,8 @@ export async function POST(request: Request) {
               { picture_set_id, locale: 'zh', title: filled.zh.title || '', subtitle: filled.zh.subtitle || null, description: filled.zh.description || null },
               { onConflict: 'picture_set_id,locale' },
             )
+        } else {
+          await upsertSetTranslationsRaw(picture_set_id, payload)
         }
       } catch {}
 
@@ -446,12 +447,10 @@ export async function POST(request: Request) {
 
         const tasks: Promise<any>[] = []
 
-        // 翻译（双向自动补全）
+        // 翻译：仅在显式启用时自动补全，否则只保存手填内容
         tasks.push((async () => {
           try {
-            if (asyncEnrich) {
-              await upsertPictureTranslationsRaw(picture_id, p)
-            } else {
+            if (autoFillLocalesAll && !asyncEnrich) {
               const filled = await fillPictureTranslationsBi(p)
               await Promise.all([
                 supabaseAdmin
@@ -467,6 +466,8 @@ export async function POST(request: Request) {
                     { onConflict: 'picture_id,locale' },
                   ),
               ])
+            } else {
+              await upsertPictureTranslationsRaw(picture_id, p)
             }
           } catch {}
         })())

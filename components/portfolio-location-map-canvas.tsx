@@ -40,6 +40,25 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
     setMapInstance(map)
   }, [])
 
+  const savePortfolioReturnState = useCallback(() => {
+    if (typeof window === "undefined") return
+    window.sessionStorage.setItem("portfolio:return-scroll", String(window.scrollY ?? 0))
+
+    const horizontalRows = Array.from(document.querySelectorAll<HTMLDivElement>("div.hide-scrollbar.overflow-x-auto"))
+    const topRowScroll = horizontalRows[0]?.scrollLeft ?? 0
+    const bottomRowScroll = horizontalRows[1]?.scrollLeft ?? 0
+
+    window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRowScroll))
+    window.sessionStorage.setItem("portfolio:return-bottom-row-scroll", String(bottomRowScroll))
+  }, [])
+
+  const buildWorkHref = useCallback((setId: number | string) => {
+    const params = new URLSearchParams()
+    params.set("origin", "portfolio")
+    params.set("returnSet", String(setId))
+    return `/work/${setId}?${params.toString()}`
+  }, [])
+
   useEffect(() => {
     if (!locations.length) {
       setActiveKey(null)
@@ -146,7 +165,8 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
                 {activeLocation.sets.map((set) => (
                   <Link
                     key={set.id}
-                    href={`/work/${set.id}`}
+                    href={buildWorkHref(set.id)}
+                    onClick={savePortfolioReturnState}
                     className={`group overflow-hidden rounded-2xl border border-slate-200/60 bg-white/50 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_-25px_rgba(30,41,59,0.45)] ${activeLocation.sets.length === 1 ? "w-full" : ""}`}
                   >
                     <div className={`relative overflow-hidden ${activeLocation.sets.length === 1 ? "aspect-[16/10]" : "aspect-[5/4]"}`}>
