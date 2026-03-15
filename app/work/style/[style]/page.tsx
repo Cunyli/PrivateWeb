@@ -62,10 +62,10 @@ const shuffleWithSeed = <T,>(items: T[], seed: number) => {
   return next
 }
 
-const getBaseUrl = () => {
+const getBaseUrl = async () => {
   const envBase = process.env.NEXT_PUBLIC_SITE_URL
   if (envBase) return envBase
-  const host = headers().get("host")
+  const host = (await headers()).get("host")
   if (!host) return "http://localhost:3000"
   const protocol = host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https"
   return `${protocol}://${host}`
@@ -88,7 +88,7 @@ export default async function StyleCollectionPage({
     notFound()
   }
 
-  const baseUrl = getBaseUrl()
+  const baseUrl = await getBaseUrl()
   const res = await fetch(`${baseUrl}/api/picture-styles?style=${styleKey}`, { cache: "no-store" })
   if (!res.ok) {
     notFound()

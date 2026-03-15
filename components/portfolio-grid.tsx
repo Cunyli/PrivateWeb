@@ -1140,16 +1140,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                         onLoadingComplete={updateRowScrollBounds}
                       />
 
-                        <div
-                          className="
-                            absolute inset-0
-                            bg-black/60
-                            opacity-100
-                            transition-opacity duration-300 ease-out
-                            group-hover:opacity-0
-                            flex flex-col items-center justify-center text-white p-4 text-center
-                          "
-                        >
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-4 text-center text-white opacity-100 transition-opacity duration-300 ease-out group-hover:opacity-0">
                           <h2
                             className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
                           >
@@ -1199,16 +1190,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           onLoadingComplete={updateRowScrollBounds}
                         />
 
-                          <div
-                            className="
-                              absolute inset-0
-                              bg-black/60
-                              opacity-100
-                              transition-opacity duration-300 ease-out
-                              group-hover:opacity-0
-                              flex flex-col items-center justify-center text-white p-4 text-center
-                            "
-                          >
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-4 text-center text-white opacity-100 transition-opacity duration-300 ease-out group-hover:opacity-0">
                             <h2
                               className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
                             >

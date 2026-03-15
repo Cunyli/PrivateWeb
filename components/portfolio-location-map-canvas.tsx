@@ -1,11 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import type { Map as LeafletMap } from "leaflet"
-import { LatLngBounds } from "leaflet"
-import { MapContainer, TileLayer, CircleMarker } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import { useI18n } from "@/lib/i18n"
 
@@ -34,11 +31,12 @@ export interface PortfolioLocationMapProps {
 
 export function PortfolioLocationMapCanvas({ locations, heading, subheading, emptyLabel, viewAllLabel }: PortfolioLocationMapProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null)
-  const [mapInstance, setMapInstance] = useState<LeafletMap | null>(null)
+  const mapRootRef = useRef<HTMLDivElement | null>(null)
+  const leafletMapRef = useRef<any>(null)
+  const markersLayerRef = useRef<any>(null)
+  const latestActiveKeyRef = useRef<string | null>(null)
+  const [mapReady, setMapReady] = useState(false)
   const { locale } = useI18n()
-  const handleMapRef = useCallback((map: LeafletMap | null) => {
-    setMapInstance(map)
-  }, [])
 
   const savePortfolioReturnState = useCallback(() => {
     if (typeof window === "undefined") return
@@ -68,12 +66,9 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
       setActiveKey(locations[0]?.key ?? null)
     }
   }, [locations, activeKey])
-
   useEffect(() => {
-    if (!mapInstance || !locations.length) return
-    const bounds = new LatLngBounds(locations.map((loc) => [loc.latitude, loc.longitude]))
-    mapInstance.fitBounds(bounds.pad(0.2), { animate: true, duration: 0.8 })
-  }, [mapInstance, locations])
+    latestActiveKeyRef.current = activeKey
+  }, [activeKey])
 
   const activeLocation = useMemo(() => {
     if (!activeKey) return null
@@ -97,6 +92,105 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
     }
   }, [locale])
 
+  const mapKey = useMemo(
+    () => `${tileConfig.key}:${locations.map((loc) => loc.key).join("|")}`,
+    [locations, tileConfig.key],
+  )
+
+  useEffect(() => {
+    let cancelled = false
+    setMapReady(false)
+
+    const mountMap = async () => {
+      const root = mapRootRef.current
+      if (!root) return
+
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove()
+        leafletMapRef.current = null
+        markersLayerRef.current = null
+      }
+
+      root.innerHTML = ""
+
+      const leaflet = await import("leaflet")
+      if (cancelled || !mapRootRef.current) return
+
+      const map = leaflet.map(root, {
+        center: [locations[0].latitude, locations[0].longitude],
+        zoom: 4,
+        minZoom: 2,
+        maxZoom: 12,
+        zoomControl: false,
+        attributionControl: false,
+        preferCanvas: true,
+        keyboard: false,
+      })
+
+      leaflet
+        .tileLayer(tileConfig.url, {
+          tileSize: 256,
+          maxZoom: 18,
+          attribution: tileConfig.attribution,
+          ...(tileConfig.subdomains ? { subdomains: tileConfig.subdomains } : {}),
+        })
+        .addTo(map)
+
+      const markersLayer = leaflet.layerGroup().addTo(map)
+      leafletMapRef.current = map
+      markersLayerRef.current = markersLayer
+
+      const bounds = leaflet.latLngBounds(locations.map((loc) => [loc.latitude, loc.longitude]))
+      map.fitBounds(bounds.pad(0.2), { animate: true, duration: 0.8 })
+      setMapReady(true)
+    }
+
+    void mountMap()
+
+    return () => {
+      cancelled = true
+      setMapReady(false)
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove()
+        leafletMapRef.current = null
+        markersLayerRef.current = null
+      }
+    }
+  }, [mapKey])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const syncMarkers = async () => {
+      if (!mapReady || !leafletMapRef.current || !markersLayerRef.current) return
+      const leaflet = await import("leaflet")
+      if (cancelled || !leafletMapRef.current || !markersLayerRef.current) return
+
+      markersLayerRef.current.clearLayers()
+
+      for (const loc of locations) {
+        const isActive = (latestActiveKeyRef.current ?? activeKey) === loc.key
+        leaflet
+          .circleMarker([loc.latitude, loc.longitude], {
+            radius: isActive ? 14 : 9,
+            weight: 2,
+            opacity: 0.9,
+            fillOpacity: 0.65,
+            color: isActive ? "#22d3ee" : "#38bdf8",
+            fillColor: isActive ? "#f472b6" : "#0ea5e9",
+          })
+          .on("click", () => setActiveKey(loc.key))
+          .on("mouseover", () => setActiveKey(loc.key))
+          .addTo(markersLayerRef.current)
+      }
+    }
+
+    void syncMarkers()
+    return () => {
+      cancelled = true
+    }
+  }, [activeKey, locations, mapReady])
+
   if (!locations.length) {
     return (
       <div className="mt-10 rounded-3xl border border-dashed border-slate-300/60 bg-white/60 p-6 text-center text-sm text-slate-500">
@@ -111,48 +205,8 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
         <div className="relative h-[420px] w-full overflow-hidden rounded-[2.5rem] border border-slate-200/60 shadow-[0_40px_90px_-45px_rgba(15,23,42,0.7)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.18),transparent_55%),radial-gradient(circle_at_80%_15%,rgba(56,189,248,0.18),transparent_55%),radial-gradient(circle_at_50%_80%,rgba(129,140,248,0.16),transparent_65%)]" />
           <div className="absolute inset-0 mix-blend-screen opacity-40" style={{ backgroundImage: "repeating-linear-gradient(0deg, rgba(148,163,184,0.1), rgba(148,163,184,0.1) 1px, transparent 1px, transparent 48px), repeating-linear-gradient(90deg, rgba(148,163,184,0.08), rgba(148,163,184,0.08) 1px, transparent 1px, transparent 64px)" }} />
-          <MapContainer
-            center={[locations[0].latitude, locations[0].longitude]}
-            zoom={4}
-            minZoom={2}
-            maxZoom={12}
-            ref={handleMapRef}
-            className="h-full w-full focus:outline-none focus-visible:outline-none [&_.leaflet-control-container]:hidden"
-            zoomControl={false}
-            attributionControl={false}
-            preferCanvas
-            keyboard={false}
-          >
-            <TileLayer
-              key={tileConfig.key}
-              url={tileConfig.url}
-              tileSize={256}
-              maxZoom={18}
-              attribution={tileConfig.attribution}
-              {...(tileConfig.subdomains ? { subdomains: tileConfig.subdomains } : {})}
-            />
-            {locations.map((loc) => {
-              const isActive = activeLocation?.key === loc.key
-              return (
-                <CircleMarker
-                  key={loc.key}
-                  center={[loc.latitude, loc.longitude]}
-                  radius={isActive ? 14 : 9}
-                  weight={2}
-                  opacity={0.9}
-                  fillOpacity={0.65}
-                  color={isActive ? "#22d3ee" : "#38bdf8"}
-                  fillColor={isActive ? "#f472b6" : "#0ea5e9"}
-                  eventHandlers={{
-                    click: () => setActiveKey(loc.key),
-                    mouseover: () => setActiveKey(loc.key),
-                  }}
-                  className="transition-all duration-300"
-                >
-              </CircleMarker>
-            )
-          })}
-        </MapContainer>
+          <div ref={mapRootRef} className="h-full w-full [&_.leaflet-control-container]:hidden" />
+          {!mapReady && <div className="pointer-events-none absolute inset-0 animate-pulse bg-white/40" />}
       </div>
 
         <div className="rounded-3xl border border-slate-200/60 bg-white/80 p-6 sm:p-8 shadow-[0_30px_70px_-35px_rgba(30,41,59,0.6)] backdrop-blur">
