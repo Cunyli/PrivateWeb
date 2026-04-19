@@ -225,6 +225,7 @@ export async function POST(request: Request) {
       subtitle: payload.subtitle || "",
       description: payload.description || "",
       cover_image_url: payload.cover_image_url || null,
+      cover_image_variants: payload.cover_image_variants || {},
       position: payload.position || "up",
       is_published: payload.is_published ?? true,
       primary_category_id: payload.primary_category_id ?? null,
@@ -313,6 +314,7 @@ export async function POST(request: Request) {
         description: p.description || "",
         image_url: p.image_url || null,
         raw_image_url: p.raw_image_url || null,
+        image_variants: p.image_variants || {},
         season_id: (allowApplySetProps
           ? (allowOverride ? (singleSeasonId ?? p.season_id ?? null)
             : (p.season_id ?? (singleSeasonId ?? null)))

@@ -32,6 +32,12 @@ interface CarouselProps {
   onViewSet?: (setId: number | string) => void
 }
 
+function preferOriginalVariant(src: string) {
+  if (!src.includes("/picture/responsive/")) return src
+  const separator = src.includes("?") ? "&" : "?"
+  return `${src}${separator}variant=original`
+}
+
 export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true, overlayControls, onViewSet }: CarouselProps) {
   const { t, locale } = useI18n()
   const router = useRouter()
@@ -199,7 +205,7 @@ export function Carousel({ images, currentIndex, onChangeImage, showThumbnails =
         <div className="w-full h-full flex items-center justify-center relative select-none">
           <Image
             key={displayIndex}
-            src={activeImage.url ? (bucketUrl + activeImage.url) : "/placeholder.svg"}
+            src={activeImage.url ? preferOriginalVariant(bucketUrl + activeImage.url) : "/placeholder.svg"}
             alt={computedAlt}
             fill
             className="object-contain corner-lg pointer-events-none transition-opacity duration-200 ease-in-out"

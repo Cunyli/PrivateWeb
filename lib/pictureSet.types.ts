@@ -1,8 +1,11 @@
+export type ImageVariantMap = Record<string, string>;
+
 export interface PictureSet {
   id: number;
   created_at: string; // ISO date string
   updated_at: string; // ISO date string
   cover_image_url: string;
+  cover_image_variants?: ImageVariantMap;
   description: string;
   title: string;
   subtitle: string;
@@ -36,6 +39,7 @@ export interface Picture {
   updated_at: string; // ISO date string
   raw_image_url?: string;
   image_url: string;
+  image_variants?: ImageVariantMap;
   title: string;
   subtitle: string;
   description: string;

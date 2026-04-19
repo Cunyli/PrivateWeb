@@ -1,4 +1,4 @@
-import type { PictureSet } from "./pictureSet.types"
+import type { ImageVariantMap, PictureSet } from "./pictureSet.types"
 
 // Define shared form data types to be used across components
 export interface PictureFormData {
@@ -10,6 +10,7 @@ export interface PictureFormData {
   cover?: File | null
   image_url?: string
   raw_image_url?: string
+  image_variants?: ImageVariantMap
   previewUrl?: string
   originalSize?: number
   compressedSize?: number
@@ -34,6 +35,7 @@ export interface PictureSetFormData {
   subtitle: string
   description: string
   cover_image_url: string
+  cover_image_variants?: ImageVariantMap
   position: string
   pictures: PictureFormData[]
   // new editable fields

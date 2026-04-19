@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
+import { collectImageAssetKeys, deleteObjectKeysFromR2 } from "@/utils/r2-assets.server"
 
 export const runtime = 'nodejs'
 
@@ -261,6 +262,7 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
       description: p.description || '',
       image_url: p.image_url || '',
       raw_image_url: p.raw_image_url || '',
+      image_variants: p.image_variants || {},
       season_id: p.season_id ?? null,
       location_name: locMap[p.id]?.name || '',
       location_latitude: locMap[p.id]?.latitude ?? null,
@@ -285,6 +287,25 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const asyncEnrich = !!payload.async_enrich
     const autoFillLocalesAll = !!payload.auto_fill_locales_all
     const pictures: any[] = Array.isArray(payload.pictures) ? payload.pictures : []
+    const [{ data: previousSet }, { data: previousPictures }] = await Promise.all([
+      supabaseAdmin
+        .from('picture_sets')
+        .select('cover_image_url, cover_image_variants')
+        .eq('id', idNum)
+        .maybeSingle(),
+      supabaseAdmin
+        .from('pictures')
+        .select('id, image_url, raw_image_url, image_variants')
+        .eq('picture_set_id', idNum),
+    ])
+    const previousAssetKeys = collectImageAssetKeys([previousSet as any, ...((previousPictures || []) as any[])])
+    const retainedAssetKeys = collectImageAssetKeys([
+      {
+        cover_image_url: payload.cover_image_url,
+        cover_image_variants: payload.cover_image_variants,
+      },
+      ...pictures,
+    ])
 
     const autoGen = !!payload.autogen_titles_subtitles
     const bucketBaseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
@@ -328,7 +349,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     }
 
     // update set
-    const setRow = { title: payload.title || '', subtitle: payload.subtitle || '', description: payload.description || '', cover_image_url: payload.cover_image_url || null, position: payload.position || 'up', is_published: payload.is_published ?? true, primary_category_id: payload.primary_category_id ?? null, season_id: payload.season_id ?? null }
+    const setRow = { title: payload.title || '', subtitle: payload.subtitle || '', description: payload.description || '', cover_image_url: payload.cover_image_url || null, cover_image_variants: payload.cover_image_variants || {}, position: payload.position || 'up', is_published: payload.is_published ?? true, primary_category_id: payload.primary_category_id ?? null, season_id: payload.season_id ?? null }
     const { error: upErr } = await supabaseAdmin.from('picture_sets').update(setRow).eq('id', idNum)
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 400 })
 
@@ -395,10 +416,14 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     if (desiredSectionIds.length) await supabaseAdmin.from('picture_set_section_assignments').insert(desiredSectionIds.map((sid: number) => ({ picture_set_id: idNum, section_id: sid, page_context: 'default', display_order: 0 })))
 
     // pictures: delete and recreate
-    const { data: existingPics } = await supabaseAdmin.from('pictures').select('id').eq('picture_set_id', idNum)
+    const existingPics = previousPictures || []
     const existingIds = (existingPics || []).map((p: any) => p.id)
     if (existingIds.length) {
       await Promise.all([
+        supabaseAdmin.from('picture_likes').delete().in('picture_id', existingIds),
+        supabaseAdmin.from('picture_comments').delete().in('picture_id', existingIds),
+        supabaseAdmin.from('picture_participants').delete().in('picture_id', existingIds),
+        supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', existingIds),
         supabaseAdmin.from('picture_taggings').delete().in('picture_id', existingIds),
         supabaseAdmin.from('picture_categories').delete().in('picture_id', existingIds),
         supabaseAdmin.from('picture_locations').delete().in('picture_id', existingIds),
@@ -430,6 +455,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
           description: p.description || '',
           image_url: p.image_url || null,
           raw_image_url: p.raw_image_url || null,
+          image_variants: p.image_variants || {},
           season_id: (allowApplySetProps
             ? (allowOverride ? (singleSeasonId ?? p.season_id ?? null)
               : (p.season_id ?? (singleSeasonId ?? null)))
@@ -552,29 +578,64 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     if (asyncEnrich) {
       triggerAsyncEnrich(idNum, payload)
     }
-    return NextResponse.json({ id: idNum })
+    const obsoleteAssetKeys = Array.from(previousAssetKeys).filter((key) => !retainedAssetKeys.has(key))
+    const storageDelete = await deleteObjectKeysFromR2(obsoleteAssetKeys)
+    if (storageDelete.errors.length) {
+      console.warn('Failed to delete some obsolete image assets after picture set update:', storageDelete.errors)
+    }
+    return NextResponse.json({
+      id: idNum,
+      storageDeleted: storageDelete.deleted.length,
+      storageDeleteErrors: storageDelete.errors,
+    })
   } catch (e: any) { return NextResponse.json({ error: String(e?.message || e) }, { status: 500 }) }
 }
 
-export async function DELETE(_request: Request, ctx: { params: { id: string } }) {
+export async function DELETE(request: Request, ctx: { params: { id: string } }) {
   try {
     const idNum = Number(ctx.params.id)
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
-    const { data: pics } = await supabaseAdmin.from('pictures').select('id').eq('picture_set_id', idNum)
+    const [{ data: setRow }, { data: pics }] = await Promise.all([
+      supabaseAdmin
+        .from('picture_sets')
+        .select('cover_image_url, cover_image_variants')
+        .eq('id', idNum)
+        .maybeSingle(),
+      supabaseAdmin
+        .from('pictures')
+        .select('id, image_url, raw_image_url, image_variants')
+        .eq('picture_set_id', idNum),
+    ])
+    const assetKeys = collectImageAssetKeys([setRow as any, ...((pics || []) as any[])])
     const pids = (pics || []).map((p: any) => p.id)
     if (pids.length) {
+      await supabaseAdmin.from('picture_likes').delete().in('picture_id', pids)
+      await supabaseAdmin.from('picture_comments').delete().in('picture_id', pids)
+      await supabaseAdmin.from('picture_participants').delete().in('picture_id', pids)
+      await supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', pids)
       await supabaseAdmin.from('picture_taggings').delete().in('picture_id', pids)
       await supabaseAdmin.from('picture_categories').delete().in('picture_id', pids)
       await supabaseAdmin.from('picture_locations').delete().in('picture_id', pids)
       await supabaseAdmin.from('picture_translations').delete().in('picture_id', pids)
       await supabaseAdmin.from('pictures').delete().in('id', pids)
     }
+    await supabaseAdmin.from('picture_set_likes').delete().eq('picture_set_id', idNum)
+    await supabaseAdmin.from('picture_set_comments').delete().eq('picture_set_id', idNum)
+    await supabaseAdmin.from('picture_set_participants').delete().eq('picture_set_id', idNum)
     await supabaseAdmin.from('picture_set_taggings').delete().eq('picture_set_id', idNum)
     await supabaseAdmin.from('picture_set_categories').delete().eq('picture_set_id', idNum)
     await supabaseAdmin.from('picture_set_locations').delete().eq('picture_set_id', idNum)
     await supabaseAdmin.from('picture_set_section_assignments').delete().eq('picture_set_id', idNum)
     await supabaseAdmin.from('picture_set_translations').delete().eq('picture_set_id', idNum)
     await supabaseAdmin.from('picture_sets').delete().eq('id', idNum)
-    return NextResponse.json({ ok: true })
+    const storageDelete = await deleteObjectKeysFromR2(assetKeys)
+    if (storageDelete.errors.length) {
+      console.warn('Failed to delete some image assets after picture set delete:', storageDelete.errors)
+    }
+    return NextResponse.json({
+      ok: true,
+      storageDeleted: storageDelete.deleted.length,
+      storageDeleteErrors: storageDelete.errors,
+    })
   } catch (e: any) { return NextResponse.json({ error: String(e?.message || e) }, { status: 500 }) }
 }
