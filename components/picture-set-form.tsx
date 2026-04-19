@@ -25,57 +25,60 @@ interface PictureSetFormProps {
   onCancel?: () => void
 }
 
-const COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024
+const RESPONSIVE_IMAGE_WIDTHS = [640, 1280] as const
+const RESPONSIVE_PRIMARY_WIDTH = RESPONSIVE_IMAGE_WIDTHS[RESPONSIVE_IMAGE_WIDTHS.length - 1]
 
-type CompressionResult = {
-  file: File
-  didCompress: boolean
+function getResponsiveImageQuality(width: number) {
+  if (width <= 640) return 0.64
+  if (width <= 1280) return 0.74
+  return 0.84
 }
 
-// 压缩图片的函数（大于 10MB 才压缩，并根据原始大小动态调整参数）
-async function compressImage(file: File, quality?: number): Promise<CompressionResult> {
-  if (file.size <= COMPRESSION_THRESHOLD_BYTES) {
-    return { file, didCompress: false }
-  }
+function getResponsiveImageMaxSizeMB(width: number) {
+  if (width <= 640) return 0.26
+  if (width <= 1280) return 0.9
+  if (width <= 1920) return 2.2
+  return 3.4
+}
 
-  try {
-    const sizeInMB = file.size / (1024 * 1024)
-    const dynamicQuality =
-      typeof quality === "number"
-        ? quality
-        : sizeInMB > 30
-          ? 0.72
-          : sizeInMB > 20
-            ? 0.78
-            : sizeInMB > 12
-              ? 0.82
-              : 0.86
-    const options = {
-      maxWidthOrHeight: sizeInMB > 30 ? 2048 : sizeInMB > 20 ? 2304 : 2560,
-      useWebWorker: true,
-      initialQuality: dynamicQuality,
-      maxSizeMB: Math.max(4, sizeInMB * 0.55),
-      fileType: "image/webp" as const,
-    }
+function normalizeObjectNamePart(value: string) {
+  return value
+    .replace(/\.[^/.]+$/, "")
+    .normalize("NFKD")
+    .replace(/[^\w.-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80) || "image"
+}
 
-    const compressedFile = await imageCompression(file, options)
-    const webpFile = new File(
-      [compressedFile],
-      file.name.replace(/\.[^/.]+$/, ".webp"),
-      { type: "image/webp" },
-    )
+function getOriginalExtension(file: File) {
+  const match = file.name.match(/\.[A-Za-z0-9]+$/)
+  if (match) return match[0].toLowerCase()
+  if (file.type === "image/png") return ".png"
+  if (file.type === "image/webp") return ".webp"
+  if (file.type === "image/gif") return ".gif"
+  return ".jpg"
+}
 
-    if (webpFile.size >= file.size) {
-      // 压缩结果反而更大，直接返回原图
-      return { file, didCompress: false }
-    }
+function createResponsiveImagePrefix(kind: string, fileName: string, idx?: number) {
+  const random =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2)
+  const suffix = typeof idx === "number" ? `-${idx}` : ""
+  return `picture/responsive/${kind}-${Date.now()}${suffix}-${random}-${normalizeObjectNamePart(fileName)}`
+}
 
-    return { file: webpFile, didCompress: true }
-  } catch (error) {
-    console.error(`压缩图片 ${file.name} 失败，使用原图:`, error)
-    // 压缩失败时返回原图
-    return { file, didCompress: false }
-  }
+async function createResponsiveVariant(file: File, width: number): Promise<File> {
+  const variant = await imageCompression(file, {
+    maxWidthOrHeight: width,
+    useWebWorker: true,
+    initialQuality: getResponsiveImageQuality(width),
+    maxSizeMB: getResponsiveImageMaxSizeMB(width),
+    fileType: "image/webp",
+  })
+
+  return new File([variant], `w${width}.webp`, { type: "image/webp" })
 }
 
 // 生成预览 URL
@@ -385,6 +388,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             originalSize: 0,
             compressedSize: undefined,
             image_url: pic.image_url || "",
+            image_variants: pic.image_variants || {},
           }))
         // initialize touched map: mark true if DB provided non-empty en.*
         editingPictureSet.pictures.forEach((p, i) => {
@@ -1012,44 +1016,69 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         }
       }
 
-      // Cover upload (if provided)
-      let coverKey = coverImageUrl
-      if (cover) {
-        const { file: preparedCover } = await compressImage(cover)
-        coverKey = await uploadFile(
-          preparedCover,
-          `picture/cover-${Date.now()}-${preparedCover.name}`,
-        )
+      const uploadResponsiveImage = async (
+        file: File,
+        kind: "cover" | "image",
+        idx?: number,
+      ): Promise<{ imageUrl: string; variants: Record<string, string>; displaySize?: number }> => {
+        const prefix = createResponsiveImagePrefix(kind, file.name, idx)
+        const originalObjectName = `${prefix}/original${getOriginalExtension(file)}`
+        const variants: Record<string, string> = {}
+
+        try {
+          const originalUploadPromise = uploadFile(file, originalObjectName)
+          let displaySize: number | undefined
+
+          for (const width of RESPONSIVE_IMAGE_WIDTHS) {
+            const variant = await createResponsiveVariant(file, width)
+            const url = await uploadFile(variant, `${prefix}/w${width}.webp`)
+            variants[String(width)] = url
+            if (width === RESPONSIVE_PRIMARY_WIDTH) {
+              displaySize = variant.size
+            }
+          }
+
+          const originalUrl = await originalUploadPromise
+          variants.original = originalUrl
+
+          return { imageUrl: originalUrl, variants, displaySize }
+        } catch (error) {
+          console.error(`Error creating responsive variants for ${file.name}, falling back to original image:`, error)
+          const fallbackUrl = await uploadFile(file, originalObjectName)
+          return {
+            imageUrl: fallbackUrl,
+            variants: { original: fallbackUrl },
+          }
+        }
       }
 
-      // Pictures: upload raw and compressed if a new file provided
+      // Cover upload (if provided)
+      let coverKey = coverImageUrl
+      let coverImageVariants = editingPictureSet?.cover_image_variants || {}
+      if (cover) {
+        const { imageUrl, variants } = await uploadResponsiveImage(cover, "cover")
+        coverKey = imageUrl
+        coverImageVariants = variants
+      }
+
+      // Pictures: upload raw and responsive display variants if a new file provided
       const processedPictures = await Promise.all(
         picturesForPayload.map(async (pic, idx) => {
           let image_url = pic.image_url || ""
           let raw_image_url = pic.raw_image_url || ""
+          let image_variants = pic.image_variants || {}
 
           if (pic.cover instanceof File) {
-            // Upload raw and compress in parallel to reduce total time
-            const rawUploadPromise = uploadFile(
-              pic.cover,
-              `picture/original-${Date.now()}-${idx}-${pic.cover.name}`,
-            )
-            const compressPromise = compressImage(pic.cover)
-            raw_image_url = await rawUploadPromise
-            const { file: comp, didCompress } = await compressPromise
-            if (didCompress) {
-              image_url = await uploadFile(
-                comp,
-                `picture/compressed-${Date.now()}-${idx}-${comp.name}`,
-              )
-            } else {
-              image_url = raw_image_url
-            }
-            // update UI compressed size (non-blocking)
+            const responsiveUploadPromise = uploadResponsiveImage(pic.cover, "image", idx)
+            const { imageUrl, variants, displaySize } = await responsiveUploadPromise
+            image_url = imageUrl
+            raw_image_url = variants.original || imageUrl
+            image_variants = variants
+            // update UI display variant size (non-blocking)
             setPictures((current) =>
               current.map((p, i) =>
                 i === idx
-                  ? { ...p, compressedSize: didCompress ? comp.size : undefined }
+                  ? { ...p, compressedSize: displaySize }
                   : p,
               ),
             )
@@ -1071,6 +1100,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
             zh: pic.zh,
             image_url,
             raw_image_url,
+            image_variants,
           }
         }),
       )
@@ -1115,6 +1145,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         description,
         position: derivedPosition,
         cover_image_url: coverKey,
+        cover_image_variants: coverImageVariants,
         pictures: propagatedPictures,
         is_published: isPublished,
         // keep single fields for backward compatibility but prefer multi
@@ -1294,7 +1325,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               {coverOriginalSize > 0 && (
                 <p className="text-sm text-gray-500 mt-2">
                   {t('originalSize')} {formatSize(coverOriginalSize)}
-                  {coverOriginalSize > COMPRESSION_THRESHOLD_BYTES && ` • ${t('willBeCompressed')}`}
+                  {" • 640/1280 WebP + original"}
                 </p>
               )}
             </div>
@@ -1729,7 +1760,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                               {pic.compressedSize && (
                                 <>
                                   <br />
-                                  <span className="font-medium">Compressed:</span> {formatSize(pic.compressedSize)} 
+                                  <span className="font-medium">Display variant:</span> {formatSize(pic.compressedSize)}
                                   <span className="text-green-600 font-medium">
                                     ({((pic.compressedSize / pic.originalSize!) * 100).toFixed(1)}%)
                                   </span>

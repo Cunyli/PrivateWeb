@@ -7,6 +7,7 @@ import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
 import { useI18n } from "@/lib/i18n"
 import { ArrowUpRight } from "lucide-react"
 import { useRouter } from "next/navigation"
+import portfolioImageLoader from "@/lib/portfolio-image-loader"
 
 type PictureTranslation = {
   title?: string | null
@@ -51,9 +52,6 @@ const HOVER_INTENT_DELAY_MS = 90
 const PREVIEW_QUALITY = 55
 const PREVIEW_PREFETCH_WIDTH = 800
 const PREVIEW_SIZES = "(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
-
-const buildOptimizedImageUrl = (src: string, width: number, quality: number) =>
-  `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`
 
 const savePortfolioReturnState = () => {
   if (typeof window === "undefined") return
@@ -278,7 +276,7 @@ export function PhotographyStyleShowcase() {
       ? candidate.imageUrl
       : `${bucketUrl}${candidate.imageUrl}`
     if (!src) return
-    const optimizedSrc = buildOptimizedImageUrl(src, PREVIEW_PREFETCH_WIDTH, PREVIEW_QUALITY)
+    const optimizedSrc = portfolioImageLoader({ src, width: PREVIEW_PREFETCH_WIDTH })
     if (prefetchedImagesRef.current.has(optimizedSrc)) return
     const img = new window.Image()
     img.decoding = "async"

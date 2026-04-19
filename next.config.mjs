@@ -14,6 +14,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    loader: 'custom',
+    loaderFile: './lib/portfolio-image-loader.js',
+    qualities: [45, 55, 60, 75],
     remotePatterns: [
       {
         protocol: 'https',

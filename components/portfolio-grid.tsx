@@ -16,6 +16,7 @@ import { LangSwitcher } from "@/components/lang-switcher"
 import { PhotographyStyleShowcase } from "@/components/photography-style-showcase"
 import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
 import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
+import portfolioImageLoader from "@/lib/portfolio-image-loader"
 
 const DEFAULT_DOWN_TILE_ASPECT_RATIO = 3 / 4
 const INITIAL_DOWN_LIMIT = 8
@@ -23,7 +24,7 @@ const DOWN_PREFETCH_LIMIT = 16
 const DOWN_THUMB_QUALITY = 45
 const DOWN_THUMB_PREFETCH_WIDTH = 640
 const DOWN_DIMENSION_PREFETCH_WIDTH = 64
-const DOWN_DIMENSION_PREFETCH_QUALITY = 30
+const THUMB_MAX_RESPONSIVE_WIDTH = 640
 const DOWN_IMAGE_SIZES =
   "(min-width: 2200px) 14rem, (min-width: 1800px) 16rem, (min-width: 1536px) 18rem, (min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw"
 const SCROLL_SPEED = 0.85
@@ -40,8 +41,11 @@ const createLoopedRow = (row: PictureSet[]): PictureSet[] => {
   return result
 }
 
-const buildOptimizedImageUrl = (src: string, width: number, quality: number) =>
-  `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`
+const capResponsiveImageWidth = (src: string, maxWidth = THUMB_MAX_RESPONSIVE_WIDTH) => {
+  if (!src.includes("/picture/responsive/")) return src
+  const separator = src.includes("?") ? "&" : "?"
+  return `${src}${separator}maxWidth=${maxWidth}`
+}
 
 const normalizeSearchInput = (value: string) =>
   value
@@ -579,8 +583,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     const candidates = downPictureSets.slice(0, bufferCount)
     for (const item of candidates) {
       if (!item.cover_image_url) continue
-      const src = `${baseUrl}${item.cover_image_url}`
-      enqueueDownPrefetch(buildOptimizedImageUrl(src, DOWN_THUMB_PREFETCH_WIDTH, DOWN_THUMB_QUALITY))
+      const src = capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`)
+      enqueueDownPrefetch(portfolioImageLoader({ src, width: DOWN_THUMB_PREFETCH_WIDTH }))
     }
   }, [downPictureSets, baseUrl, enqueueDownPrefetch])
 
@@ -593,10 +597,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     for (const item of downPictureSets) {
       if (!item.cover_image_url) continue
       if (coverDimensions[item.id]) continue
-      const src = `${baseUrl}${item.cover_image_url}`
+      const src = capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`)
       enqueueDownDimensionPrefetch(
         item.id,
-        buildOptimizedImageUrl(src, DOWN_DIMENSION_PREFETCH_WIDTH, DOWN_DIMENSION_PREFETCH_QUALITY),
+        portfolioImageLoader({ src, width: DOWN_DIMENSION_PREFETCH_WIDTH }),
       )
     }
   }, [downPictureSets, baseUrl, coverDimensions, enqueueDownDimensionPrefetch])
@@ -820,7 +824,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         id: set.id,
         title,
         subtitle,
-        coverUrl: set.cover_image_url ? `${baseUrl}${set.cover_image_url}` : '/placeholder.svg',
+        coverUrl: set.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${set.cover_image_url}`) : '/placeholder.svg',
       })
       buckets.set(bucketKey, existing)
     }
@@ -854,7 +858,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
             {downPictureSets.map((item, index) => {
               const dims = coverDimensions[item.id]
               const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-              const coverSrc = item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : '/placeholder.svg'
+              const coverSrc = item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : '/placeholder.svg'
               const eager = index < downEagerCount
 
               const columnAwareStyle: CSSProperties = {
@@ -1046,7 +1050,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                             onClick={savePortfolioReturnState}
                             className="group block relative overflow-hidden rounded-md bg-gray-100"
                           >
-                            <Image src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"} alt={getText(item, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                            <Image src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"} alt={getText(item, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
                             <div className="p-2">
                               <div className="text-sm font-medium line-clamp-1">{getText(item, 'title')}</div>
                               <div className="text-xs text-gray-500 line-clamp-1">{getText(item, 'subtitle')}</div>
@@ -1074,7 +1078,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                             onClick={savePortfolioReturnState}
                             className="group block relative overflow-hidden rounded-md bg-gray-100"
                           >
-                            <Image src={p.image_url ? `${baseUrl}${p.image_url}` : "/placeholder.svg"} alt={getPicText(p, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                            <Image src={p.image_url ? capResponsiveImageWidth(`${baseUrl}${p.image_url}`) : "/placeholder.svg"} alt={getPicText(p, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
                             <div className="p-2">
                               <div className="text-sm font-medium line-clamp-1">{getPicText(p, 'title')}</div>
                               <div className="text-xs text-gray-500 line-clamp-1">{getPicText(p, 'subtitle')}</div>
@@ -1131,7 +1135,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                         className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                       >
                       <Image
-                        src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
+                        src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
                         alt={item.title}
                         fill
                         quality={60}
@@ -1181,7 +1185,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                         >
                         <Image
-                          src={item.cover_image_url ? `${baseUrl}${item.cover_image_url}` : "/placeholder.svg"}
+                          src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
                           alt={item.title}
                           fill
                           quality={60}
