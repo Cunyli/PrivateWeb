@@ -169,6 +169,27 @@ async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promi
   return (data || []).map(d => d.id)
 }
 
+async function runMutation(label: string, query: any) {
+  const { error } = await query
+  if (error) {
+    throw new Error(`${label} failed: ${error.message}`)
+  }
+}
+
+async function deletePictureRows(pictureIds: number[]) {
+  if (!pictureIds.length) return
+
+  await runMutation('delete picture likes', supabaseAdmin.from('picture_likes').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture comments', supabaseAdmin.from('picture_comments').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture participants', supabaseAdmin.from('picture_participants').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture section assignments', supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture taggings', supabaseAdmin.from('picture_taggings').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture categories', supabaseAdmin.from('picture_categories').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture locations', supabaseAdmin.from('picture_locations').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture translations', supabaseAdmin.from('picture_translations').delete().in('picture_id', pictureIds))
+  await runMutation('delete pictures', supabaseAdmin.from('pictures').delete().in('id', pictureIds))
+}
+
 export async function GET(_req: Request, ctx: { params: { id: string } }) {
   try {
     const idNum = Number(ctx.params.id)
@@ -418,19 +439,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     // pictures: delete and recreate
     const existingPics = previousPictures || []
     const existingIds = (existingPics || []).map((p: any) => p.id)
-    if (existingIds.length) {
-      await Promise.all([
-        supabaseAdmin.from('picture_likes').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_comments').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_participants').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_taggings').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_categories').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_locations').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_translations').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('pictures').delete().in('id', existingIds),
-      ])
-    }
+    await deletePictureRows(existingIds)
 
     // Apply set props flags similar to POST
     let singleSeasonId: number | null = null
@@ -608,26 +617,16 @@ export async function DELETE(request: Request, ctx: { params: { id: string } }) 
     ])
     const assetKeys = collectImageAssetKeys([setRow as any, ...((pics || []) as any[])])
     const pids = (pics || []).map((p: any) => p.id)
-    if (pids.length) {
-      await supabaseAdmin.from('picture_likes').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_comments').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_participants').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_taggings').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_categories').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_locations').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_translations').delete().in('picture_id', pids)
-      await supabaseAdmin.from('pictures').delete().in('id', pids)
-    }
-    await supabaseAdmin.from('picture_set_likes').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_comments').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_participants').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_taggings').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_categories').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_locations').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_section_assignments').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_translations').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_sets').delete().eq('id', idNum)
+    await deletePictureRows(pids)
+    await runMutation('delete picture set likes', supabaseAdmin.from('picture_set_likes').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set comments', supabaseAdmin.from('picture_set_comments').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set participants', supabaseAdmin.from('picture_set_participants').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set taggings', supabaseAdmin.from('picture_set_taggings').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set categories', supabaseAdmin.from('picture_set_categories').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set locations', supabaseAdmin.from('picture_set_locations').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set section assignments', supabaseAdmin.from('picture_set_section_assignments').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set translations', supabaseAdmin.from('picture_set_translations').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set', supabaseAdmin.from('picture_sets').delete().eq('id', idNum))
     const storageDelete = await deleteObjectKeysFromR2(assetKeys)
     if (storageDelete.errors.length) {
       console.warn('Failed to delete some image assets after picture set delete:', storageDelete.errors)
