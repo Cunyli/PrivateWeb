@@ -27,7 +27,7 @@ const DOWN_DIMENSION_PREFETCH_WIDTH = 64
 const THUMB_MAX_RESPONSIVE_WIDTH = 640
 const DOWN_IMAGE_SIZES =
   "(min-width: 2200px) 14rem, (min-width: 1800px) 16rem, (min-width: 1536px) 18rem, (min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw"
-const SCROLL_SPEED = 0.85
+const ROW_SCROLL_SPEED_PX_PER_SECOND = 64
 const MIN_LOOPED_ROW_ITEMS = 12
 const widthPattern = ["w-[15%]", "w-[25%]", "w-[20%]", "w-[25%]", "w-[15%]"]
 const getTileWidthClass = (index: number) => widthPattern[index % widthPattern.length]
@@ -127,12 +127,24 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const downDimensionQueueRef = useRef<Array<{ id: number; url: string }>>([])
   const downDimensionPrefetchingRef = useRef(false)
   const [activeVideoIndex, setActiveVideoIndex] = useState(0)
-  const resumeTopRow = useCallback(() => setTopRowPaused(false), [])
-  const resumeBottomRow = useCallback(() => setBottomRowPaused(false), [])
+  const resumeTopRow = useCallback(() => {
+    const current = topRowRef.current?.scrollLeft
+    if (Number.isFinite(current)) topRowScrollRef.current = current || 0
+    setTopRowPaused(false)
+  }, [])
+  const resumeBottomRow = useCallback(() => {
+    const current = bottomRowRef.current?.scrollLeft
+    if (Number.isFinite(current)) bottomRowScrollRef.current = current || 0
+    setBottomRowPaused(false)
+  }, [])
   const forcePauseTopRow = useCallback(() => {
+    const current = topRowRef.current?.scrollLeft
+    if (Number.isFinite(current)) topRowScrollRef.current = current || 0
     setTopRowPaused(true)
   }, [])
   const forcePauseBottomRow = useCallback(() => {
+    const current = bottomRowRef.current?.scrollLeft
+    if (Number.isFinite(current)) bottomRowScrollRef.current = current || 0
     setBottomRowPaused(true)
   }, [])
   const measureRowOverflow = useCallback((row: HTMLDivElement | null) => {
@@ -629,34 +641,36 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     if (!loopedFirstRow.length && !loopedSecondRow.length) return
     if (!topRowRef.current && !bottomRowRef.current) return
 
+    let animationFrameId = 0
     let lastTime = performance.now()
-    const speedPerMs = SCROLL_SPEED / 30
-    const tick = () => {
-      const now = performance.now()
-      const delta = now - lastTime
+    const tick = (now: number) => {
+      const delta = Math.min(now - lastTime, 80)
       lastTime = now
+      const distance = (delta * ROW_SCROLL_SPEED_PX_PER_SECOND) / 1000
       const top = topRowRef.current
       const bottom = bottomRowRef.current
       const maxTop = topRowMaxScrollRef.current
       const maxBottom = bottomRowMaxScrollRef.current
       if (top && loopedFirstRow.length && maxTop > 0.5 && !topRowPaused) {
-        const current = Number.isFinite(top.scrollLeft) ? top.scrollLeft : topRowScrollRef.current
-        const next = current + delta * speedPerMs
+        const current = topRowScrollRef.current
+        const next = current + distance
         const wrapped = next >= maxTop ? 0 : next
         topRowScrollRef.current = wrapped
         top.scrollLeft = wrapped
       }
       if (bottom && loopedSecondRow.length && maxBottom > 0.5 && !bottomRowPaused) {
-        const current = Number.isFinite(bottom.scrollLeft) ? bottom.scrollLeft : bottomRowScrollRef.current
-        const next = current - delta * speedPerMs
+        const current = bottomRowScrollRef.current
+        const next = current - distance
         const wrapped = next <= 0 ? maxBottom : next
         bottomRowScrollRef.current = wrapped
         bottom.scrollLeft = wrapped
       }
+
+      animationFrameId = window.requestAnimationFrame(tick)
     }
 
-    const id = window.setInterval(tick, 16)
-    return () => window.clearInterval(id)
+    animationFrameId = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(animationFrameId)
   }, [loopedFirstRow.length, loopedSecondRow.length, topRowPaused, bottomRowPaused])
 
   useEffect(() => {

@@ -34,6 +34,14 @@ const gateCopy = {
     en: "The good stuff is here.",
     zh: "好看的都在这",
   },
+  matrixRedBody: {
+    en: "CV",
+    zh: "简历",
+  },
+  matrixBlueBody: {
+    en: "Works",
+    zh: "作品集",
+  },
 }
 
 export function EntryGate() {
@@ -142,6 +150,15 @@ export function EntryGate() {
     setLocale(locale === "zh" ? "en" : "zh")
   }
 
+  const handleMobileNavigate = (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    if (isExiting) return
+    setIsExiting(true)
+    window.setTimeout(() => {
+      window.location.href = href
+    }, 520)
+  }
+
   const handleNavigate = (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault()
     if (isExiting) return
@@ -203,25 +220,47 @@ export function EntryGate() {
         } as CSSProperties
       }
     >
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      <div className="pointer-events-none absolute inset-0 -z-10 hidden md:block">
         <div
-          className={`absolute bg-cover bg-no-repeat will-change-transform ${isMobile ? "left-1/2 top-1/2" : "inset-0"}`}
+          className="absolute inset-0 bg-cover bg-no-repeat will-change-transform"
           style={{
             backgroundImage: "url('/hand_with_hand.png')",
-            backgroundPosition: isMobile ? "50% 50%" : "37% center",
+            backgroundPosition: "37% center",
             backgroundSize: "cover",
-            width: isMobile ? "165vmax" : "100%",
-            height: isMobile ? "165vmax" : "100%",
-            transform:
-              isMobile
-                ? "translate3d(-50%, -50%, 0) rotate(90deg) scale(1.05)"
-                : "translate3d(calc(var(--parallax-x, 0px) * 0.2), calc(var(--parallax-y, 0px) * 0.2), 0)",
+            transform: "translate3d(calc(var(--parallax-x, 0px) * 0.2), calc(var(--parallax-y, 0px) * 0.2), 0)",
             transformOrigin: "center",
           }}
         />
       </div>
 
-      <section className="entry-section relative mx-auto flex min-h-[100svh] max-w-6xl items-center justify-center px-6 py-16 sm:px-10 sm:py-24">
+      <section className="entry-mobile relative isolate flex min-h-[100svh] overflow-hidden bg-[#030403] text-white md:hidden">
+        <div className="mobile-pill-photo pointer-events-none absolute inset-0" />
+        <div className={`mobile-pill-exit pointer-events-none fixed inset-0 z-30 bg-black transition-opacity duration-500 ${isExiting ? "opacity-100" : "opacity-0"}`} />
+
+        <nav className="mobile-pill-nav" aria-label={gateLocale === "zh" ? "药丸入口" : "Pill entries"}>
+          <a
+            href="/portfolio"
+            className="mobile-pill-hotspot mobile-pill-hotspot-left"
+            onClick={handleMobileNavigate("/portfolio")}
+            aria-label={gateCopy.matrixBlueBody[gateLocale]}
+            title={gateCopy.matrixBlueBody[gateLocale]}
+          >
+            <span className="sr-only">{gateCopy.matrixBlueBody[gateLocale]}</span>
+          </a>
+
+          <a
+            href="/resume"
+            className="mobile-pill-hotspot mobile-pill-hotspot-right"
+            onClick={handleMobileNavigate("/resume")}
+            aria-label={gateCopy.matrixRedBody[gateLocale]}
+            title={gateCopy.matrixRedBody[gateLocale]}
+          >
+            <span className="sr-only">{gateCopy.matrixRedBody[gateLocale]}</span>
+          </a>
+        </nav>
+      </section>
+
+      <section className="entry-section relative mx-auto hidden min-h-[100svh] max-w-6xl items-center justify-center px-6 py-16 sm:px-10 sm:py-24 md:flex">
         <div className="relative w-full">
           <button
             type="button"
@@ -312,6 +351,60 @@ export function EntryGate() {
         </div>
       </section>
       <style jsx>{`
+        .mobile-pill-photo {
+          background-image: url("/matrix-pill-bg.png");
+          background-position: center center;
+          background-size: cover;
+          filter: contrast(1.02) saturate(0.94);
+        }
+
+        .mobile-pill-photo::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at center, transparent 52%, rgba(0, 0, 0, 0.26)),
+            linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.22));
+          pointer-events: none;
+        }
+
+        .mobile-pill-nav {
+          position: fixed;
+          inset: 0;
+          z-index: 20;
+        }
+
+        .mobile-pill-hotspot {
+          position: absolute;
+          display: block;
+          bottom: 10%;
+          height: 38%;
+          width: 50%;
+          background: transparent;
+          border: 0;
+          cursor: pointer;
+          outline: none;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+
+        .mobile-pill-hotspot-left {
+          left: 0;
+        }
+
+        .mobile-pill-hotspot-right {
+          right: 0;
+        }
+
+        .mobile-pill-hotspot:focus-visible {
+          outline: 2px solid rgba(255, 255, 255, 0.78);
+          outline-offset: 5px;
+        }
+
+        .mobile-pill-hotspot:active {
+          background: transparent;
+        }
+
         .entry-animate .entry-section {
           animation: entry-fade 520ms ease-out both;
         }
