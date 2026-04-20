@@ -448,8 +448,8 @@ export function PhotographyStyleShowcase() {
               
               <div
                 data-style-scroll-container
-                className="flex gap-0 overflow-x-auto pb-6 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                style={{ WebkitOverflowScrolling: "touch", paddingLeft: "1rem", paddingRight: "1rem" }}
+                className="flex gap-0 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                style={{ WebkitOverflowScrolling: "touch", paddingLeft: "0.875rem", paddingRight: "0.875rem" }}
                 onScroll={(e) => {
                   // 滚动节流优化 - 使用 requestAnimationFrame
                   if (scrollThrottleTimer.current !== null) {
@@ -522,14 +522,14 @@ export function PhotographyStyleShowcase() {
                     type="button"
                     onClick={() => handleOpenStyle(style.id)}
                     onTouchStart={() => setActiveMobileStyleId(style.id)}
-                    className="snap-center relative inline-flex min-h-[420px] flex-shrink-0 overflow-hidden bg-slate-900 text-left shadow-[0_30px_90px_-45px_rgba(15,23,42,0.85)] transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 active:scale-[0.96]"
+                    className="snap-center relative inline-flex h-[320px] min-h-[320px] flex-shrink-0 overflow-hidden bg-slate-900 text-left shadow-[0_24px_70px_-42px_rgba(15,23,42,0.85)] transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 active:scale-[0.96]"
                     style={{
                       clipPath,
-                      width: 'calc(100vw - 3rem)',
-                      maxWidth: '360px',
-                      marginRight: isLast ? '0' : '-12%',
-                      marginLeft: isFirst ? '0' : '-12%',
-                      transform: isMobileActive ? 'scale(1.02) translateY(-8px)' : 'scale(1) translateY(0)',
+                      width: 'calc(100vw - 4rem)',
+                      maxWidth: '300px',
+                      marginRight: isLast ? '0' : '-10%',
+                      marginLeft: isFirst ? '0' : '-10%',
+                      transform: isMobileActive ? 'scale(1.015) translateY(-5px)' : 'scale(1) translateY(0)',
                       zIndex: isMobileActive ? 20 : 10 - cardIdx,
                       filter: isMobileActive ? 'brightness(1.1)' : 'brightness(0.95)',
                     }}
@@ -571,7 +571,7 @@ export function PhotographyStyleShowcase() {
                       />
                     </div>
 
-                    <div className="relative z-10 flex h-full flex-col justify-between p-6 transition-all duration-500">
+                    <div className="relative z-10 flex h-full flex-col justify-between p-5 transition-all duration-500">
                       <div 
                         className="flex w-full items-center gap-3 text-white/70 transition-all duration-500"
                         style={{ 
@@ -592,7 +592,7 @@ export function PhotographyStyleShowcase() {
                           opacity: isMobileActive ? 1 : 0.9
                         }}
                       >
-                        <h3 className="text-[2rem] font-extralight text-white drop-shadow-xl">
+                        <h3 className="text-[1.55rem] font-extralight text-white drop-shadow-xl">
                           {t(style.i18nKey)}
                         </h3>
                       </div>
@@ -621,7 +621,7 @@ export function PhotographyStyleShowcase() {
               </div>
               
               {/* 滚动指示器 */}
-              <div className="flex justify-center items-center gap-2 mt-4">
+              <div className="flex justify-center items-center gap-2 mt-3">
                 {PHOTOGRAPHY_STYLES.map((style, idx) => {
                   const isActive = activeMobileStyleId === style.id
                   return (

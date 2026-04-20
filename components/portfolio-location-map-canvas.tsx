@@ -201,45 +201,52 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
   return (
     <div className="w-full">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center">
-        <div className="relative h-[420px] w-full overflow-hidden rounded-[2.5rem] border border-slate-200/60 shadow-[0_40px_90px_-45px_rgba(15,23,42,0.7)]">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-stretch">
+        <div className="relative h-[280px] w-full overflow-hidden rounded-[1.25rem] border border-zinc-200/70 shadow-[0_28px_70px_-48px_rgba(24,24,27,0.7)] sm:h-[420px] sm:rounded-[2rem]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.18),transparent_55%),radial-gradient(circle_at_80%_15%,rgba(56,189,248,0.18),transparent_55%),radial-gradient(circle_at_50%_80%,rgba(129,140,248,0.16),transparent_65%)]" />
           <div className="absolute inset-0 mix-blend-screen opacity-40" style={{ backgroundImage: "repeating-linear-gradient(0deg, rgba(148,163,184,0.1), rgba(148,163,184,0.1) 1px, transparent 1px, transparent 48px), repeating-linear-gradient(90deg, rgba(148,163,184,0.08), rgba(148,163,184,0.08) 1px, transparent 1px, transparent 64px)" }} />
           <div ref={mapRootRef} className="h-full w-full [&_.leaflet-control-container]:hidden" />
           {!mapReady && <div className="pointer-events-none absolute inset-0 animate-pulse bg-white/40" />}
       </div>
 
-        <div className="rounded-3xl border border-slate-200/60 bg-white/80 p-6 sm:p-8 shadow-[0_30px_70px_-35px_rgba(30,41,59,0.6)] backdrop-blur">
+        <div className="min-h-0 sm:min-h-[22rem] lg:min-h-0">
           {activeLocation ? (
-            <div className="flex h-full flex-col gap-4">
+            <div className="flex h-full flex-col">
+              <div className="px-1 pb-3 sm:px-0">
+                <p className="text-[0.65rem] uppercase tracking-[0.28em] text-zinc-400">
+                  {locale === "zh" ? "当前位置" : "Current Point"}
+                </p>
+                <h3 className="mt-1 text-base font-medium text-zinc-900 line-clamp-1">
+                  {activeLocation.name}
+                </h3>
+              </div>
               <div
-                className={`grid gap-4 overflow-y-auto pr-1 sm:grid-cols-1 ${activeLocation.sets.length === 1 ? "" : "md:grid-cols-2"}`}
-                style={{ maxHeight: "22rem" }}
+                className={`grid max-h-[16rem] flex-1 gap-2.5 overflow-y-auto pr-1 sm:max-h-[24rem] sm:gap-3 ${activeLocation.sets.length === 1 ? "" : "sm:grid-cols-2 lg:grid-cols-1"}`}
               >
                 {activeLocation.sets.map((set) => (
                   <Link
                     key={set.id}
                     href={buildWorkHref(set.id)}
                     onClick={savePortfolioReturnState}
-                    className={`group overflow-hidden rounded-2xl border border-slate-200/60 bg-white/50 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_-25px_rgba(30,41,59,0.45)] ${activeLocation.sets.length === 1 ? "w-full" : ""}`}
+                    className="group grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-3 rounded-[1.1rem] bg-white/65 p-1.5 shadow-[0_16px_42px_-34px_rgba(24,24,27,0.8)] transition-transform duration-300 hover:-translate-y-0.5 sm:block sm:bg-transparent sm:p-0 sm:shadow-none"
                   >
-                    <div className={`relative overflow-hidden ${activeLocation.sets.length === 1 ? "aspect-[16/10]" : "aspect-[5/4]"}`}>
+                    <div className={`relative aspect-square overflow-hidden rounded-[0.9rem] bg-zinc-100 sm:rounded-[1.1rem] sm:shadow-[0_20px_60px_-42px_rgba(24,24,27,0.85)] ${activeLocation.sets.length === 1 ? "sm:aspect-[16/10]" : "sm:aspect-[4/3]"}`}>
                       <Image
                         src={set.coverUrl}
                         alt={set.title}
                         fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 640px) 96px, (max-width: 1280px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                         priority={false}
                       />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/0 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/18 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                     </div>
-                    <div className="px-4 py-3">
-                      <h4 className="text-base font-semibold text-slate-900 line-clamp-1">
+                    <div className="min-w-0 pr-1 sm:px-1 sm:pt-2.5">
+                      <h4 className="text-sm font-medium text-zinc-900 line-clamp-2 sm:text-base sm:line-clamp-1">
                         {set.title}
                       </h4>
                       {set.subtitle && (
-                        <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+                        <p className="mt-1 text-xs leading-snug text-zinc-500 line-clamp-2 sm:mt-0.5 sm:text-sm">
                           {set.subtitle}
                         </p>
                       )}
@@ -249,7 +256,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-300/60 bg-white/60 p-6 text-center text-sm text-slate-500">
+            <div className="rounded-[1.1rem] border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500">
               {emptyLabel}
             </div>
           )}

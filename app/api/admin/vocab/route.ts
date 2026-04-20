@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { requireAdminRequest } from "@/utils/admin-auth.server"
 
 export async function GET(request: Request) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
     const url = new URL(request.url)
     const locale = (url.searchParams.get('locale') || 'en').toLowerCase()
     async function selectWithNameCn(table: string, orderBy: string, orderAsc: boolean) {

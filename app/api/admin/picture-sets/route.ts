@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
+import { requireAdminRequest } from "@/utils/admin-auth.server"
 export const runtime = 'nodejs'
 
 // --- Translation helpers (server-side bi-directional) ---
@@ -28,6 +29,16 @@ async function translateText(text: string, target: 'en' | 'zh'): Promise<string>
 }
 
 const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
+
+function chooseLocalizedValue(existing: string, next: string, locale: 'en' | 'zh') {
+  const current = String(existing || '').trim()
+  const candidate = String(next || '').trim()
+  if (!candidate) return current
+  if (!current) return candidate
+  if (locale === 'zh' && !looksZh(current) && looksZh(candidate)) return candidate
+  if (locale === 'en' && looksZh(current) && !looksZh(candidate)) return candidate
+  return current
+}
 
 async function asyncPool<T, R>(
   limit: number,
@@ -93,11 +104,13 @@ async function upsertPictureTranslationsRaw(picture_id: number, p: any) {
   if (ops.length) await Promise.all(ops)
 }
 
-function triggerAsyncEnrich(picture_set_id: number, payload: any) {
+function triggerAsyncEnrich(picture_set_id: number, payload: any, authorization?: string | null) {
   const url = `${getBaseUrl()}/api/admin/picture-sets/${picture_set_id}/enrich`
   const body = JSON.stringify({ ...payload, async_enrich: false })
   queueMicrotask(() => {
-    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch((err) => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (authorization) headers.Authorization = authorization
+    fetch(url, { method: 'POST', headers, body }).catch((err) => {
       console.error('Async enrich trigger failed:', err)
     })
   })
@@ -194,6 +207,62 @@ async function fillPictureTranslationsBi(p: any): Promise<{ en: any; zh: any }> 
   return { en: enOut, zh: zhOut }
 }
 
+async function fillPictureTitleSubtitleLocales(
+  p: any,
+): Promise<void> {
+  const enOut: any = { ...(p.en || {}) }
+  const zhOut: any = { ...(p.zh || {}) }
+
+  for (const key of ['title', 'subtitle'] as const) {
+    const base = String(p[key] || '').trim()
+    let enVal = String(enOut[key] || '').trim()
+    let zhVal = String(zhOut[key] || '').trim()
+
+    if (!enVal && !zhVal && base) {
+      if (looksZh(base)) zhVal = base
+      else enVal = base
+    }
+
+    if (!enVal && !zhVal) continue
+
+    if (!enVal && zhVal) enVal = await translateText(zhVal, 'en')
+    if (!zhVal && enVal) zhVal = await translateText(enVal, 'zh')
+
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  p.en = enOut
+  p.zh = zhOut
+}
+
+async function fillSetTitleSubtitleLocales(payload: any): Promise<void> {
+  const enOut: any = { ...(payload.en || {}) }
+  const zhOut: any = { ...(payload.zh || {}) }
+
+  for (const key of ['title', 'subtitle'] as const) {
+    const base = String(payload[key] || '').trim()
+    let enVal = String(enOut[key] || '').trim()
+    let zhVal = String(zhOut[key] || '').trim()
+
+    if (!enVal && !zhVal && base) {
+      if (looksZh(base)) zhVal = base
+      else enVal = base
+    }
+
+    if (!enVal && !zhVal) continue
+
+    if (!enVal && zhVal) enVal = await translateText(zhVal, 'en')
+    if (!zhVal && enVal) zhVal = await translateText(enVal, 'zh')
+
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  payload.en = enOut
+  payload.zh = zhOut
+}
+
 // 简化的工具：确保若干 tag 存在并返回它们的 id（按 type + slug 去重）
 async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promise<number[]> {
   const uniq = Array.from(new Set(names.map(n => String(n || '').trim()).filter(Boolean)))
@@ -217,6 +286,10 @@ async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promi
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
     const payload = await request.json()
     const asyncEnrich = !!payload.async_enrich
     const autoFillLocalesAll = !!payload.auto_fill_locales_all
@@ -275,32 +348,7 @@ export async function POST(request: Request) {
     }
 
     if (autoGen && !asyncEnrich) {
-      const candidateSources = [
-        makePublicUrl(payload.cover_image_url),
-        makePublicUrl(pictures.find((p: any) => p?.image_url)?.image_url),
-        makePublicUrl(pictures.find((p: any) => p?.raw_image_url)?.raw_image_url),
-      ]
-      const setImageUrl = candidateSources.find((src) => !!src)
-      if (setImageUrl) {
-        const updates: Record<string, string> = {}
-        if (!String(payload.title || '').trim()) {
-          const generated = await serverAnalyze(setImageUrl, 'title')
-          if (generated) {
-            payload.title = generated
-            updates.title = generated
-          }
-        }
-        if (!String(payload.subtitle || '').trim()) {
-          const generated = await serverAnalyze(setImageUrl, 'subtitle')
-          if (generated) {
-            payload.subtitle = generated
-            updates.subtitle = generated
-          }
-        }
-        if (Object.keys(updates).length) {
-          await supabaseAdmin.from('picture_sets').update(updates).eq('id', picture_set_id)
-        }
-      }
+      await fillSetTitleSubtitleLocales(payload)
     }
 
     if (pictures.length > 0) {
@@ -430,20 +478,10 @@ export async function POST(request: Request) {
         const picture_id = picIdByIndex[i]
         if (!picture_id) return
 
-        // 自动生成标题/副标题（仅当缺失且能构造公网 URL）
+        // 自动补齐图片标题/副标题的双语翻译；两侧都空时才用图片 AI 生成。
         try {
           if (autoGen && !asyncEnrich) {
-            const imgUrl = makePublicUrl(p.image_url || p.raw_image_url)
-            if (imgUrl) {
-              if (!String(p.title || '').trim()) {
-                const t = await serverAnalyze(imgUrl, 'title')
-                if (t) { p.title = t; await supabaseAdmin.from('pictures').update({ title: t }).eq('id', picture_id) }
-              }
-              if (!String(p.subtitle || '').trim()) {
-                const s = await serverAnalyze(imgUrl, 'subtitle')
-                if (s) { p.subtitle = s; await supabaseAdmin.from('pictures').update({ subtitle: s }).eq('id', picture_id) }
-              }
-            }
+            await fillPictureTitleSubtitleLocales(p)
           }
         } catch {}
 
@@ -579,7 +617,7 @@ export async function POST(request: Request) {
     } catch {}
 
     if (asyncEnrich) {
-      triggerAsyncEnrich(picture_set_id, payload)
+      triggerAsyncEnrich(picture_set_id, payload, request.headers.get("authorization"))
     }
     return NextResponse.json({ id: picture_set_id })
   } catch (e: any) {
@@ -590,6 +628,10 @@ export async function POST(request: Request) {
 // 服务端读取：列表 + 搜索（包含每个 set 的精简图片列表）
 export async function GET(request: Request) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
     const { searchParams } = new URL(request.url)
     const q = (searchParams.get('q') || '').trim()
 
@@ -626,21 +668,46 @@ export async function GET(request: Request) {
 
     const ids = sets.map((s: any) => s.id)
     let picsBySet: Record<number, any[]> = {}
+    const translationsBySet: Record<number, { en?: any; zh?: any }> = {}
     if (ids.length) {
-      const { data: pics } = await supabaseAdmin
-        .from('pictures')
-        .select('id,picture_set_id,order_index,image_url,title,subtitle,description')
-        .in('picture_set_id', ids)
+      const [{ data: pics }, { data: translations }] = await Promise.all([
+        supabaseAdmin
+          .from('pictures')
+          .select('id,picture_set_id,order_index,image_url,title,subtitle,description')
+          .in('picture_set_id', ids),
+        supabaseAdmin
+          .from('picture_set_translations')
+          .select('picture_set_id,locale,title,subtitle,description')
+          .in('picture_set_id', ids),
+      ])
       for (const p of pics || []) {
         const sid = (p as any).picture_set_id
         picsBySet[sid] = [...(picsBySet[sid] || []), p]
+      }
+      for (const row of translations || []) {
+        const sid = (row as any).picture_set_id
+        const locale = (row as any).locale === 'zh' ? 'zh' : 'en'
+        const existing = translationsBySet[sid]?.[locale] || {}
+        translationsBySet[sid] = {
+          ...(translationsBySet[sid] || {}),
+          [locale]: {
+            title: chooseLocalizedValue(existing.title || '', (row as any).title || '', locale),
+            subtitle: chooseLocalizedValue(existing.subtitle || '', (row as any).subtitle || '', locale),
+            description: chooseLocalizedValue(existing.description || '', (row as any).description || '', locale),
+          },
+        }
       }
       for (const sid of Object.keys(picsBySet)) {
         picsBySet[Number(sid)] = (picsBySet[Number(sid)] || []).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
       }
     }
 
-    const out = sets.map((s: any) => ({ ...s, pictures: picsBySet[s.id] || [] }))
+    const out = sets.map((s: any) => ({
+      ...s,
+      en: translationsBySet[s.id]?.en || { title: '', subtitle: '', description: '' },
+      zh: translationsBySet[s.id]?.zh || { title: '', subtitle: '', description: '' },
+      pictures: picsBySet[s.id] || [],
+    }))
     return NextResponse.json({ items: out })
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })

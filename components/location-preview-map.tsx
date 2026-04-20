@@ -1,8 +1,7 @@
 // @ts-nocheck
 "use client"
 
-import dynamic from "next/dynamic"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 interface LocationPreviewMapProps {
   latitude: number | string
@@ -10,16 +9,30 @@ interface LocationPreviewMapProps {
   locationName?: string
 }
 
-const DynamicMapCanvas = dynamic(() => import("./location-preview-map-canvas").then(mod => ({ default: mod.LocationPreviewMapCanvas })), {
-  ssr: false,
-  loading: () => (
-    <div className="mt-2 h-[200px] w-full animate-pulse rounded-lg border border-slate-200 bg-slate-100" />
-  ),
-})
-
 export function LocationPreviewMap({ latitude, longitude, locationName }: LocationPreviewMapProps) {
+  const [mounted, setMounted] = useState(false)
+  const [MapCanvas, setMapCanvas] = useState<any>(null)
   const lat = typeof latitude === 'string' ? parseFloat(latitude) : latitude
   const lng = typeof longitude === 'string' ? parseFloat(longitude) : longitude
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    let active = true
+    import("./location-preview-map-canvas")
+      .then((mod) => {
+        if (active) setMapCanvas(() => mod.LocationPreviewMapCanvas)
+      })
+      .catch((error) => {
+        console.error("Failed to load location preview map canvas:", error)
+      })
+    return () => {
+      active = false
+    }
+  }, [mounted])
 
   // Validate coordinates
   const isValid = useMemo(() => {
@@ -34,5 +47,9 @@ export function LocationPreviewMap({ latitude, longitude, locationName }: Locati
     )
   }
 
-  return <DynamicMapCanvas latitude={lat} longitude={lng} locationName={locationName} />
+  if (!mounted || !MapCanvas) {
+    return <div className="mt-2 h-[200px] w-full animate-pulse rounded-lg border border-slate-200 bg-slate-100" />
+  }
+
+  return <MapCanvas latitude={lat} longitude={lng} locationName={locationName} />
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
+import { requireAdminRequest } from "@/utils/admin-auth.server"
 
 export const runtime = 'nodejs'
 
@@ -65,6 +66,104 @@ async function fillPictureTranslationsBi(p: any): Promise<{ en: any; zh: any }> 
   return { en: enOut, zh: zhOut }
 }
 
+async function fillPictureTitleSubtitleLocales(
+  p: any,
+): Promise<void> {
+  const enOut: any = { ...(p.en || {}) }
+  const zhOut: any = { ...(p.zh || {}) }
+
+  for (const key of ['title', 'subtitle'] as const) {
+    const base = String(p[key] || '').trim()
+    let enVal = String(enOut[key] || '').trim()
+    let zhVal = String(zhOut[key] || '').trim()
+
+    if (!enVal && !zhVal && base) {
+      if (looksZh(base)) zhVal = base
+      else enVal = base
+    }
+
+    if (!enVal && !zhVal) continue
+
+    if (!enVal && zhVal) enVal = await translateText(zhVal, 'en')
+    if (!zhVal && enVal) zhVal = await translateText(enVal, 'zh')
+
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  p.en = enOut
+  p.zh = zhOut
+}
+
+async function fillSetTitleSubtitleLocales(payload: any): Promise<void> {
+  const enOut: any = { ...(payload.en || {}) }
+  const zhOut: any = { ...(payload.zh || {}) }
+
+  for (const key of ['title', 'subtitle'] as const) {
+    const base = String(payload[key] || '').trim()
+    let enVal = String(enOut[key] || '').trim()
+    let zhVal = String(zhOut[key] || '').trim()
+
+    if (!enVal && !zhVal && base) {
+      if (looksZh(base)) zhVal = base
+      else enVal = base
+    }
+
+    if (!enVal && !zhVal) continue
+
+    if (!enVal && zhVal) enVal = await translateText(zhVal, 'en')
+    if (!zhVal && enVal) zhVal = await translateText(enVal, 'zh')
+
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  payload.en = enOut
+  payload.zh = zhOut
+}
+
+async function upsertSetTitleSubtitleTranslations(picture_set_id: number, payload: any) {
+  const ops: any[] = []
+  if (payload?.en) {
+    ops.push(
+      supabaseAdmin.from('picture_set_translations').upsert(
+        { picture_set_id, locale: 'en', title: payload.en.title || '', subtitle: payload.en.subtitle || null },
+        { onConflict: 'picture_set_id,locale' },
+      ),
+    )
+  }
+  if (payload?.zh) {
+    ops.push(
+      supabaseAdmin.from('picture_set_translations').upsert(
+        { picture_set_id, locale: 'zh', title: payload.zh.title || '', subtitle: payload.zh.subtitle || null },
+        { onConflict: 'picture_set_id,locale' },
+      ),
+    )
+  }
+  if (ops.length) await Promise.all(ops)
+}
+
+async function upsertPictureTitleSubtitleTranslations(picture_id: number, p: any) {
+  const ops: any[] = []
+  if (p?.en) {
+    ops.push(
+      supabaseAdmin.from('picture_translations').upsert(
+        { picture_id, locale: 'en', title: p.en.title || '', subtitle: p.en.subtitle || null },
+        { onConflict: 'picture_id,locale' },
+      ),
+    )
+  }
+  if (p?.zh) {
+    ops.push(
+      supabaseAdmin.from('picture_translations').upsert(
+        { picture_id, locale: 'zh', title: p.zh.title || '', subtitle: p.zh.subtitle || null },
+        { onConflict: 'picture_id,locale' },
+      ),
+    )
+  }
+  if (ops.length) await Promise.all(ops)
+}
+
 async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promise<number[]> {
   const uniq = Array.from(new Set(names.map(n => String(n || '').trim()).filter(Boolean)))
   if (uniq.length === 0) return []
@@ -102,6 +201,10 @@ const parseTags = (input: string): string[] => {
 
 export async function POST(request: Request, ctx: { params: { id: string } }) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
     const idNum = Number(ctx.params.id)
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
     const payload = await request.json()
@@ -132,26 +235,8 @@ export async function POST(request: Request, ctx: { params: { id: string } }) {
     }
 
     if (autoGen) {
-      const candidateSources = [
-        makePublicUrl(payload.cover_image_url),
-        makePublicUrl(pictures.find((p: any) => p?.image_url)?.image_url),
-        makePublicUrl(pictures.find((p: any) => p?.raw_image_url)?.raw_image_url),
-      ]
-      const setImageUrl = candidateSources.find((src) => !!src)
-      if (setImageUrl) {
-        const updates: Record<string, string> = {}
-        if (!String(payload.title || '').trim()) {
-          const generated = await serverAnalyze(setImageUrl, 'title')
-          if (generated) { payload.title = generated; updates.title = generated }
-        }
-        if (!String(payload.subtitle || '').trim()) {
-          const generated = await serverAnalyze(setImageUrl, 'subtitle')
-          if (generated) { payload.subtitle = generated; updates.subtitle = generated }
-        }
-        if (Object.keys(updates).length) {
-          await supabaseAdmin.from('picture_sets').update(updates).eq('id', idNum)
-        }
-      }
+      await fillSetTitleSubtitleLocales(payload)
+      if (!autoFillLocalesAll) await upsertSetTitleSubtitleTranslations(idNum, payload)
     }
 
     if (autoFillLocalesAll) {
@@ -188,17 +273,8 @@ export async function POST(request: Request, ctx: { params: { id: string } }) {
 
         if (autoGen) {
           try {
-            const imgUrl = makePublicUrl(p.image_url || p.raw_image_url)
-            if (imgUrl) {
-              if (!String(p.title || '').trim()) {
-                const t = await serverAnalyze(imgUrl, 'title')
-                if (t) { p.title = t; await supabaseAdmin.from('pictures').update({ title: t }).eq('id', picture_id) }
-              }
-              if (!String(p.subtitle || '').trim()) {
-                const s = await serverAnalyze(imgUrl, 'subtitle')
-                if (s) { p.subtitle = s; await supabaseAdmin.from('pictures').update({ subtitle: s }).eq('id', picture_id) }
-              }
-            }
+            await fillPictureTitleSubtitleLocales(p)
+            if (!autoFillLocalesAll) await upsertPictureTitleSubtitleTranslations(picture_id, p)
           } catch {}
         }
 

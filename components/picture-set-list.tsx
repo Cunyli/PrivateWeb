@@ -25,10 +25,24 @@ interface PictureSetListProps {
 }
 
 export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetListProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pictureSetToDelete, setPictureSetToDelete] = useState<number | null>(null)
-  
+
+  const getLocalizedText = (set: PictureSet, field: 'title' | 'subtitle' | 'description') => {
+    const localized = locale === 'zh' ? set.zh?.[field] : set.en?.[field]
+    if (localized && localized.trim()) return localized
+    if (field === 'title') {
+      const alternate = locale === 'zh' ? set.en?.title : set.zh?.title
+      if (alternate && alternate.trim()) return alternate
+      return set.title || ''
+    }
+    const fallback = set[field] || ''
+    if (locale === 'zh') {
+      return /[\u4e00-\u9fff]/.test(fallback) ? fallback : ''
+    }
+    return /[\u4e00-\u9fff]/.test(fallback) ? '' : fallback
+  }
 
   const handleDeleteClick = (id: number) => {
     setPictureSetToDelete(id)
@@ -49,11 +63,14 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {pictureSets.map((set, index) => {
           const count = (set.pictures?.length || 0) + (set.cover_image_url ? 1 : 0)
+          const title = getLocalizedText(set, 'title') || (locale === 'zh' ? '未命名' : 'Untitled')
+          const subtitle = getLocalizedText(set, 'subtitle')
+          const description = getLocalizedText(set, 'description')
           return (
             <Card key={set.id} className="group smooth-hover gpu-accelerated" style={{ animationDelay: `${index * 100}ms` }}>
               <CardHeader>
                 <CardTitle className="flex justify-between items-center gap-3">
-                  <span className="smooth-transition group-hover:text-blue-600">{set.title}</span>
+                  <span className="smooth-transition group-hover:text-blue-600">{title}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs ${set.is_published === false ? 'bg-gray-200 text-gray-700' : 'bg-green-100 text-green-700'}`}>
                     {set.is_published === false ? t('unpublished') : t('publishedLabel')}
                   </span>
@@ -64,14 +81,18 @@ export function PictureSetList({ pictureSets, onEdit, onDelete }: PictureSetList
                   <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg">
                     <Image
                       src={process.env.NEXT_PUBLIC_BUCKET_URL+set.cover_image_url || "/placeholder.svg"}
-                      alt={set.title}
+                      alt={title}
                       fill
                       className="object-cover rounded smooth-transition group-hover:scale-105"
                     />
                   </div>
                 )}
-                <p className="text-sm text-gray-500 smooth-transition group-hover:text-gray-700">{set.subtitle}</p>
-                <p className="mt-2 line-clamp-2 smooth-transition group-hover:text-gray-800">{set.description}</p>
+                {subtitle && (
+                  <p className="text-sm text-gray-500 smooth-transition group-hover:text-gray-700">{subtitle}</p>
+                )}
+                {description && (
+                  <p className="mt-2 line-clamp-2 smooth-transition group-hover:text-gray-800">{description}</p>
+                )}
                 <p className="mt-2 text-sm text-gray-500">{count > 0 ? `${count} ${t('pictures')}` : t('noPictures')}</p>
               </CardContent>
               <CardFooter className="opacity-0 group-hover:opacity-100 smooth-transition transform translate-y-2 group-hover:translate-y-0">

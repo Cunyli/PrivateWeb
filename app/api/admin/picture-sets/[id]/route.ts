@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
+import { requireAdminRequest } from "@/utils/admin-auth.server"
 import { collectImageAssetKeys, deleteObjectKeysFromR2 } from "@/utils/r2-assets.server"
 
 export const runtime = 'nodejs'
@@ -91,11 +92,13 @@ async function upsertPictureTranslationsRaw(picture_id: number, p: any) {
   if (ops.length) await Promise.all(ops)
 }
 
-function triggerAsyncEnrich(picture_set_id: number, payload: any) {
+function triggerAsyncEnrich(picture_set_id: number, payload: any, authorization?: string | null) {
   const url = `${getBaseUrl()}/api/admin/picture-sets/${picture_set_id}/enrich`
   const body = JSON.stringify({ ...payload, async_enrich: false })
   queueMicrotask(() => {
-    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch((err) => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (authorization) headers.Authorization = authorization
+    fetch(url, { method: 'POST', headers, body }).catch((err) => {
       console.error('Async enrich trigger failed:', err)
     })
   })
@@ -160,6 +163,62 @@ async function fillPictureTranslationsBi(p: any): Promise<{ en: any; zh: any }> 
   return { en: enOut, zh: zhOut }
 }
 
+async function fillPictureTitleSubtitleLocales(
+  p: any,
+): Promise<void> {
+  const enOut: any = { ...(p.en || {}) }
+  const zhOut: any = { ...(p.zh || {}) }
+
+  for (const key of ['title','subtitle'] as const) {
+    const base = String(p[key] || '').trim()
+    let enVal = String(enOut[key] || '').trim()
+    let zhVal = String(zhOut[key] || '').trim()
+
+    if (!enVal && !zhVal && base) {
+      if (looksZh(base)) zhVal = base
+      else enVal = base
+    }
+
+    if (!enVal && !zhVal) continue
+
+    if (!enVal && zhVal) enVal = await translateText(zhVal, 'en')
+    if (!zhVal && enVal) zhVal = await translateText(enVal, 'zh')
+
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  p.en = enOut
+  p.zh = zhOut
+}
+
+async function fillSetTitleSubtitleLocales(payload: any): Promise<void> {
+  const enOut: any = { ...(payload.en || {}) }
+  const zhOut: any = { ...(payload.zh || {}) }
+
+  for (const key of ['title','subtitle'] as const) {
+    const base = String(payload[key] || '').trim()
+    let enVal = String(enOut[key] || '').trim()
+    let zhVal = String(zhOut[key] || '').trim()
+
+    if (!enVal && !zhVal && base) {
+      if (looksZh(base)) zhVal = base
+      else enVal = base
+    }
+
+    if (!enVal && !zhVal) continue
+
+    if (!enVal && zhVal) enVal = await translateText(zhVal, 'en')
+    if (!zhVal && enVal) zhVal = await translateText(enVal, 'zh')
+
+    enOut[key] = enVal
+    zhOut[key] = zhVal
+  }
+
+  payload.en = enOut
+  payload.zh = zhOut
+}
+
 async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promise<number[]> {
   const uniq = Array.from(new Set(names.map(n => String(n || '').trim()).filter(Boolean)))
   if (uniq.length === 0) return []
@@ -169,8 +228,33 @@ async function ensureTagIds(names: string[] = [], type: string = 'topic'): Promi
   return (data || []).map(d => d.id)
 }
 
-export async function GET(_req: Request, ctx: { params: { id: string } }) {
+async function runMutation(label: string, query: any) {
+  const { error } = await query
+  if (error) {
+    throw new Error(`${label} failed: ${error.message}`)
+  }
+}
+
+async function deletePictureRows(pictureIds: number[]) {
+  if (!pictureIds.length) return
+
+  await runMutation('delete picture likes', supabaseAdmin.from('picture_likes').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture comments', supabaseAdmin.from('picture_comments').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture participants', supabaseAdmin.from('picture_participants').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture section assignments', supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture taggings', supabaseAdmin.from('picture_taggings').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture categories', supabaseAdmin.from('picture_categories').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture locations', supabaseAdmin.from('picture_locations').delete().in('picture_id', pictureIds))
+  await runMutation('delete picture translations', supabaseAdmin.from('picture_translations').delete().in('picture_id', pictureIds))
+  await runMutation('delete pictures', supabaseAdmin.from('pictures').delete().in('id', pictureIds))
+}
+
+export async function GET(request: Request, ctx: { params: { id: string } }) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
     const idNum = Number(ctx.params.id)
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
@@ -281,6 +365,10 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
 
 export async function PUT(request: Request, ctx: { params: { id: string } }) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
     const idNum = Number(ctx.params.id)
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
     const payload = await request.json()
@@ -330,22 +418,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     }
 
     if (autoGen && !asyncEnrich) {
-      const candidateSources = [
-        makePublicUrl(payload.cover_image_url),
-        makePublicUrl(pictures.find((p: any) => p?.image_url)?.image_url),
-        makePublicUrl(pictures.find((p: any) => p?.raw_image_url)?.raw_image_url),
-      ]
-      const setImageUrl = candidateSources.find((src) => !!src)
-      if (setImageUrl) {
-        if (!String(payload.title || '').trim()) {
-          const generated = await serverAnalyze(setImageUrl, 'title')
-          if (generated) payload.title = generated
-        }
-        if (!String(payload.subtitle || '').trim()) {
-          const generated = await serverAnalyze(setImageUrl, 'subtitle')
-          if (generated) payload.subtitle = generated
-        }
-      }
+      await fillSetTitleSubtitleLocales(payload)
     }
 
     // update set
@@ -418,19 +491,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     // pictures: delete and recreate
     const existingPics = previousPictures || []
     const existingIds = (existingPics || []).map((p: any) => p.id)
-    if (existingIds.length) {
-      await Promise.all([
-        supabaseAdmin.from('picture_likes').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_comments').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_participants').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_taggings').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_categories').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_locations').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('picture_translations').delete().in('picture_id', existingIds),
-        supabaseAdmin.from('pictures').delete().in('id', existingIds),
-      ])
-    }
+    await deletePictureRows(existingIds)
 
     // Apply set props flags similar to POST
     let singleSeasonId: number | null = null
@@ -469,20 +530,10 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
 
         await asyncPool(concurrency, toInsert, async (p, i) => {
           const picture_id = byIndex[i]; if (!picture_id) return
-          // Auto-generate title/subtitle if requested and missing
+          // Auto-fill picture title/subtitle translations; use image AI only when both locales are empty.
           try {
             if (payload?.autogen_titles_subtitles && !asyncEnrich) {
-              const imgUrl = makePublicUrl(p.image_url || p.raw_image_url)
-              if (imgUrl) {
-                if (!String(p.title || '').trim()) {
-                  const t = await serverAnalyze(imgUrl, 'title')
-                  if (t) { p.title = t; await supabaseAdmin.from('pictures').update({ title: t }).eq('id', picture_id) }
-                }
-                if (!String(p.subtitle || '').trim()) {
-                  const s = await serverAnalyze(imgUrl, 'subtitle')
-                  if (s) { p.subtitle = s; await supabaseAdmin.from('pictures').update({ subtitle: s }).eq('id', picture_id) }
-                }
-              }
+              await fillPictureTitleSubtitleLocales(p)
             }
           } catch {}
 
@@ -576,7 +627,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     }
 
     if (asyncEnrich) {
-      triggerAsyncEnrich(idNum, payload)
+      triggerAsyncEnrich(idNum, payload, request.headers.get("authorization"))
     }
     const obsoleteAssetKeys = Array.from(previousAssetKeys).filter((key) => !retainedAssetKeys.has(key))
     const storageDelete = await deleteObjectKeysFromR2(obsoleteAssetKeys)
@@ -593,6 +644,10 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
 
 export async function DELETE(request: Request, ctx: { params: { id: string } }) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
     const idNum = Number(ctx.params.id)
     if (!Number.isFinite(idNum) || idNum <= 0) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
     const [{ data: setRow }, { data: pics }] = await Promise.all([
@@ -608,26 +663,16 @@ export async function DELETE(request: Request, ctx: { params: { id: string } }) 
     ])
     const assetKeys = collectImageAssetKeys([setRow as any, ...((pics || []) as any[])])
     const pids = (pics || []).map((p: any) => p.id)
-    if (pids.length) {
-      await supabaseAdmin.from('picture_likes').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_comments').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_participants').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_section_assignments').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_taggings').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_categories').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_locations').delete().in('picture_id', pids)
-      await supabaseAdmin.from('picture_translations').delete().in('picture_id', pids)
-      await supabaseAdmin.from('pictures').delete().in('id', pids)
-    }
-    await supabaseAdmin.from('picture_set_likes').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_comments').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_participants').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_taggings').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_categories').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_locations').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_section_assignments').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_set_translations').delete().eq('picture_set_id', idNum)
-    await supabaseAdmin.from('picture_sets').delete().eq('id', idNum)
+    await deletePictureRows(pids)
+    await runMutation('delete picture set likes', supabaseAdmin.from('picture_set_likes').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set comments', supabaseAdmin.from('picture_set_comments').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set participants', supabaseAdmin.from('picture_set_participants').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set taggings', supabaseAdmin.from('picture_set_taggings').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set categories', supabaseAdmin.from('picture_set_categories').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set locations', supabaseAdmin.from('picture_set_locations').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set section assignments', supabaseAdmin.from('picture_set_section_assignments').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set translations', supabaseAdmin.from('picture_set_translations').delete().eq('picture_set_id', idNum))
+    await runMutation('delete picture set', supabaseAdmin.from('picture_sets').delete().eq('id', idNum))
     const storageDelete = await deleteObjectKeysFromR2(assetKeys)
     if (storageDelete.errors.length) {
       console.warn('Failed to delete some image assets after picture set delete:', storageDelete.errors)

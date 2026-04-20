@@ -15,6 +15,7 @@ import { ImageAnalysisComponent } from "@/components/image-analysis"
 import { useImageAnalysis } from "@/hooks/use-image-analysis"
 import { supabase } from "@/utils/supabase"
 import { LocationPreviewMap } from "@/components/location-preview-map"
+import { adminFetch } from "@/utils/admin-auth-client"
 
 import type { PictureSet } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
@@ -128,7 +129,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [showAITrans, setShowAITrans] = useState<boolean>(false)
   // simplified flags per your request
   const [fillMissingFromSet, setFillMissingFromSet] = useState<boolean>(true)
-  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(false)
+  const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(true)
   const [showPictureTagsEditor, setShowPictureTagsEditor] = useState<{[key:number]: boolean}>({})
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
@@ -292,7 +293,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     const loadVocab = async () => {
       try {
         const preferred = (typeof window !== 'undefined' ? (localStorage.getItem('locale') || 'en') : 'en')
-        const res = await fetch(`/api/admin/vocab?locale=${encodeURIComponent(preferred)}`)
+        const res = await adminFetch(`/api/admin/vocab?locale=${encodeURIComponent(preferred)}`)
         const data = await res.json()
         if (res.ok) {
           setAvailableCategories((data?.categories || []).map((c:any)=>({ id: c.id, name: (preferred === 'zh' ? (c.nameCN || c.name) : c.name) })))
@@ -640,14 +641,14 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     }
   }
 
-  const forceCompleteSetTranslations = async (
+  const completeTitleSubtitleTranslations = async (
     baseVals: { title: string; subtitle: string; description: string },
     currentEn: { title: string; subtitle: string; description: string },
     currentZh: { title: string; subtitle: string; description: string },
   ) => {
     const nextEn = { ...currentEn }
     const nextZh = { ...currentZh }
-    for (const key of ['title', 'subtitle', 'description'] as const) {
+    for (const key of ['title', 'subtitle'] as const) {
       const baseVal = String(baseVals[key] || '').trim()
       let enVal = String(nextEn[key] || '').trim()
       let zhVal = String(nextZh[key] || '').trim()
@@ -672,7 +673,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     return { en: nextEn, zh: nextZh }
   }
 
-  const forceCompletePictureTranslations = async (pic: PictureFormData) => {
+  const completePictureTitleSubtitleTranslations = async (pic: PictureFormData) => {
     const base = {
       title: String(pic.title || ''),
       subtitle: String(pic.subtitle || ''),
@@ -688,7 +689,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       subtitle: String(pic.zh?.subtitle || ''),
       description: String(pic.zh?.description || ''),
     }
-    const filled = await forceCompleteSetTranslations(base, currentEn, currentZh)
+    const filled = await completeTitleSubtitleTranslations(base, currentEn, currentZh)
     return {
       ...pic,
       en: { ...pic.en, ...filled.en },
@@ -932,9 +933,9 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
   // 一键为无标签图片生成标签
   // 批量为无标签图片生成标签：返回最新 pictures 数组，避免批量生成后 setState 尚未同步导致 payload 丢失
-  const generateTagsForUntaggedPictures = async (): Promise<typeof pictures> => {
+  const generateTagsForUntaggedPictures = async (sourcePictures = pictures): Promise<typeof pictures> => {
     setIsBulkTagsGenerating(true)
-    let next = [...pictures]
+    let next = [...sourcePictures]
     try {
       for (let i = 0; i < next.length; i++) {
         const p = next[i]
@@ -971,10 +972,38 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       let translatedEn = en
       let translatedZh = zh
       let picturesForPayload = pictures
+
+      if (autogenTitlesSubtitles) {
+        const completedSet = await completeTitleSubtitleTranslations(
+          {
+            title: String(title || ''),
+            subtitle: String(subtitle || ''),
+            description: String(description || ''),
+          },
+          {
+            title: String(translatedEn.title || ''),
+            subtitle: String(translatedEn.subtitle || ''),
+            description: String(translatedEn.description || ''),
+          },
+          {
+            title: String(translatedZh.title || ''),
+            subtitle: String(translatedZh.subtitle || ''),
+            description: String(translatedZh.description || ''),
+          },
+        )
+        translatedEn = completedSet.en
+        translatedZh = completedSet.zh
+        picturesForPayload = await Promise.all(
+          picturesForPayload.map((pic) => completePictureTitleSubtitleTranslations(pic)),
+        )
+        setEn(translatedEn)
+        setZh(translatedZh)
+        setPictures(picturesForPayload)
+      }
       
       // 为未设置标签的图片自动生成标签（与现有标签做并集），并使用返回的 next 数组继续构造 payload，避免批量生成后 state 未同步
       if (autoGenerateTagsForUntagged && !asyncEnrich) {
-        picturesForPayload = await generateTagsForUntaggedPictures()
+        picturesForPayload = await generateTagsForUntaggedPictures(picturesForPayload)
       }
       // Debug: log intended picture order before upload/submit
       try {

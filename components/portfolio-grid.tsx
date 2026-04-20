@@ -110,7 +110,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
-  const pointerInteractedRef = useRef(false)
   const [topRowPaused, setTopRowPaused] = useState(false)
   const [bottomRowPaused, setBottomRowPaused] = useState(false)
   const topRowMaxScrollRef = useRef(0)
@@ -128,22 +127,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const downDimensionQueueRef = useRef<Array<{ id: number; url: string }>>([])
   const downDimensionPrefetchingRef = useRef(false)
   const [activeVideoIndex, setActiveVideoIndex] = useState(0)
-  const pauseTopRow = useCallback(() => {
-    if (!pointerInteractedRef.current) return
-    setTopRowPaused(true)
-  }, [])
   const resumeTopRow = useCallback(() => setTopRowPaused(false), [])
-  const pauseBottomRow = useCallback(() => {
-    if (!pointerInteractedRef.current) return
-    setBottomRowPaused(true)
-  }, [])
   const resumeBottomRow = useCallback(() => setBottomRowPaused(false), [])
   const forcePauseTopRow = useCallback(() => {
-    pointerInteractedRef.current = true
     setTopRowPaused(true)
   }, [])
   const forcePauseBottomRow = useCallback(() => {
-    pointerInteractedRef.current = true
     setBottomRowPaused(true)
   }, [])
   const measureRowOverflow = useCallback((row: HTMLDivElement | null) => {
@@ -606,19 +595,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [downPictureSets, baseUrl, coverDimensions, enqueueDownDimensionPrefetch])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const handlePointerActivity = () => {
-      pointerInteractedRef.current = true
-    }
-    window.addEventListener('pointerdown', handlePointerActivity, { passive: true })
-    window.addEventListener('pointermove', handlePointerActivity, { passive: true })
-    return () => {
-      window.removeEventListener('pointerdown', handlePointerActivity)
-      window.removeEventListener('pointermove', handlePointerActivity)
-    }
-  }, [])
-
-  useEffect(() => {
     updateRowScrollBounds()
   }, [updateRowScrollBounds, loopedFirstRow.length, loopedSecondRow.length])
 
@@ -664,13 +640,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       const maxTop = topRowMaxScrollRef.current
       const maxBottom = bottomRowMaxScrollRef.current
       if (top && loopedFirstRow.length && maxTop > 0.5 && !topRowPaused) {
-        const next = topRowScrollRef.current + delta * speedPerMs
+        const current = Number.isFinite(top.scrollLeft) ? top.scrollLeft : topRowScrollRef.current
+        const next = current + delta * speedPerMs
         const wrapped = next >= maxTop ? 0 : next
         topRowScrollRef.current = wrapped
         top.scrollLeft = wrapped
       }
       if (bottom && loopedSecondRow.length && maxBottom > 0.5 && !bottomRowPaused) {
-        const next = bottomRowScrollRef.current - delta * speedPerMs
+        const current = Number.isFinite(bottom.scrollLeft) ? bottom.scrollLeft : bottomRowScrollRef.current
+        const next = current - delta * speedPerMs
         const wrapped = next <= 0 ? maxBottom : next
         bottomRowScrollRef.current = wrapped
         bottom.scrollLeft = wrapped
@@ -695,7 +673,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     if (!loopedSecondRow.length || !bottom) return
     const maxScroll = measureRowOverflow(bottom)
     bottomRowMaxScrollRef.current = maxScroll
-    const start = maxScroll > 0 ? maxScroll : 0
+    const start = maxScroll > 0 ? maxScroll / 2 : 0
     bottomRowScrollRef.current = start
     bottom.scrollLeft = start
   }, [loopedSecondRow.length, measureRowOverflow])
@@ -1117,8 +1095,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   ref={topRowRef}
                   data-portfolio-row="top"
                   className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
-                  onPointerEnter={pauseTopRow}
-                  onPointerLeave={resumeTopRow}
                   onPointerUp={resumeTopRow}
                   onPointerCancel={resumeTopRow}
                   onPointerDown={forcePauseTopRow}
@@ -1167,8 +1143,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     ref={bottomRowRef}
                     data-portfolio-row="bottom"
                     className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
-                    onPointerEnter={pauseBottomRow}
-                    onPointerLeave={resumeBottomRow}
                     onPointerUp={resumeBottomRow}
                     onPointerCancel={resumeBottomRow}
                     onPointerDown={forcePauseBottomRow}
