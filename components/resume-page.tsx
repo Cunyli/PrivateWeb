@@ -37,77 +37,83 @@ type CaseStudy = {
 }
 
 const heroCopy = {
-  badge: { en: "Resume", zh: "简历" },
   title: {
     en: "Lijie Li · Data Scientist",
-    zh: "李立杰 · 数据科学家",
+    zh: "李立杰 · 数据科学",
   },
   schools: {
     en: ["Aalto University", "KTH Royal Institute of Technology"],
     zh: ["阿尔托大学", "瑞典皇家工学院"],
   },
   description: {
-    en: "Data scientist focused on multilingual retrieval, applied ML, and AI products. This site highlights selected systems work and case studies.",
-    zh: "专注多语检索、应用机器学习与 AI 产品的数据科学家。这里展示系统项目与案例。",
+    en: "MSc Data Science candidate at Aalto and KTH. I work on speech AI, retrieval systems, and practical ML pipelines, with current research on universal speech enhancement for speech-based health biomarkers.",
+    zh: "Aalto 与 KTH 数据科学硕士在读。主要做语音 AI、检索系统和可复现实验流水线，目前研究面向健康语音生物标志物的通用语音增强。",
   },
   primaryCta: { en: "Contact", zh: "联系我" },
-  secondaryCta: { en: "View Case Studies", zh: "查看案例" },
 }
 
 const techStack = [
   {
-    category: { en: "AI & Machine Learning", zh: "AI 与机器学习" },
-    items: ["Deep Learning", "NLP", "Speech Recognition", "Generative Models", "RAG Systems", "Data Mining"],
+    category: { en: "Programming", zh: "编程" },
+    items: ["Python", "PyTorch", "scikit-learn", "LangChain", "Pydantic", "SQL", "JavaScript", "Java", "LaTeX"],
   },
   {
-    category: { en: "Engineering & Cloud", zh: "工程与云架构" },
-    items: ["Python", "PyTorch", "LangChain", "Triton", "Spark", "Azure AI Factory", "Git", "Linux", "Async IO"],
+    category: { en: "Machine Learning", zh: "机器学习" },
+    items: ["Speech Enhancement", "ASR", "RAG", "Agents", "Embeddings", "Mamba", "Conformal Prediction", "Model Evaluation"],
   },
   {
-    category: { en: "Data & Analytics", zh: "数据与分析" },
-    items: ["SQL", "Tableau", "MongoDB", "SPSS", "Visualization", "Statistics"],
+    category: { en: "Systems & MLOps", zh: "系统与 MLOps" },
+    items: ["Linux", "Slurm", "Triton HPC", "GPU Training", "Docker", "Git", "CI/CD", "WandB", "Async Programming"],
+  },
+  {
+    category: { en: "Data & Retrieval", zh: "数据与检索" },
+    items: ["MongoDB", "Qdrant", "BM25", "HDBSCAN", "Spark", "Tableau", "Web Scraping"],
+  },
+  {
+    category: { en: "Core Areas", zh: "核心方向" },
+    items: ["Deep Learning", "NLP", "Information Retrieval", "Distributed Computing", "Mathematical Optimization", "Data Mining"],
   },
 ]
 
 const dualPracticeCopy = {
   badge: { en: "Focus", zh: "方向" },
   heading: {
-    en: "Research depth with product delivery",
-    zh: "研究深度与产品交付并重",
+    en: "Speech enhancement, retrieval, and applied ML",
+    zh: "语音增强、检索与应用机器学习",
   },
   body: {
-    en: "I build multilingual retrieval systems and production ML workflows, with an emphasis on measurable impact and clear evaluation.",
-    zh: "专注多语检索系统与可落地的 ML 工作流，强调可量化的业务影响与评估。",
+    en: "My current research starts from USE baselines and evaluation, but the goal is to design or adapt enhancement models that preserve biomarker-relevant speech cues under real recording-condition shifts.",
+    zh: "我当前的研究从 USE baseline 和评估入手，但目标是设计或改造语音增强模型，使其在真实录音条件变化下仍保留与健康生物标志物相关的语音线索。",
   },
 }
 
 const focusCards: FocusCard[] = [
   {
-    title: { en: "Data Systems Practice", zh: "数据系统实践" },
+    title: { en: "Speech and health-biomarker research", zh: "语音与健康生物标志物研究" },
     description: {
-      en: "Day job energy goes into multilingual RAG stacks, speech models, and measurable retrieval governance. I prefer shipping explainable systems over publishing papers.",
-      zh: "日常工作专注于多语言 RAG、语音模型与可量化的检索治理，比起论文更在意可交付、可解释的系统。",
+      en: "The thesis direction is to adapt universal speech enhancement for biomarker robustness, not only to improve perceptual speech quality.",
+      zh: "论文方向是把通用语音增强改造到健康语音鲁棒性场景，而不只是提升普通听感质量。",
     },
     list: [
-      { en: "Agentic RAG orchestration", zh: "Agentic RAG 编排" },
-      { en: "Knowledge graphs & KG ops", zh: "知识图谱构建与运维" },
-      { en: "QLoRA + TPE fine-tuning", zh: "QLoRA + TPE 微调" },
-      { en: "Triton + GPU tooling", zh: "Triton 与 GPU 工具链" },
+      { en: "Distorted speech simulation and cleaning", zh: "失真语音模拟与清理" },
+      { en: "Public SE baseline benchmarking", zh: "公开语音增强 baseline 评测" },
+      { en: "AVQI and downstream classification evaluation", zh: "AVQI 与下游分类评估" },
+      { en: "PyTorch experiments on Triton with Slurm/WandB", zh: "Triton 上的 PyTorch、Slurm 与 WandB 实验" },
     ],
     accent: "from-zinc-100 via-white to-zinc-50",
     tone: "light",
   },
   {
-    title: { en: "Applied ML Delivery", zh: "应用 ML 交付" },
+    title: { en: "Retrieval and applied ML systems", zh: "检索与应用 ML 系统" },
     description: {
-      en: "Hands-on delivery of ML products: data pipelines, evaluation frameworks, and reliable deployments.",
-      zh: "聚焦 ML 产品落地：数据流水线、评估体系与稳定部署。",
+      en: "Past projects cover legal RAG, knowledge-graph search, NLP moderation, ETA uncertainty, and small product-facing ML systems.",
+      zh: "过往项目包括法律 RAG、知识图谱检索、NLP 审核、ETA 不确定性和面向产品的小型 ML 系统。",
     },
     list: [
-      { en: "Retrieval evaluation & monitoring", zh: "检索评估与监控" },
-      { en: "Multilingual QA & reranking", zh: "多语问答与重排" },
-      { en: "Latency-aware inference stacks", zh: "低延迟推理栈" },
-      { en: "Experiment design & reporting", zh: "实验设计与报告" },
+      { en: "Agentic RAG and source-grounded QA", zh: "Agentic RAG 与有来源依据的问答" },
+      { en: "Hybrid retrieval and reranking", zh: "混合检索与重排" },
+      { en: "Model evaluation beyond a single score", zh: "不依赖单一指标的模型评估" },
+      { en: "Data pipelines and reproducible reports", zh: "数据流水线与可复现实验报告" },
     ],
     accent: "from-zinc-50 via-white to-slate-50",
     tone: "light",
@@ -115,18 +121,77 @@ const focusCards: FocusCard[] = [
 ]
 
 const caseStudySectionCopy = {
-  badge: { en: "Hybrid Case Studies", zh: "混合案例" },
+  badge: { en: "Projects", zh: "项目" },
   heading: {
-    en: "Where data products and visuals converge",
-    zh: "数据产品与视觉叙事的交汇",
+    en: "Project notes with the implementation details left in",
+    zh: "保留实现细节的项目记录",
   },
   summary: {
-    en: "Selected systems pairing measurable rigor with sensory storytelling.",
-    zh: "挑选出既可量化又具感官叙事的系统。",
+    en: "The resume keeps these short. This page keeps more context: input data, modeling choice, evaluation, and what was actually implemented.",
+    zh: "简历里只能压缩展示，这里保留更多上下文：输入数据、建模选择、评估方式和实际实现内容。",
   },
+  github: { en: "View project repositories on GitHub ↗", zh: "在 GitHub 查看项目仓库 ↗" },
 }
 
 const caseStudies: CaseStudy[] = [
+  {
+    title: {
+      en: "Universal Speech Enhancement for Health Biomarkers",
+      zh: "面向健康语音生物标志物的通用语音增强",
+    },
+    context: {
+      en: "Aalto University · Master's thesis / research assistant work",
+      zh: "Aalto University · 硕士论文 / 研究助理工作",
+    },
+    disciplineTag: { en: "Speech Research", zh: "语音研究" },
+    result: {
+      en: "Testing whether enhancement can reduce recording-condition drift before biomarker classification.",
+      zh: "测试语音增强能否在生物标志物分类前缓解录音条件漂移。",
+    },
+    highlights: [
+      {
+        en: "Building distorted-speech simulation and cleaning pipelines for noisy, reverberant, codec-degraded, and microphone-mismatched speech.",
+        zh: "构建失真语音模拟与清理流程，覆盖噪声、混响、codec 退化与麦克风差异。",
+      },
+      {
+        en: "Benchmarking public speech-enhancement baselines and connecting outputs to the lab's AVQI biomarker evaluation pipeline.",
+        zh: "评测公开语音增强 baseline，并将增强结果接入实验室已有 AVQI 生物标志物评估流程。",
+      },
+      {
+        en: "Running PyTorch experiments on Aalto Triton with Slurm job scripts and WandB records.",
+        zh: "在 Aalto Triton 上用 Slurm 和 WandB 运行、记录 PyTorch 实验。",
+      },
+    ],
+  },
+  {
+    title: {
+      en: "Legal QA with Agentic RAG",
+      zh: "法律问答 Agentic RAG",
+    },
+    context: {
+      en: "Lexembed · Sweden",
+      zh: "Lexembed · 瑞典",
+    },
+    disciplineTag: { en: "Retrieval Systems", zh: "检索系统" },
+    result: {
+      en: "Built components for source-grounded legal QA over uploaded document collections.",
+      zh: "为上传文档集合构建带来源依据的法律问答组件。",
+    },
+    highlights: [
+      {
+        en: "Implemented query decomposition, entity extraction, document retrieval, and source-grounded answer generation.",
+        zh: "实现问题拆解、实体抽取、文档检索和有来源依据的答案生成。",
+      },
+      {
+        en: "Used RAGAS-style checks to compare retrieval relevance, answer grounding, and citation quality.",
+        zh: "使用 RAGAS 风格评估比较检索相关性、答案 grounding 和引用质量。",
+      },
+      {
+        en: "Kept the workflow explicit because legal QA needs traceability more than fluent unconstrained generation.",
+        zh: "保持流程显式可追踪，因为法律问答比普通生成更依赖证据链。",
+      },
+    ],
+  },
   {
     title: {
       en: "Knowledge Graph Challenge on Heterogeneous Sources",
@@ -138,21 +203,21 @@ const caseStudies: CaseStudy[] = [
     },
     disciplineTag: { en: "AI Systems", zh: "AI 系统" },
     result: {
-      en: "Automated ingestion + semantic entity resolution with 100% traceability.",
-      zh: "自动采集与语义实体消解，确保 100% 可追溯。",
+      en: "Built a pipeline for merging innovation records from company sources and graph files.",
+      zh: "构建将公司来源与图谱文件中的创新记录合并的流水线。",
     },
     highlights: [
       {
-        en: "Hybrid search (Qdrant ANN + BM25) fused with RRF and Cross-Encoder rerankers.",
-        zh: "Qdrant ANN + BM25 的混合搜索，结合 RRF 与 Cross-Encoder 重排。",
+        en: "Flattened graph relationships into a unified relation table before entity resolution and graph reconstruction.",
+        zh: "先将图关系展平成统一关系表，再进行实体消解和规范图谱重建。",
       },
       {
-        en: "HDBSCAN-powered entity resolution using `text-embedding-small` vectors.",
-        zh: "以 `text-embedding-small` 向量结合 HDBSCAN 完成实体消解。",
+        en: "Used embeddings and HDBSCAN for semantic duplicate detection while preserving source IDs, names, descriptions, and lineage.",
+        zh: "用 embedding 与 HDBSCAN 做语义去重，同时保留 source id、名称、描述和来源追踪。",
       },
       {
-        en: "Evaluation suite covering Hit Rate, MRR, and innovation lineage tracking.",
-        zh: "评估体系覆盖 Hit Rate、MRR 与创新谱系追踪。",
+        en: "Built hybrid retrieval with Qdrant ANN + BM25, RRF fusion, and Cross-Encoder reranking; evaluated with Hit Rate and MRR.",
+        zh: "构建 Qdrant ANN + BM25、RRF 融合和 Cross-Encoder 重排，并用 Hit Rate / MRR 评估。",
       },
     ],
   },
@@ -169,16 +234,68 @@ const caseStudies: CaseStudy[] = [
     },
     highlights: [
       {
-        en: "Fine-tuned multilingual BERT with Triton acceleration and WandB tracking.",
-        zh: "以 Triton 加速并用 WandB 记录，微调多语 BERT。",
+        en: "Fine-tuned Wav2Vec2-BERT with SpecAugment and regularization for low-resource Esperanto ASR.",
+        zh: "使用 Wav2Vec2-BERT、SpecAugment 和正则化做低资源世界语 ASR。",
       },
       {
-        en: "Benchmarked four multilingual toxicity models across English / German / Finnish.",
-        zh: "在英/德/芬三语上测试四套毒性模型。",
+        en: "Benchmarked multilingual toxicity models across English, German, and Finnish.",
+        zh: "在英语、德语和芬兰语上评测多语毒性分类模型。",
       },
       {
-        en: "Blended character-level noise defenses with balanced sampling strategies.",
-        zh: "结合字符级噪声防御与均衡采样策略。",
+        en: "Used Triton GPU resources and WandB to track model comparisons and error analysis.",
+        zh: "使用 Triton GPU 资源和 WandB 记录模型对比与错误分析。",
+      },
+    ],
+  },
+  {
+    title: {
+      en: "Reference-Based AI Image Tampering Localization",
+      zh: "基于参考图像的 AI 篡改定位",
+    },
+    context: { en: "Aalto Computer Vision Challenge", zh: "Aalto 计算机视觉挑战" },
+    disciplineTag: { en: "Computer Vision", zh: "计算机视觉" },
+    result: {
+      en: "Localized AI-edited regions by comparing a reference image with its modified version, treating the task as supervised change segmentation.",
+      zh: "通过比较参考原图与 AI 编辑图定位被修改区域，将任务建模为有监督变化分割。",
+    },
+    highlights: [
+      {
+        en: "Used a Siamese encoder-decoder setup with shared visual encoders and feature-difference fusion, rather than simple RGB subtraction.",
+        zh: "采用共享视觉编码器的 Siamese encoder-decoder 和特征差分融合，而不是简单 RGB 差分。",
+      },
+      {
+        en: "Trained the segmentation head with mask-aware losses such as Dice/Focal-style objectives to handle small edited regions.",
+        zh: "用 Dice / Focal 风格的 mask-aware loss 训练分割头，处理篡改区域较小的问题。",
+      },
+      {
+        en: "Applied asymmetric augmentation on the edited branch, including compression, color shifts, resizing artifacts, and slight misalignment, to avoid learning only pixel noise.",
+        zh: "只在编辑图分支加入压缩、色彩偏移、缩放伪影和轻微错位等非对称增强，避免模型只学习像素噪声。",
+      },
+    ],
+  },
+  {
+    title: {
+      en: "Delivery Time Estimation with Calibrated Uncertainty",
+      zh: "带校准不确定性的配送时间预测",
+    },
+    context: { en: "Wolt Data Science Case", zh: "Wolt 数据科学案例" },
+    disciplineTag: { en: "Predictive Modeling", zh: "预测建模" },
+    result: {
+      en: "Built ETA point models and calibrated prediction intervals for skewed delivery-time errors.",
+      zh: "针对右偏配送时间误差构建 ETA 点预测模型和校准预测区间。",
+    },
+    highlights: [
+      {
+        en: "Compared target transformations such as raw minutes versus log1p minutes to reduce the effect of long-tail delays.",
+        zh: "比较原始分钟数与 log1p 分钟数等目标变换，降低长尾延迟对训练的影响。",
+      },
+      {
+        en: "Tested tree-based regression baselines and inspected residual distributions to separate systematic bias from random delay variance.",
+        zh: "测试树模型回归 baseline，并分析残差分布，区分系统性偏差和随机延迟波动。",
+      },
+      {
+        en: "Applied asymmetric conformal prediction on calibration residuals so ETA ranges can allocate more uncertainty to late deliveries than early arrivals.",
+        zh: "在校准残差上应用非对称 conformal prediction，让 ETA 区间对迟到分配比早到更多的不确定性。",
       },
     ],
   },
@@ -190,21 +307,21 @@ const caseStudies: CaseStudy[] = [
     context: { en: "Kunshan Yuanpai Trading · China", zh: "昆山源湃贸易 · 中国" },
     disciplineTag: { en: "Data Products", zh: "数据产品" },
     result: {
-      en: "Reduced query latency and improved personalization for merchandising teams.",
-      zh: "降低查询延迟并提升商品团队的个性化推荐。",
+      en: "Implemented a small recommendation and data-service stack for order, inventory, and customer behavior data.",
+      zh: "实现面向订单、库存和用户行为数据的小型推荐与数据服务栈。",
     },
     highlights: [
       {
-        en: "DBSCAN clustering + MAB exploration to surface high-value customer cohorts.",
-        zh: "DBSCAN 聚类 + MAB 探索定位高价值客群。",
+        en: "Combined DBSCAN customer segmentation, matrix-factorization candidates, and MAB-style re-ranking.",
+        zh: "结合 DBSCAN 客群细分、矩阵分解候选生成和 MAB 风格重排。",
       },
       {
-        en: "Optimized MongoDB schema and SQL interfaces for order + inventory ops.",
-        zh: "优化 MongoDB 结构与 SQL 接口，串联订单与库存。",
+        en: "Optimized MongoDB schema and indexes for common order, inventory, and recommendation queries.",
+        zh: "针对常见订单、库存和推荐查询优化 MongoDB schema 与索引。",
       },
       {
-        en: "Built Tableau dashboards to translate raw telemetry into decisions.",
-        zh: "搭建 Tableau 看板，把原始遥测转化为决策。",
+        en: "Built SQL interfaces and Tableau dashboards for operational reporting.",
+        zh: "构建 SQL 接口和 Tableau 看板，用于运营分析。",
       },
     ],
   },
@@ -216,17 +333,43 @@ const caseStudies: CaseStudy[] = [
     context: { en: "P&G · Finland · 3rd place · 2025 Junction", zh: "宝洁 · 芬兰 · 2025 Junction 季军" },
     disciplineTag: { en: "AI Engineering", zh: "AI 工程" },
     result: {
-      en: "Multimodal n8n Agentic workflow for localized multi-channel assets.",
-      zh: "多模态 n8n Agent 工作流，实现本地化多渠道资产生成。",
+      en: "Built a campaign-generation workflow that converts a brief into localized SMS/email assets with review checks.",
+      zh: "构建将 campaign brief 转换为本地化 SMS / email 资产的生成流程，并加入审核检查。",
     },
     highlights: [
       {
-        en: "Engineered a multimodal n8n Agentic workflow that adapts visual elements and optimizes text constraints for specific channels, achieving cultural localization.",
-        zh: "构建多模态 n8n Agent 工作流，自适应调整视觉元素与文本约束，实现跨渠道（SMS/Email）的文化本地化。",
+        en: "Used n8n to orchestrate brief parsing, audience/language adaptation, channel-specific copy generation, and asset handoff.",
+        zh: "使用 n8n 编排 brief 解析、受众与语言适配、分渠道文案生成和资产交付。",
       },
       {
-        en: "Implemented a Self-Reflective and adaptive design with CoT reasoning to iteratively critique outputs and enforce safety guardrails.",
-        zh: "采用思维链 (CoT) 的自反思与自适应设计，迭代审查输出并执行安全护栏，显著减少幻觉并确保品牌合规。",
+        en: "Added a self-review step to check brand constraints, safety rules, and SMS/email length limits before final output.",
+        zh: "加入自检步骤，在最终输出前检查品牌约束、安全规则和 SMS / email 长度限制。",
+      },
+    ],
+  },
+  {
+    title: {
+      en: "LLM-Based Academic Paper Translation Pipeline",
+      zh: "基于 LLM 的论文翻译流程",
+    },
+    context: { en: "Personal tooling for paper reading", zh: "个人论文阅读工具" },
+    disciplineTag: { en: "Document AI", zh: "文档 AI" },
+    result: {
+      en: "Built a personal research workflow around Codex skills, Zotero MCP, Obsidian notes, and LLM-assisted paper reading.",
+      zh: "围绕 Codex skills、Zotero MCP、Obsidian 笔记和 LLM 辅助阅读构建个人论文工作流。",
+    },
+    highlights: [
+      {
+        en: "Created and used Codex skills for paper analysis, PDF translation, image extraction, paper recommendation, and Obsidian-formatted note generation.",
+        zh: "创建并使用 Codex skills 做论文分析、PDF 翻译、图片提取、论文推荐和 Obsidian 格式笔记生成。",
+      },
+      {
+        en: "Connected Zotero/MCP-style metadata lookup with arXiv/PDF parsing so paper notes include source links, bibliographic context, and extracted figures.",
+        zh: "把 Zotero/MCP 风格元数据查询与 arXiv/PDF 解析连接起来，让论文笔记包含来源链接、文献信息和提取图片。",
+      },
+      {
+        en: "Optimized OCR, context-window chunking, and section-aware prompts for long academic PDFs, then saved structured bilingual notes into Obsidian.",
+        zh: "优化 OCR、上下文窗口切分和按章节 prompt，用于长 PDF 论文阅读，并保存结构化双语 Obsidian 笔记。",
       },
     ],
   },
@@ -234,23 +377,44 @@ const caseStudies: CaseStudy[] = [
 
 const experiences: Experience[] = [
   {
-    title: { en: "Data Scientist", zh: "数据科学家" },
-    organization: { en: "Lexembed", zh: "Lexembed" },
-    location: { en: "Stockholm, Sweden", zh: "瑞典·斯德哥尔摩" },
-    period: { en: "Aug 2025 — Present", zh: "2025 年 8 月 — 至今" },
+    title: { en: "Research Assistant / Master's Thesis Worker", zh: "研究助理 / 硕士论文研究员" },
+    organization: { en: "Aalto University", zh: "Aalto University" },
+    location: { en: "Espoo, Finland", zh: "芬兰·Espoo" },
+    period: { en: "Feb 2026 — Present", zh: "2026 年 2 月 — 至今" },
     discipline: "ai",
     summary: {
-      en: "Designing multilingual knowledge engines that blend Agentic RAG, case-based reasoning, and knowledge graphs for legal intelligence teams.",
-      zh: "为法律智能团队打造多语言知识引擎，结合 Agentic RAG、案例推理与知识图谱。",
+      en: "Working on universal speech enhancement for speech-based health biomarkers, with emphasis on data drift, benchmark setup, and downstream evaluation.",
+      zh: "研究面向健康语音生物标志物的通用语音增强，重点是数据漂移、benchmark 搭建和下游评估。",
     },
     highlights: [
       {
-        en: "Built a multi-hop QA flow that fuses entity extraction with graph traversals for rapid compliance research.",
-        zh: "构建多跳问答流程，将实体抽取与图遍历结合，加速合规检索。",
+        en: "Researching and building distorted-data simulation for USE experiments, including noisy, reverberant, codec-degraded, and microphone-mismatched speech.",
+        zh: "研究并构建 USE 实验所需的失真数据模拟，包括噪声、混响、codec 退化和麦克风不匹配。",
       },
       {
-        en: "Introduced quantitative retrieval guardrails using RAGAS and automated regression suites for every release.",
-        zh: "引入 RAGAS 与自动回归套件，为每次发布建立量化检索护栏。",
+        en: "Connecting public SE baselines to the lab's AVQI biomarker evaluation pipeline to test whether enhancement reduces drift-induced classification failures.",
+        zh: "将公开语音增强 baseline 接入实验室 AVQI 生物标志物评估流程，测试增强能否缓解数据漂移导致的分类失败。",
+      },
+    ],
+  },
+  {
+    title: { en: "Data Scientist", zh: "数据科学家" },
+    organization: { en: "Lexembed", zh: "Lexembed" },
+    location: { en: "Sweden", zh: "瑞典" },
+    period: { en: "Aug 2025 — Feb 2026", zh: "2025 年 8 月 — 2026 年 2 月" },
+    discipline: "ai",
+    summary: {
+      en: "Developing legal QA components around Agentic RAG, document retrieval, and source-grounded generation.",
+      zh: "围绕 Agentic RAG、文档检索和有来源依据的生成开发法律问答组件。",
+    },
+    highlights: [
+      {
+        en: "Built query decomposition, entity extraction, knowledge-graph context, and case-based retrieval steps for uploaded legal documents.",
+        zh: "为上传法律文档构建问题拆解、实体抽取、知识图谱上下文和案例检索步骤。",
+      },
+      {
+        en: "Used RAGAS-based checks to compare citation grounding, answer relevance, and retrieval quality during iteration.",
+        zh: "在迭代中用 RAGAS 风格指标比较引用 grounding、答案相关性和检索质量。",
       },
     ],
   },
@@ -288,11 +452,12 @@ const experienceSectionCopy = {
 
 const skills = [
   {
-    title: { en: "Data Science / AI", zh: "数据科学 / AI" },
+    title: { en: "ML / Systems", zh: "机器学习 / 系统" },
     items: [
-      { en: "Agentic RAG orchestration with LangChain + custom tools", zh: "结合 LangChain 与自研工具的 Agentic RAG 编排" },
-      { en: "Python, PyTorch, Triton inference, Qdrant/BM25 hybrid retrieval", zh: "Python、PyTorch、Triton 推理，Qdrant/BM25 混合检索" },
-      { en: "ASR & NLP fine-tuning (DeBERTaV3, Wav2Vec2, multilingual BERT)", zh: "ASR / NLP 微调（DeBERTaV3、Wav2Vec2、多语 BERT）" },
+      { en: "Python, PyTorch, scikit-learn, LangChain, Pydantic", zh: "Python、PyTorch、scikit-learn、LangChain、Pydantic" },
+      { en: "Speech enhancement, ASR, RAG, embeddings, Mamba, conformal prediction", zh: "语音增强、ASR、RAG、embedding、Mamba、conformal prediction" },
+      { en: "Linux, Slurm, Triton HPC, GPU training, Docker, Git, WandB", zh: "Linux、Slurm、Triton HPC、GPU 训练、Docker、Git、WandB" },
+      { en: "MongoDB, Qdrant, BM25, HDBSCAN, Spark, Tableau", zh: "MongoDB、Qdrant、BM25、HDBSCAN、Spark、Tableau" },
     ],
   },
 ]
@@ -344,12 +509,12 @@ const availabilityCopy = {
   badge: { en: "Availability", zh: "当前档期" },
   heading: { en: "Open to data science roles", zh: "开放数据科学岗位" },
   body: {
-    en: "Based in Stockholm. Open to onsite or remote ML roles across Europe and global teams.",
-    zh: "常驻斯德哥尔摩，可接受欧洲或全球团队的线下/远程 ML 岗位。",
+    en: "Based in Espoo. Open to onsite or remote ML, speech, retrieval, and AI infrastructure roles across Europe, and to internship opportunities in China.",
+    zh: "常驻 Espoo，开放欧洲范围内线下或远程的 ML、语音、检索和 AI infrastructure 岗位，也接受国内实习机会。",
   },
   footer: {
-    en: "Based in Stockholm · Shenzhen friendly · English / 中文",
-    zh: "常驻斯德哥尔摩 · 支持深圳合作 · English / 中文",
+    en: "Based in Espoo · Europe roles · China internships · English / 中文",
+    zh: "常驻 Espoo · 欧洲岗位 · 国内实习 · English / 中文",
   },
 }
 
@@ -475,8 +640,9 @@ export function ResumePage() {
 
       <motion.section
         className="relative isolate flex min-h-[100svh] items-center overflow-hidden border-b border-zinc-200/60 bg-zinc-50"
-        {...createSectionMotionProps(isMobile ? 0.4 : 0.8)}
         variants={maybeFade}
+        initial={shouldReduceMotion ? undefined : "visible"}
+        animate={shouldReduceMotion ? undefined : "visible"}
       >
         <div className="absolute right-4 top-4 z-20">
           <LangSwitcher className="h-10 w-10 border border-zinc-200 bg-white/80 text-zinc-800" />
@@ -487,7 +653,6 @@ export function ResumePage() {
         />
         <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-12 px-5 py-24 sm:px-10 lg:flex-row lg:items-center">
           <motion.div className="max-w-2xl space-y-6" variants={maybeFade}>
-            <p className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-500">{heroCopy.badge[heroLocale]}</p>
             <h1 className="text-4xl font-light leading-tight text-zinc-900 sm:text-5xl lg:text-6xl">
               {heroCopy.title[heroLocale]}
             </h1>
@@ -509,17 +674,11 @@ export function ResumePage() {
               >
                 {heroCopy.primaryCta[heroLocale]}
               </Link>
-              <Link
-                href="#case-studies"
-                className="rounded-full border border-zinc-900 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-zinc-900 transition hover:bg-zinc-900 hover:text-white"
-              >
-                {heroCopy.secondaryCta[heroLocale]}
-              </Link>
             </motion.div>
           </motion.div>
 
           <motion.div
-            className="w-full rounded-3xl border border-zinc-200/80 bg-white/90 p-6 text-zinc-900 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:w-[480px]"
+            className="w-full rounded-2xl border border-zinc-200/80 bg-white/90 p-5 text-zinc-900 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:w-[520px]"
             style={
               disableScrollLinkedMotion
                 ? undefined
@@ -529,21 +688,21 @@ export function ResumePage() {
                 }
             }
           >
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-4">
               {techStack.map((stack, index) => (
                 <motion.div
                   key={stack.category.en}
                   {...getCardMotionProps(index, { immediate: true })}
-                  className="space-y-3"
+                  className="grid gap-2 border-b border-zinc-100 pb-3 last:border-b-0 last:pb-0 sm:grid-cols-[130px_1fr]"
                 >
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                  <h3 className="pt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
                     {stack.category[locale]}
                   </h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {stack.items.map((item) => (
                       <span
                         key={item}
-                        className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-600 transition hover:bg-zinc-200"
+                        className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium leading-none text-zinc-600 transition hover:bg-zinc-200"
                       >
                         {item}
                       </span>
@@ -613,6 +772,14 @@ export function ResumePage() {
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{caseStudySectionCopy.badge[locale]}</p>
             <h2 className="text-2xl font-light text-zinc-900">{caseStudySectionCopy.heading[locale]}</h2>
             <p className="text-base text-zinc-600">{caseStudySectionCopy.summary[locale]}</p>
+            <Link
+              href="https://github.com/Cunyli"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 w-fit text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
+            >
+              {caseStudySectionCopy.github[locale]}
+            </Link>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
             {caseStudies.map((study, index) => (
