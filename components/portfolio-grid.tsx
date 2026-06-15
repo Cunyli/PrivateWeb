@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
-import type { CSSProperties } from "react"
+import type { CSSProperties, WheelEvent } from "react"
 import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
@@ -116,6 +116,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const bottomRowMaxScrollRef = useRef(0)
   const topRowScrollRef = useRef(0)
   const bottomRowScrollRef = useRef(0)
+  const topRowResumeTimerRef = useRef<number | null>(null)
+  const bottomRowResumeTimerRef = useRef<number | null>(null)
   const pageScrollRef = useRef<HTMLDivElement>(null)
   const restoreAppliedRef = useRef(false)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
@@ -138,15 +140,61 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     setBottomRowPaused(false)
   }, [])
   const forcePauseTopRow = useCallback(() => {
+    if (topRowResumeTimerRef.current !== null) {
+      window.clearTimeout(topRowResumeTimerRef.current)
+      topRowResumeTimerRef.current = null
+    }
     const current = topRowRef.current?.scrollLeft
     if (Number.isFinite(current)) topRowScrollRef.current = current || 0
     setTopRowPaused(true)
   }, [])
   const forcePauseBottomRow = useCallback(() => {
+    if (bottomRowResumeTimerRef.current !== null) {
+      window.clearTimeout(bottomRowResumeTimerRef.current)
+      bottomRowResumeTimerRef.current = null
+    }
     const current = bottomRowRef.current?.scrollLeft
     if (Number.isFinite(current)) bottomRowScrollRef.current = current || 0
     setBottomRowPaused(true)
   }, [])
+  const scheduleResumeTopRow = useCallback(() => {
+    if (topRowResumeTimerRef.current !== null) {
+      window.clearTimeout(topRowResumeTimerRef.current)
+    }
+    topRowResumeTimerRef.current = window.setTimeout(() => {
+      topRowResumeTimerRef.current = null
+      resumeTopRow()
+    }, 900)
+  }, [resumeTopRow])
+  const scheduleResumeBottomRow = useCallback(() => {
+    if (bottomRowResumeTimerRef.current !== null) {
+      window.clearTimeout(bottomRowResumeTimerRef.current)
+    }
+    bottomRowResumeTimerRef.current = window.setTimeout(() => {
+      bottomRowResumeTimerRef.current = null
+      resumeBottomRow()
+    }, 900)
+  }, [resumeBottomRow])
+  const handleTopRowScroll = useCallback(() => {
+    const current = topRowRef.current?.scrollLeft
+    if (Number.isFinite(current)) topRowScrollRef.current = current || 0
+    if (topRowPaused) scheduleResumeTopRow()
+  }, [scheduleResumeTopRow, topRowPaused])
+  const handleBottomRowScroll = useCallback(() => {
+    const current = bottomRowRef.current?.scrollLeft
+    if (Number.isFinite(current)) bottomRowScrollRef.current = current || 0
+    if (bottomRowPaused) scheduleResumeBottomRow()
+  }, [bottomRowPaused, scheduleResumeBottomRow])
+  const handleTopRowWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+    if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
+    forcePauseTopRow()
+    scheduleResumeTopRow()
+  }, [forcePauseTopRow, scheduleResumeTopRow])
+  const handleBottomRowWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+    if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
+    forcePauseBottomRow()
+    scheduleResumeBottomRow()
+  }, [forcePauseBottomRow, scheduleResumeBottomRow])
   const measureRowOverflow = useCallback((row: HTMLDivElement | null) => {
     if (typeof window === 'undefined' || !row) return 0
     const nativeOverflow = row.scrollWidth - row.clientWidth
@@ -309,6 +357,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           setTransZh,
           pictureTransEn,
           pictureTransZh,
+          semanticPictures,
         ] = await Promise.all([
           supabase
             .from("picture_sets")
@@ -358,6 +407,18 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
             .eq("locale", "zh")
             .or(translationOrClause)
             .limit(100),
+          fetch(`/api/semantic-picture-search?q=${encodeURIComponent(normalizedQuery)}&limit=24&minSimilarity=0`)
+            .then(async (response) => {
+              if (!response.ok) {
+                const payload = await response.json().catch(() => ({}))
+                throw new Error(payload?.error || `Semantic search failed: ${response.status}`)
+              }
+              return response.json() as Promise<{ results?: Picture[] }>
+            })
+            .catch((error) => {
+              console.warn("Semantic picture search error:", error)
+              return { results: [] as Picture[] }
+            }),
         ])
 
         if (setFts.error) console.warn("Set FTS error:", setFts.error)
@@ -376,6 +437,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           ]),
         )
         const basePictures = dedupeById([
+          ...((semanticPictures.results || []) as Picture[]),
           ...((pictureFts.data || []) as Picture[]),
           ...((pictureText.data || []) as Picture[]),
         ])
@@ -615,6 +677,17 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     window.addEventListener('resize', updateRowScrollBounds)
     return () => window.removeEventListener('resize', updateRowScrollBounds)
   }, [updateRowScrollBounds])
+
+  useEffect(() => {
+    return () => {
+      if (topRowResumeTimerRef.current !== null) {
+        window.clearTimeout(topRowResumeTimerRef.current)
+      }
+      if (bottomRowResumeTimerRef.current !== null) {
+        window.clearTimeout(bottomRowResumeTimerRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -1109,8 +1182,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   ref={topRowRef}
                   data-portfolio-row="top"
                   className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
-                  onPointerUp={resumeTopRow}
-                  onPointerCancel={resumeTopRow}
+                  onScroll={handleTopRowScroll}
+                  onWheel={handleTopRowWheel}
+                  onPointerUp={scheduleResumeTopRow}
+                  onPointerCancel={scheduleResumeTopRow}
+                  onPointerLeave={scheduleResumeTopRow}
                   onPointerDown={forcePauseTopRow}
                 >
                   {loopedFirstRow.map((item, i) => {
@@ -1157,8 +1233,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     ref={bottomRowRef}
                     data-portfolio-row="bottom"
                     className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
-                    onPointerUp={resumeBottomRow}
-                    onPointerCancel={resumeBottomRow}
+                    onScroll={handleBottomRowScroll}
+                    onWheel={handleBottomRowWheel}
+                    onPointerUp={scheduleResumeBottomRow}
+                    onPointerCancel={scheduleResumeBottomRow}
+                    onPointerLeave={scheduleResumeBottomRow}
                     onPointerDown={forcePauseBottomRow}
                   >
                     {loopedSecondRow.map((item, i) => {

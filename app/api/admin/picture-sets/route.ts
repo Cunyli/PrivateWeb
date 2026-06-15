@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
 import { requireAdminRequest } from "@/utils/admin-auth.server"
+import { triggerPictureEmbeddingBackfill } from "@/utils/picture-embeddings.server"
 export const runtime = 'nodejs'
 
 // --- Translation helpers (server-side bi-directional) ---
@@ -352,6 +353,7 @@ export async function POST(request: Request) {
     }
 
     if (pictures.length > 0) {
+      let insertedPictureIds: number[] = []
       const rows = pictures
         .filter((p: any) => typeof p.image_url === 'string' && p.image_url.length > 0)
         .map((p: any, idx: number) => ({
@@ -382,6 +384,7 @@ export async function POST(request: Request) {
       const picIdByIndex: number[] = (allPics || [])
         .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
         .map((r: any) => r.id)
+      insertedPictureIds = picIdByIndex
 
       // --- 每张图片：可选 AI 生成标题/副标题 + 翻译、标签、位置 ---
       // 预备 set 级别的 typed tags
@@ -597,6 +600,8 @@ export async function POST(request: Request) {
 
         await Promise.all(tasks)
       })
+
+      triggerPictureEmbeddingBackfill(insertedPictureIds)
     }
 
     // sections 赋值：payload.section_ids + 根据 position 推断的一个默认 section（若存在）

@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
 import { requireAdminRequest } from "@/utils/admin-auth.server"
 import { collectImageAssetKeys, deleteObjectKeysFromR2 } from "@/utils/r2-assets.server"
+import { triggerPictureEmbeddingBackfill } from "@/utils/picture-embeddings.server"
 
 export const runtime = 'nodejs'
 
@@ -238,6 +239,7 @@ async function runMutation(label: string, query: any) {
 async function deletePictureRows(pictureIds: number[]) {
   if (!pictureIds.length) return
 
+  await runMutation('delete picture embeddings', supabaseAdmin.from('picture_embeddings').delete().in('picture_id', pictureIds))
   await runMutation('delete picture likes', supabaseAdmin.from('picture_likes').delete().in('picture_id', pictureIds))
   await runMutation('delete picture comments', supabaseAdmin.from('picture_comments').delete().in('picture_id', pictureIds))
   await runMutation('delete picture participants', supabaseAdmin.from('picture_participants').delete().in('picture_id', pictureIds))
@@ -505,6 +507,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const setLocLat = typeof payload.primary_location_latitude === 'number' ? payload.primary_location_latitude : null
     const setLocLng = typeof payload.primary_location_longitude === 'number' ? payload.primary_location_longitude : null
     const hasSetLoc = !!setLocName || (typeof setLocLat === 'number' && typeof setLocLng === 'number')
+    let insertedPictureIds: number[] = []
     if (pictures.length) {
       const toInsert = pictures.filter((p: any) => typeof p.image_url === 'string' && p.image_url.length > 0)
       if (toInsert.length) {
@@ -525,6 +528,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
         const { data: insertedPics, error: insErr } = await supabaseAdmin.from('pictures').insert(rows).select('id,order_index')
         if (insErr) return NextResponse.json({ error: insErr.message }, { status: 400 })
         const byIndex: Record<number, number> = {}; for (const r of insertedPics || []) byIndex[(r as any).order_index] = (r as any).id
+        insertedPictureIds = (insertedPics || []).map((picture: any) => picture.id)
         const concurrency = Math.max(1, Math.min(6, Number(process.env.PICTURE_JOB_CONCURRENCY || 4)))
         const locCache = new Map<string, number>()
 
@@ -625,6 +629,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
         })
       }
     }
+    triggerPictureEmbeddingBackfill(insertedPictureIds)
 
     if (asyncEnrich) {
       triggerAsyncEnrich(idNum, payload, request.headers.get("authorization"))

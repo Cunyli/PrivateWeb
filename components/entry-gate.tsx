@@ -50,6 +50,7 @@ export function EntryGate() {
   const router = useRouter()
   const [isExiting, setIsExiting] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [isMobileIntroVisible, setIsMobileIntroVisible] = useState(true)
   const sceneRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null)
   const targetRef = useRef({
@@ -195,6 +196,11 @@ export function EntryGate() {
   }, [isMobile])
 
   useEffect(() => {
+    const id = window.setTimeout(() => setIsMobileIntroVisible(false), 120)
+    return () => window.clearTimeout(id)
+  }, [])
+
+  useEffect(() => {
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current)
@@ -207,7 +213,7 @@ export function EntryGate() {
       ref={sceneRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className={`relative min-h-[100svh] overflow-hidden bg-transparent text-zinc-900 font-['Manrope'] transition-all duration-500 ${isExiting ? "scale-[0.98] opacity-0" : "opacity-100"} ${isMobile ? "entry-animate" : ""}`}
+      className={`relative min-h-[100svh] overflow-hidden bg-[#030403] text-zinc-900 font-['Manrope'] transition-all duration-500 ${isExiting && !isMobile ? "scale-[0.98] opacity-0" : "opacity-100"} ${isMobile ? "entry-animate" : ""}`}
       style={
         {
           perspective: "1200px",
@@ -233,8 +239,16 @@ export function EntryGate() {
         />
       </div>
 
-      <section className="entry-mobile relative isolate flex min-h-[100svh] overflow-hidden bg-[#030403] text-white md:hidden">
-        <div className="mobile-pill-photo pointer-events-none absolute inset-0" />
+      <section className="entry-mobile relative isolate flex min-h-[100svh] overflow-hidden bg-white text-white md:hidden">
+        <div className="mobile-pill-preload pointer-events-none absolute inset-0" />
+        <img
+          src="/matrix-pill-bg.png"
+          alt=""
+          aria-hidden="true"
+          className="mobile-pill-photo pointer-events-none absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="mobile-pill-vignette pointer-events-none absolute inset-0" />
+        <div className={`mobile-pill-intro pointer-events-none absolute inset-0 z-10 bg-white ${isMobileIntroVisible ? "opacity-100" : "opacity-0"}`} />
         <div className={`mobile-pill-exit pointer-events-none fixed inset-0 z-30 bg-black transition-opacity duration-500 ${isExiting ? "opacity-100" : "opacity-0"}`} />
 
         <nav className="mobile-pill-nav" aria-label={gateLocale === "zh" ? "药丸入口" : "Pill entries"}>
@@ -351,21 +365,24 @@ export function EntryGate() {
         </div>
       </section>
       <style jsx>{`
+        .mobile-pill-preload {
+          background:
+            radial-gradient(circle at 50% 68%, rgba(76, 80, 58, 0.26), transparent 30%),
+            linear-gradient(180deg, #030403 0%, #070806 58%, #000 100%);
+        }
+
         .mobile-pill-photo {
-          background-image: url("/matrix-pill-bg.png");
-          background-position: center center;
-          background-size: cover;
           filter: contrast(1.02) saturate(0.94);
         }
 
-        .mobile-pill-photo::after {
-          content: "";
-          position: absolute;
-          inset: 0;
+        .mobile-pill-vignette {
           background:
             radial-gradient(circle at center, transparent 52%, rgba(0, 0, 0, 0.26)),
             linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.22));
-          pointer-events: none;
+        }
+
+        .mobile-pill-intro {
+          transition: opacity 1100ms cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .mobile-pill-nav {
