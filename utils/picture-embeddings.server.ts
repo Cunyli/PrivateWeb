@@ -65,8 +65,9 @@ const buildContentHash = (picture: PictureEmbeddingRow) =>
     .digest("hex")
 
 const formatVector = (embedding: number[]) => {
-  if (embedding.length !== 512) {
-    throw new Error(`Expected a 512-dimensional embedding, got ${embedding.length}`)
+  const expectedDimensions = getEmbeddingDimensions()
+  if (embedding.length !== expectedDimensions) {
+    throw new Error(`Expected a ${expectedDimensions}-dimensional embedding, got ${embedding.length}`)
   }
   if (embedding.some((value) => !Number.isFinite(value))) {
     throw new Error("Embedding contains a non-finite value")
@@ -77,6 +78,27 @@ const formatVector = (embedding: number[]) => {
 const shellQuote = (value: string) => `'${value.replaceAll("'", "'\"'\"'")}'`
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const DEFAULT_JINA_MODEL = "jina-embeddings-v5-omni-small"
+const JINA_EMBEDDING_ENDPOINT = "https://api.jina.ai/v1/embeddings"
+
+const getEmbeddingDimensions = () => Number(process.env.JINA_EMBEDDING_DIMENSIONS || 1024)
+
+const getJinaModel = () => process.env.JINA_EMBEDDING_MODEL || DEFAULT_JINA_MODEL
+
+const getExpectedEmbeddingModel = () =>
+  process.env.PICTURE_EMBEDDING_MODEL ||
+  process.env.IMAGE_EMBEDDING_MODEL ||
+  process.env.HF_IMAGE_EMBEDDING_MODEL ||
+  (process.env.JINA_API_KEY ? getJinaModel() : "sentence-transformers/clip-ViT-B-32")
+
+const isNonRetriableEmbeddingError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error)
+  return (
+    message.includes("jina failed: 400") ||
+    message.includes("Failed to load image from")
+  )
+}
 
 const buildEmbeddingRequestPayload = (picture: PictureEmbeddingRow) => {
   const imageUrl = resolveImageUrl(chooseImagePath(picture))
@@ -219,6 +241,58 @@ const requestHfImageEmbedding = async (
   })
 }
 
+const parseJinaEmbedding = (payload: unknown) => {
+  const responsePayload = payload as { data?: Array<{ embedding?: unknown }> }
+  const embedding = responsePayload.data?.[0]?.embedding
+  if (!Array.isArray(embedding)) {
+    throw new Error("Jina embedding response did not include an embedding")
+  }
+  const values = embedding.map((value) => Number(value))
+  if (values.some((value) => !Number.isFinite(value))) {
+    throw new Error("Jina embedding response included non-numeric values")
+  }
+  return values
+}
+
+const requestJinaImageEmbedding = async (
+  requestPayload: ReturnType<typeof buildEmbeddingRequestPayload>,
+): Promise<EmbeddingPayload> => {
+  const token = process.env.JINA_API_KEY
+  if (!token) {
+    throw new Error("Missing JINA_API_KEY")
+  }
+
+  const body: Record<string, unknown> = {
+    model: getJinaModel(),
+    dimensions: getEmbeddingDimensions(),
+    normalized: true,
+    embedding_type: "float",
+    input: [{ image: requestPayload.imageUrl }],
+  }
+  if (process.env.JINA_IMAGE_EMBEDDING_TASK) {
+    body.task = process.env.JINA_IMAGE_EMBEDDING_TASK
+  }
+
+  const response = await fetch(JINA_EMBEDDING_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    throw new Error(`jina failed: ${response.status} ${await response.text()}`)
+  }
+
+  return {
+    embedding: parseJinaEmbedding(await response.json()),
+    model: getJinaModel(),
+    provider: "jina",
+  }
+}
+
 const requestEmbedding = async (picture: PictureEmbeddingRow): Promise<EmbeddingPayload> => {
   const requestPayload = buildEmbeddingRequestPayload(picture)
   const errors: string[] = []
@@ -239,8 +313,16 @@ const requestEmbedding = async (picture: PictureEmbeddingRow): Promise<Embedding
     }
   }
 
+  if (process.env.JINA_API_KEY) {
+    try {
+      return await requestJinaImageEmbedding(requestPayload)
+    } catch (error: any) {
+      errors.push(`jina: ${error?.message || error}`)
+    }
+  }
+
   if (!errors.length) {
-    throw new Error("Missing IMAGE_EMBEDDING_API_URL or HF_IMAGE_EMBEDDING_API_URL")
+    throw new Error("Missing IMAGE_EMBEDDING_API_URL, HF_IMAGE_EMBEDDING_API_URL, or JINA_API_KEY")
   }
 
   throw new Error(`All image embedding providers failed (${errors.join("; ")})`)
@@ -253,6 +335,9 @@ const requestEmbeddingWithRetry = async (picture: PictureEmbeddingRow, attempts 
       return await requestEmbedding(picture)
     } catch (error) {
       lastError = error
+      if (isNonRetriableEmbeddingError(error)) {
+        break
+      }
       if (attempt < attempts) {
         await wait(1000 * attempt)
       }
@@ -286,7 +371,7 @@ export async function backfillPictureEmbeddingsByIds(
     return { insertedOrUpdated: 0, skipped: 0, failed: 0 }
   }
 
-  if (!process.env.IMAGE_EMBEDDING_API_URL && !process.env.HF_IMAGE_EMBEDDING_API_URL) {
+  if (!process.env.IMAGE_EMBEDDING_API_URL && !process.env.HF_IMAGE_EMBEDDING_API_URL && !process.env.JINA_API_KEY) {
     console.warn("Skipping picture embedding backfill because no image embedding provider is configured")
     return { insertedOrUpdated: 0, skipped: uniqueIds.length, failed: 0 }
   }
@@ -310,14 +395,14 @@ export async function backfillPictureEmbeddingsByIds(
       if (!options.force) {
         const { data: existing, error: existingError } = await supabaseAdmin
           .from("picture_embeddings")
-          .select("content_hash")
+          .select("content_hash,model")
           .eq("picture_id", picture.id)
           .maybeSingle()
 
         if (existingError) {
           throw existingError
         }
-        if (existing?.content_hash === contentHash) {
+        if (existing?.content_hash === contentHash && existing.model === getExpectedEmbeddingModel()) {
           result.skipped++
           return
         }
@@ -325,7 +410,9 @@ export async function backfillPictureEmbeddingsByIds(
 
       const embeddingPayload = await requestEmbeddingWithRetry(picture)
       const model = embeddingPayload.model
-        || (embeddingPayload.provider === "hf-image-endpoint"
+        || (embeddingPayload.provider === "jina"
+          ? getJinaModel()
+          : embeddingPayload.provider === "hf-image-endpoint"
           ? process.env.HF_IMAGE_EMBEDDING_MODEL
           : process.env.IMAGE_EMBEDDING_MODEL)
         || "sentence-transformers/clip-ViT-B-32"
