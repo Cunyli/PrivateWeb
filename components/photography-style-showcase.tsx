@@ -52,6 +52,7 @@ const HOVER_INTENT_DELAY_MS = 90
 const PREVIEW_QUALITY = 55
 const PREVIEW_PREFETCH_WIDTH = 800
 const PREVIEW_SIZES = "(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
+const STYLE_NAVIGATION_DELAY_MS = 420
 
 const savePortfolioReturnState = () => {
   if (typeof window === "undefined") return
@@ -74,6 +75,7 @@ export function PhotographyStyleShowcase() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeStyle, setActiveStyle] = useState<string | null>(null)
+  const [styleNavigating, setStyleNavigating] = useState(false)
   const [visibleIndex, setVisibleIndex] = useState<Record<string, number>>({})
   const rotationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [landscapeMap, setLandscapeMap] = useState<Record<string, Record<number, boolean>>>({})
@@ -255,13 +257,17 @@ export function PhotographyStyleShowcase() {
   }, [getEligibleIndices, pickNextEligibleIndex, stylesData])
 
   const handleOpenStyle = useCallback((styleId: string) => {
+    if (styleNavigating) return
     savePortfolioReturnState()
     const params = new URLSearchParams()
     params.set("origin", "portfolio")
     params.set("returnSection", "styles")
     params.set("restore", "1")
-    router.push(`/work/style/${styleId}?${params.toString()}`)
-  }, [router])
+    setStyleNavigating(true)
+    window.setTimeout(() => {
+      router.push(`/work/style/${styleId}?${params.toString()}`)
+    }, STYLE_NAVIGATION_DELAY_MS)
+  }, [router, styleNavigating])
 
   const prefetchPreview = useCallback((styleId: string | null) => {
     if (typeof window === 'undefined') return
@@ -410,6 +416,10 @@ export function PhotographyStyleShowcase() {
 
   return (
     <section className="mt-16 sm:mt-24">
+      <div
+        className={`pointer-events-none fixed inset-0 z-[200] bg-white transition-opacity duration-500 ease-out ${styleNavigating ? "opacity-100" : "opacity-0"}`}
+        aria-hidden="true"
+      />
       <div className="flex flex-col gap-4 md:gap-6">
         <div className="text-center max-w-3xl mx-auto mb-2 sm:mb-4">
           <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">

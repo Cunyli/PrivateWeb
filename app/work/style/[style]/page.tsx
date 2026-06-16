@@ -75,14 +75,15 @@ export default async function StyleCollectionPage({
   params,
   searchParams,
 }: {
-  params: { style: string }
-  searchParams?: {
+  params: Promise<{ style: string }>
+  searchParams?: Promise<{
     origin?: string
     restore?: string
     returnSection?: string
-  }
+  }>
 }) {
-  const styleKey = params.style
+  const { style: styleKey } = await params
+  const resolvedSearchParams = await searchParams
   const styleConfig = PHOTOGRAPHY_STYLE_BY_ID[styleKey as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]
   if (!styleConfig) {
     notFound()
@@ -161,8 +162,8 @@ export default async function StyleCollectionPage({
         locations={[]}
         returnContext={{
           type: "portfolio",
-          focusSection: searchParams?.returnSection === "styles" ? "styles" : undefined,
-          restore: searchParams?.restore === "1" || searchParams?.origin === "portfolio",
+          focusSection: resolvedSearchParams?.returnSection === "styles" ? "styles" : undefined,
+          restore: resolvedSearchParams?.restore === "1" || resolvedSearchParams?.origin === "portfolio",
         }}
         viewSetContext={{ type: "style", styleKey }}
       />
