@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs"
 import process from "node:process"
 import { resolve } from "node:path"
 import { createClient } from "@supabase/supabase-js"
+import sharp from "sharp"
 
 const usage = `
 Usage:
@@ -169,10 +170,30 @@ const resolveImageUrl = (imagePath) => {
   return `${bucketUrl.replace(/\/$/, "")}/${String(imagePath).replace(/^\//, "")}`
 }
 
-const chooseImagePath = (picture) =>
-  picture.image_variants?.original ||
-  picture.raw_image_url ||
-  picture.image_url
+const getPreferredImageVariantKeys = () =>
+  (process.env.PICTURE_EMBEDDING_IMAGE_VARIANTS || "640,768,1024,1280,medium,small,thumbnail,original")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+
+const chooseImagePath = (picture) => {
+  const variants = picture.image_variants || {}
+  for (const key of getPreferredImageVariantKeys()) {
+    if (variants[key]) {
+      return variants[key]
+    }
+  }
+
+  const numericVariant = Object.keys(variants)
+    .filter((key) => key !== "original" && Number.isFinite(Number(key)))
+    .sort((left, right) => Number(left) - Number(right))
+    .find((key) => variants[key])
+  if (numericVariant) {
+    return variants[numericVariant]
+  }
+
+  return variants.original || picture.raw_image_url || picture.image_url
+}
 
 const buildEmbeddingText = (picture) =>
   [
@@ -223,6 +244,16 @@ const JINA_EMBEDDING_ENDPOINT = "https://api.jina.ai/v1/embeddings"
 const getEmbeddingDimensions = () => Number(process.env.JINA_EMBEDDING_DIMENSIONS || 1024)
 
 const getJinaModel = () => process.env.JINA_EMBEDDING_MODEL || DEFAULT_JINA_MODEL
+
+const getJinaDataUrlMaxSide = () => Number(process.env.JINA_IMAGE_DATA_URL_MAX_SIDE || 640)
+
+const getJinaDataUrlMaxBytes = () => Number(process.env.JINA_IMAGE_DATA_URL_MAX_BYTES || 4_900_000)
+
+const getProviderOrder = () =>
+  (process.env.PICTURE_EMBEDDING_PROVIDER_ORDER || "primary,hf,jina")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
 
 const getExpectedEmbeddingModel = () =>
   process.env.PICTURE_EMBEDDING_MODEL ||
@@ -475,7 +506,7 @@ const parseJinaEmbedding = (payload) => {
   return values
 }
 
-const embedWithJina = async (requestPayload) => {
+const requestJinaEmbedding = async (imageInput) => {
   const token = process.env.JINA_API_KEY
   if (!token) {
     throw new Error("Missing JINA_API_KEY")
@@ -486,7 +517,7 @@ const embedWithJina = async (requestPayload) => {
     dimensions: getEmbeddingDimensions(),
     normalized: true,
     embedding_type: "float",
-    input: [{ image: requestPayload.imageUrl }],
+    input: [{ image: imageInput }],
   }
   if (process.env.JINA_IMAGE_EMBEDDING_TASK) {
     body.task = process.env.JINA_IMAGE_EMBEDDING_TASK
@@ -512,31 +543,74 @@ const embedWithJina = async (requestPayload) => {
   }
 }
 
+const buildJinaImageDataUrl = async (imageUrl) => {
+  const response = await fetch(imageUrl)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image for Jina data URL fallback: ${response.status} ${await response.text()}`)
+  }
+
+  const input = Buffer.from(await response.arrayBuffer())
+  const output = await sharp(input)
+    .rotate()
+    .resize({
+      width: getJinaDataUrlMaxSide(),
+      height: getJinaDataUrlMaxSide(),
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .webp({ quality: Number(process.env.JINA_IMAGE_DATA_URL_WEBP_QUALITY || 82) })
+    .toBuffer()
+
+  if (output.length > getJinaDataUrlMaxBytes()) {
+    throw new Error(`Jina data URL fallback image is too large after resize: ${output.length} bytes`)
+  }
+
+  return `data:image/webp;base64,${output.toString("base64")}`
+}
+
+const isJinaImageLoadError = (error) => {
+  const message = error?.message || String(error)
+  return message.includes("Failed to load image from") || message.includes("Image too large")
+}
+
+const embedWithJina = async (requestPayload) => {
+  try {
+    return await requestJinaEmbedding(requestPayload.imageUrl)
+  } catch (error) {
+    if (process.env.JINA_IMAGE_DATA_URL_FALLBACK === "0" || !isJinaImageLoadError(error)) {
+      throw error
+    }
+    return requestJinaEmbedding(await buildJinaImageDataUrl(requestPayload.imageUrl))
+  }
+}
+
 const embedPicture = async (picture) => {
   const requestPayload = buildEmbeddingRequestPayload(picture)
   const errors = []
 
-  if (process.env.IMAGE_EMBEDDING_API_URL) {
-    try {
-      return await embedWithPrimaryEndpoint(requestPayload)
-    } catch (error) {
-      errors.push(`primary: ${error.message}`)
+  for (const provider of getProviderOrder()) {
+    if (provider === "primary" && process.env.IMAGE_EMBEDDING_API_URL) {
+      try {
+        return await embedWithPrimaryEndpoint(requestPayload)
+      } catch (error) {
+        errors.push(`primary: ${error.message}`)
+      }
     }
-  }
 
-  if (process.env.HF_IMAGE_EMBEDDING_API_URL) {
-    try {
-      return await embedWithHfImageEndpoint(requestPayload)
-    } catch (error) {
-      errors.push(`hf-image-endpoint: ${error.message}`)
+    if ((provider === "hf" || provider === "hf-image-endpoint") && process.env.HF_IMAGE_EMBEDDING_API_URL) {
+      try {
+        return await embedWithHfImageEndpoint(requestPayload)
+      } catch (error) {
+        errors.push(`hf-image-endpoint: ${error.message}`)
+      }
     }
-  }
 
-  if (process.env.JINA_API_KEY) {
-    try {
-      return await embedWithJina(requestPayload)
-    } catch (error) {
-      errors.push(`jina: ${error.message}`)
+    if (provider === "jina" && process.env.JINA_API_KEY) {
+      try {
+        return await embedWithJina(requestPayload)
+      } catch (error) {
+        errors.push(`jina: ${error.message}`)
+      }
     }
   }
 
