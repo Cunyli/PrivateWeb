@@ -199,7 +199,7 @@ export default function PortfolioDetail({ images, translations, locations = [], 
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-white via-[#f8f6f1] to-[#eaf0ff] text-gray-900">
       <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_top,_rgba(15,23,42,0.08),_transparent_45%)]" />
       <div
-        className={`pointer-events-none fixed inset-0 z-[200] bg-white transition-opacity duration-500 ease-out ${isEntering || isLeaving ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${isEntering || isLeaving ? "opacity-100" : "opacity-0"}`}
         aria-hidden="true"
       />
       <div className="relative flex min-h-screen flex-col">

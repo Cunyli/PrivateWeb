@@ -1213,7 +1213,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   return (
     <div ref={pageScrollRef} data-portfolio-scroll-root className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
       <div
-        className={`pointer-events-none fixed inset-0 z-[200] bg-white transition-opacity duration-500 ease-out ${portfolioNavigating ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${portfolioNavigating ? "opacity-100" : "opacity-0"}`}
         aria-hidden="true"
       />
       <section className="snap-start snap-always h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">

@@ -417,7 +417,7 @@ export function PhotographyStyleShowcase() {
   return (
     <section className="mt-16 sm:mt-24">
       <div
-        className={`pointer-events-none fixed inset-0 z-[200] bg-white transition-opacity duration-500 ease-out ${styleNavigating ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${styleNavigating ? "opacity-100" : "opacity-0"}`}
         aria-hidden="true"
       />
       <div className="flex flex-col gap-4 md:gap-6">
