@@ -22,6 +22,7 @@ DOWNLOAD_USER_AGENT = os.environ.get(
     "DOWNLOAD_USER_AGENT",
     "Mozilla/5.0 (compatible; JinaEmbeddingBackfill/1.0)",
 )
+MAX_IMAGE_SIDE = int(os.environ.get("MAX_IMAGE_SIDE", "1024"))
 
 app = FastAPI(title="Jina v5 Omni Embedding Service")
 
@@ -165,6 +166,9 @@ def load_image_from_url(image_url: str) -> tuple[Image.Image, str]:
     image_path = download_image_to_temp_file(image_url)
     try:
         image = Image.open(image_path).convert("RGB")
+        if MAX_IMAGE_SIDE > 0 and max(image.size) > MAX_IMAGE_SIDE:
+            resample_filter = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS
+            image.thumbnail((MAX_IMAGE_SIDE, MAX_IMAGE_SIDE), resample_filter)
         return image, image_path
     except Exception:
         os.unlink(image_path)
