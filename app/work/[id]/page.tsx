@@ -76,21 +76,24 @@ export default async function WorkPage({
   params,
   searchParams,
 }: {
-  params: { id: string }
-  searchParams?: {
+  params: Promise<{ id: string }>
+  searchParams?: Promise<{
     style?: string
     origin?: string
     originStyle?: string
     originIndex?: string
     returnSet?: string
-  }
+    pictureId?: string
+  }>
 }) {
-  console.log(`Fetching pictures for set ID: ${params.id}`)
-  const requestedStyle = typeof searchParams?.style === "string" ? searchParams.style : null
-  const origin = typeof searchParams?.origin === "string" ? searchParams.origin : null
-  const originStyle = typeof searchParams?.originStyle === "string" ? searchParams.originStyle : null
-  const returnSet = typeof searchParams?.returnSet === "string" ? searchParams.returnSet : null
-  const originIndex = typeof searchParams?.originIndex === "string" ? Number(searchParams.originIndex) : null
+  const { id: setId } = await params
+  const resolvedSearchParams = await searchParams
+  console.log(`Fetching pictures for set ID: ${setId}`)
+  const requestedStyle = typeof resolvedSearchParams?.style === "string" ? resolvedSearchParams.style : null
+  const origin = typeof resolvedSearchParams?.origin === "string" ? resolvedSearchParams.origin : null
+  const originStyle = typeof resolvedSearchParams?.originStyle === "string" ? resolvedSearchParams.originStyle : null
+  const returnSet = typeof resolvedSearchParams?.returnSet === "string" ? resolvedSearchParams.returnSet : null
+  const originIndex = typeof resolvedSearchParams?.originIndex === "string" ? Number(resolvedSearchParams.originIndex) : null
   const styleConfig = requestedStyle
     ? PHOTOGRAPHY_STYLE_BY_ID[requestedStyle as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]
     : undefined
@@ -99,7 +102,7 @@ export default async function WorkPage({
   const { data: pictures, error: pictureError } = await supabaseAdmin
     .from("pictures")
     .select("*")
-    .eq("picture_set_id", params.id)
+    .eq("picture_set_id", setId)
     .order("order_index", { ascending: true })
 
   if (pictureError) {
@@ -107,7 +110,7 @@ export default async function WorkPage({
     notFound()
   }
 
-  console.log(`Found ${pictures?.length || 0} pictures for set ID: ${params.id}`)
+  console.log(`Found ${pictures?.length || 0} pictures for set ID: ${setId}`)
 
   const rawPictures = pictures || []
   if (rawPictures.length === 0) {
@@ -130,7 +133,7 @@ export default async function WorkPage({
         filteredPictures = []
       }
     }
-    console.log(`Filtered to ${filteredPictures.length} pictures for style ${requestedStyle} in set ${params.id}`)
+    console.log(`Filtered to ${filteredPictures.length} pictures for style ${requestedStyle} in set ${setId}`)
   }
 
   if (styleConfig && filteredPictures.length === 0) {
@@ -192,6 +195,7 @@ export default async function WorkPage({
   const images = filteredPictures.map((pic) => {
     const translationEntry = pictureTranslationsMap.get(pic.id) || { en: {}, zh: {} }
     return {
+      id: pic.id,
       url: pic.image_url || "/placeholder.svg",
       rawUrl: pic.raw_image_url || pic.image_url,
       translations: {
@@ -212,13 +216,13 @@ export default async function WorkPage({
   const { data: pictureSet } = await supabaseAdmin
     .from('picture_sets')
     .select('title, subtitle, description, primary_location_name, primary_location_latitude, primary_location_longitude')
-    .eq('id', params.id)
+    .eq('id', setId)
     .single()
 
   const { data: setTranslations } = await supabaseAdmin
     .from('picture_set_translations')
     .select('locale, title, subtitle, description')
-    .eq('picture_set_id', params.id)
+    .eq('picture_set_id', setId)
 
   const setEntry = {
     en: {
@@ -246,8 +250,8 @@ export default async function WorkPage({
 
   const { data: setLocationRows, error: setLocationError } = await supabaseAdmin
     .from('picture_set_locations')
-    .select('id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
-    .eq('picture_set_id', params.id)
+    .select('location_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
+    .eq('picture_set_id', setId)
 
   if (setLocationError) {
     console.warn('Failed to fetch set locations:', setLocationError)
@@ -259,7 +263,7 @@ export default async function WorkPage({
         const loc = (row as any).location || (row as any).locations
         if (!loc) return null
         return {
-          id: row.id,
+          id: row.location_id ?? `loc-${setId}`,
           isPrimary: row.is_primary,
           name: loc.name as string | null | undefined,
           name_en: loc.name_en as string | null | undefined,
@@ -273,7 +277,7 @@ export default async function WorkPage({
   const resolvedLocations = [...locations]
   if (resolvedLocations.length === 0 && pictureSet?.primary_location_name) {
     resolvedLocations.push({
-      id: `primary-${params.id}`,
+      id: `primary-${setId}`,
       isPrimary: true,
       name: pictureSet.primary_location_name,
       name_en: pictureSet.primary_location_name,
@@ -286,7 +290,7 @@ export default async function WorkPage({
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <PortfolioDetail
-        id={params.id}
+        id={setId}
         images={images}
         translations={setEntry}
         locations={resolvedLocations}
@@ -299,7 +303,7 @@ export default async function WorkPage({
               }
             : {
                 type: "portfolio",
-                returnSetId: returnSet || params.id,
+                returnSetId: returnSet || setId,
               }
         }
       />

@@ -22,6 +22,7 @@ interface LocalizedContent {
 }
 
 interface ImageItem {
+  id?: number | string | null
   url: string
   rawUrl?: string | null
   setId?: number | string | null
@@ -55,7 +56,11 @@ interface PortfolioDetailProps {
 
 export default function PortfolioDetail({ images, translations, locations = [], returnContext, viewSetContext = null }: PortfolioDetailProps) {
   const searchParams = useSearchParams()
-  const initialIndex = parseInt(searchParams.get('index') || '0', 10)
+  const requestedPictureId = searchParams.get('pictureId')
+  const pictureIndex = requestedPictureId
+    ? images.findIndex((image) => String(image.id) === requestedPictureId)
+    : -1
+  const initialIndex = pictureIndex >= 0 ? pictureIndex : parseInt(searchParams.get('index') || '0', 10)
   const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(initialIndex, images.length - 1)));
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);

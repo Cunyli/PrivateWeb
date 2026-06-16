@@ -166,6 +166,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchResultsRef = useRef<HTMLDivElement>(null)
   const [pictureSearchDimensions, setPictureSearchDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
@@ -881,12 +882,18 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     window.sessionStorage.setItem("portfolio:return-scroll", String(scrollTop))
     window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRowRef.current?.scrollLeft ?? topRowScrollRef.current ?? 0))
     window.sessionStorage.setItem("portfolio:return-bottom-row-scroll", String(bottomRowRef.current?.scrollLeft ?? bottomRowScrollRef.current ?? 0))
-  }, [])
+    window.sessionStorage.setItem("portfolio:return-search-open", searchOpen ? "1" : "0")
+    window.sessionStorage.setItem("portfolio:return-search-query", searchQuery)
+    window.sessionStorage.setItem("portfolio:return-search-scroll", String(searchResultsRef.current?.scrollTop ?? 0))
+  }, [searchOpen, searchQuery])
 
-  const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null }) => {
+  const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null; pictureId?: number | null }) => {
     const params = new URLSearchParams()
     params.set("origin", "portfolio")
     params.set("returnSet", String(setId))
+    if (typeof opts?.pictureId === "number" && Number.isFinite(opts.pictureId)) {
+      params.set("pictureId", String(opts.pictureId))
+    }
     if (typeof opts?.index === "number" && Number.isFinite(opts.index)) {
       params.set("index", String(opts.index))
     }
@@ -910,6 +917,26 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       const storedScrollTop = typeof window !== "undefined"
         ? window.sessionStorage.getItem("portfolio:return-scroll")
         : null
+      const storedSearchOpen = typeof window !== "undefined"
+        ? window.sessionStorage.getItem("portfolio:return-search-open") === "1"
+        : false
+      const storedSearchQuery = typeof window !== "undefined"
+        ? window.sessionStorage.getItem("portfolio:return-search-query") || ""
+        : ""
+      const storedSearchScroll = typeof window !== "undefined"
+        ? Number(window.sessionStorage.getItem("portfolio:return-search-scroll"))
+        : 0
+
+      if (wantsRestore && storedSearchOpen) {
+        setSearchQuery(storedSearchQuery)
+        setSearchOpen(true)
+        window.setTimeout(() => {
+          if (searchResultsRef.current && Number.isFinite(storedSearchScroll)) {
+            searchResultsRef.current.scrollTop = storedSearchScroll
+          }
+          searchInputRef.current?.focus()
+        }, 450)
+      }
 
       if (wantsRestore && storedScrollTop) {
         const value = Number(storedScrollTop)
@@ -1185,46 +1212,48 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
         {/* Lightweight search panel (overlay) */}
       {searchOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setSearchOpen(false)}>
-          <div className="absolute inset-x-0 top-16 mx-auto max-w-3xl" onClick={(e) => e.stopPropagation()}>
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b">
+        <div className="fixed inset-0 z-50 bg-slate-950/35 backdrop-blur-md" onClick={() => setSearchOpen(false)}>
+          <div className="absolute inset-x-3 top-4 mx-auto max-w-5xl sm:inset-x-6 sm:top-8" onClick={(e) => e.stopPropagation()}>
+            <div className="overflow-hidden rounded-xl border border-white/70 bg-white/95 shadow-[0_28px_90px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+              <div className="flex items-center gap-3 border-b border-slate-200/70 px-4 py-3 sm:px-5">
                 <input
                   ref={searchInputRef}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('homeSearchPlaceholder')}
-                  className="flex-1 outline-none"
+                  className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400"
                 />
                 {searchQuery && (
-                  <button className="text-sm text-gray-500 hover:text-gray-700" onClick={() => setSearchQuery("")}>{t('clear')}</button>
+                  <button className="text-sm text-slate-500 transition-colors hover:text-slate-900" onClick={() => setSearchQuery("")}>{t('clear')}</button>
                 )}
-                <button className="text-xl" onClick={() => setSearchOpen(false)} aria-label={t('close')}>×</button>
-              </div>
-              <div className="max-h-[70vh] overflow-auto p-3 sm:p-4">
+                  <button className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" onClick={() => setSearchOpen(false)} aria-label={t('close')}>×</button>
+                </div>
+              <div ref={searchResultsRef} className="max-h-[calc(100svh-8rem)] overflow-auto px-3 py-4 sm:px-5 sm:py-5">
                 {/* Results list */}
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-7">
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-base font-medium">{t('setMatchesHdr')}</h2>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{t('setMatchesHdr')}</h2>
                       {searchLoading && <span className="text-xs text-gray-500">{t('searching')}</span>}
                     </div>
                     {(setResults?.length || 0) === 0 ? (
                       <p className="text-sm text-gray-500">{t('noMatchingSets')}</p>
                     ) : (
-                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                         {(setResults || []).map((item) => (
                           <Link
                             key={item.id}
                             href={buildWorkHref(item.id)}
                             data-set-id={item.id}
                             onClick={savePortfolioReturnState}
-                            className="group block relative overflow-hidden rounded-md bg-gray-100"
+                            className="group block overflow-hidden rounded-lg bg-slate-100 shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5"
                           >
-                            <Image src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"} alt={getText(item, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
-                            <div className="p-2">
-                              <div className="text-sm font-medium line-clamp-1">{getText(item, 'title')}</div>
-                              <div className="text-xs text-gray-500 line-clamp-1">{getText(item, 'subtitle')}</div>
+                            <div className="overflow-hidden">
+                              <Image src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"} alt={getText(item, 'title')} width={400} height={250} quality={60} className="h-auto w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
+                            </div>
+                            <div className="bg-white/92 p-2.5">
+                              <div className="line-clamp-1 text-sm font-medium text-slate-900">{getText(item, 'title')}</div>
+                              <div className="line-clamp-1 text-xs text-slate-500">{getText(item, 'subtitle')}</div>
                             </div>
                           </Link>
                         ))}
@@ -1233,24 +1262,25 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-base font-medium">{t('pictureMatchesHdr')}</h2>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{t('pictureMatchesHdr')}</h2>
                       {searchLoading && <span className="text-xs text-gray-500">{t('searching')}</span>}
                     </div>
                     {(pictureResults?.length || 0) === 0 ? (
                       <p className="text-sm text-gray-500">{t('noMatchingPictures')}</p>
                     ) : (
-                      <div className="columns-2 sm:columns-3 md:columns-4 [column-fill:balance] [column-gap:0.75rem]">
+                      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 [column-fill:balance] [column-gap:0.5rem] sm:[column-gap:0.75rem]">
                         {(pictureResults || []).map((p) => {
                           const dims = pictureSearchDimensions[p.id]
 
                           return (
                             <Link
                               key={p.id}
-                              href={buildWorkHref(p.picture_set_id, { index: Number.isFinite((p as any).order_index) ? Number((p as any).order_index) : null })}
+                              href={buildWorkHref(p.picture_set_id, { pictureId: p.id })}
                               data-set-id={p.picture_set_id}
                               onClick={savePortfolioReturnState}
-                              className="group mb-3 inline-block w-full overflow-hidden rounded-md bg-gray-100 align-top transition-opacity duration-300 ease-out [break-inside:avoid] [page-break-inside:avoid] [-webkit-column-break-inside:avoid]"
+                              aria-label={getPicText(p, 'title') || `${t('pictureMatchesHdr')} ${p.id}`}
+                              className="group mb-2 inline-block w-full overflow-hidden rounded-lg bg-slate-100 align-top shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5 sm:mb-3 [break-inside:avoid] [page-break-inside:avoid] [-webkit-column-break-inside:avoid]"
                             >
                               <div className="overflow-hidden">
                                 <Image
@@ -1266,10 +1296,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                                     handlePictureSearchImageLoaded(p.id, img.naturalWidth, img.naturalHeight)
                                   }}
                                 />
-                              </div>
-                              <div className="p-2">
-                                <div className="text-sm font-medium line-clamp-1">{getPicText(p, 'title')}</div>
-                                <div className="text-xs text-gray-500 line-clamp-1">{getPicText(p, 'subtitle')}</div>
                               </div>
                             </Link>
                           )
