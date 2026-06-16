@@ -76,6 +76,64 @@ const dedupeById = <T extends { id: number }>(rows: T[]) => {
   })
 }
 
+const SEMANTIC_SET_PROMOTION_STRONG_HITS = 3
+const SEMANTIC_SET_PROMOTION_MIN_HITS = 2
+const SEMANTIC_SET_PROMOTION_MIN_HIT_SHARE = 0.25
+const SEMANTIC_SET_PROMOTION_MIN_SET_RATIO = 0.18
+
+type SemanticSetPromotion = {
+  setId: number
+  hitCount: number
+  hitShare: number
+  setRatio: number
+  bestRank: number
+  score: number
+}
+
+const buildSemanticSetPromotions = (
+  semanticPictures: Picture[],
+  pictureCountsBySet: Record<number, number>,
+): SemanticSetPromotion[] => {
+  if (!semanticPictures.length) return []
+
+  const groups = new Map<number, { hitCount: number; bestRank: number }>()
+  semanticPictures.forEach((picture, index) => {
+    if (!Number.isFinite(picture.picture_set_id)) return
+    const existing = groups.get(picture.picture_set_id)
+    groups.set(picture.picture_set_id, {
+      hitCount: (existing?.hitCount || 0) + 1,
+      bestRank: Math.min(existing?.bestRank ?? index, index),
+    })
+  })
+
+  const totalHits = semanticPictures.length
+  return Array.from(groups.entries())
+    .map(([setId, group]) => {
+      const setPictureCount = Math.max(1, pictureCountsBySet[setId] || 0)
+      const hitShare = group.hitCount / totalHits
+      const setRatio = group.hitCount / setPictureCount
+      return {
+        setId,
+        hitCount: group.hitCount,
+        hitShare,
+        setRatio,
+        bestRank: group.bestRank,
+        score: group.hitCount * 3 + hitShare * 4 + setRatio * 2 - group.bestRank * 0.05,
+      }
+    })
+    .filter((promotion) =>
+      promotion.hitCount >= SEMANTIC_SET_PROMOTION_STRONG_HITS
+      || (
+        promotion.hitCount >= SEMANTIC_SET_PROMOTION_MIN_HITS
+        && (
+          promotion.hitShare >= SEMANTIC_SET_PROMOTION_MIN_HIT_SHARE
+          || promotion.setRatio >= SEMANTIC_SET_PROMOTION_MIN_SET_RATIO
+        )
+      ),
+    )
+    .sort((left, right) => right.score - left.score)
+}
+
 const normalizePictureSets = (
   rows: Array<Partial<PictureSet> | null | undefined>,
 ): PictureSet[] =>
@@ -108,6 +166,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const [pictureSearchDimensions, setPictureSearchDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
   const [topRowPaused, setTopRowPaused] = useState(false)
@@ -441,6 +500,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           ...((pictureFts.data || []) as Picture[]),
           ...((pictureText.data || []) as Picture[]),
         ])
+        const semanticPictureResults = (semanticPictures.results || []) as Picture[]
+        const semanticSetIds = Array.from(
+          new Set(
+            semanticPictureResults
+              .map((picture) => picture.picture_set_id)
+              .filter((id): id is number => Number.isFinite(id)),
+          ),
+        )
 
         const setIdsFromTranslations = Array.from(
           new Set([
@@ -458,19 +525,49 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         const missingSetIds = setIdsFromTranslations.filter((id) => !baseSets.some((item) => item.id === id))
         const missingPictureIds = pictureIdsFromTranslations.filter((id) => !basePictures.some((item) => item.id === id))
 
-        const [extraSetsRes, extraPicturesRes] = await Promise.all([
+        const [extraSetsRes, extraPicturesRes, semanticSetPicturesRes] = await Promise.all([
           missingSetIds.length
             ? supabase.from("picture_sets").select("*").in("id", missingSetIds).order("updated_at", { ascending: false }).limit(80)
             : Promise.resolve({ data: [] as any[], error: null }),
           missingPictureIds.length
             ? supabase.from("pictures").select("*").in("id", missingPictureIds).order("updated_at", { ascending: false }).limit(100)
             : Promise.resolve({ data: [] as any[], error: null }),
+          semanticSetIds.length
+            ? supabase.from("pictures").select("id,picture_set_id").in("picture_set_id", semanticSetIds)
+            : Promise.resolve({ data: [] as any[], error: null }),
         ])
 
         if ("error" in extraSetsRes && extraSetsRes.error) console.warn("Extra set fetch error:", extraSetsRes.error)
         if ("error" in extraPicturesRes && extraPicturesRes.error) console.warn("Extra picture fetch error:", extraPicturesRes.error)
+        if ("error" in semanticSetPicturesRes && semanticSetPicturesRes.error) console.warn("Semantic set picture count fetch error:", semanticSetPicturesRes.error)
+
+        const pictureCountsBySet = (semanticSetPicturesRes.data || []).reduce<Record<number, number>>((acc, row: any) => {
+          const setId = Number(row.picture_set_id)
+          if (Number.isFinite(setId)) {
+            acc[setId] = (acc[setId] || 0) + 1
+          }
+          return acc
+        }, {})
+        const semanticSetPromotions = buildSemanticSetPromotions(semanticPictureResults, pictureCountsBySet)
+        const promotedSetIds = semanticSetPromotions.map((promotion) => promotion.setId)
+        const missingPromotedSetIds = promotedSetIds.filter((id) =>
+          !baseSets.some((item) => item.id === id)
+          && !(extraSetsRes.data || []).some((item: any) => item.id === id),
+        )
+        const promotedSetsRes = missingPromotedSetIds.length
+          ? await supabase.from("picture_sets").select("*").in("id", missingPromotedSetIds).order("updated_at", { ascending: false }).limit(80)
+          : { data: [] as any[], error: null }
+        if (promotedSetsRes.error) console.warn("Promoted semantic set fetch error:", promotedSetsRes.error)
+
+        const promotedSetRank = new Map(semanticSetPromotions.map((promotion, index) => [promotion.setId, index]))
+        const promotedSets = normalizePictureSets([
+          ...baseSets.filter((set) => promotedSetRank.has(set.id)),
+          ...((extraSetsRes.data || []) as Partial<PictureSet>[]).filter((set) => promotedSetRank.has(Number(set.id))),
+          ...((promotedSetsRes.data || []) as Partial<PictureSet>[]),
+        ]).sort((left, right) => (promotedSetRank.get(left.id) ?? 999) - (promotedSetRank.get(right.id) ?? 999))
 
         const sets = dedupeById([
+          ...promotedSets,
           ...baseSets,
           ...normalizePictureSets((extraSetsRes.data || []) as Partial<PictureSet>[]),
         ])
@@ -704,6 +801,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const handleDownImageLoaded = useCallback((id: number, width?: number, height?: number) => {
     if (width && height) {
       setCoverDimensions((prev) => {
+        if (prev[id]) return prev
+        return { ...prev, [id]: { width, height } }
+      })
+    }
+  }, [])
+
+  const handlePictureSearchImageLoaded = useCallback((id: number, width?: number, height?: number) => {
+    if (width && height) {
+      setPictureSearchDimensions((prev) => {
         if (prev[id]) return prev
         return { ...prev, [id]: { width, height } }
       })
@@ -1134,22 +1240,40 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     {(pictureResults?.length || 0) === 0 ? (
                       <p className="text-sm text-gray-500">{t('noMatchingPictures')}</p>
                     ) : (
-                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-                        {(pictureResults || []).map((p) => (
-                          <Link
-                            key={p.id}
-                            href={buildWorkHref(p.picture_set_id, { index: Number.isFinite((p as any).order_index) ? Number((p as any).order_index) : null })}
-                            data-set-id={p.picture_set_id}
-                            onClick={savePortfolioReturnState}
-                            className="group block relative overflow-hidden rounded-md bg-gray-100"
-                          >
-                            <Image src={p.image_url ? capResponsiveImageWidth(`${baseUrl}${p.image_url}`) : "/placeholder.svg"} alt={getPicText(p, 'title')} width={400} height={250} quality={60} className="w-full h-auto object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
-                            <div className="p-2">
-                              <div className="text-sm font-medium line-clamp-1">{getPicText(p, 'title')}</div>
-                              <div className="text-xs text-gray-500 line-clamp-1">{getPicText(p, 'subtitle')}</div>
-                            </div>
-                          </Link>
-                        ))}
+                      <div className="columns-2 sm:columns-3 md:columns-4 [column-fill:balance] [column-gap:0.75rem]">
+                        {(pictureResults || []).map((p) => {
+                          const dims = pictureSearchDimensions[p.id]
+
+                          return (
+                            <Link
+                              key={p.id}
+                              href={buildWorkHref(p.picture_set_id, { index: Number.isFinite((p as any).order_index) ? Number((p as any).order_index) : null })}
+                              data-set-id={p.picture_set_id}
+                              onClick={savePortfolioReturnState}
+                              className="group mb-3 inline-block w-full overflow-hidden rounded-md bg-gray-100 align-top transition-opacity duration-300 ease-out [break-inside:avoid] [page-break-inside:avoid] [-webkit-column-break-inside:avoid]"
+                            >
+                              <div className="overflow-hidden">
+                                <Image
+                                  src={p.image_url ? capResponsiveImageWidth(`${baseUrl}${p.image_url}`) : "/placeholder.svg"}
+                                  alt={getPicText(p, 'title')}
+                                  width={dims?.width || 400}
+                                  height={dims?.height || 250}
+                                  quality={60}
+                                  sizes="(max-width: 640px) 45vw, (max-width: 768px) 30vw, 180px"
+                                  className="h-auto w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                                  onLoad={(e) => {
+                                    const img = e.target as HTMLImageElement
+                                    handlePictureSearchImageLoaded(p.id, img.naturalWidth, img.naturalHeight)
+                                  }}
+                                />
+                              </div>
+                              <div className="p-2">
+                                <div className="text-sm font-medium line-clamp-1">{getPicText(p, 'title')}</div>
+                                <div className="text-xs text-gray-500 line-clamp-1">{getPicText(p, 'subtitle')}</div>
+                              </div>
+                            </Link>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
