@@ -930,6 +930,19 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     return `/work/${setId}?${params.toString()}`
   }, [])
 
+  const buildSearchBrowseHref = useCallback((picture: Picture) => {
+    const params = new URLSearchParams()
+    params.set("origin", "portfolio")
+    params.set("returnSet", String(picture.picture_set_id))
+    params.set("pictureId", String(picture.id))
+    const orderedPictureIds = (pictureResults || []).map((item) => item.id).filter(Number.isFinite)
+    params.set("pictureIds", (orderedPictureIds.length ? orderedPictureIds : [picture.id]).join(","))
+    if (searchQuery.trim()) {
+      params.set("q", searchQuery.trim())
+    }
+    return `/work/search?${params.toString()}`
+  }, [pictureResults, searchQuery])
+
   useEffect(() => {
     if (restoreAppliedRef.current || loading) return
 
@@ -1346,7 +1359,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           return (
                             <Link
                               key={p.id}
-                              href={buildWorkHref(p.picture_set_id, { pictureId: p.id })}
+                              href={buildSearchBrowseHref(p)}
                               data-set-id={p.picture_set_id}
                               onClick={savePortfolioReturnState}
                               aria-label={getPicText(p, 'title') || `${t('pictureMatchesHdr')} ${p.id}`}
