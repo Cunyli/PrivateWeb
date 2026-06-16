@@ -90,6 +90,14 @@ type SemanticSetPromotion = {
   score: number
 }
 
+type SearchReturnCache = {
+  query: string
+  setResults: PictureSet[]
+  pictureResults: Picture[]
+  transMap: Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>
+  pictureTransMap: Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>
+}
+
 const buildSemanticSetPromotions = (
   semanticPictures: Picture[],
   pictureCountsBySet: Record<number, number>,
@@ -180,6 +188,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const bottomRowResumeTimerRef = useRef<number | null>(null)
   const pageScrollRef = useRef<HTMLDivElement>(null)
   const restoreAppliedRef = useRef(false)
+  const restoredSearchQueryRef = useRef<string | null>(null)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())
@@ -398,6 +407,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     if (!normalizedQuery) {
       setSetResults(null)
       setPictureResults(null)
+      return
+    }
+    if (restoredSearchQueryRef.current === normalizedQuery) {
+      restoredSearchQueryRef.current = null
+      setSearchLoading(false)
       return
     }
     let alive = true
@@ -878,6 +892,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
   const savePortfolioReturnState = useCallback(() => {
     if (typeof window === "undefined") return
+    restoreAppliedRef.current = false
     const scrollTop = pageScrollRef.current?.scrollTop ?? window.scrollY ?? 0
     window.sessionStorage.setItem("portfolio:return-scroll", String(scrollTop))
     window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRowRef.current?.scrollLeft ?? topRowScrollRef.current ?? 0))
@@ -885,7 +900,22 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     window.sessionStorage.setItem("portfolio:return-search-open", searchOpen ? "1" : "0")
     window.sessionStorage.setItem("portfolio:return-search-query", searchQuery)
     window.sessionStorage.setItem("portfolio:return-search-scroll", String(searchResultsRef.current?.scrollTop ?? 0))
-  }, [searchOpen, searchQuery])
+    window.sessionStorage.setItem("portfolio:return-pending", "1")
+    if (searchOpen && searchQuery.trim()) {
+      const cache: SearchReturnCache = {
+        query: searchQuery,
+        setResults: setResults || [],
+        pictureResults: pictureResults || [],
+        transMap,
+        pictureTransMap,
+      }
+      try {
+        window.sessionStorage.setItem("portfolio:return-search-cache", JSON.stringify(cache))
+      } catch (error) {
+        console.warn("Could not cache portfolio search results:", error)
+      }
+    }
+  }, [pictureResults, pictureTransMap, searchOpen, searchQuery, setResults, transMap])
 
   const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null; pictureId?: number | null }) => {
     const params = new URLSearchParams()
@@ -906,7 +936,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     const wantsRestore = searchParams.get("restore") === "1"
     const focusSet = searchParams.get("focusSet")
     const focusSection = searchParams.get("focusSection")
-    if (!wantsRestore && !focusSet && !focusSection) return
+    const hasPendingReturn = typeof window !== "undefined"
+      ? window.sessionStorage.getItem("portfolio:return-pending") === "1"
+      : false
+    if (!wantsRestore && !focusSet && !focusSection && !hasPendingReturn) return
 
     restoreAppliedRef.current = true
 
@@ -926,8 +959,35 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       const storedSearchScroll = typeof window !== "undefined"
         ? Number(window.sessionStorage.getItem("portfolio:return-search-scroll"))
         : 0
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem("portfolio:return-pending")
+      }
+      const shouldRestoreReturnState = wantsRestore || hasPendingReturn
 
-      if (wantsRestore && storedSearchOpen) {
+      if (shouldRestoreReturnState && storedSearchOpen) {
+        const cachedSearch = (() => {
+          if (typeof window === "undefined") return null
+          const raw = window.sessionStorage.getItem("portfolio:return-search-cache")
+          if (!raw) return null
+          try {
+            return JSON.parse(raw) as Partial<SearchReturnCache>
+          } catch (error) {
+            console.warn("Could not restore portfolio search cache:", error)
+            return null
+          }
+        })()
+        if (
+          cachedSearch?.query === storedSearchQuery
+          && Array.isArray(cachedSearch.setResults)
+          && Array.isArray(cachedSearch.pictureResults)
+        ) {
+          restoredSearchQueryRef.current = normalizeSearchInput(storedSearchQuery)
+          setSetResults(cachedSearch.setResults)
+          setPictureResults(cachedSearch.pictureResults)
+          setTransMap((prev) => ({ ...prev, ...(cachedSearch.transMap || {}) }))
+          setPictureTransMap(cachedSearch.pictureTransMap || {})
+          setSearchLoading(false)
+        }
         setSearchQuery(storedSearchQuery)
         setSearchOpen(true)
         window.setTimeout(() => {
@@ -938,7 +998,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         }, 450)
       }
 
-      if (wantsRestore && storedScrollTop) {
+      if (shouldRestoreReturnState && storedScrollTop) {
         const value = Number(storedScrollTop)
         if (Number.isFinite(value)) {
           node.scrollTo({ top: value, behavior: "auto" })
@@ -1213,22 +1273,27 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         {/* Lightweight search panel (overlay) */}
       {searchOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/35 backdrop-blur-md" onClick={() => setSearchOpen(false)}>
-          <div className="absolute inset-x-3 top-4 mx-auto max-w-5xl sm:inset-x-6 sm:top-8" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-x-1 top-1 mx-auto max-w-[96rem] sm:inset-x-3 sm:top-3" onClick={(e) => e.stopPropagation()}>
             <div className="overflow-hidden rounded-xl border border-white/70 bg-white/95 shadow-[0_28px_90px_rgba(15,23,42,0.24)] backdrop-blur-xl">
-              <div className="flex items-center gap-3 border-b border-slate-200/70 px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-3 border-b border-slate-200/70 px-4 py-3.5 sm:px-6 sm:py-4">
                 <input
                   ref={searchInputRef}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('homeSearchPlaceholder')}
-                  className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400"
+                  className="min-w-0 flex-1 bg-transparent text-lg text-slate-900 outline-none placeholder:text-slate-400 sm:text-xl"
                 />
                 {searchQuery && (
                   <button className="text-sm text-slate-500 transition-colors hover:text-slate-900" onClick={() => setSearchQuery("")}>{t('clear')}</button>
                 )}
+                {searchLoading && (
+                  <span className="hidden whitespace-nowrap text-xs font-medium text-slate-500 sm:inline">
+                    {locale === 'zh' ? '正在做向量数据库搜索' : 'Vector database search'}
+                  </span>
+                )}
                   <button className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" onClick={() => setSearchOpen(false)} aria-label={t('close')}>×</button>
                 </div>
-              <div ref={searchResultsRef} className="max-h-[calc(100svh-8rem)] overflow-auto px-3 py-4 sm:px-5 sm:py-5">
+              <div ref={searchResultsRef} className="max-h-[calc(100svh-4rem)] overflow-auto px-3 py-4 sm:px-6 sm:py-6">
                 {/* Results list */}
                 <div className="flex flex-col gap-7">
                   <div>
@@ -1239,21 +1304,26 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     {(setResults?.length || 0) === 0 ? (
                       <p className="text-sm text-gray-500">{t('noMatchingSets')}</p>
                     ) : (
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar sm:gap-4">
                         {(setResults || []).map((item) => (
                           <Link
                             key={item.id}
                             href={buildWorkHref(item.id)}
                             data-set-id={item.id}
                             onClick={savePortfolioReturnState}
-                            className="group block overflow-hidden rounded-lg bg-slate-100 shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5"
+                            className="group relative aspect-[16/9] w-[78%] flex-none snap-start overflow-hidden rounded-lg bg-slate-100 shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5 sm:w-[46%] md:w-[34%] lg:w-[27%] xl:w-[22%]"
                           >
-                            <div className="overflow-hidden">
-                              <Image src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"} alt={getText(item, 'title')} width={400} height={250} quality={60} className="h-auto w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
-                            </div>
-                            <div className="bg-white/92 p-2.5">
-                              <div className="line-clamp-1 text-sm font-medium text-slate-900">{getText(item, 'title')}</div>
-                              <div className="line-clamp-1 text-xs text-slate-500">{getText(item, 'subtitle')}</div>
+                            <Image
+                              src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
+                              alt={getText(item, 'title')}
+                              fill
+                              quality={65}
+                              sizes="(max-width: 640px) 78vw, (max-width: 768px) 46vw, (max-width: 1024px) 34vw, 22vw"
+                              className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                            />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/35 to-transparent px-3 pb-3 pt-10 text-white">
+                              <div className="line-clamp-1 text-sm font-medium drop-shadow-sm sm:text-base">{getText(item, 'title')}</div>
+                              <div className="line-clamp-1 text-xs text-white/78 drop-shadow-sm">{getText(item, 'subtitle')}</div>
                             </div>
                           </Link>
                         ))}
@@ -1269,7 +1339,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     {(pictureResults?.length || 0) === 0 ? (
                       <p className="text-sm text-gray-500">{t('noMatchingPictures')}</p>
                     ) : (
-                      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 [column-fill:balance] [column-gap:0.5rem] sm:[column-gap:0.75rem]">
+                      <div className="columns-2 sm:columns-3 lg:columns-4 2xl:columns-5 [column-fill:balance] [column-gap:0.5rem] sm:[column-gap:0.75rem]">
                         {(pictureResults || []).map((p) => {
                           const dims = pictureSearchDimensions[p.id]
 
@@ -1289,7 +1359,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                                   width={dims?.width || 400}
                                   height={dims?.height || 250}
                                   quality={60}
-                                  sizes="(max-width: 640px) 45vw, (max-width: 768px) 30vw, 180px"
+                                  sizes="(max-width: 640px) 47vw, (max-width: 1024px) 31vw, (max-width: 1536px) 24vw, 19vw"
                                   className="h-auto w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
                                   onLoad={(e) => {
                                     const img = e.target as HTMLImageElement
