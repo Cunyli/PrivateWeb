@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
 import clsx from "clsx"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { supabase } from "@/utils/supabase"
 import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
@@ -159,6 +159,7 @@ interface PortfolioGridProps {
 export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const { locale, t } = useI18n()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [pictureSets, setPictureSets] = useState<PictureSet[]>(initialData?.pictureSets || [])
   const [loading, setLoading] = useState(!initialData)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -930,8 +931,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     ) {
       return
     }
+    event.preventDefault()
+    const href = event.currentTarget.getAttribute("href")
     setPortfolioNavigating(true)
-  }, [savePortfolioReturnState])
+    if (href) {
+      window.setTimeout(() => {
+        router.push(href)
+      }, 420)
+    }
+  }, [router, savePortfolioReturnState])
 
   const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null; pictureId?: number | null }) => {
     const params = new URLSearchParams()
@@ -1205,14 +1213,9 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   return (
     <div ref={pageScrollRef} data-portfolio-scroll-root className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
       <div
-        className={`pointer-events-none fixed inset-0 z-[200] bg-gradient-to-br from-white via-[#f8f6f1] to-[#eaf0ff] transition-opacity duration-300 ease-out ${portfolioNavigating ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none fixed inset-0 z-[200] bg-white transition-opacity duration-500 ease-out ${portfolioNavigating ? "opacity-100" : "opacity-0"}`}
         aria-hidden="true"
-      >
-        <div className={`absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-300/70 bg-white/80 shadow-[0_18px_50px_rgba(15,23,42,0.16)] transition-all duration-300 ease-out ${portfolioNavigating ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
-          <span className="absolute inset-2 rounded-full bg-slate-900/70 animate-ping" />
-          <span className="absolute inset-[0.72rem] rounded-full bg-slate-900/80" />
-        </div>
-      </div>
+      />
       <section className="snap-start snap-always h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">
         <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[90rem] flex flex-col gap-4 sm:gap-6">
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[auto,minmax(0,1fr),auto] md:items-center md:gap-3">
