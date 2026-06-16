@@ -1388,10 +1388,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                             <Link
                               key={p.id}
                               href={buildSearchBrowseHref(p)}
+                              prefetch={false}
                               data-set-id={p.picture_set_id}
                               onClick={handlePortfolioNavigation}
                               aria-label={getPicText(p, 'title') || `${t('pictureMatchesHdr')} ${p.id}`}
-                              className="group mb-2 inline-block w-full overflow-hidden rounded-lg bg-slate-100 align-top shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5 sm:mb-3 [break-inside:avoid] [page-break-inside:avoid] [-webkit-column-break-inside:avoid]"
+                              className="mb-2 inline-block w-full overflow-hidden rounded-lg align-top shadow-sm sm:mb-3 [break-inside:avoid] [page-break-inside:avoid] [-webkit-column-break-inside:avoid]"
                             >
                               <div className="overflow-hidden">
                                 <Image
@@ -1401,7 +1402,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                                   height={dims?.height || 250}
                                   quality={60}
                                   sizes="(max-width: 640px) 47vw, (max-width: 1024px) 31vw, (max-width: 1536px) 24vw, 19vw"
-                                  className="h-auto w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                                  className="h-auto w-full object-cover"
                                   onLoad={(e) => {
                                     const img = e.target as HTMLImageElement
                                     handlePictureSearchImageLoaded(p.id, img.naturalWidth, img.naturalHeight)
