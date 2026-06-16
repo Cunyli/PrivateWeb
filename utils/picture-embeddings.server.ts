@@ -28,7 +28,7 @@ type EmbeddingBackfillResult = {
 }
 
 const getPreferredImageVariantKeys = () =>
-  (process.env.PICTURE_EMBEDDING_IMAGE_VARIANTS || "640,768,1024,1280,medium,small,thumbnail,original")
+  (process.env.PICTURE_EMBEDDING_IMAGE_VARIANTS || "1280,1024,768,640,medium,small,thumbnail,original")
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean)
