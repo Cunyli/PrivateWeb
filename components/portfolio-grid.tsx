@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
-import type { CSSProperties, WheelEvent } from "react"
+import type { CSSProperties, MouseEvent, WheelEvent } from "react"
 import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
@@ -173,6 +173,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const [pictureTransMap, setPictureTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
   const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
   const [searchOpen, setSearchOpen] = useState(false)
+  const [portfolioNavigating, setPortfolioNavigating] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const searchResultsRef = useRef<HTMLDivElement>(null)
   const [pictureSearchDimensions, setPictureSearchDimensions] = useState<Record<number, { width: number; height: number }>>({})
@@ -917,6 +918,21 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     }
   }, [pictureResults, pictureTransMap, searchOpen, searchQuery, setResults, transMap])
 
+  const handlePortfolioNavigation = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    savePortfolioReturnState()
+    if (
+      event.defaultPrevented
+      || event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+    ) {
+      return
+    }
+    setPortfolioNavigating(true)
+  }, [savePortfolioReturnState])
+
   const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null; pictureId?: number | null }) => {
     const params = new URLSearchParams()
     params.set("origin", "portfolio")
@@ -1148,7 +1164,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   <Link
                     href={buildWorkHref(item.id)}
                     data-set-id={item.id}
-                    onClick={savePortfolioReturnState}
+                    onClick={handlePortfolioNavigation}
                     className="block relative overflow-hidden gpu-accelerated rounded-lg"
                     style={{ aspectRatio: aspectRatio || DEFAULT_DOWN_TILE_ASPECT_RATIO }}
                   >
@@ -1188,6 +1204,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
   return (
     <div ref={pageScrollRef} data-portfolio-scroll-root className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
+      <div
+        className={`pointer-events-none fixed inset-0 z-[200] bg-gradient-to-br from-white via-[#f8f6f1] to-[#eaf0ff] transition-opacity duration-300 ease-out ${portfolioNavigating ? "opacity-100" : "opacity-0"}`}
+        aria-hidden="true"
+      >
+        <div className={`absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-300/70 bg-white/80 shadow-[0_18px_50px_rgba(15,23,42,0.16)] transition-all duration-300 ease-out ${portfolioNavigating ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
+          <span className="absolute inset-2 rounded-full bg-slate-900/70 animate-ping" />
+          <span className="absolute inset-[0.72rem] rounded-full bg-slate-900/80" />
+        </div>
+      </div>
       <section className="snap-start snap-always h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">
         <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[90rem] flex flex-col gap-4 sm:gap-6">
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[auto,minmax(0,1fr),auto] md:items-center md:gap-3">
@@ -1323,7 +1348,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                             key={item.id}
                             href={buildWorkHref(item.id)}
                             data-set-id={item.id}
-                            onClick={savePortfolioReturnState}
+                            onClick={handlePortfolioNavigation}
                             className="group relative aspect-[16/9] w-[78%] flex-none snap-start overflow-hidden rounded-lg bg-slate-100 shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5 sm:w-[46%] md:w-[34%] lg:w-[27%] xl:w-[22%]"
                           >
                             <Image
@@ -1361,7 +1386,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                               key={p.id}
                               href={buildSearchBrowseHref(p)}
                               data-set-id={p.picture_set_id}
-                              onClick={savePortfolioReturnState}
+                              onClick={handlePortfolioNavigation}
                               aria-label={getPicText(p, 'title') || `${t('pictureMatchesHdr')} ${p.id}`}
                               className="group mb-2 inline-block w-full overflow-hidden rounded-lg bg-slate-100 align-top shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5 sm:mb-3 [break-inside:avoid] [page-break-inside:avoid] [-webkit-column-break-inside:avoid]"
                             >
@@ -1430,7 +1455,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                         key={`${item.id}-${i}`}
                         href={buildWorkHref(item.id)}
                         data-set-id={item.id}
-                        onClick={savePortfolioReturnState}
+                        onClick={handlePortfolioNavigation}
                         className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                       >
                       <Image
@@ -1481,7 +1506,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           key={`${item.id}-${i}`}
                           href={buildWorkHref(item.id)}
                           data-set-id={item.id}
-                          onClick={savePortfolioReturnState}
+                          onClick={handlePortfolioNavigation}
                           className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
                         >
                         <Image

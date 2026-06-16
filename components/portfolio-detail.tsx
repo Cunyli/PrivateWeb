@@ -63,6 +63,7 @@ export default function PortfolioDetail({ images, translations, locations = [], 
   const initialIndex = pictureIndex >= 0 ? pictureIndex : parseInt(searchParams.get('index') || '0', 10)
   const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(initialIndex, images.length - 1)));
   const [showThumbnails, setShowThumbnails] = useState(false);
+  const [isEntering, setIsEntering] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
   const mobileThumbnailsRef = useRef<HTMLDivElement | null>(null)
   const { locale } = useI18n()
@@ -137,18 +138,24 @@ export default function PortfolioDetail({ images, translations, locations = [], 
   }, [isLeaving, resolveHomeHref, router])
 
   const handleViewSet = useCallback((setId: number | string) => {
+    if (isLeaving) return
+    setIsLeaving(true)
     if (viewSetContext?.type === "style") {
       const params = new URLSearchParams()
       params.set("style", viewSetContext.styleKey)
       params.set("origin", "style")
       params.set("originStyle", viewSetContext.styleKey)
       params.set("originIndex", String(currentIndex))
-      router.push(`/work/${setId}?${params.toString()}`)
+      window.setTimeout(() => {
+        router.push(`/work/${setId}?${params.toString()}`)
+      }, 180)
       return
     }
 
-    router.push(`/work/${setId}`)
-  }, [currentIndex, router, viewSetContext])
+    window.setTimeout(() => {
+      router.push(`/work/${setId}`)
+    }, 180)
+  }, [currentIndex, isLeaving, router, viewSetContext])
 
 
   // Add keyboard navigation
@@ -168,6 +175,13 @@ export default function PortfolioDetail({ images, translations, locations = [], 
   }, [currentIndex, images.length])
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setIsEntering(false)
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+
+  useEffect(() => {
     if (!showThumbnails || typeof window === "undefined") return
     if (!window.matchMedia("(max-width: 1023px)").matches) return
 
@@ -185,7 +199,7 @@ export default function PortfolioDetail({ images, translations, locations = [], 
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-white via-[#f8f6f1] to-[#eaf0ff] text-gray-900">
       <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(circle_at_top,_rgba(15,23,42,0.08),_transparent_45%)]" />
       <div
-        className={`pointer-events-none fixed inset-0 z-[200] bg-gradient-to-br from-white via-[#f6f4f0] to-[#eef2ff] transition-opacity duration-300 ease-out ${isLeaving ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none fixed inset-0 z-[200] bg-gradient-to-br from-white via-[#f6f4f0] to-[#eef2ff] transition-opacity duration-300 ease-out ${isEntering || isLeaving ? "opacity-100" : "opacity-0"}`}
         aria-hidden="true"
       />
       <div className="relative flex min-h-screen flex-col">
