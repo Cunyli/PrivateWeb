@@ -13,18 +13,20 @@ import { ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import { PortfolioLocationMap } from "@/components/portfolio-location-map"
 import { LangSwitcher } from "@/components/lang-switcher"
-import { PhotographyStyleShowcase } from "@/components/photography-style-showcase"
+import { PhotographyStyleShowcase, preloadPhotographyStyles } from "@/components/photography-style-showcase"
 import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
 import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 import portfolioImageLoader from "@/lib/portfolio-image-loader"
 
 const DEFAULT_DOWN_TILE_ASPECT_RATIO = 3 / 4
 const INITIAL_DOWN_LIMIT = 8
-const DOWN_PREFETCH_LIMIT = 16
+const DOWN_PREFETCH_LIMIT = 24
+const UP_ROW_PREFETCH_LIMIT = 12
 const DOWN_THUMB_QUALITY = 45
 const DOWN_THUMB_PREFETCH_WIDTH = 640
 const DOWN_DIMENSION_PREFETCH_WIDTH = 64
 const THUMB_MAX_RESPONSIVE_WIDTH = 640
+const INTRO_MEDIA_WARMUP_FALLBACK_MS = 1600
 const DOWN_IMAGE_SIZES =
   "(min-width: 2200px) 14rem, (min-width: 1800px) 16rem, (min-width: 1536px) 18rem, (min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw"
 const ROW_SCROLL_SPEED_PX_PER_SECOND = 64
@@ -45,6 +47,14 @@ const capResponsiveImageWidth = (src: string, maxWidth = THUMB_MAX_RESPONSIVE_WI
   if (!src.includes("/picture/responsive/")) return src
   const separator = src.includes("?") ? "&" : "?"
   return `${src}${separator}maxWidth=${maxWidth}`
+}
+
+const canWarmMediaConnection = () => {
+  if (typeof navigator === "undefined") return true
+  const conn = (navigator as any).connection
+  if (conn?.saveData) return false
+  if (conn?.effectiveType && ["slow-2g", "2g"].includes(conn.effectiveType)) return false
+  return true
 }
 
 const normalizeSearchInput = (value: string) =>
@@ -191,6 +201,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const pageScrollRef = useRef<HTMLDivElement>(null)
   const restoreAppliedRef = useRef(false)
   const restoredSearchQueryRef = useRef<string | null>(null)
+  const belowFoldWarmupStartedRef = useRef(false)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
   const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const downPrefetchedRef = useRef<Set<string>>(new Set())
@@ -200,6 +211,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const downDimensionQueueRef = useRef<Array<{ id: number; url: string }>>([])
   const downDimensionPrefetchingRef = useRef(false)
   const [activeVideoIndex, setActiveVideoIndex] = useState(0)
+  const [introMediaReady, setIntroMediaReady] = useState(false)
   const resumeTopRow = useCallback(() => {
     const current = topRowRef.current?.scrollLeft
     if (Number.isFinite(current)) topRowScrollRef.current = current || 0
@@ -698,14 +710,49 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     downPrefetchedRef.current.add(url)
     downPrefetchQueueRef.current.push(url)
     if (typeof window !== 'undefined') {
-      const idle = (window as any).requestIdleCallback
-      if (typeof idle === 'function') {
-        idle(() => processDownPrefetch())
-      } else {
-        window.setTimeout(processDownPrefetch, 50)
-      }
+      window.setTimeout(processDownPrefetch, 0)
     }
   }, [processDownPrefetch])
+
+  const warmBelowFoldMedia = useCallback(() => {
+    if (typeof window === "undefined") return
+    if (!canWarmMediaConnection()) return
+
+    preloadPhotographyStyles()?.catch((error) => {
+      console.warn("Preloading photography styles failed:", error)
+    })
+
+    const candidates = [
+      ...firstRow,
+      ...secondRow,
+      ...downPictureSets.slice(0, DOWN_PREFETCH_LIMIT),
+    ].slice(0, UP_ROW_PREFETCH_LIMIT + DOWN_PREFETCH_LIMIT)
+
+    const queued = new Set<string>()
+    for (const item of candidates) {
+      if (!item.cover_image_url) continue
+      const src = capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`)
+      const optimizedSrc = portfolioImageLoader({ src, width: DOWN_THUMB_PREFETCH_WIDTH })
+      if (queued.has(optimizedSrc)) continue
+      queued.add(optimizedSrc)
+      enqueueDownPrefetch(optimizedSrc)
+    }
+  }, [baseUrl, downPictureSets, enqueueDownPrefetch, firstRow, secondRow])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (introMediaReady) return
+    const timer = window.setTimeout(() => setIntroMediaReady(true), INTRO_MEDIA_WARMUP_FALLBACK_MS)
+    return () => window.clearTimeout(timer)
+  }, [introMediaReady])
+
+  useEffect(() => {
+    if (loading) return
+    if (!introMediaReady) return
+    if (belowFoldWarmupStartedRef.current) return
+    belowFoldWarmupStartedRef.current = true
+    warmBelowFoldMedia()
+  }, [introMediaReady, loading, warmBelowFoldMedia])
 
   const processDownDimensionPrefetch = useCallback(() => {
     if (typeof window === "undefined") return
@@ -1238,6 +1285,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
+                  onLoad={() => setIntroMediaReady(true)}
                 />
               ) : (
                 <iframe
@@ -1249,6 +1297,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
+                  onLoad={() => setIntroMediaReady(true)}
                 />
               )}
             </div>
@@ -1453,6 +1502,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                 >
                   {loopedFirstRow.map((item, i) => {
                     const widthClass = getTileWidthClass(i)
+                    const eager = i < Math.min(6, firstRow.length)
 
                     return (
                       <Link
@@ -1467,8 +1517,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                         alt={item.title}
                         fill
                         quality={60}
+                        fetchPriority={eager ? "high" : "auto"}
                         sizes="(max-width: 640px) 33vw, 20vw"
                         className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                        priority={eager}
+                        loading={eager ? "eager" : "lazy"}
                         onLoadingComplete={updateRowScrollBounds}
                       />
 
@@ -1504,6 +1557,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   >
                     {loopedSecondRow.map((item, i) => {
                       const widthClass = getTileWidthClass(i)
+                      const eager = i < Math.min(6, secondRow.length)
 
                       return (
                         <Link
@@ -1518,8 +1572,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           alt={item.title}
                           fill
                           quality={60}
+                          fetchPriority={eager ? "high" : "auto"}
                           sizes="(max-width: 640px) 33vw, 20vw"
                           className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                          priority={eager}
+                          loading={eager ? "eager" : "lazy"}
                           onLoadingComplete={updateRowScrollBounds}
                         />
 

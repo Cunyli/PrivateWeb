@@ -54,6 +54,43 @@ const PREVIEW_PREFETCH_WIDTH = 800
 const PREVIEW_SIZES = "(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
 const STYLE_NAVIGATION_DELAY_MS = 420
 
+let stylesPayloadPromise: Promise<Record<string, StyleApiResponse>> | null = null
+
+const normalizeStylesPayload = (payload: Record<string, StyleApiResponse>) => {
+  const normalized: Record<string, StyleApiResponse> = {}
+  for (const [key, value] of Object.entries(payload)) {
+    normalized[key] = {
+      ...value,
+      pictures: (value?.pictures || []).map((picture) => ({
+        ...picture,
+        tags: Array.isArray(picture.tags) ? picture.tags : [],
+        categories: Array.isArray(picture.categories) ? picture.categories : [],
+      })),
+    }
+  }
+  return normalized
+}
+
+const loadStylesPayload = async () => {
+  const res = await fetch("/api/picture-styles")
+  if (!res.ok) {
+    throw new Error(`${res.status} ${res.statusText}`)
+  }
+  const data = await res.json()
+  return normalizeStylesPayload((data?.styles || {}) as Record<string, StyleApiResponse>)
+}
+
+export const preloadPhotographyStyles = () => {
+  if (typeof window === "undefined") return null
+  if (!stylesPayloadPromise) {
+    stylesPayloadPromise = loadStylesPayload().catch((error) => {
+      stylesPayloadPromise = null
+      throw error
+    })
+  }
+  return stylesPayloadPromise
+}
+
 const savePortfolioReturnState = () => {
   if (typeof window === "undefined") return
 
@@ -180,23 +217,7 @@ export function PhotographyStyleShowcase() {
   const fetchStyles = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await fetch("/api/picture-styles")
-      if (!res.ok) {
-        throw new Error(`${res.status} ${res.statusText}`)
-      }
-      const data = await res.json()
-      const payload = (data?.styles || {}) as Record<string, StyleApiResponse>
-      const normalized: Record<string, StyleApiResponse> = {}
-      for (const [key, value] of Object.entries(payload)) {
-        normalized[key] = {
-          ...value,
-          pictures: (value?.pictures || []).map((picture) => ({
-            ...picture,
-            tags: Array.isArray(picture.tags) ? picture.tags : [],
-            categories: Array.isArray(picture.categories) ? picture.categories : [],
-          })),
-        }
-      }
+      const normalized = await (preloadPhotographyStyles() ?? loadStylesPayload())
       setStylesData(normalized)
       const nextVisible: Record<string, number> = {}
       for (const style of PHOTOGRAPHY_STYLES) {
