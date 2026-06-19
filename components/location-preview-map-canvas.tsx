@@ -24,19 +24,25 @@ export function LocationPreviewMapCanvas({ latitude, longitude, locationName }: 
       mapRef.current = null
     }
 
+    const worldBounds = L.latLngBounds([[-85, -180], [85, 180]])
     const map = L.map(container, {
       center: [latitude, longitude],
       zoom: 10,
       minZoom: 2,
       maxZoom: 18,
+      maxBounds: worldBounds,
+      maxBoundsViscosity: 0.85,
       scrollWheelZoom: false,
       zoomControl: true,
       attributionControl: false,
+      worldCopyJump: true,
     })
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       tileSize: 256,
       maxZoom: 18,
+      noWrap: true,
+      bounds: worldBounds,
       attribution: "&copy; OpenStreetMap",
     }).addTo(map)
 

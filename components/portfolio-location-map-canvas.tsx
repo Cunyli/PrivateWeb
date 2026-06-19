@@ -116,21 +116,27 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
       const leaflet = await import("leaflet")
       if (cancelled || !mapRootRef.current) return
 
+      const worldBounds = leaflet.latLngBounds([[-85, -180], [85, 180]])
       const map = leaflet.map(root, {
         center: [locations[0].latitude, locations[0].longitude],
         zoom: 4,
         minZoom: 2,
         maxZoom: 12,
+        maxBounds: worldBounds,
+        maxBoundsViscosity: 0.85,
         zoomControl: false,
         attributionControl: false,
         preferCanvas: true,
         keyboard: false,
+        worldCopyJump: true,
       })
 
       leaflet
         .tileLayer(tileConfig.url, {
           tileSize: 256,
           maxZoom: 18,
+          noWrap: true,
+          bounds: worldBounds,
           attribution: tileConfig.attribution,
           ...(tileConfig.subdomains ? { subdomains: tileConfig.subdomains } : {}),
         })

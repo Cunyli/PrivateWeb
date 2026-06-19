@@ -1,8 +1,41 @@
-node_modules
-.next
-.env
-.vercel
-.DS_Store
-tsconfig.tsbuildinfo
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
 .next.stale.*
-test-results
+
+# Production
+build/
+
+# Private local assets
+public/private/
+
+# Environment files
+.env
+.env*.local
+!.env.example
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+
+# Tests and reports
+test-results/
+coverage/
+playwright-report/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
