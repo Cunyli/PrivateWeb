@@ -160,19 +160,35 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
   useEffect(() => {
     let cancelled = false
+    let markerSyncFrame = 0
 
     const syncMarkers = async () => {
       if (!mapReady || !leafletMapRef.current || !markersLayerRef.current) return
       const leaflet = await import("leaflet")
       if (cancelled || !leafletMapRef.current || !markersLayerRef.current) return
 
+      const map = leafletMapRef.current
+      const bounds = map.getBounds()
+      const west = bounds.getWest()
+      const east = bounds.getEast()
+      const centerLng = map.getCenter().lng
+      const span = Math.max(360, Math.abs(east - west))
+      const paddedWest = west - span
+      const paddedEast = east + span
+
       markersLayerRef.current.clearLayers()
 
       for (const loc of locations) {
         const isActive = (latestActiveKeyRef.current ?? activeKey) === loc.key
-        for (const longitudeOffset of [-360, 0, 360]) {
+        const minCopy = Math.floor((paddedWest - loc.longitude) / 360)
+        const maxCopy = Math.ceil((paddedEast - loc.longitude) / 360)
+        const centerCopy = Math.round((centerLng - loc.longitude) / 360)
+        const safeMinCopy = Math.max(minCopy, centerCopy - 4)
+        const safeMaxCopy = Math.min(maxCopy, centerCopy + 4)
+
+        for (let copy = safeMinCopy; copy <= safeMaxCopy; copy += 1) {
           leaflet
-            .circleMarker([loc.latitude, loc.longitude + longitudeOffset], {
+            .circleMarker([loc.latitude, loc.longitude + copy * 360], {
             radius: isActive ? 14 : 9,
             weight: 2,
             opacity: 0.9,
@@ -187,9 +203,29 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
       }
     }
 
+    const scheduleMarkerSync = () => {
+      if (typeof window === "undefined") return
+      if (markerSyncFrame) return
+      markerSyncFrame = window.requestAnimationFrame(() => {
+        markerSyncFrame = 0
+        void syncMarkers()
+      })
+    }
+
     void syncMarkers()
+    const map = leafletMapRef.current
+    map?.on("move", scheduleMarkerSync)
+    map?.on("zoomend", scheduleMarkerSync)
+    map?.on("resize", scheduleMarkerSync)
+
     return () => {
       cancelled = true
+      if (markerSyncFrame && typeof window !== "undefined") {
+        window.cancelAnimationFrame(markerSyncFrame)
+      }
+      map?.off("move", scheduleMarkerSync)
+      map?.off("zoomend", scheduleMarkerSync)
+      map?.off("resize", scheduleMarkerSync)
     }
   }, [activeKey, locations, mapReady])
 
