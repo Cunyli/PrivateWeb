@@ -585,10 +585,11 @@ export function ResumePage() {
 
   const createSectionMotionProps = (amount?: number) => {
     if (shouldReduceMotion) return {}
+    const viewportAmount = isMobile ? Math.min(amount ?? 0.25, 0.08) : amount ?? 0.55
     return {
       initial: "hidden" as const,
       whileInView: "visible" as const,
-      viewport: { once: true, amount: amount ?? (isMobile ? 0.25 : 0.55) },
+      viewport: { once: true, amount: viewportAmount },
     }
   }
 

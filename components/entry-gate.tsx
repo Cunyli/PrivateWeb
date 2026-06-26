@@ -170,6 +170,22 @@ export function EntryGate() {
   }
 
   useEffect(() => {
+    const resetExitState = () => {
+      setIsExiting(false)
+      setIsMobileIntroVisible(false)
+    }
+
+    resetExitState()
+    window.addEventListener("pageshow", resetExitState)
+    window.addEventListener("popstate", resetExitState)
+
+    return () => {
+      window.removeEventListener("pageshow", resetExitState)
+      window.removeEventListener("popstate", resetExitState)
+    }
+  }, [])
+
+  useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)")
     const handleChange = () => setIsMobile(mediaQuery.matches)
     handleChange()
