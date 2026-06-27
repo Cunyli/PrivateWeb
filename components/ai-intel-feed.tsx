@@ -252,6 +252,7 @@ export function AiIntelFeed() {
   const [tasks, setTasks] = useState<AiTask[]>([])
   const [taskError, setTaskError] = useState("")
   const [taskDraft, setTaskDraft] = useState({ title: "", type: "ai" as AiTaskType, dueAt: "", note: "" })
+  const [taskComposerOpen, setTaskComposerOpen] = useState(false)
 
   const feedStamp = feed?.generatedAt || feed?.date || ""
 
@@ -436,23 +437,27 @@ export function AiIntelFeed() {
     const data = (await response.json().catch(() => ({}))) as { task?: AiTask; error?: string }
     if (!response.ok || !data.task) {
       setTaskError(data.error || `Task request failed: ${response.status}`)
-      return
+      return false
     }
     setTasks((current) => [data.task as AiTask, ...current])
     setTaskError("")
     showToast("已加入待办")
+    return true
   }
 
   async function createDraftTask() {
     if (!taskDraft.title.trim()) return
-    await createTask({
+    const created = await createTask({
       title: taskDraft.title.trim(),
       type: taskDraft.type,
       status: "inbox",
       dueAt: taskDraft.dueAt || null,
       note: taskDraft.note.trim() || null,
     })
-    setTaskDraft({ title: "", type: "ai", dueAt: "", note: "" })
+    if (created) {
+      setTaskDraft({ title: "", type: "ai", dueAt: "", note: "" })
+      setTaskComposerOpen(false)
+    }
   }
 
   async function addBlockToTasks(block: FeedBlock) {
@@ -497,63 +502,31 @@ export function AiIntelFeed() {
   function renderTasks() {
     const openTasks = tasks.filter((task) => task.status !== "done")
     const doneTasks = tasks.filter((task) => task.status === "done").slice(0, 3)
-    const visibleTasks = [...openTasks, ...doneTasks].slice(0, 12)
+    const visibleTasks = [...openTasks, ...doneTasks]
 
     return (
-      <section className="mt-4 rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="m-0 text-lg font-semibold tracking-normal">AI / 工作待办</h2>
-            <div className="mt-1 text-xs text-[#62706e]">{openTasks.length} 个未完成</div>
-          </div>
-        </div>
-
-        <div className="grid gap-2">
-          <input
-            value={taskDraft.title}
-            onChange={(event) => setTaskDraft((current) => ({ ...current, title: event.target.value }))}
-            placeholder="新增一个待办"
-            className="min-h-[38px] rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-3 py-2 text-sm outline-none focus:border-[#2f6f66]"
-          />
-          <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
-            <select
-              value={taskDraft.type}
-              onChange={(event) => setTaskDraft((current) => ({ ...current, type: event.target.value as AiTaskType }))}
-              className="min-h-[38px] rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-2 py-2 text-sm outline-none"
-            >
-              {Object.entries(taskTypeLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <input
-              type="date"
-              value={taskDraft.dueAt}
-              onChange={(event) => setTaskDraft((current) => ({ ...current, dueAt: event.target.value }))}
-              className="min-h-[38px] rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-2 py-2 text-sm outline-none"
-            />
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#d7ddda] bg-white shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
+        <div className="shrink-0 border-b border-[#e4e0d8] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="m-0 text-lg font-semibold tracking-normal">工作待办</h2>
+              <div className="mt-1 text-xs text-[#62706e]">{openTasks.length} 个未完成</div>
+            </div>
             <button
               type="button"
-              onClick={createDraftTask}
-              className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] text-white"
+              onClick={() => setTaskComposerOpen(true)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] text-white"
               aria-label="新增待办"
               title="新增待办"
             >
               <Plus className="h-4 w-4" />
             </button>
           </div>
-          <textarea
-            value={taskDraft.note}
-            onChange={(event) => setTaskDraft((current) => ({ ...current, note: event.target.value }))}
-            placeholder="备注"
-            className="min-h-[68px] resize-none rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
-          />
+          {taskError ? <div className="mt-3 rounded-lg border border-[#ead7a4] bg-[#fff7df] px-3 py-2 text-xs leading-5 text-[#7a5b16]">{taskError}</div> : null}
         </div>
 
-        {taskError ? <div className="mt-3 rounded-lg border border-[#ead7a4] bg-[#fff7df] px-3 py-2 text-xs leading-5 text-[#7a5b16]">{taskError}</div> : null}
-
-        <div className="mt-4 grid gap-2">
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
+          <div className="grid gap-2">
           {visibleTasks.length ? (
             visibleTasks.map((task) => (
               <div key={task.id} className={`rounded-lg border border-[#e4e0d8] bg-[#fffdfa] p-3 ${task.status === "done" ? "opacity-60" : ""}`}>
@@ -603,8 +576,85 @@ export function AiIntelFeed() {
           ) : (
             <div className="rounded-lg border border-dashed border-[#d7ddda] px-3 py-4 text-sm leading-6 text-[#62706e]">还没有待办。</div>
           )}
+          </div>
         </div>
       </section>
+    )
+  }
+
+  function renderTaskComposer() {
+    if (!taskComposerOpen) return null
+    return (
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-[rgba(28,37,38,0.42)] px-4 py-6">
+        <div className="w-full max-w-[460px] rounded-xl border border-[#d7ddda] bg-[#fffdfa] p-4 shadow-[0_24px_80px_rgba(28,37,38,0.24)]">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="m-0 text-xl font-semibold leading-tight tracking-normal text-[#182120]">新增工作待办</h2>
+              <div className="mt-1 text-sm text-[#62706e]">只记录真正需要推进的 AI、工作、求职、论文或项目动作。</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTaskComposerOpen(false)}
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7ddda] bg-white text-[#62706e]"
+              aria-label="关闭"
+              title="关闭"
+            >
+              ×
+            </button>
+          </div>
+          <div className="grid gap-3">
+            <input
+              value={taskDraft.title}
+              onChange={(event) => setTaskDraft((current) => ({ ...current, title: event.target.value }))}
+              placeholder="待办标题"
+              className="min-h-[42px] rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f6f66]"
+              autoFocus
+            />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <select
+                value={taskDraft.type}
+                onChange={(event) => setTaskDraft((current) => ({ ...current, type: event.target.value as AiTaskType }))}
+                className="min-h-[42px] rounded-lg border border-[#d7ddda] bg-white px-2 py-2 text-sm outline-none"
+              >
+                {Object.entries(taskTypeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={taskDraft.dueAt}
+                onChange={(event) => setTaskDraft((current) => ({ ...current, dueAt: event.target.value }))}
+                className="min-h-[42px] rounded-lg border border-[#d7ddda] bg-white px-2 py-2 text-sm outline-none"
+              />
+            </div>
+            <textarea
+              value={taskDraft.note}
+              onChange={(event) => setTaskDraft((current) => ({ ...current, note: event.target.value }))}
+              placeholder="备注"
+              className="min-h-[96px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
+            />
+          </div>
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setTaskComposerOpen(false)}
+              className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              onClick={createDraftTask}
+              className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white"
+            >
+              <Plus className="h-4 w-4" />
+              添加
+            </button>
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -735,7 +785,7 @@ export function AiIntelFeed() {
           <div className="grid gap-5 p-5 sm:p-6 md:grid-cols-[1fr_auto] md:items-end">
             <div>
               <h1 className="m-0 text-[clamp(38px,6vw,72px)] font-semibold leading-[0.92] tracking-normal text-[#182120]">
-                AI 信息流
+                信息流
               </h1>
               <div className="mt-3 text-sm text-[#62706e]">
                 {feed ? `生成于 ${feed.generatedAt || feed.date} · 每次同步后线上更新 · 来源 本地数据` : "正在读取 feed..."}
@@ -779,7 +829,7 @@ export function AiIntelFeed() {
 
         {authNeeded ? (
           <div className="mb-4 rounded-lg border border-[#d7ddda] bg-white px-4 py-5 text-sm text-[#1c2526]">
-            <div className="mb-2 font-semibold">需要登录后查看 AI 信息流。</div>
+            <div className="mb-2 font-semibold">需要登录后查看信息流。</div>
             <p className="mb-4 text-[#62706e]">这页现在通过 admin API 读取，不再暴露公开 JSON。登录后会回到当前信息流页面。</p>
             <Link href="/login?next=/ai-feed" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white">
               去登录
@@ -826,8 +876,8 @@ export function AiIntelFeed() {
             ) : null}
           </div>
 
-          <aside className="lg:sticky lg:top-5">
-            <section className="rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
+          <aside className="grid min-h-0 gap-4 lg:sticky lg:top-5 lg:max-h-[calc(100vh-40px)] lg:grid-rows-[auto_minmax(0,1fr)] lg:overflow-hidden">
+            <section className="shrink-0 rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
               <h2 className="mb-2 text-lg font-semibold tracking-normal">阅读状态</h2>
               <div className="text-sm text-[#62706e]">{handled} / {roundTotal} 个本轮已处理 · 剩余 {activeBlocks.length}</div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e5e1d7]">
@@ -860,6 +910,7 @@ export function AiIntelFeed() {
       >
         {toast}
       </div>
+      {renderTaskComposer()}
     </main>
   )
 }

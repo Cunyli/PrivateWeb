@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import { AiIntelFeed } from "@/components/ai-intel-feed"
 
 export const metadata: Metadata = {
-  title: "AI Intel Feed | Lijie",
-  description: "A private reading surface for the daily AI information feed.",
+  title: "信息流 | Lijie",
+  description: "A private reading surface for the daily information feed.",
   robots: {
     index: false,
     follow: false,
