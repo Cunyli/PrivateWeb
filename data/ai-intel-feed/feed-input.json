@@ -1,17 +1,17 @@
 {
   "date": "2026-06-27",
-  "overview": "今天主线很明确：前沿模型发布正在和受控访问、评测治理、agent 成本工程绑在一起；语音方向只保留一个论文入口和一个职位动作。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI URLs / arXiv+S2；newsletter 只作线索；OpenAI 主站 curl 受 CF challenge，system card 可访问；0 条候选因缺少 URL 被跳过。",
+  "overview": "今天主线从单个模型发布扩展成两条线：前沿模型受控发布与本地/open-weight agent 备份；语音方向只保留一个论文入口和两个职位动作。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI 官方页 / arXiv+S2；newsletter 只作线索；OpenAI 官方可读，HN 工具读取受限；0 条候选因缺少 URL 被跳过。",
   "blocks": [
     {
-      "id": "openai-gpt56-sol-controlled-preview-20260627",
+      "id": "openai-gpt56-sol-controlled-preview-20260627-final",
       "kind": "deep-read",
-      "title": "OpenAI GPT-5.6 Sol：先看受控发布和 system card",
+      "title": "OpenAI GPT-5.6 Sol：受控发布比跑分更值得看",
       "source": "OpenAI / HN · 2026-06-27",
-      "sourceStatus": "未官方核验",
-      "summary": "HN 顶部故事指向 OpenAI 的 GPT-5.6 Sol preview，讨论热度很高；OpenAI 主站对 curl 返回 Cloudflare challenge，但 deployment safety system card 可访问。今天最值得读的不是模型名本身，而是受限预览、trusted partners、能力边界和评测治理怎么被放到同一个发布叙事里。",
-      "why": "这会影响你判断 Codex、agent harness、长任务预算、开源模型替代和未来 API 可用性的优先级。",
-      "thought": "先读 system card 和 HN 争议，再用 AINews 当索引；不要把 newsletter 的二手说法直接当成事实。",
+      "sourceStatus": "官方/高质量源",
+      "summary": "OpenAI 官方页确认 GPT-5.6 系列包含 Sol、Terra、Luna，先给 trusted partners 做 limited preview，并把 coding、biology、cybersecurity、max reasoning、ultra subagents 放在同一条发布线里。今天重点不是模型名，而是能力跃迁、政府预览、差异化访问和安全栈如何一起进入产品发布。",
+      "why": "这会直接影响你判断 Codex 长任务、agent harness、API 可用性、开源备份和安全评测的优先级。",
+      "thought": "先读官方发布和 system card，再看 HN/AINews 的争议；不要只看二手 newsletter 的模型传闻。",
       "priority": 100,
       "links": [
         {
@@ -33,15 +33,44 @@
       ]
     },
     {
-      "id": "glm52-agentic-systems-engineering-20260627",
+      "id": "ahead-of-ai-local-coding-agents-20260627",
       "kind": "deep-read",
+      "title": "本地 coding agent：先当 Codex/Claude Code 的备份路线",
+      "source": "Ahead of AI · 2026-06-27",
+      "sourceStatus": "线索",
+      "summary": "Sebastian Raschka 这篇把 open-weight 模型、Ollama/本地 runtime、Codex/Claude/Qwen-Code harness、长上下文速度和个人 tool-reasoning eval 串起来。它不是泛泛教程，而是给你一条在订阅限制、隐私任务或网络不稳定时可复现的本地 agent 路线。",
+      "why": "你已经在 Codex、Triton、Ollama/本地服务之间切换工作；这篇能帮你把本地 agent 当成可测试的工程备份，而不是玩具。",
+      "thought": "只扫三点：Qwen3.6/North Mini Code 的内存与 tok/s、harness 适配差异、作者的 hard reasoning bench 失败样例。",
+      "priority": 88,
+      "links": [
+        {
+          "label": "Using Local Coding Agents",
+          "url": "https://substack.com/app-link/post?publication_id=1174659&post_id=203767454&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwMzc2NzQ1NCwiaWF0IjoxNzgyNTU5NDUxLCJleHAiOjE3ODUxNTE0NTEsImlzcyI6InB1Yi0xMTc0NjU5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.5fPkh-m6ehQ_sDExflAtyinh8kP14OeHTi1EbCyod6c"
+        },
+        {
+          "label": "Local evals repo",
+          "url": "https://github.com/rasbt/local-coding-agent-evals"
+        },
+        {
+          "label": "Polar paper",
+          "url": "https://arxiv.org/abs/2605.24220"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f08d2b5821b944"
+        }
+      ]
+    },
+    {
+      "id": "glm52-agentic-systems-engineering-20260627-final",
+      "kind": "signal",
       "title": "GLM 5.2 deep dive：agent 成本是系统工程问题",
       "source": "AI Made Simple · 2026-06-26",
       "sourceStatus": "线索",
-      "summary": "这篇 GLM 5.2 文章把 DSA、IndexShare、Multi-Token Prediction、critic-based PPO / SLIME 串成一条 agentic-loop 成本链：长上下文、串行生成和长程 credit assignment 分别被系统层优化。",
-      "why": "它比单看 benchmark 更有价值，因为正好对应你关心的长任务 Codex、上下文压缩、推理成本和训练/服务共用基础设施。",
-      "thought": "只扫四个机制之间的乘法关系：省 attention、少 indexer、并行出 token、让 critic 在 compacted traces 上学。",
-      "priority": 86,
+      "summary": "GLM 5.2 文章把 DSA、IndexShare、Multi-Token Prediction、critic-based PPO / SLIME 串成 agentic-loop 成本链：长上下文、串行生成和长程 credit assignment 分别被系统层优化。",
+      "why": "它和本地 agent/前沿模型发布形成互补：一个讲模型发布，一个讲怎样把 agent 成本压到可用。",
+      "thought": "只抓四个机制之间的乘法关系：省 attention、少 indexer、并行出 token、让 critic 在 compacted traces 上学。",
+      "priority": 82,
       "links": [
         {
           "label": "GLM 5.2 deep dive",
@@ -54,15 +83,36 @@
       ]
     },
     {
-      "id": "compile-time-rag-medium-20260627",
+      "id": "nvidia-bionemo-agent-toolkit-20260627",
+      "kind": "signal",
+      "title": "NVIDIA BioNeMo Agent Toolkit：scientific agent 开始产品化",
+      "source": "NVIDIA LinkedIn · 2026-06-27",
+      "sourceStatus": "线索",
+      "summary": "NVIDIA newsletter 介绍 BioNeMo Agent Toolkit，把蛋白结构预测、分子对接、生成化学、基因组分析、蛋白设计、biomarker discovery 这些工具包装成 agent-callable skills。它的重点是科学工作流从“模型调用”变成“证据收集、实验调用、结果评估、下一步建议”的 agent 编排。",
+      "why": "这和语音健康/biomarker 主线有远距离但真实的类比价值：专业领域 agent 的难点不只是 LLM，而是可信工具、实验闭环和证据追踪。",
+      "thought": "当作 domain-agent 产品化信号扫一遍；不用进入笔记，先观察它怎么定义 scientific discovery 的可调用工具边界。",
+      "priority": 72,
+      "links": [
+        {
+          "label": "NVIDIA LinkedIn",
+          "url": "https://www.linkedin.com/comm/pulse/nvidia-bionemo-agent-toolkit-gives-ai-agents-tools-accelerate-scientific-zhjte?lipi=urn%3Ali%3Apage%3Aemail_email_series_follow_newsletter_02%3BDz5fWXHITTq45ZGrBusMJQ%3D%3D&midToken=AQFFuKiydP0yRg&midSig=1CbU9t3NZVlck1&trk=eml-email_series_follow_newsletter_02-newsletter_content_preview-0-title_&trkEmail=eml-email_series_follow_newsletter_02-newsletter_content_preview-0-title_-null-jp2m05~mqwdjt8w~b8-null-null&eid=jp2m05-mqwdjt8w-b8"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f09369961b5d24"
+        }
+      ]
+    },
+    {
+      "id": "compile-time-rag-medium-20260627-final",
       "kind": "concept",
       "title": "概念先弄懂：Compile-Time RAG 是把检索前移",
       "source": "Medium · 2026-06-27",
       "sourceStatus": "线索",
-      "summary": "Medium 今日 digest 里最有用的一条是 Compile-Time RAG：把检索、整理、索引或上下文裁剪放到请求前，而不是每次 query 时临时拼接材料。",
+      "summary": "Medium 今日 digest 里最有用的一条仍是 Compile-Time RAG：把检索、整理、索引或上下文裁剪放到请求前，而不是每次 query 时临时拼接材料。",
       "why": "这正好对应 Obsidian、论文池、Codex memory 的痛点：很多上下文应该预处理成稳定入口，而不是每次临场搜索。",
       "thought": "不用写词典；读的时候只抓一个问题：哪些知识应该在运行前编译，哪些必须在运行时检索。",
-      "priority": 78,
+      "priority": 74,
       "links": [
         {
           "label": "Compile-Time RAG",
@@ -75,45 +125,7 @@
       ]
     },
     {
-      "id": "loop-engineering-batch-20260627",
-      "kind": "signal",
-      "title": "Loop engineering：coding agent 的关键不是一次答对",
-      "source": "The Batch · 2026-06-26",
-      "sourceStatus": "线索",
-      "summary": "The Batch 这期把 loop engineering 拆成 agentic coding loop、developer feedback loop、external feedback loop；它比泛泛讲 agent 更接近你实际使用 Codex 的方式。",
-      "why": "它能帮你判断什么时候该让 agent 自测、什么时候该人工改 spec、什么时候要把真实用户或实验反馈接进来。",
-      "thought": "把它当成工作流设计材料：下一次做前端或实验自动化时，优先补 eval 和视觉/日志反馈，而不是继续加 prompt。",
-      "priority": 74,
-      "links": [
-        {
-          "label": "The Batch",
-          "url": "https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/VWMfHN54MWBFV1hL6_8HR3fMW4125np5QMhbJN6TZ7tn5nR3bW95jVnq6lZ3mDVD0xFF7rNxqDV_lS9s6dl7FrW39jZFm4cfcLgW4s0WCz8VW3gZW3lw9gd2L07C8W1N7VY07D4HVZW8by5gW393yJmW6ftHpP6qWgSlW5P4fc981VBkDW5zNQTn41wkqmW1KvLph3GW0SzW2_gS602rH7rHW7302Kh5pw91hW245ft05blBwCV9Hl7P6d8yCTW1WQs1458cT6kW2kz6xQ7-T5w0W7VQKFn7_4KRJW1RBfRk3K74VmW8dfQ-62wJSdqN1_3RlxJ7rPzW8V7fyV6n_YSrW2VMhd01wV_jPW1BBsgY4ZjjF-W2h_fjg1HQc8DW2dgPwL1x-ZgVW75skV31SWsKKW3PMLzD5mgQV3W7WCnQx16fk2_W6rcFPy3Jvc4ZW46HRxL6sFMW-W3J_rT-8RQQcfW2Y0_026Xf7WYW67dRWC699HdkVCL3zj8VyqwYVlzdn410cC5tW4bHdCd4Rh_cPW7S_zyZ6bhzGCW30VvqX5N6-WnW5tC6Wy1C5j0zN8XFX84CMsZkN1ZVWXFyj9TKW5KX0tY3QWq2wW40yLYF7JCcX8W4Mbl7X6_CDjVW4fykc-3F7ZF1f8Zt5v804"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f0364aa8f47c2f"
-        }
-      ]
-    },
-    {
-      "id": "hf-daily-papers-260626-agent-world-20260627",
-      "kind": "signal",
-      "title": "HF Daily Papers：今天只当论文线索，不扩展阅读债",
-      "source": "Hugging Face Daily Papers · 2026-06-26",
-      "sourceStatus": "线索",
-      "summary": "HF Daily Papers 继续给出 agent/world-model、视觉量化、OCR、开放模型等线索，但它不应该压过今天的 USE anchor。这里的价值是观察研究热点，不是把所有热门论文塞进阅读队列。",
-      "why": "它能辅助判断社区热度，但和你的当前主线相比，只有明确触达 speech enhancement、agent memory 或 inference serving 的条目才值得继续追。",
-      "thought": "先不沉淀；需要时再从 HF 页面回查具体 paper，而不是把 digest 整体变成笔记。",
-      "priority": 62,
-      "links": [
-        {
-          "label": "HF Daily Papers email",
-          "url": "https://mail.google.com/mail/#all/19f069b00d049e25"
-        }
-      ]
-    },
-    {
-      "id": "paper-use-snn-wng-20260627-refresh",
+      "id": "paper-use-snn-wng-20260627-final",
       "kind": "paper",
       "title": "论文入口：今天先看 SNN 语音增强和 WNG 鲁棒波束形成",
       "source": "arXiv / 本地推荐池 · 2026-06-27",
@@ -130,7 +142,7 @@
       ]
     },
     {
-      "id": "action-cntxt-speech-voice-intelligence-20260627",
+      "id": "action-cntxt-speech-voice-intelligence-20260627-final",
       "kind": "action",
       "title": "职位动作：CNTXT AI Speech & Voice Intelligence 值得点开",
       "source": "LinkedIn Jobs · 2026-06-26",
@@ -151,23 +163,23 @@
       ]
     },
     {
-      "id": "action-jta-junior-data-engineer-20260627",
+      "id": "action-thryve-ml-researcher-20260627",
       "kind": "action",
-      "title": "职位动作：JTA Junior Data Engineer 低成本筛掉或收藏",
+      "title": "职位动作：THRYVE ML Researcher 可快速筛选",
       "source": "LinkedIn Jobs · 2026-06-27",
       "sourceStatus": "行动项",
-      "summary": "JTA: The Data Scientists 的 Junior Data Engineer 是 Porto Hybrid / Easy Apply，和语音主线不强，但可能作为欧盟数据岗位池的低成本筛选项。",
-      "why": "它不应进入学习主信息流；只有在你想扩大 junior data 工程岗位池时才有价值。",
-      "thought": "快速看地点、hybrid 是否可行、是否支持英语/签证；不满足就直接丢弃。",
-      "priority": 45,
+      "summary": "THRYVE 的 Machine Learning Researcher / AI ML Engineer 是 Germany Remote / Easy Apply，和纯数据岗位相比更接近研究工程与模型开发。",
+      "why": "它不如 CNTXT 贴 speech，但比本轮多数泛数据职位更值得看一眼，尤其适合作为德国远程岗位池候选。",
+      "thought": "快速确认是否真 remote、是否要求德语/本地身份、研究内容是否只是 LLM app 包装；不满足就直接丢弃。",
+      "priority": 55,
       "links": [
         {
-          "label": "JTA job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4433877385/?trackingId=N%2Bok0NaJVI7ZEiPe16Pchg%3D%3D&refId=T3pajwigt2OwGiJYkQg9Vw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3B8b3BBXqSQzaUrGrMySb%2Fow%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2uQPeY9gGqkYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433877385_ssid_15469705772_fmid_jp2m05~mqw5t5ox~y6&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433877385_ssid_15469705772_fmid_jp2m05~mqw5t5ox~y6-null-jp2m05~mqw5t5ox~y6-null-null&eid=jp2m05-mqw5t5ox-y6&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjE4YWNjZDY0MzllYWQ4OTZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NThkMmJhYzU3OWFlZmZhNmIwMTc4MGYzNTAyYmE1MGU0YWM1YzRlNzhiMDM1NzZkLDEsMQ%3D%3D"
+          "label": "THRYVE job",
+          "url": "https://www.linkedin.com/comm/jobs/view/4433326367/?trackingId=cVSQoi2OdYWMjAVivgMT3A%3D%3D&refId=nTN98ok6Kg%2FnZEzRec9f3Q%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BG7Xt1%2BvSTYqMRRAodXo%2BxA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=0vgyVkv_Ailck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4433326367_ssid_14776384100_fmid_jp2m05~mqwa3i3d~pe&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4433326367_ssid_14776384100_fmid_jp2m05~mqwa3i3d~pe-null-jp2m05~mqwa3i3d~pe-null-null&eid=jp2m05-mqwa3i3d-pe&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjE4YWM3ZDg0MjljYWU4NjZjN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NDNjYWUwZGE3YWEzZDJhNjg3ZGIzMWZkMjZjODc5NjYwNTBiNzAwOTEzNWJkOTUyLDEsMQ%3D%3D"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f086a8bf6c1ce9"
+          "url": "https://mail.google.com/mail/#all/19f09471e0a4f35a"
         }
       ]
     }
