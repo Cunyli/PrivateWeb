@@ -50,6 +50,7 @@ const heroCopy = {
     zh: "Aalto 与 KTH 数据科学硕士在读。主要做语音 AI、检索系统和可复现实验流水线，目前研究面向健康语音生物标志物的通用语音增强。",
   },
   primaryCta: { en: "Contact", zh: "联系我" },
+  feedCta: { en: "Public feed", zh: "公开信息流" },
 }
 
 const techStack = [
@@ -674,6 +675,12 @@ export function ResumePage() {
                 className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-zinc-800"
               >
                 {heroCopy.primaryCta[heroLocale]}
+              </Link>
+              <Link
+                href="/ai-feed/public"
+                className="rounded-full border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-zinc-800 transition hover:border-zinc-900"
+              >
+                {heroCopy.feedCta[heroLocale]}
               </Link>
             </motion.div>
           </motion.div>
