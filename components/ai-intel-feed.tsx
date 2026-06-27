@@ -83,6 +83,30 @@ const preferredOrder: Record<FeedKind, number> = {
   action: 5,
 }
 
+const readingFields = [
+  {
+    label: "它讲什么",
+    shortLabel: "内容",
+    tone: "text-[#2f6f66]",
+    rule: "border-[#9fc9c0]",
+    getValue: (block: FeedBlock) => block.summary,
+  },
+  {
+    label: "为什么重要",
+    shortLabel: "价值",
+    tone: "text-[#8b4b5a]",
+    rule: "border-[#d4a8b2]",
+    getValue: (block: FeedBlock) => block.why,
+  },
+  {
+    label: "我该怎么想",
+    shortLabel: "处理",
+    tone: "text-[#7a5b16]",
+    rule: "border-[#d7bd73]",
+    getValue: (block: FeedBlock) => block.thought,
+  },
+]
+
 function titleSignature(value: string) {
   return value
     .toLowerCase()
@@ -349,14 +373,21 @@ export function AiIntelFeed() {
     return (
       <article
         key={key}
-        className={`rounded-lg border bg-white shadow-[0_14px_36px_rgba(41,50,48,0.10)] ${
-          compact ? "p-3 shadow-none" : "p-4 sm:p-[18px]"
+        className={`rounded-lg border bg-[#fffdfa] shadow-[0_18px_44px_rgba(41,50,48,0.11)] ${
+          compact ? "p-3 shadow-none" : "p-4 sm:p-5"
         } ${pinnedState ? "border-[#b8d6cf] bg-[#fbfefd]" : "border-[#d7ddda]"} ${dismissed ? "opacity-70" : ""}`}
       >
-        <div className="mb-2 flex items-start justify-between gap-3">
-          <h3 className={`${compact ? "text-[15px]" : "text-xl"} min-w-0 font-semibold leading-tight tracking-normal text-[#1c2526]`}>
-            {block.title}
-          </h3>
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a938f]">
+              <span>{kindLabel[block.kind]}</span>
+              <span className="h-1 w-1 rounded-full bg-[#c1c9c5]" />
+              <span>{block.source}</span>
+            </div>
+            <h3 className={`${compact ? "text-[15px]" : "text-[21px]"} min-w-0 font-semibold leading-tight tracking-normal text-[#182120]`}>
+              {block.title}
+            </h3>
+          </div>
           <div className="flex shrink-0 items-center gap-2">
             {!dismissed ? (
               <button
@@ -377,7 +408,6 @@ export function AiIntelFeed() {
           </div>
         </div>
 
-        <div className="mb-3 text-[13px] text-[#62706e]">{block.source}</div>
         {block.sourceWarning ? (
           <div className="mb-3 inline-flex rounded-lg border border-[#ead7a4] bg-[#fff7df] px-2 py-1 text-xs text-[#7a5b16]">
             {block.sourceWarning}
@@ -387,15 +417,14 @@ export function AiIntelFeed() {
         {compact ? (
           <p className="m-0 text-sm leading-6 text-[#62706e]">{block.summary}</p>
         ) : (
-          <div className="grid gap-3 md:grid-cols-3">
-            {[
-              ["它讲什么", block.summary],
-              ["为什么重要", block.why],
-              ["我该怎么想", block.thought],
-            ].map(([label, value]) => (
-              <div key={label} className="min-w-0 border-l-[3px] border-[#d7ddda] pl-3">
-                <strong className="mb-1 block text-xs font-semibold text-[#62706e]">{label}</strong>
-                <p className="m-0 text-sm leading-6 text-[#1c2526]">{value}</p>
+          <div className="mt-4 grid gap-4 border-y border-[#e4e0d8] py-4 md:grid-cols-3">
+            {readingFields.map((field) => (
+              <div key={field.label} className={`min-w-0 border-l-[3px] ${field.rule} pl-3`}>
+                <div className={`mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] ${field.tone}`}>
+                  {field.shortLabel}
+                </div>
+                <strong className="mb-2 block text-[15px] font-semibold leading-tight text-[#1c2526]">{field.label}</strong>
+                <p className="m-0 text-[14px] leading-7 text-[#394441]">{field.getValue(block)}</p>
               </div>
             ))}
           </div>
@@ -450,43 +479,57 @@ export function AiIntelFeed() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f4ee] text-[#1c2526]">
+    <main className="min-h-screen bg-[#f4f1e9] text-[#1c2526]">
       <div className="mx-auto w-[min(1120px,calc(100vw-32px))] py-7 sm:py-8">
-        <header className="mb-5 grid items-end gap-4 border-b border-[#d7ddda] pb-4 md:grid-cols-[1fr_auto]">
-          <div>
-            <h1 className="m-0 mb-2 text-[clamp(30px,5vw,56px)] font-semibold leading-none tracking-normal">AI 信息流</h1>
-            <div className="text-sm text-[#62706e]">
-              {feed ? `生成于 ${feed.generatedAt || feed.date} · 每次同步后线上更新 · 来源 本地数据` : "正在读取 feed..."}
+        <header className="mb-6 overflow-hidden rounded-xl border border-[#d7ddda] bg-[#fffdfa] shadow-[0_18px_46px_rgba(41,50,48,0.08)]">
+          <div className="grid gap-5 p-5 sm:p-6 md:grid-cols-[1fr_auto] md:items-end">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#cfe2dd] bg-[#e9f2ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2f6f66]">
+                Daily intelligence
+              </div>
+              <h1 className="m-0 text-[clamp(38px,6vw,72px)] font-semibold leading-[0.92] tracking-normal text-[#182120]">
+                AI 信息流
+              </h1>
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#56625f]">
+                把今天值得看的模型、基础设施、论文和行动线索压成一张安静的阅读台。先筛，再讨论，最后只沉淀真正有用的东西。
+              </p>
+              <div className="mt-3 text-sm text-[#62706e]">
+                {feed ? `生成于 ${feed.generatedAt || feed.date} · 每次同步后线上更新 · 来源 本地数据` : "正在读取 feed..."}
+              </div>
             </div>
-            <div className="mt-1 max-w-3xl text-[13px] leading-5 text-[#62706e]">
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              <span className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#62706e]">
+                Admin only
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowDiscarded((value) => !value)}
+                className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
+              >
+                <EyeOff className="h-4 w-4" />
+                {showDiscarded ? "隐藏已丢弃" : "查看已丢弃"}
+              </button>
+              <button
+                type="button"
+                onClick={clearRoundDismissed}
+                className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
+              >
+                <RotateCcw className="h-4 w-4" />
+                清空本轮丢弃
+              </button>
+            </div>
+          </div>
+          <div className="border-t border-[#e4e0d8] bg-[#f8f6f0] px-5 py-3 sm:px-6">
+            <div className="max-w-4xl text-[13px] leading-6 text-[#62706e]">
               {feed?.sourceStatusLine ? (
                 <>
-                  <span className="font-semibold text-[#1c2526]">采集状态：</span>
+                  <span className="mr-2 rounded-full bg-white px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8b4b5a]">
+                    采集状态
+                  </span>
                   {feed.sourceStatusLine}
                 </>
               ) : null}
             </div>
-          </div>
-          <div className="flex flex-wrap gap-2 md:justify-end">
-            <span className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#62706e]">
-              Admin only
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowDiscarded((value) => !value)}
-              className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
-            >
-              <EyeOff className="h-4 w-4" />
-              {showDiscarded ? "隐藏已丢弃" : "查看已丢弃"}
-            </button>
-            <button
-              type="button"
-              onClick={clearRoundDismissed}
-              className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
-            >
-              <RotateCcw className="h-4 w-4" />
-              清空本轮丢弃
-            </button>
           </div>
         </header>
 
