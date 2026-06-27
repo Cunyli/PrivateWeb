@@ -1,0 +1,162 @@
+{
+  "date": "2026-06-26",
+  "overview": "今天最值得看的是模型发布与访问治理同时升温：OpenAI 新模型信号、能力抽取争议、agent 身份授权和 AI assistant 攻防都指向同一个问题：能力越强，运行边界越需要工程化。",
+  "sourceStatusLine": "已检查 HN / arXiv / 渲染器；Gmail 连接失败未纳入邮件与待办；OpenAI 官方直连受 Cloudflare 限制，newsletter 只作缺席线索；0 条候选因缺少 URL 进入 action 前被跳过。",
+  "blocks": [
+    {
+      "id": "openai-gpt56-sol-hn-20260626",
+      "kind": "deep-read",
+      "title": "OpenAI GPT-5.6 Sol：先看讨论，再等官方页可访问",
+      "source": "OpenAI / HN · 2026-06-26",
+      "sourceStatus": "未官方核验",
+      "summary": "HN 当前高热条目指向 OpenAI 的 GPT-5.6 Sol 预览页，并伴随大量关于可用性、能力边界和访问治理的讨论；但 OpenAI 官方页面直连被 Cloudflare challenge 拦住，本轮只能确认 HN 顶部原文链接与讨论热度。",
+      "why": "如果这是真正的新模型信号，它会直接影响接下来对 Codex、agent harness、研究自动化和本地模型替代的判断。",
+      "thought": "先扫 HN 讨论里的能力质疑、访问限制和实际可用性线索；等官方页可访问后再决定是否沉淀成笔记。",
+      "priority": 100,
+      "links": [
+        {
+          "label": "OpenAI post",
+          "url": "https://openai.com/index/previewing-gpt-5-6-sol/"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48689028"
+        },
+        {
+          "label": "Washington Post / HN",
+          "url": "https://news.ycombinator.com/item?id=48690101"
+        }
+      ]
+    },
+    {
+      "id": "model-access-governance-theme-20260626",
+      "kind": "theme",
+      "title": "综合判断：模型能力发布正在和访问治理绑在一起",
+      "source": "OpenAI / Reuters / Cloudflare Blog / HN · 2026-06-24..26",
+      "sourceStatus": "综合判断",
+      "summary": "OpenAI 新模型讨论、政府访问审查传闻、Anthropic/Alibaba 能力抽取争议，以及 Cloudflare 把 OAuth 普及到更多应用，合起来说明前沿模型不再只是“谁更强”，而是“谁能被授权、审计和隔离地使用”。",
+      "why": "这正好影响你自己的 agent 工作流：权限、凭据、可追踪日志和运行环境会比 prompt 技巧更重要。",
+      "thought": "把这当成 agent infra 主题来读，不要把几条新闻硬合成一个产品判断；每条都各自看来源和证据。",
+      "priority": 88,
+      "links": [
+        {
+          "label": "OpenAI / HN",
+          "url": "https://news.ycombinator.com/item?id=48689028"
+        },
+        {
+          "label": "Reuters / HN",
+          "url": "https://news.ycombinator.com/item?id=48664814"
+        },
+        {
+          "label": "Cloudflare Blog",
+          "url": "https://blog.cloudflare.com/oauth-for-all/"
+        },
+        {
+          "label": "Cloudflare / HN",
+          "url": "https://news.ycombinator.com/item?id=48668033"
+        }
+      ]
+    },
+    {
+      "id": "anthropic-alibaba-capability-extraction-20260626",
+      "kind": "signal",
+      "title": "Anthropic/Alibaba 争议：能力抽取会变成模型安全的现实案例",
+      "source": "Reuters / HN · 2026-06-24",
+      "sourceStatus": "高质量源",
+      "summary": "Reuters 报道 Anthropic 指控 Alibaba 非法抽取 Claude 模型能力，HN 讨论量很高。先把它看作“模型输出、蒸馏、基准复现、能力迁移”边界争议，而不是简单公司八卦。",
+      "why": "这会影响开源/闭源模型训练数据、模型蒸馏、benchmark 泄漏和 agent 评测的合规边界。",
+      "thought": "重点看双方证据和社区如何区分正常学习、数据蒸馏、接口滥用与能力复制。",
+      "priority": 82,
+      "links": [
+        {
+          "label": "Reuters",
+          "url": "https://www.reuters.com/world/china/anthropic-says-alibaba-illicitly-extracted-claude-ai-model-capabilities-2026-06-24/"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48664814"
+        }
+      ]
+    },
+    {
+      "id": "cloudflare-oauth-for-all-20260626",
+      "kind": "signal",
+      "title": "Cloudflare OAuth for all：agent 访问控制正在产品化",
+      "source": "Cloudflare Blog / HN · 2026-06-25",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Cloudflare 的 OAuth for all 把 OAuth 能力推向更普遍的网站与服务接入场景，HN 讨论集中在实际安全性、用户体验和“AI agent 代替人访问服务”的身份边界。",
+      "why": "如果 agent 要代表你读邮件、开网页、跑工作流，OAuth、最小权限和撤销机制会比模型本身更决定是否可长期使用。",
+      "thought": "把它作为 agent harness 的身份层补课：看授权粒度、token 生命周期、撤销路径和审计能力。",
+      "priority": 78,
+      "links": [
+        {
+          "label": "Cloudflare Blog",
+          "url": "https://blog.cloudflare.com/oauth-for-all/"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48668033"
+        }
+      ]
+    },
+    {
+      "id": "hack-my-ai-assistant-20260626",
+      "kind": "signal",
+      "title": "2k 人攻击 AI assistant：比安全清单更像真实红队样本",
+      "source": "Fernando I / HN · 2026-06-26",
+      "sourceStatus": "高质量讨论",
+      "summary": "这篇复盘记录了大量用户尝试攻击一个 AI assistant 后暴露出的实际问题，HN 讨论也在补充 prompt injection、工具调用、状态泄漏和奖励设计方面的经验。",
+      "why": "它比抽象的 agent 安全文章更贴近你日常让 Codex/Gmail/浏览器协同工作的风险模型。",
+      "thought": "扫攻击路径，不用全读实现细节；重点标出哪些风险会出现在本地自动化和浏览器代理里。",
+      "priority": 72,
+      "links": [
+        {
+          "label": "Attack post",
+          "url": "https://www.fernandoi.cl/posts/hackmyclaw/"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48681687"
+        }
+      ]
+    },
+    {
+      "id": "concept-oauth-agent-identity-20260626",
+      "kind": "concept",
+      "title": "概念先弄懂：OAuth 不只是登录按钮，而是 agent 身份边界",
+      "source": "Cloudflare Blog / HN · 2026-06-25",
+      "sourceStatus": "精选",
+      "summary": "今天值得先补的概念是 OAuth：它决定一个 agent 代表你访问服务时拿到什么权限、多久有效、能不能撤销，以及服务端是否能审计这个访问。",
+      "why": "没有这个概念，读 agent 安全、Gmail 自动化、浏览器代理和 Cloudflare 这类基础设施新闻都会只停在表面。",
+      "thought": "不用写词典；只需要在读 Cloudflare 和 AI assistant 攻防时，把 OAuth 当成“可撤销的代理授权”来理解。",
+      "priority": 65,
+      "links": [
+        {
+          "label": "Cloudflare Blog",
+          "url": "https://blog.cloudflare.com/oauth-for-all/"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48668033"
+        }
+      ]
+    },
+    {
+      "id": "paper-use-latency-meeting-se-20260626",
+      "kind": "paper",
+      "title": "论文入口：今天先看实时 USE 和会议场景增益控制",
+      "source": "arXiv / 本地推荐池 · 2026-06-24..25",
+      "sourceStatus": "本地推荐池",
+      "summary": "今天最值得扫两篇：`One Model, Many Latencies` 把同一个实时增强模型做成可调算法延迟与 early-exit 计算延迟；`SE-AGCNet` 把会议场景里的 speech enhancement 和 automatic gain control 端到端联合优化。",
+      "why": "前者贴合 streaming-SE / latency-control 主线，后者贴合真实会议音频里“增强后响度是否可用”的工程问题，比单纯 PESQ 提升更接近可部署系统。",
+      "thought": "Tag: streaming-se, speech-enhancement, latency-control, meeting-audio, loudness-control；打开推荐池只扫摘要、方法图和是否有 Hugging Face 权重。",
+      "priority": 70,
+      "links": [
+        {
+          "label": "推荐池索引（Obsidian）",
+          "url": "obsidian://open?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
+        }
+      ]
+    }
+  ]
+}
