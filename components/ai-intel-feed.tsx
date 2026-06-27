@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Check, Copy, ExternalLink, EyeOff, RefreshCw, RotateCcw, Star } from "lucide-react"
+import { Check, Copy, ExternalLink, EyeOff, Plus, RefreshCw, RotateCcw, Star, Trash2 } from "lucide-react"
 import { adminFetch } from "@/utils/admin-auth-client"
 
 type FeedKind = "deep-read" | "signal" | "theme" | "concept" | "paper" | "action"
@@ -59,7 +59,25 @@ type SharedState = {
   pinned?: Record<string, PinnedEntry>
 }
 
+type AiTaskType = "ai" | "work" | "job" | "paper" | "project"
+type AiTaskStatus = "inbox" | "next" | "waiting" | "done" | "snoozed"
+
+type AiTask = {
+  id: string
+  title: string
+  type: AiTaskType
+  status: AiTaskStatus
+  dueAt?: string | null
+  url?: string | null
+  note?: string | null
+  sourceBlockId?: string | null
+  sourceTitle?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
 const feedApiPath = "/api/ai-feed"
+const taskApiPath = "/api/ai-tasks"
 const stateKey = "ai-intel-feed-state-v1"
 const exposurePoolKey = "ai-intel-feed-exposure-pool-v2"
 const pinnedKey = "ai-intel-feed-pinned-v1"
@@ -106,6 +124,22 @@ const readingFields = [
     getValue: (block: FeedBlock) => block.thought,
   },
 ]
+
+const taskTypeLabels: Record<AiTaskType, string> = {
+  ai: "AI",
+  work: "工作",
+  job: "求职",
+  paper: "论文",
+  project: "项目",
+}
+
+const taskStatusLabels: Record<AiTaskStatus, string> = {
+  inbox: "收件",
+  next: "下一步",
+  waiting: "等待",
+  done: "完成",
+  snoozed: "稍后",
+}
 
 function titleSignature(value: string) {
   return value
@@ -215,6 +249,9 @@ export function AiIntelFeed() {
   const [showDiscarded, setShowDiscarded] = useState(false)
   const [copiedId, setCopiedId] = useState("")
   const [toast, setToast] = useState("")
+  const [tasks, setTasks] = useState<AiTask[]>([])
+  const [taskError, setTaskError] = useState("")
+  const [taskDraft, setTaskDraft] = useState({ title: "", type: "ai" as AiTaskType, dueAt: "", note: "" })
 
   const feedStamp = feed?.generatedAt || feed?.date || ""
 
@@ -244,6 +281,16 @@ export function AiIntelFeed() {
       writeJsonMap(pinnedKey, nextPinned)
 
       setFeed(payload.feed)
+
+      const taskResponse = await adminFetch(taskApiPath, { cache: "no-store" })
+      if (taskResponse.ok) {
+        const taskPayload = (await taskResponse.json()) as { tasks: AiTask[] }
+        setTasks(taskPayload.tasks || [])
+        setTaskError("")
+      } else {
+        const taskPayload = (await taskResponse.json().catch(() => ({}))) as { error?: string }
+        setTaskError(taskPayload.error || `Task request failed: ${taskResponse.status}`)
+      }
     }
 
     load().catch((err: Error) => {
@@ -366,6 +413,201 @@ export function AiIntelFeed() {
     window.setTimeout(() => setCopiedId(""), 1400)
   }
 
+  function inferTaskType(block: FeedBlock): AiTaskType {
+    const title = block.title.toLowerCase()
+    if (block.kind === "paper") return "paper"
+    if (title.includes("job") || title.includes("职位") || title.includes("linkedin")) return "job"
+    if (block.kind === "action") return "work"
+    if (block.kind === "concept" || block.kind === "theme" || block.kind === "signal" || block.kind === "deep-read") return "ai"
+    return "project"
+  }
+
+  function primaryTaskUrl(block: FeedBlock) {
+    const links = block.links || []
+    return links.find((link) => !linkIsObsidian(link.url))?.url || links[0]?.url || ""
+  }
+
+  async function createTask(payload: Partial<AiTask> & { title: string }) {
+    const response = await adminFetch(taskApiPath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    const data = (await response.json().catch(() => ({}))) as { task?: AiTask; error?: string }
+    if (!response.ok || !data.task) {
+      setTaskError(data.error || `Task request failed: ${response.status}`)
+      return
+    }
+    setTasks((current) => [data.task as AiTask, ...current])
+    setTaskError("")
+    showToast("已加入待办")
+  }
+
+  async function createDraftTask() {
+    if (!taskDraft.title.trim()) return
+    await createTask({
+      title: taskDraft.title.trim(),
+      type: taskDraft.type,
+      status: "inbox",
+      dueAt: taskDraft.dueAt || null,
+      note: taskDraft.note.trim() || null,
+    })
+    setTaskDraft({ title: "", type: "ai", dueAt: "", note: "" })
+  }
+
+  async function addBlockToTasks(block: FeedBlock) {
+    await createTask({
+      title: block.title,
+      type: inferTaskType(block),
+      status: block.kind === "action" ? "next" : "inbox",
+      url: primaryTaskUrl(block),
+      note: block.thought,
+      sourceBlockId: blockKey(block),
+      sourceTitle: block.title,
+    })
+  }
+
+  async function updateTask(task: AiTask, patch: Partial<AiTask>) {
+    const response = await adminFetch(taskApiPath, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: task.id, ...patch }),
+    })
+    const data = (await response.json().catch(() => ({}))) as { task?: AiTask; error?: string }
+    if (!response.ok || !data.task) {
+      setTaskError(data.error || `Task request failed: ${response.status}`)
+      return
+    }
+    setTasks((current) => current.map((item) => (item.id === task.id ? (data.task as AiTask) : item)))
+    setTaskError("")
+  }
+
+  async function deleteTask(task: AiTask) {
+    const response = await adminFetch(`${taskApiPath}?id=${encodeURIComponent(task.id)}`, { method: "DELETE" })
+    const data = (await response.json().catch(() => ({}))) as { error?: string }
+    if (!response.ok) {
+      setTaskError(data.error || `Task request failed: ${response.status}`)
+      return
+    }
+    setTasks((current) => current.filter((item) => item.id !== task.id))
+    setTaskError("")
+    showToast("已删除待办")
+  }
+
+  function renderTasks() {
+    const openTasks = tasks.filter((task) => task.status !== "done")
+    const doneTasks = tasks.filter((task) => task.status === "done").slice(0, 3)
+    const visibleTasks = [...openTasks, ...doneTasks].slice(0, 12)
+
+    return (
+      <section className="mt-4 rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="m-0 text-lg font-semibold tracking-normal">AI / 工作待办</h2>
+            <div className="mt-1 text-xs text-[#62706e]">{openTasks.length} 个未完成</div>
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <input
+            value={taskDraft.title}
+            onChange={(event) => setTaskDraft((current) => ({ ...current, title: event.target.value }))}
+            placeholder="新增一个待办"
+            className="min-h-[38px] rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-3 py-2 text-sm outline-none focus:border-[#2f6f66]"
+          />
+          <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <select
+              value={taskDraft.type}
+              onChange={(event) => setTaskDraft((current) => ({ ...current, type: event.target.value as AiTaskType }))}
+              className="min-h-[38px] rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-2 py-2 text-sm outline-none"
+            >
+              {Object.entries(taskTypeLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={taskDraft.dueAt}
+              onChange={(event) => setTaskDraft((current) => ({ ...current, dueAt: event.target.value }))}
+              className="min-h-[38px] rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-2 py-2 text-sm outline-none"
+            />
+            <button
+              type="button"
+              onClick={createDraftTask}
+              className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] text-white"
+              aria-label="新增待办"
+              title="新增待办"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          <textarea
+            value={taskDraft.note}
+            onChange={(event) => setTaskDraft((current) => ({ ...current, note: event.target.value }))}
+            placeholder="备注"
+            className="min-h-[68px] resize-none rounded-lg border border-[#d7ddda] bg-[#fffdfa] px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
+          />
+        </div>
+
+        {taskError ? <div className="mt-3 rounded-lg border border-[#ead7a4] bg-[#fff7df] px-3 py-2 text-xs leading-5 text-[#7a5b16]">{taskError}</div> : null}
+
+        <div className="mt-4 grid gap-2">
+          {visibleTasks.length ? (
+            visibleTasks.map((task) => (
+              <div key={task.id} className={`rounded-lg border border-[#e4e0d8] bg-[#fffdfa] p-3 ${task.status === "done" ? "opacity-60" : ""}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a938f]">
+                      <span>{taskTypeLabels[task.type]}</span>
+                      <span className="h-1 w-1 rounded-full bg-[#c1c9c5]" />
+                      <span>{taskStatusLabels[task.status]}</span>
+                    </div>
+                    <div className="text-sm font-semibold leading-5 text-[#1c2526]">{task.title}</div>
+                    {task.note ? <p className="m-0 mt-1 text-xs leading-5 text-[#62706e]">{task.note}</p> : null}
+                    {task.dueAt ? <div className="mt-1 text-xs text-[#8b4b5a]">截止 {task.dueAt.slice(0, 10)}</div> : null}
+                    {task.url ? (
+                      <a href={task.url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 border-b border-[rgba(47,111,102,.35)] text-xs font-semibold text-[#2f6f66]">
+                        打开链接
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteTask(task)}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7ddda] bg-white text-[#62706e]"
+                    aria-label="删除待办"
+                    title="删除待办"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {(["inbox", "next", "waiting", "snoozed", "done"] as AiTaskStatus[]).map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => updateTask(task, { status })}
+                      className={`rounded-full border px-2 py-1 text-[11px] ${
+                        task.status === status ? "border-[#2f6f66] bg-[#e9f2ef] text-[#2f6f66]" : "border-[#d7ddda] bg-white text-[#62706e]"
+                      }`}
+                    >
+                      {taskStatusLabels[status]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-lg border border-dashed border-[#d7ddda] px-3 py-4 text-sm leading-6 text-[#62706e]">还没有待办。</div>
+          )}
+        </div>
+      </section>
+    )
+  }
+
   function renderBlock(block: FeedBlock, compact = false) {
     const key = blockKey(block)
     const dismissed = isDismissed(block)
@@ -472,6 +714,14 @@ export function AiIntelFeed() {
           >
             {copiedId === key ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             复制给 Codex 讨论
+          </button>
+          <button
+            type="button"
+            onClick={() => addBlockToTasks(block)}
+            className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
+          >
+            <Plus className="h-4 w-4" />
+            加入待办
           </button>
         </div>
       </article>
@@ -598,6 +848,7 @@ export function AiIntelFeed() {
                 重新读取
               </button>
             </section>
+            {renderTasks()}
           </aside>
         </div>
       </div>

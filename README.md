@@ -117,6 +117,7 @@ Run the SQL files in `docs/` from the Supabase SQL Editor as needed:
 - `docs/add-location-translations.sql`: multilingual location fields.
 - `docs/add-image-variants.sql`: image variant metadata.
 - `docs/upgrade-picture-embeddings-1024.sql`: 1024-dimensional vector embeddings and matching RPC.
+- `docs/ai-tasks.sql`: private AI/work task table used by the authenticated `/ai-feed` workspace.
 
 Semantic search also depends on the `picture_embeddings` table and `match_pictures_by_embedding` RPC described in `docs/semantic-picture-search.md`.
 

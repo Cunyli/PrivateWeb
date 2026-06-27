@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NEXT_PRIVATE_BUILD_WORKER=0 next build",
     "start": "next start",
     "sync:ai-feed": "node scripts/sync-ai-intel-feed.mjs",
     "backfill:picture-embeddings": "node scripts/backfill-picture-embeddings.mjs",
