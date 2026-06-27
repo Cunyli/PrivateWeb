@@ -424,7 +424,7 @@ export function AiIntelFeed() {
                   {field.shortLabel}
                 </div>
                 <strong className="mb-2 block text-[15px] font-semibold leading-tight text-[#1c2526]">{field.label}</strong>
-                <p className="m-0 text-[14px] leading-7 text-[#394441]">{field.getValue(block)}</p>
+                <p className="m-0 text-justify text-[14px] leading-7 text-[#394441] [text-align-last:left]">{field.getValue(block)}</p>
               </div>
             ))}
           </div>
@@ -484,15 +484,9 @@ export function AiIntelFeed() {
         <header className="mb-6 overflow-hidden rounded-xl border border-[#d7ddda] bg-[#fffdfa] shadow-[0_18px_46px_rgba(41,50,48,0.08)]">
           <div className="grid gap-5 p-5 sm:p-6 md:grid-cols-[1fr_auto] md:items-end">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#cfe2dd] bg-[#e9f2ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2f6f66]">
-                Daily intelligence
-              </div>
               <h1 className="m-0 text-[clamp(38px,6vw,72px)] font-semibold leading-[0.92] tracking-normal text-[#182120]">
                 AI 信息流
               </h1>
-              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#56625f]">
-                把今天值得看的模型、基础设施、论文和行动线索压成一张安静的阅读台。先筛，再讨论，最后只沉淀真正有用的东西。
-              </p>
               <div className="mt-3 text-sm text-[#62706e]">
                 {feed ? `生成于 ${feed.generatedAt || feed.date} · 每次同步后线上更新 · 来源 本地数据` : "正在读取 feed..."}
               </div>
