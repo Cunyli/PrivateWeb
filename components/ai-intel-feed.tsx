@@ -458,7 +458,14 @@ export function AiIntelFeed() {
             <div className="text-sm text-[#62706e]">
               {feed ? `生成于 ${feed.generatedAt || feed.date} · 每次同步后线上更新 · 来源 本地数据` : "正在读取 feed..."}
             </div>
-            <div className="mt-1 max-w-3xl text-[13px] leading-5 text-[#62706e]">{feed?.sourceStatusLine}</div>
+            <div className="mt-1 max-w-3xl text-[13px] leading-5 text-[#62706e]">
+              {feed?.sourceStatusLine ? (
+                <>
+                  <span className="font-semibold text-[#1c2526]">采集状态：</span>
+                  {feed.sourceStatusLine}
+                </>
+              ) : null}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2 md:justify-end">
             <span className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#62706e]">
@@ -486,8 +493,8 @@ export function AiIntelFeed() {
         {authNeeded ? (
           <div className="mb-4 rounded-lg border border-[#d7ddda] bg-white px-4 py-5 text-sm text-[#1c2526]">
             <div className="mb-2 font-semibold">需要登录后查看 AI 信息流。</div>
-            <p className="mb-4 text-[#62706e]">这页现在通过 admin API 读取，不再暴露公开 JSON。</p>
-            <Link href="/login" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white">
+            <p className="mb-4 text-[#62706e]">这页现在通过 admin API 读取，不再暴露公开 JSON。登录后会回到当前信息流页面。</p>
+            <Link href="/login?next=/ai-feed" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white">
               去登录
             </Link>
           </div>
@@ -542,7 +549,7 @@ export function AiIntelFeed() {
               <div className="mt-4 border-t border-[#d7ddda] pt-3 text-[13px] leading-5 text-[#62706e]">
                 <div className="mb-1 font-semibold">状态同步</div>
                 <p className="m-0">
-                  当前页会导入随 feed 同步来的共享状态快照，再用本浏览器状态继续记录新的丢弃/钉住。
+                  当前页会导入随 feed 同步来的共享状态快照，再用本浏览器状态继续记录新的丢弃/钉住。页头的 Gmail/OpenAI 文字是本轮采集状态，不代表网页连接失败。
                 </p>
               </div>
               <button

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { I18nProvider, useI18n } from "@/lib/i18n"
 import { supabase } from "@/utils/supabase"
@@ -12,14 +12,23 @@ function LoginInner() {
   const { t, locale, setLocale } = useI18n()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [nextPath, setNextPath] = useState("/admin")
   const router = useRouter()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const requestedNext = params.get("next") || ""
+    if (requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
+      setNextPath(requestedNext)
+    }
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
-      router.push("/admin")
+      router.push(nextPath)
     } catch (error) {
       console.error("Error logging in:", error)
       alert(t('error'))
