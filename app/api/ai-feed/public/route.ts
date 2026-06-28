@@ -7,6 +7,12 @@ type FeedLink = {
   url: string
 }
 
+type FeedDetailSection = {
+  title: string
+  body?: string
+  items?: string[]
+}
+
 type FeedBlock = {
   id?: string
   kind: string
@@ -19,6 +25,7 @@ type FeedBlock = {
   thought: string
   priority?: number
   links?: FeedLink[]
+  details?: FeedDetailSection[]
 }
 
 type FeedPayload = {
@@ -69,6 +76,13 @@ function sanitizeBlock(block: FeedBlock): FeedBlock | null {
   if (!publicKinds.has(block.kind)) return null
   const links = sanitizeLinks(block.links)
   if (links.length === 0) return null
+  const details = (block.details || [])
+    .map((section) => ({
+      title: String(section.title || "").slice(0, 80),
+      body: section.body ? String(section.body).slice(0, 1200) : undefined,
+      items: (section.items || []).map((item) => String(item).slice(0, 500)).slice(0, 8),
+    }))
+    .filter((section) => section.title && (section.body || section.items?.length))
   return {
     id: block.id,
     kind: block.kind,
@@ -81,6 +95,7 @@ function sanitizeBlock(block: FeedBlock): FeedBlock | null {
     thought: block.thought,
     priority: block.priority,
     links,
+    details,
   }
 }
 

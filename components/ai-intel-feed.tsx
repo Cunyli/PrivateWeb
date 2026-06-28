@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Check, Copy, ExternalLink, EyeOff, Plus, RefreshCw, RotateCcw, Star, Trash2 } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, EyeOff, Plus, RefreshCw, RotateCcw, Star, Trash2 } from "lucide-react"
 import { adminFetch } from "@/utils/admin-auth-client"
 
 type FeedKind = "deep-read" | "signal" | "theme" | "concept" | "paper" | "action"
@@ -10,6 +10,12 @@ type FeedKind = "deep-read" | "signal" | "theme" | "concept" | "paper" | "action
 type FeedLink = {
   label: string
   url: string
+}
+
+type FeedDetailSection = {
+  title: string
+  body?: string
+  items?: string[]
 }
 
 type FeedBlock = {
@@ -25,6 +31,7 @@ type FeedBlock = {
   thought: string
   priority?: number
   links?: FeedLink[]
+  details?: FeedDetailSection[]
 }
 
 type FeedPayload = {
@@ -254,6 +261,15 @@ function linkIsObsidian(url: string) {
 
 function buildCopyText(block: FeedBlock) {
   const links = block.links?.map((link) => `- ${link.label}: ${link.url}`).join("\n") || "- 无链接"
+  const details = block.details?.length
+    ? block.details
+        .map((section) => {
+          const body = section.body ? `\n${section.body}` : ""
+          const items = section.items?.length ? `\n${section.items.map((item) => `- ${item}`).join("\n")}` : ""
+          return `## ${section.title}${body}${items}`
+        })
+        .join("\n\n")
+    : ""
   return [
     `请和我讨论这个 AI 信息流块：${block.title}`,
     `类型：${kindLabel[block.kind] || block.kind}`,
@@ -262,6 +278,7 @@ function buildCopyText(block: FeedBlock) {
     `摘要：${block.summary}`,
     `为什么重要：${block.why}`,
     `我该怎么想：${block.thought}`,
+    details ? `\n细节：\n${details}` : "",
     "",
     "链接：",
     links,
@@ -286,6 +303,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
   const [taskError, setTaskError] = useState("")
   const [taskDraft, setTaskDraft] = useState({ title: "", type: "ai" as AiTaskType, dueAt: "", note: "" })
   const [taskComposerOpen, setTaskComposerOpen] = useState(false)
+  const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({})
 
   const feedStamp = feed?.generatedAt || feed?.date || ""
 
@@ -512,6 +530,43 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
       sourceBlockId: blockKey(block),
       sourceTitle: block.title,
     })
+  }
+
+  function renderBlockDetails(block: FeedBlock) {
+    const details = block.details?.filter((section) => section.title && (section.body || section.items?.length)) || []
+    if (!details.length) return null
+    const key = blockKey(block)
+    const expanded = Boolean(expandedDetails[key])
+
+    return (
+      <div className="mt-4 border-t border-[#e4e0d8] pt-3">
+        <button
+          type="button"
+          onClick={() => setExpandedDetails((current) => ({ ...current, [key]: !expanded }))}
+          className="inline-flex min-h-[36px] items-center gap-2 rounded-lg border border-[#cfe2dd] bg-[#f3faf7] px-3 py-2 text-sm font-semibold text-[#2f6f66]"
+        >
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {expanded ? "收起细节" : "展开细节"}
+        </button>
+        {expanded ? (
+          <div className="mt-3 grid gap-3">
+            {details.map((section) => (
+              <section key={section.title} className="m-0 rounded-lg border border-[#e4e0d8] bg-[#f8f6f0] p-3">
+                <h4 className="m-0 mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#8b4b5a]">{section.title}</h4>
+                {section.body ? <p className="m-0 text-[14px] leading-7 text-[#394441]">{section.body}</p> : null}
+                {section.items?.length ? (
+                  <ul className="m-0 grid gap-1.5 pl-4 text-[14px] leading-7 text-[#394441]">
+                    {section.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </section>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    )
   }
 
   async function updateTask(task: AiTask, patch: Partial<AiTask>) {
@@ -744,6 +799,8 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
             ))}
           </div>
         )}
+
+        {!compact ? renderBlockDetails(block) : null}
 
         {block.links?.length ? (
           <div className="mt-3 flex flex-wrap gap-2">

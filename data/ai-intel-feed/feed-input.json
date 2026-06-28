@@ -81,13 +81,56 @@
     {
       "id": "ahead-local-coding-agents-20260628-refresh2",
       "kind": "signal",
-      "title": "本地 coding agent：作为前沿模型受限时的备份路线",
-      "source": "Ahead of AI · 2026-06-27",
+      "title": "Coding agent 工作流：loop、local harness、model routing 要一起看",
+      "source": "Ahead of AI / The Batch / WorkWeave · 2026-06-28",
       "sourceStatus": "线索",
-      "summary": "Sebastian Raschka 的文章仍值得保留：它把 open-weight 模型、本地 runtime、Codex/Claude/Qwen-Code harness、长上下文速度和个人 eval 串起来。今天它和 GPT-5.6 准入限制形成互补：一个是前沿模型入口，一个是本地可复现备份。",
-      "why": "你已经在 Codex、Ollama、本地服务和 Triton 之间切换；这条线能防止工作流完全依赖单一闭源入口。",
-      "thought": "只扫 Qwen/North Mini Code 的资源占用、harness 差异和 eval 失败样例；暂时不用写笔记。",
+      "summary": "这组内容不要按三封 newsletter 分开读。The Batch 给出 coding agent 的三层 loop；Sebastian 讨论 open-weight 模型在本地 coding harness 里能不能替代 Claude/Codex；WorkWeave/HN 则把 Claude、Codex、Cursor 之间的模型路由做成工具层。合在一起看，重点不是“哪个模型更强”，而是你的工作流有没有闭环、能不能本地备份、失败时能不能路由/回退。",
+      "why": "你已经在 Codex、Ollama、本地服务和 Triton 之间切换；这条线能防止工作流完全依赖单一闭源入口，也能提醒你别只比较模型榜单。",
+      "thought": "先展开细节读完这个块；只有要动手搭本地 harness 或路由实验时，才回到 Sebastian repo / WorkWeave README / The Batch 原文。",
       "priority": 78,
+      "details": [
+        {
+          "title": "背景",
+          "body": "coding agent 现在的核心问题不是“让模型写一段代码”，而是让它在较长时间里反复写、测、看结果、修正，并在人工反馈和外部反馈之间持续收敛。这个结构如果没有闭环，就会变成你不断喂提示词；如果闭环太黑盒，又会变成失败时不知道该在哪里介入。"
+        },
+        {
+          "title": "The Batch 补的机制",
+          "items": [
+            "agentic coding loop：给产品规格和可选 eval，让 agent 写代码、运行测试、看浏览器结果，然后继续迭代，目标是让它在较长时间内不需要人工逐步提示。",
+            "developer feedback loop：人不再只做低层 QA，而是周期性看产品状态，调整规格、UI、功能取舍和 eval；周期通常是几十分钟到数小时。",
+            "external feedback loop：朋友、alpha 用户、生产数据或 A/B 测试提供更慢的外部反馈，可能以小时、天或周为周期，反过来改变产品 vision 和 spec。",
+            "关键理解：所谓 taste 可以更具体地理解为 human context advantage，也就是人知道用户、场景和约束，而模型不知道。"
+          ]
+        },
+        {
+          "title": "Sebastian 补的机制",
+          "items": [
+            "他关心的是 open-weight 模型能不能放进本地 coding harness，作为 Claude Code / Codex subscription 之外的备份路线。",
+            "真正要比较的不是聊天体验，而是模型在同一 harness、同一任务、同一 eval 下的失败样例、速度、上下文长度、显存/内存成本。",
+            "对你来说，重点是 Qwen / North Mini Code 这类模型是否能承担低风险代码任务、局部重构或离线实验，而不是直接替代前沿闭源模型。"
+          ]
+        },
+        {
+          "title": "WorkWeave 补的机制",
+          "items": [
+            "它把 smart model routing 接到 Claude、Codex、Cursor，说明工具层开始把“选哪个模型”变成运行时策略。",
+            "如果路由只是透明代理，价值有限；如果它能记录任务类型、成本、失败、回退和上下文边界，就可能成为 agent harness 的控制层。",
+            "这和 speculative decoding 是同一条成本线：一个在模型内部加速 token，一个在系统外部决定何时用贵模型、便宜模型或本地模型。"
+          ]
+        },
+        {
+          "title": "怎么理解",
+          "body": "你现在的正确问题不是“我要不要读完三篇原文”，而是“我的 Codex 工作流缺哪一层”。如果缺 eval，就先补测试/验收；如果缺本地备份，就看 Sebastian；如果缺成本和失败回退，就看 WorkWeave；如果只是想理解为什么 agent 能自己跑久一点，The Batch 这段已经够用。"
+        },
+        {
+          "title": "续充",
+          "items": [
+            "上次已知：本地 coding agent 是前沿模型受限时的备份路线。",
+            "今天新增：The Batch 把 loop 拆成 agentic coding、developer feedback、external feedback 三层；WorkWeave 把多模型选择外置成 routing 层。",
+            "当前判断：保留为一个持续主题，下次只有出现可跑 harness、真实 eval 结果或路由失败案例时才更新。"
+          ]
+        }
+      ],
       "links": [
         {
           "label": "Using Local Coding Agents",
@@ -98,7 +141,15 @@
           "url": "https://github.com/rasbt/local-coding-agent-evals"
         },
         {
-          "label": "Gmail source",
+          "label": "The Batch",
+          "url": "https://mail.google.com/mail/#all/19f0364aa8f47c2f"
+        },
+        {
+          "label": "WorkWeave router",
+          "url": "https://github.com/workweave/router"
+        },
+        {
+          "label": "Ahead Gmail",
           "url": "https://mail.google.com/mail/#all/19f08d2b5821b944"
         }
       ]
