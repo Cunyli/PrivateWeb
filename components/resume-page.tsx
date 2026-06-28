@@ -68,28 +68,28 @@ const heroProjectsCopy = {
 
 const heroProjects: HeroProject[] = [
   {
-    title: { en: "Public AI Intelligence Feed", zh: "公开 AI 信息流" },
-    eyebrow: { en: "Live project", zh: "在线项目" },
+    title: { en: "Public AI Feed", zh: "公开 AI 信息流" },
+    eyebrow: { en: "Public demo", zh: "公开 Demo" },
     description: {
-      en: "A shareable public view of my private AI feed, with a separate API path and privacy filtering.",
-      zh: "从私有 AI 信息流拆出的公开展示页，使用独立 API 和隐私过滤。",
+      en: "A public, read-only view of my private AI feed, with its own API route and private details filtered out.",
+      zh: "从我的私有 AI 信息流拆出的只读公开版，使用独立 API，并在展示前过滤私密信息。",
     },
     href: "/ai-feed/public",
   },
   {
-    title: { en: "Speech Enhancement for Health Biomarkers", zh: "健康语音生物标志物增强" },
-    eyebrow: { en: "Thesis research", zh: "论文研究" },
+    title: { en: "Speech Enhancement for Health-Biomarker Research", zh: "面向健康语音生物标志物的语音增强" },
+    eyebrow: { en: "Master's thesis", zh: "硕士论文" },
     description: {
-      en: "Adapting universal speech enhancement to preserve biomarker-relevant cues under real recording shifts.",
-      zh: "改造通用语音增强，使其在真实录音条件变化下保留健康语音线索。",
+      en: "Adapting universal speech enhancement to preserve health-relevant speech cues under real recording shifts.",
+      zh: "改造通用语音增强，使模型在真实录音条件变化下仍保留与健康相关的语音线索。",
     },
   },
   {
-    title: { en: "Legal QA with Agentic RAG", zh: "法律问答 Agentic RAG" },
+    title: { en: "Legal QA with Agentic RAG", zh: "法律文档问答 Agentic RAG" },
     eyebrow: { en: "Retrieval system", zh: "检索系统" },
     description: {
-      en: "Source-grounded legal document QA with query decomposition, retrieval, and citation-quality checks.",
-      zh: "面向法律文档的有来源问答，包含问题拆解、检索和引用质量评估。",
+      en: "Legal-document QA with source-grounded retrieval, query decomposition, and citation-quality checks.",
+      zh: "带来源依据的法律文档问答，结合问题拆解、检索和引用质量评估。",
     },
   },
 ]
@@ -142,8 +142,8 @@ const focusCards: FocusCard[] = [
 const caseStudySectionCopy = {
   badge: { en: "Projects", zh: "项目" },
   heading: {
-    en: "Project notes with the implementation details left in",
-    zh: "保留实现细节的项目记录",
+    en: "Projects with implementation context",
+    zh: "带实现细节的项目记录",
   },
   summary: {
     en: "The resume keeps these short. This page keeps more context: input data, modeling choice, evaluation, and what was actually implemented.",
@@ -155,34 +155,34 @@ const caseStudySectionCopy = {
 const caseStudies: CaseStudy[] = [
   {
     title: {
-      en: "Public AI Intelligence Feed",
+      en: "Public AI Feed",
       zh: "公开 AI 信息流",
     },
     context: {
-      en: "Personal portfolio · Next.js public view",
-      zh: "个人作品集 · Next.js 公开展示页",
+      en: "Personal portfolio · Next.js public demo",
+      zh: "个人作品集 · Next.js 公开 Demo",
     },
-    disciplineTag: { en: "AI Product Surface", zh: "AI 产品界面" },
+    disciplineTag: { en: "Productized AI Workflow", zh: "AI 工作流产品化" },
     result: {
-      en: "A shareable read-only version of my private AI feed, designed to show the signal without exposing personal workflow state.",
-      zh: "把我的私有 AI 信息流拆成可分享的只读公开版，只展示信号，不暴露个人工作流状态。",
+      en: "A read-only public version of my private AI feed, designed to show useful signals without exposing personal workflow state.",
+      zh: "把私有 AI 信息流整理成可分享的只读公开版，只展示有价值的信号，不暴露个人工作流状态。",
     },
     highlights: [
       {
-        en: "Implemented as `/ai-feed/public` backed by `/api/ai-feed/public`, separate from the private `/ai-feed` workbench.",
-        zh: "实现为由 `/api/ai-feed/public` 支撑的 `/ai-feed/public` 页面，与私有 `/ai-feed` 工作台分离。",
+        en: "Built as `/ai-feed/public` with data served through `/api/ai-feed/public`, separate from the private `/ai-feed` workbench.",
+        zh: "页面实现为 `/ai-feed/public`，数据由 `/api/ai-feed/public` 提供，与私有 `/ai-feed` 工作台分离。",
       },
       {
-        en: "Keeps only public-facing blocks and removes private state such as pinned items, read/discard status, task controls, and admin affordances.",
-        zh: "只保留面向公开展示的 blocks，并移除钉住、已读/丢弃、待办控制和 admin 入口等私有状态。",
+        en: "Keeps only public-facing blocks and removes pinned items, read/discard state, task controls, and admin affordances.",
+        zh: "只保留适合公开展示的内容块，并移除钉住、已读/丢弃状态、待办控制和 admin 入口。",
       },
       {
-        en: "Filters personal or tracking-heavy links before rendering so the page can work as a CV-side live project demo.",
-        zh: "渲染前过滤个人链接和追踪型链接，让它可以作为简历页面上的在线项目 demo。",
+        en: "Filters personal and tracking-heavy links before rendering, so the page can serve as a live demo from the resume site.",
+        zh: "渲染前过滤个人链接和追踪型链接，让页面可以作为简历站里的在线 Demo。",
       },
     ],
     href: "/ai-feed/public",
-    linkLabel: { en: "Open public feed", zh: "打开公开信息流" },
+    linkLabel: { en: "Open public demo", zh: "打开公开 Demo" },
   },
   {
     title: {
