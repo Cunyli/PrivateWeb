@@ -28,12 +28,21 @@ type FocusCard = {
   tone?: "light" | "dark"
 }
 
+type HeroProject = {
+  title: LocalizedString
+  eyebrow: LocalizedString
+  description: LocalizedString
+  href?: string
+}
+
 type CaseStudy = {
   title: LocalizedString
   context: LocalizedString
   disciplineTag: LocalizedString
   result: LocalizedString
   highlights: LocalizedString[]
+  href?: string
+  linkLabel?: LocalizedString
 }
 
 const heroCopy = {
@@ -50,29 +59,38 @@ const heroCopy = {
     zh: "Aalto 与 KTH 数据科学硕士在读。主要做语音 AI、检索系统和可复现实验流水线，目前研究面向健康语音生物标志物的通用语音增强。",
   },
   primaryCta: { en: "Contact", zh: "联系我" },
-  feedCta: { en: "Public feed", zh: "公开信息流" },
 }
 
-const techStack = [
+const heroProjectsCopy = {
+  badge: { en: "Selected projects", zh: "代表项目" },
+  link: { en: "View all projects", zh: "查看全部项目" },
+}
+
+const heroProjects: HeroProject[] = [
   {
-    category: { en: "Programming", zh: "编程" },
-    items: ["Python", "PyTorch", "scikit-learn", "LangChain", "Pydantic", "SQL", "JavaScript", "Java", "LaTeX"],
+    title: { en: "Public AI Intelligence Feed", zh: "公开 AI 信息流" },
+    eyebrow: { en: "Live project", zh: "在线项目" },
+    description: {
+      en: "A shareable public view of my private AI feed, with a separate API path and privacy filtering.",
+      zh: "从私有 AI 信息流拆出的公开展示页，使用独立 API 和隐私过滤。",
+    },
+    href: "/ai-feed/public",
   },
   {
-    category: { en: "Machine Learning", zh: "机器学习" },
-    items: ["Speech Enhancement", "ASR", "RAG", "Agents", "Embeddings", "Mamba", "Conformal Prediction", "Model Evaluation"],
+    title: { en: "Speech Enhancement for Health Biomarkers", zh: "健康语音生物标志物增强" },
+    eyebrow: { en: "Thesis research", zh: "论文研究" },
+    description: {
+      en: "Adapting universal speech enhancement to preserve biomarker-relevant cues under real recording shifts.",
+      zh: "改造通用语音增强，使其在真实录音条件变化下保留健康语音线索。",
+    },
   },
   {
-    category: { en: "Systems & MLOps", zh: "系统与 MLOps" },
-    items: ["Linux", "Slurm", "Triton HPC", "GPU Training", "Docker", "Git", "CI/CD", "WandB", "Async Programming"],
-  },
-  {
-    category: { en: "Data & Retrieval", zh: "数据与检索" },
-    items: ["MongoDB", "Qdrant", "BM25", "HDBSCAN", "Spark", "Tableau", "Web Scraping"],
-  },
-  {
-    category: { en: "Core Areas", zh: "核心方向" },
-    items: ["Deep Learning", "NLP", "Information Retrieval", "Distributed Computing", "Mathematical Optimization", "Data Mining"],
+    title: { en: "Legal QA with Agentic RAG", zh: "法律问答 Agentic RAG" },
+    eyebrow: { en: "Retrieval system", zh: "检索系统" },
+    description: {
+      en: "Source-grounded legal document QA with query decomposition, retrieval, and citation-quality checks.",
+      zh: "面向法律文档的有来源问答，包含问题拆解、检索和引用质量评估。",
+    },
   },
 ]
 
@@ -135,6 +153,37 @@ const caseStudySectionCopy = {
 }
 
 const caseStudies: CaseStudy[] = [
+  {
+    title: {
+      en: "Public AI Intelligence Feed",
+      zh: "公开 AI 信息流",
+    },
+    context: {
+      en: "Personal portfolio · Next.js public view",
+      zh: "个人作品集 · Next.js 公开展示页",
+    },
+    disciplineTag: { en: "AI Product Surface", zh: "AI 产品界面" },
+    result: {
+      en: "A shareable read-only version of my private AI feed, designed to show the signal without exposing personal workflow state.",
+      zh: "把我的私有 AI 信息流拆成可分享的只读公开版，只展示信号，不暴露个人工作流状态。",
+    },
+    highlights: [
+      {
+        en: "Implemented as `/ai-feed/public` backed by `/api/ai-feed/public`, separate from the private `/ai-feed` workbench.",
+        zh: "实现为由 `/api/ai-feed/public` 支撑的 `/ai-feed/public` 页面，与私有 `/ai-feed` 工作台分离。",
+      },
+      {
+        en: "Keeps only public-facing blocks and removes private state such as pinned items, read/discard status, task controls, and admin affordances.",
+        zh: "只保留面向公开展示的 blocks，并移除钉住、已读/丢弃、待办控制和 admin 入口等私有状态。",
+      },
+      {
+        en: "Filters personal or tracking-heavy links before rendering so the page can work as a CV-side live project demo.",
+        zh: "渲染前过滤个人链接和追踪型链接，让它可以作为简历页面上的在线项目 demo。",
+      },
+    ],
+    href: "/ai-feed/public",
+    linkLabel: { en: "Open public feed", zh: "打开公开信息流" },
+  },
   {
     title: {
       en: "Universal Speech Enhancement for Health Biomarkers",
@@ -580,8 +629,6 @@ export function ResumePage() {
 
   const heroGlowY = useTransform(scrollYProgress, [0, 0.6], ["0%", "25%"])
   const statsLift = useTransform(scrollYProgress, [0, 0.25], [0, -24])
-  const statsShadowDepth = useTransform(scrollYProgress, [0, 0.25], [0.15, 0.4])
-  const statsShadow = useTransform(statsShadowDepth, (value) => `0 40px 120px rgba(15,15,15,${value})`)
   const progressOpacity = useTransform(scrollYProgress, [0, 0.05], [0, 1])
 
   const createSectionMotionProps = (amount?: number) => {
@@ -676,48 +723,55 @@ export function ResumePage() {
               >
                 {heroCopy.primaryCta[heroLocale]}
               </Link>
-              <Link
-                href="/ai-feed/public"
-                className="rounded-full border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-zinc-800 transition hover:border-zinc-900"
-              >
-                {heroCopy.feedCta[heroLocale]}
-              </Link>
             </motion.div>
           </motion.div>
 
           <motion.div
-            className="w-full rounded-2xl border border-zinc-200/80 bg-white/90 p-5 text-zinc-900 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:w-[520px]"
-            style={
-              disableScrollLinkedMotion
-                ? undefined
-                : {
-                  y: statsLift,
-                  boxShadow: statsShadow,
-                }
-            }
+            className="w-full text-zinc-900 lg:w-[460px] lg:border-l lg:border-zinc-200 lg:pl-8"
+            style={disableScrollLinkedMotion ? undefined : { y: statsLift }}
           >
-            <div className="space-y-4">
-              {techStack.map((stack, index) => (
-                <motion.div
-                  key={stack.category.en}
-                  {...getCardMotionProps(index, { immediate: true })}
-                  className="grid gap-2 border-b border-zinc-100 pb-3 last:border-b-0 last:pb-0 sm:grid-cols-[130px_1fr]"
-                >
-                  <h3 className="pt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    {stack.category[locale]}
-                  </h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {stack.items.map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium leading-none text-zinc-600 transition hover:bg-zinc-200"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </motion.div>
-              ))}
+            <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                {heroProjectsCopy.badge[locale]}
+              </p>
+              <Link
+                href="#case-studies"
+                className="text-xs font-medium uppercase tracking-wide text-zinc-500 transition hover:text-zinc-900"
+              >
+                {heroProjectsCopy.link[locale]}
+              </Link>
+            </div>
+            <div className="divide-y divide-zinc-200">
+              {heroProjects.map((project, index) => {
+                const content = (
+                  <>
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                        {project.eyebrow[locale]}
+                      </p>
+                      {project.href ? <span className="text-xs text-zinc-400 transition group-hover:text-zinc-800">↗</span> : null}
+                    </div>
+                    <h3 className="mt-2 text-lg font-medium text-zinc-900">{project.title[locale]}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-600">{project.description[locale]}</p>
+                  </>
+                )
+
+                if (project.href) {
+                  return (
+                    <motion.div key={project.title.en} {...getCardMotionProps(index, { immediate: true })}>
+                      <Link href={project.href} className="group block py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-4">
+                        {content}
+                      </Link>
+                    </motion.div>
+                  )
+                }
+
+                return (
+                  <motion.div key={project.title.en} className="py-5" {...getCardMotionProps(index, { immediate: true })}>
+                    {content}
+                  </motion.div>
+                )
+              })}
             </div>
           </motion.div>
         </div>
@@ -790,28 +844,58 @@ export function ResumePage() {
             </Link>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
-            {caseStudies.map((study, index) => (
-              <motion.article
-                key={study.title.en}
-                className="flex flex-col gap-4 rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
-                {...getCardMotionProps(index, { viewportAmount: 0.3 })}
-              >
-                <div className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  <span>{study.disciplineTag[locale]}</span>
-                  <span>{study.context[locale]}</span>
-                </div>
-                <h3 className="text-lg font-medium text-zinc-900">{study.title[locale]}</h3>
-                <p className="text-sm text-zinc-500">{study.result[locale]}</p>
-                <ul className="mt-2 space-y-2 text-sm text-zinc-600">
-                  {study.highlights.map((item) => (
-                    <li key={`${study.title.en}-${item.en}`} className="flex items-start gap-2">
-                      <span className="mt-1 h-1 w-1 rounded-full bg-zinc-900" />
-                      <span>{item[locale]}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.article>
-            ))}
+            {caseStudies.map((study, index) => {
+              const content = (
+                <>
+                  <div className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    <span>{study.disciplineTag[locale]}</span>
+                    <span>{study.context[locale]}</span>
+                  </div>
+                  <h3 className="text-lg font-medium text-zinc-900">{study.title[locale]}</h3>
+                  <p className="text-sm text-zinc-500">{study.result[locale]}</p>
+                  <ul className="mt-2 space-y-2 text-sm text-zinc-600">
+                    {study.highlights.map((item) => (
+                      <li key={`${study.title.en}-${item.en}`} className="flex items-start gap-2">
+                        <span className="mt-1 h-1 w-1 rounded-full bg-zinc-900" />
+                        <span>{item[locale]}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {study.href && study.linkLabel ? (
+                    <span className="mt-auto inline-flex w-fit items-center rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 transition group-hover:border-zinc-900 group-hover:text-zinc-900">
+                      {study.linkLabel[locale]} ↗
+                    </span>
+                  ) : null}
+                </>
+              )
+
+              if (study.href) {
+                return (
+                  <motion.article
+                    key={study.title.en}
+                    className="group overflow-hidden rounded-3xl border border-zinc-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
+                    {...getCardMotionProps(index, { viewportAmount: 0.3 })}
+                  >
+                    <Link
+                      href={study.href}
+                      className="flex h-full flex-col gap-4 p-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+                    >
+                      {content}
+                    </Link>
+                  </motion.article>
+                )
+              }
+
+              return (
+                <motion.article
+                  key={study.title.en}
+                  className="flex flex-col gap-4 rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
+                  {...getCardMotionProps(index, { viewportAmount: 0.3 })}
+                >
+                  {content}
+                </motion.article>
+              )
+            })}
           </div>
         </div>
       </motion.section>
