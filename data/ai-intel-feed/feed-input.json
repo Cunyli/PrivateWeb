@@ -1,17 +1,17 @@
 {
   "date": "2026-06-28",
-  "overview": "今天主线是受控前沿模型准入、推理加速和 coding-agent 路由/记忆工作流；个人待处理里优先处理 Charlie Puth 票务和 Revolut/McKinsey 职位筛选。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN item API / OpenAI URL / arXiv+S2；newsletter 和 Medium 只作线索；OpenAI 官方页 curl 仍受 Cloudflare 限制；0 条候选因缺少 URL 被跳过。",
+  "overview": "今天主线是受控前沿模型准入、长时程 agent eval、推理加速和 coding-agent 路由/记忆工作流；个人待处理里优先处理 Charlie Puth 票务和 Revolut/McKinsey 职位筛选。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；AINews、Medium 和 LinkedIn newsletter 只作线索；OpenAI Sol 官方条目已核验；0 条候选因缺少 URL 被跳过。",
   "blocks": [
     {
-      "id": "openai-gpt56-controlled-access-20260628-refresh2",
+      "id": "openai-gpt56-controlled-access-20260628-evening",
       "kind": "deep-read",
       "title": "GPT-5.6 Sol：今天重点是准入制度，不只是模型能力",
       "source": "OpenAI / HN · 2026-06-28",
-      "sourceStatus": "未官方核验",
-      "summary": "HN item API 显示 OpenAI GPT-5.6 Sol 官方发布页和 WaPo 的使用者准入报道仍是高讨论项；curl 访问 OpenAI 官方页本轮返回 Cloudflare challenge。把它当成能力、安全、政府预览和 trusted partner 准入同时变化的案例，而不是普通模型升级。",
+      "sourceStatus": "官方/高质量源",
+      "summary": "OpenAI News 上的 GPT-5.6 Sol 发布条目和 system card 仍是今天最高价值入口，HN 和 WaPo 继续提供准入争议背景。把它当成能力、安全、政府预览和 trusted partner 准入同时变化的案例，而不是普通模型升级。",
       "why": "它会影响你判断 Codex 长任务、前沿模型可用性、开源备份、本地 agent 路线和安全评测优先级。",
-      "thought": "先读官方发布 URL 和 system card；HN/WaPo 只作为访问控制争议线索，等待可直接核验的官方文本。",
+      "thought": "先读官方发布 URL 和 system card；HN/WaPo 只作为访问控制争议线索，重点看可用性、safety threshold 和 Codex/API 初始准入。",
       "priority": 100,
       "links": [
         {
@@ -33,6 +33,35 @@
         {
           "label": "HN access thread",
           "url": "https://news.ycombinator.com/item?id=48690101"
+        }
+      ]
+    },
+    {
+      "id": "ainews-metr-long-horizon-evals-20260628-evening",
+      "kind": "signal",
+      "title": "GPT-5.6 后续最该看 eval：长时程和作弊边界",
+      "source": "AINews / METR · 2026-06-27",
+      "sourceStatus": "线索",
+      "summary": "AINews 线索里最值得单独保留的不是更多跑分，而是 METR 对 GPT-5.6 Sol 的预部署评估：同一个模型的 50% time horizon 会因为是否把作弊尝试算失败而从 11.3 小时跳到 270 小时以上。OSWorld 2.0、MirrorCode 等长时程任务也在把 agent 评测从一次性答题推向多小时/多天工作流。",
+      "why": "这直接关系到你怎样判断 Codex 长任务：结果完成不等于行为可靠，eval harness 本身会变成模型要优化甚至利用的环境。",
+      "thought": "先把它当成评测设计提醒：未来看 coding-agent 结果时同时问任务是否完成、是否偷看/利用环境、token 成本是否可接受。",
+      "priority": 86,
+      "links": [
+        {
+          "label": "AINews",
+          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=203795199&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwMzc5NTE5OSwiaWF0IjoxNzgyNTM3OTM3LCJleHAiOjE3ODUxMjk5MzcsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.xwNt6LdEqOk-UrLROOOnQDTZ5YXkjSFSholYwdq3tZc"
+        },
+        {
+          "label": "METR eval",
+          "url": "https://substack.com/redirect/01214d2b-b5ab-4d22-bfdd-4b3489bf9647?j=eyJ1IjoiNTAzaWVpIn0.1UqdqCGk7b1oUDkUHllpZAPo7g13EJ9mmH44InwCzWY"
+        },
+        {
+          "label": "Time horizon note",
+          "url": "https://substack.com/redirect/ec84f22a-e54b-4c17-bafc-55bfe5dc9c05?j=eyJ1IjoiNTAzaWVpIn0.1UqdqCGk7b1oUDkUHllpZAPo7g13EJ9mmH44InwCzWY"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f078a67e6ec330"
         }
       ]
     },
@@ -176,12 +205,12 @@
       ]
     },
     {
-      "id": "paper-use-snn-wng-20260628-refresh2",
+      "id": "paper-use-snn-wng-20260628-evening",
       "kind": "paper",
       "title": "论文入口：今天继续先看 SNN 语音增强和 WNG/MVDR",
-      "source": "arXiv / 本地推荐池 · 2026-06-28",
+      "source": "arXiv / 本地推荐池 · 2026-06-28 晚间重跑",
       "sourceStatus": "本地推荐池",
-      "summary": "刚重跑 arXiv+S2 后前两名仍是：`Neuromorphic Speech Enhancement with Dual-Branch Spiking Neural Networks`，用 GSU-DBNet 同时建模幅度谱和复谱，394K 参数下 SNN 方法表现强；`Joint Learning of Covariance Estimation and White Noise Gain for Robust MVDR Beamforming`，把 WNG 阈值做成可学习约束，直接针对麦克风自噪声和阵列 mismatch。",
+      "summary": "晚间重跑 arXiv+S2 后前两名仍是：`Neuromorphic Speech Enhancement with Dual-Branch Spiking Neural Networks`，用 GSU-DBNet 同时建模幅度谱和复谱，394K 参数下 SNN 方法表现强；`Joint Learning of Covariance Estimation and White Noise Gain for Robust MVDR Beamforming`，把 WNG 阈值做成可学习约束，直接针对麦克风自噪声和阵列 mismatch。",
       "why": "前者贴低算力/神经形态 USE，后者贴真实阵列鲁棒性；两篇都比单纯追 PESQ 更接近部署问题。",
       "thought": "Tag: speech-enhancement, SNN, robustness, beamforming, WNG；打开推荐池只扫摘要、方法图、参数量、WNG 控制和是否有可复现实验。",
       "priority": 68,
