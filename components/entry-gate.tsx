@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties, PointerEvent } from "react"
+import { CalendarDays, Camera } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 
 type Locale = "en" | "zh"
@@ -23,6 +24,11 @@ const gateCopy = {
   hint: {
     en: "TWO PORTALS. TWO FUTURES.",
     zh: "两条路径，两种未来。",
+  },
+  bookingTitle: { en: "Book a Helsinki shoot", zh: "预约赫尔辛基拍摄" },
+  bookingBody: {
+    en: "Portraits, travel walks, and city light.",
+    zh: "人像、旅拍、城市漫步。",
   },
   hrTitle: { en: "Got a job?", zh: "有坑位吗" },
   hrBody: {
@@ -48,6 +54,7 @@ export function EntryGate() {
   const { locale, setLocale } = useI18n()
   const gateLocale: Locale = locale === "zh" ? "zh" : "en"
   const router = useRouter()
+  const [isEntering, setIsEntering] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isMobileIntroVisible, setIsMobileIntroVisible] = useState(true)
@@ -172,7 +179,9 @@ export function EntryGate() {
   useEffect(() => {
     const resetExitState = () => {
       setIsExiting(false)
+      setIsEntering(true)
       setIsMobileIntroVisible(false)
+      window.setTimeout(() => setIsEntering(false), 80)
     }
 
     resetExitState()
@@ -242,6 +251,12 @@ export function EntryGate() {
         } as CSSProperties
       }
     >
+      <div
+        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${
+          isEntering || isExiting ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden="true"
+      />
       <div className="pointer-events-none absolute inset-0 -z-10 hidden md:block">
         <div
           className="absolute inset-0 bg-cover bg-no-repeat will-change-transform"
@@ -265,7 +280,16 @@ export function EntryGate() {
         />
         <div className="mobile-pill-vignette pointer-events-none absolute inset-0" />
         <div className={`mobile-pill-intro pointer-events-none absolute inset-0 z-10 bg-white ${isMobileIntroVisible ? "opacity-100" : "opacity-0"}`} />
-        <div className={`mobile-pill-exit pointer-events-none fixed inset-0 z-30 bg-black transition-opacity duration-500 ${isExiting ? "opacity-100" : "opacity-0"}`} />
+        <div className={`mobile-pill-exit pointer-events-none fixed inset-0 z-30 bg-white transition-opacity duration-500 ${isExiting ? "opacity-100" : "opacity-0"}`} />
+        <a
+          href="/helsinki-photo-session"
+          onClick={handleMobileNavigate("/helsinki-photo-session")}
+          className="absolute left-4 top-4 z-20 inline-flex h-10 items-center gap-2 rounded-md border border-white/30 bg-black/32 px-3 text-sm font-semibold text-white backdrop-blur transition active:scale-[0.98]"
+          aria-label={gateCopy.bookingTitle[gateLocale]}
+        >
+          <Camera className="h-4 w-4" />
+          {gateLocale === "zh" ? "约拍" : "Book"}
+        </a>
 
         <nav className="mobile-pill-nav" aria-label={gateLocale === "zh" ? "药丸入口" : "Pill entries"}>
           <a
@@ -316,6 +340,22 @@ export function EntryGate() {
           >
             <div className="h-full w-full rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.9),_rgba(255,255,255,0.25)_55%,_transparent_70%)]" />
           </div>
+
+          <Link
+            href="/helsinki-photo-session"
+            className="entry-booking-link absolute bottom-[9%] left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-3 rounded-md border border-white/70 bg-white/84 px-4 py-3 text-sm font-semibold text-zinc-900 shadow-[0_18px_50px_-34px_rgba(58,44,35,0.75)] backdrop-blur transition hover:-translate-y-0.5 hover:bg-white"
+            style={{
+              transform:
+                "translate3d(calc(-50% + var(--parallax-x, 0px) * 0.35), calc(var(--parallax-y, 0px) * 0.35), 64px)",
+            }}
+            onClick={handleNavigate("/helsinki-photo-session")}
+          >
+            <CalendarDays className="h-4 w-4" />
+            <span>
+              <span className="block">{gateCopy.bookingTitle[gateLocale]}</span>
+              <span className="mt-0.5 block text-xs font-medium text-zinc-600">{gateCopy.bookingBody[gateLocale]}</span>
+            </span>
+          </Link>
 
           <div
             className="grid gap-10 text-left md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]"
@@ -450,6 +490,10 @@ export function EntryGate() {
           animation: entry-rise 620ms ease-out both;
         }
 
+        .entry-animate .entry-booking-link {
+          animation: entry-rise 620ms ease-out 320ms both;
+        }
+
         .entry-animate .entry-card-left {
           animation-delay: 160ms;
         }
@@ -481,6 +525,7 @@ export function EntryGate() {
         @media (prefers-reduced-motion: reduce) {
           .entry-animate .entry-section,
           .entry-animate .entry-chip,
+          .entry-animate .entry-booking-link,
           .entry-animate .entry-card {
             animation: none;
           }

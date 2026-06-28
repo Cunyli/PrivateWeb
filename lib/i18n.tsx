@@ -377,7 +377,7 @@ type I18nCtx = {
 const Ctx = createContext<I18nCtx | null>(null)
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en")
+  const [locale, setLocaleState] = useState<Locale>("zh")
   useEffect(() => {
     const saved = typeof window !== "undefined" ? (localStorage.getItem("locale") as Locale | null) : null
     if (saved === "en" || saved === "zh") setLocaleState(saved)
@@ -398,7 +398,7 @@ export function useI18n() {
   const ctx = useContext(Ctx)
   if (ctx) return ctx
   // Safe fallback so pages不会白屏，即使未包裹 Provider 也能工作
-  const t = (k: string) => (dicts.en[k as keyof typeof dicts.en] as string) ?? k
+  const t = (k: string) => (dicts.zh[k as keyof typeof dicts.zh] as string) ?? k
   const setLocale = (l: 'en' | 'zh') => { try { localStorage.setItem('locale', l) } catch {} }
-  return { locale: 'en', setLocale, t } as const
+  return { locale: 'zh', setLocale, t } as const
 }

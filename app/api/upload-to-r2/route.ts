@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { requireAdminRequest } from "@/utils/admin-auth.server"
+
+export const runtime = "nodejs"
 
 const r2Endpoint = process.env.R2_ENDPOINT_URL
 const r2Bucket = process.env.R2_BUCKET_NAME
@@ -20,11 +23,48 @@ const s3 = new S3Client({
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdminRequest(request)
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
+
     if (!r2Endpoint || !r2Bucket || !r2AccessKeyId || !r2Secret) {
       return NextResponse.json(
         { error: "Missing R2 configuration" },
         { status: 500 },
       )
+    }
+
+    const requestContentType = request.headers.get("content-type") || ""
+    if (requestContentType.includes("multipart/form-data")) {
+      const formData = await request.formData()
+      const objectName = String(formData.get("objectName") || "").trim()
+      const file = formData.get("file")
+      const contentType = String(formData.get("contentType") || "")
+
+      if (!objectName) {
+        return NextResponse.json({ error: "Missing objectName" }, { status: 400 })
+      }
+      if (!(file instanceof File)) {
+        return NextResponse.json({ error: "Missing file" }, { status: 400 })
+      }
+
+      const fileContentType = contentType || file.type || "application/octet-stream"
+      const body = Buffer.from(await file.arrayBuffer())
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: r2Bucket,
+          Key: objectName,
+          Body: body,
+          ContentType: fileContentType,
+        }),
+      )
+
+      return NextResponse.json({
+        imageUrl: `/${objectName}`,
+        objectName,
+        contentType: fileContentType,
+      })
     }
 
     const { objectName, contentType } = await request.json();

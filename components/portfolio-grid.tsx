@@ -9,7 +9,7 @@ import Link from "next/link"
 import clsx from "clsx"
 import { useRouter, useSearchParams } from "next/navigation"
 import { supabase } from "@/utils/supabase"
-import { ArrowUp } from "lucide-react"
+import { ArrowLeft, ArrowUp } from "lucide-react"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import { PortfolioLocationMap } from "@/components/portfolio-location-map"
 import { LangSwitcher } from "@/components/lang-switcher"
@@ -156,7 +156,7 @@ const normalizePictureSets = (
   rows: Array<Partial<PictureSet> | null | undefined>,
 ): PictureSet[] =>
   rows
-    .filter((row): row is Partial<PictureSet> => Boolean(row))
+    .filter((row): row is Partial<PictureSet> => Boolean(row) && (row as Partial<PictureSet>).is_published !== false)
     .map((row) => ({
       pictures: [],
       ...row,
@@ -170,6 +170,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const { locale, t } = useI18n()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const entryReturnHref = searchParams.get("from") === "photo-session" ? "/helsinki-photo-session" : "/"
+  const [portfolioEntering, setPortfolioEntering] = useState(true)
   const [pictureSets, setPictureSets] = useState<PictureSet[]>(initialData?.pictureSets || [])
   const [loading, setLoading] = useState(!initialData)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -311,6 +313,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       const { data, error } = await supabase
         .from("picture_sets")
         .select("id, created_at, updated_at, cover_image_url, title, subtitle, description, position, is_published")
+        .eq("is_published", true)
         .order("created_at", { ascending: false })
 
       if (error) {
@@ -450,12 +453,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           supabase
             .from("picture_sets")
             .select("*")
+            .eq("is_published", true)
             .textSearch("search_vector", normalizedQuery, { type: "websearch", config: "english" })
             .order("updated_at", { ascending: false })
             .limit(80),
           supabase
             .from("picture_sets")
             .select("*")
+            .eq("is_published", true)
             .or(setOrClause)
             .order("updated_at", { ascending: false })
             .limit(80),
@@ -556,7 +561,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
         const [extraSetsRes, extraPicturesRes, semanticSetPicturesRes] = await Promise.all([
           missingSetIds.length
-            ? supabase.from("picture_sets").select("*").in("id", missingSetIds).order("updated_at", { ascending: false }).limit(80)
+            ? supabase.from("picture_sets").select("*").in("id", missingSetIds).eq("is_published", true).order("updated_at", { ascending: false }).limit(80)
             : Promise.resolve({ data: [] as any[], error: null }),
           missingPictureIds.length
             ? supabase.from("pictures").select("*").in("id", missingPictureIds).order("updated_at", { ascending: false }).limit(100)
@@ -584,7 +589,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           && !(extraSetsRes.data || []).some((item: any) => item.id === id),
         )
         const promotedSetsRes = missingPromotedSetIds.length
-          ? await supabase.from("picture_sets").select("*").in("id", missingPromotedSetIds).order("updated_at", { ascending: false }).limit(80)
+          ? await supabase.from("picture_sets").select("*").in("id", missingPromotedSetIds).eq("is_published", true).order("updated_at", { ascending: false }).limit(80)
           : { data: [] as any[], error: null }
         if (promotedSetsRes.error) console.warn("Promoted semantic set fetch error:", promotedSetsRes.error)
 
@@ -600,10 +605,15 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           ...baseSets,
           ...normalizePictureSets((extraSetsRes.data || []) as Partial<PictureSet>[]),
         ])
+        const publishedPortfolioSetIds = new Set(
+          [...pictureSets, ...sets]
+            .filter((set) => set.is_published !== false)
+            .map((set) => set.id),
+        )
         const pics = dedupeById([
           ...basePictures,
           ...((extraPicturesRes.data || []) as Picture[]),
-        ])
+        ]).filter((picture) => publishedPortfolioSetIds.has(picture.picture_set_id))
 
         if (!alive) return
         setSetResults(sets)
@@ -652,7 +662,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       }
     }, 350)
     return () => { alive = false; clearTimeout(t) }
-  }, [searchQuery])
+  }, [pictureSets, searchQuery])
 
   useEffect(() => {
     if (initialData) return
@@ -988,6 +998,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     }
   }, [router, savePortfolioReturnState])
 
+  const handleReturnHome = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    setPortfolioNavigating(true)
+    window.setTimeout(() => {
+      router.push(entryReturnHref)
+    }, 420)
+  }, [entryReturnHref, router])
+
   const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null; pictureId?: number | null }) => {
     const params = new URLSearchParams()
     params.set("origin", "portfolio")
@@ -1013,6 +1031,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     }
     return `/work/search?${params.toString()}`
   }, [pictureResults, searchQuery])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setPortfolioEntering(false), 80)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (restoreAppliedRef.current || loading) return
@@ -1260,9 +1283,28 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   return (
     <div ref={pageScrollRef} data-portfolio-scroll-root className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
       <div
-        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${portfolioNavigating ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${
+          portfolioEntering || portfolioNavigating ? "opacity-100" : "opacity-0"
+        }`}
         aria-hidden="true"
       />
+      <a
+        href={entryReturnHref}
+        onClick={handleReturnHome}
+        className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white/88 px-3 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
+        style={{
+          position: "fixed",
+          left: 16,
+          top: 16,
+          zIndex: 9999,
+          height: 40,
+          pointerEvents: "auto",
+        }}
+        aria-label={locale === "zh" ? "返回入口" : "Back to entry"}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span>{locale === "zh" ? "返回" : "Back"}</span>
+      </a>
       <section className="snap-start snap-always h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">
         <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[90rem] flex flex-col gap-4 sm:gap-6">
           <div className="flex flex-col gap-4 md:grid md:grid-cols-[auto,minmax(0,1fr),auto] md:items-center md:gap-3">

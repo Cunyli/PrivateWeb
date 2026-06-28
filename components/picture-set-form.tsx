@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, ArrowUp, Sparkles, Camera } from "lucide-react"
+import { Plus, ArrowUp, Sparkles, Camera, FolderOpen } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import imageCompression from "browser-image-compression"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -16,14 +16,243 @@ import { useImageAnalysis } from "@/hooks/use-image-analysis"
 import { supabase } from "@/utils/supabase"
 import { LocationPreviewMap } from "@/components/location-preview-map"
 import { adminFetch } from "@/utils/admin-auth-client"
+import { toast } from "@/components/ui/use-toast"
 
 import type { PictureSet } from "@/lib/pictureSet.types"
 import type { PictureFormData, PictureSetSubmitData } from "@/lib/form-types"
 
 interface PictureSetFormProps {
-  onSubmit: (pictureSet: PictureSetSubmitData, pictureSetId?: number) => void
+  onSubmit: (pictureSet: PictureSetSubmitData, pictureSetId?: number) => void | Promise<void>
   editingPictureSet?: PictureSet | null
   onCancel?: () => void
+  variant?: "default" | "portraitLibrary"
+}
+
+const PORTRAIT_LIBRARY_DEFAULT_TAGS = [
+  "portrait-library",
+  "约拍样片",
+  "人像",
+  "portfolio",
+  "sample-candidate",
+]
+
+const PORTRAIT_LIBRARY_PICTURE_DEFAULT_TAGS = ["portrait-library", "sample-candidate", "display:sample"]
+
+const PORTRAIT_GROUP_SHARED_TAG_PREFIXES = new Set(["location", "model", "type", "style", "technique", "gear", "series"])
+const PORTRAIT_HIDDEN_OPTION_TAGS = new Set([
+  "type:solo-portrait",
+  "location:travel",
+  "style:natural",
+  "style:playful",
+  "display:location",
+  "display:moment",
+])
+
+const PORTRAIT_TAG_FIELDS = [
+  {
+    prefix: "location",
+    label: "地点",
+    placeholder: "选择地点",
+    options: [
+      { value: "location:helsinki", label: "Helsinki" },
+      { value: "location:stockholm", label: "Stockholm" },
+      { value: "location:aalto", label: "Aalto / Otaniemi" },
+      { value: "location:switzerland", label: "Switzerland" },
+      { value: "location:italy", label: "Italy" },
+      { value: "location:other-city", label: "其他城市 / 地点" },
+    ],
+  },
+  {
+    prefix: "type",
+    label: "拍摄内容",
+    placeholder: "选择拍摄内容",
+    options: [
+      { value: "type:travel-session", label: "旅拍 / 游客照" },
+      { value: "type:couple-session", label: "情侣约拍" },
+      { value: "type:family-session", label: "亲子 / 家庭" },
+      { value: "type:pet-session", label: "宠物约拍" },
+      { value: "type:id-photo", label: "证件照" },
+      { value: "type:graduation-session", label: "毕业写真" },
+      { value: "type:campus-session", label: "校园写真" },
+    ],
+  },
+  {
+    prefix: "model",
+    label: "模特",
+    placeholder: "添加模特名",
+    help: "用于按被拍摄者归档；可以填昵称、英文名或代号。",
+    options: [],
+  },
+  {
+    prefix: "style",
+    label: "画面风格",
+    placeholder: "选择画面风格",
+    options: [
+      { value: "style:editorial", label: "写真感" },
+      { value: "style:street", label: "街拍" },
+      { value: "style:quiet", label: "安静松弛" },
+      { value: "style:cinematic", label: "电影感" },
+    ],
+  },
+  {
+    prefix: "technique",
+    label: "拍摄技法",
+    placeholder: "选择技法",
+    options: [
+      { value: "technique:shallow-depth", label: "大光圈虚化" },
+      { value: "technique:telephoto-compression", label: "长焦压缩" },
+      { value: "technique:wide-environment", label: "环境人像" },
+      { value: "technique:close-up", label: "近景 / 大头照" },
+      { value: "technique:full-body", label: "全身构图" },
+      { value: "technique:motion", label: "走路 / 动态" },
+    ],
+  },
+  {
+    prefix: "gear",
+    label: "设备",
+    placeholder: "选择设备",
+    options: [
+      { value: "gear:digital", label: "数码" },
+      { value: "gear:film", label: "胶片" },
+      { value: "gear:ccd", label: "CCD" },
+      { value: "gear:polaroid", label: "拍立得" },
+    ],
+  },
+  {
+    prefix: "display",
+    label: "展示用途",
+    placeholder: "选择展示用途",
+    help: "只决定前台怎么调用这张图，不描述照片内容或风格。",
+    options: [
+      { value: "display:hero", label: "首屏大图：第一眼吸引人" },
+      { value: "display:cover", label: "封面候选：卡片/入口图" },
+      { value: "display:sample", label: "样本墙" },
+      { value: "display:hidden", label: "只入库：暂不公开展示" },
+    ],
+  },
+]
+
+const PORTRAIT_GROUP_TAG_FIELDS = PORTRAIT_TAG_FIELDS.filter((field) =>
+  PORTRAIT_GROUP_SHARED_TAG_PREFIXES.has(field.prefix),
+)
+
+function mergeTagList(current: string[], next: string[]) {
+  return Array.from(new Set([...current, ...next].map((tag) => tag.trim()).filter(Boolean)))
+}
+
+function getTagsByPrefix(tags: string[] = [], prefix: string) {
+  return tags.filter((tag) => tag.startsWith(`${prefix}:`))
+}
+
+function getPortraitTagLabel(tag: string) {
+  const [, ...parts] = tag.split(":")
+  return parts.join(":") || tag
+}
+
+function getPortraitTagPrefix(tag: string) {
+  const [prefix] = tag.split(":")
+  return prefix || ""
+}
+
+function normalizeCustomPortraitTag(prefix: string, value: string) {
+  const clean = value.trim()
+  if (!clean) return ""
+  if (clean.includes(":")) {
+    const [rawPrefix, ...rest] = clean.split(":")
+    const suffix = rest.join(":").trim()
+    if (!suffix) return ""
+    return `${rawPrefix.trim().toLowerCase()}:${suffix}`
+  }
+  return `${prefix}:${clean}`
+}
+
+function createDefaultSeriesName() {
+  return new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")
+}
+
+const PORTRAIT_DRAFT_DB_NAME = "portrait-library-drafts"
+const PORTRAIT_DRAFT_STORE = "drafts"
+const PORTRAIT_DRAFT_KEY = "current"
+
+type PortraitLibraryDraft = {
+  version: 1
+  savedAt: string
+  title: string
+  subtitle: string
+  description: string
+  tagsText: string
+  sameSeriesUpload: boolean
+  seriesTagDraft: string
+  portraitGroupTags: string[]
+  pictures: PictureFormData[]
+  en: { title: string; subtitle: string; description: string }
+  zh: { title: string; subtitle: string; description: string }
+}
+
+function openPortraitDraftDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined" || !("indexedDB" in window)) {
+      reject(new Error("IndexedDB is not available"))
+      return
+    }
+
+    const request = window.indexedDB.open(PORTRAIT_DRAFT_DB_NAME, 1)
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains(PORTRAIT_DRAFT_STORE)) {
+        db.createObjectStore(PORTRAIT_DRAFT_STORE)
+      }
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error || new Error("Failed to open portrait draft database"))
+  })
+}
+
+async function readPortraitLibraryDraft(): Promise<PortraitLibraryDraft | null> {
+  const db = await openPortraitDraftDb()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(PORTRAIT_DRAFT_STORE, "readonly")
+    const request = tx.objectStore(PORTRAIT_DRAFT_STORE).get(PORTRAIT_DRAFT_KEY)
+    request.onsuccess = () => resolve((request.result as PortraitLibraryDraft | undefined) || null)
+    request.onerror = () => reject(request.error || new Error("Failed to read portrait draft"))
+    tx.oncomplete = () => db.close()
+    tx.onerror = () => {
+      db.close()
+      reject(tx.error || new Error("Portrait draft read transaction failed"))
+    }
+  })
+}
+
+async function savePortraitLibraryDraft(draft: PortraitLibraryDraft) {
+  const db = await openPortraitDraftDb()
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(PORTRAIT_DRAFT_STORE, "readwrite")
+    tx.objectStore(PORTRAIT_DRAFT_STORE).put(draft, PORTRAIT_DRAFT_KEY)
+    tx.oncomplete = () => {
+      db.close()
+      resolve()
+    }
+    tx.onerror = () => {
+      db.close()
+      reject(tx.error || new Error("Portrait draft save transaction failed"))
+    }
+  })
+}
+
+async function clearPortraitLibraryDraft() {
+  const db = await openPortraitDraftDb()
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(PORTRAIT_DRAFT_STORE, "readwrite")
+    tx.objectStore(PORTRAIT_DRAFT_STORE).delete(PORTRAIT_DRAFT_KEY)
+    tx.oncomplete = () => {
+      db.close()
+      resolve()
+    }
+    tx.onerror = () => {
+      db.close()
+      reject(tx.error || new Error("Portrait draft clear transaction failed"))
+    }
+  })
 }
 
 const RESPONSIVE_IMAGE_WIDTHS = [640, 1280] as const
@@ -95,8 +324,9 @@ async function getImagePreview(file: File): Promise<{ url: string; size: number 
   })
 }
 
-export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: PictureSetFormProps) {
+export function PictureSetForm({ onSubmit, editingPictureSet, onCancel, variant = "default" }: PictureSetFormProps) {
   const { t } = useI18n()
+  const isPortraitLibrary = variant === "portraitLibrary"
   const { analyzeImage } = useImageAnalysis()
   const looksZh = (s?: string) => /[\u4e00-\u9fff]/.test(String(s || ''))
   const [title, setTitle] = useState("")
@@ -108,6 +338,8 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [coverImageUrl, setCoverImageUrl] = useState<string>("")
   const [pictures, setPictures] = useState<PictureFormData[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [draftStatus, setDraftStatus] = useState<string | null>(null)
   const [position, setPosition] = useState<string>("up")
   const [isPublished, setIsPublished] = useState<boolean>(true)
   const [categoryIds, setCategoryIds] = useState<number[]>([])
@@ -131,6 +363,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const [fillMissingFromSet, setFillMissingFromSet] = useState<boolean>(true)
   const [autogenTitlesSubtitles, setAutogenTitlesSubtitles] = useState<boolean>(true)
   const [showPictureTagsEditor, setShowPictureTagsEditor] = useState<{[key:number]: boolean}>({})
+  const [customPortraitTagDrafts, setCustomPortraitTagDrafts] = useState<Record<string, string>>({})
+  const [sameSeriesUpload, setSameSeriesUpload] = useState<boolean>(true)
+  const [seriesTagDraft, setSeriesTagDraft] = useState<string>(() => createDefaultSeriesName())
+  const [portraitGroupTags, setPortraitGroupTags] = useState<string[]>([])
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -158,6 +394,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const formRef = useRef<HTMLFormElement>(null)
   const picturesContainerRef = useRef<HTMLDivElement>(null)
   const bulkInputRef = useRef<HTMLInputElement>(null)
+  const folderInputRef = useRef<HTMLInputElement>(null)
+  const portraitPresetAppliedRef = useRef(false)
+  const portraitDraftReadyRef = useRef(false)
+  const portraitDraftTimerRef = useRef<number | null>(null)
   // drag-n-drop reorder refs
   const dragItem = useRef<number | null>(null)
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
@@ -189,6 +429,101 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   const handleDragEndThumb = () => {
     dragItem.current = null
     setDraggingIndex(null)
+  }
+
+  const getPortraitFieldOptions = (prefix: string, options: Array<{ value: string; label: string }>) => {
+    const dynamicOptions = [
+      ...getTagsByPrefix(portraitGroupTags, prefix),
+      ...pictures.flatMap((pic) => getTagsByPrefix(pic.tags || [], prefix)),
+    ]
+      .filter((tag) => !PORTRAIT_HIDDEN_OPTION_TAGS.has(tag))
+      .filter((tag) => !options.some((option) => option.value === tag))
+      .map((tag) => ({ value: tag, label: getPortraitTagLabel(tag) }))
+    const visibleOptions = options.filter((option) => !PORTRAIT_HIDDEN_OPTION_TAGS.has(option.value))
+    return [...visibleOptions, ...Array.from(new Map(dynamicOptions.map((option) => [option.value, option])).values())]
+  }
+
+  const getCurrentSeriesTag = (value = seriesTagDraft) =>
+    sameSeriesUpload ? normalizeCustomPortraitTag("series", value || createDefaultSeriesName()) : ""
+
+  const getActivePortraitGroupTags = (seriesValue = seriesTagDraft) => {
+    if (!sameSeriesUpload) return []
+    return mergeTagList(portraitGroupTags, [getCurrentSeriesTag(seriesValue)])
+  }
+
+  const addPortraitGroupTag = (tag: string) => {
+    if (!tag || tag === "none") return
+    setPortraitGroupTags((prev) => mergeTagList(prev, [tag]))
+    setPictures((prev) =>
+      prev.map((pic) => ({
+        ...pic,
+        tags: mergeTagList(pic.tags || [], [tag]),
+      })),
+    )
+  }
+
+  const addCustomPortraitGroupTag = (prefix: string) => {
+    const key = `group:${prefix}`
+    const tag = normalizeCustomPortraitTag(prefix, customPortraitTagDrafts[key] || "")
+    if (!tag) return
+    addPortraitGroupTag(tag)
+    setCustomPortraitTagDrafts((prev) => ({
+      ...prev,
+      [key]: "",
+    }))
+  }
+
+  const removePortraitGroupTag = (tag: string) => {
+    setPortraitGroupTags((prev) => prev.filter((item) => item !== tag))
+    setPictures((prev) =>
+      prev.map((pic) => ({
+        ...pic,
+        tags: (pic.tags || []).filter((item) => item !== tag),
+      })),
+    )
+  }
+
+  const addPictureTag = (index: number, tag: string) => {
+    if (!tag || tag === "none") return
+    setPictures((prev) =>
+      prev.map((pic, i) =>
+        i === index
+          ? {
+              ...pic,
+              tags: mergeTagList(pic.tags || [], [tag]),
+            }
+          : pic,
+      ),
+    )
+  }
+
+  const getPortraitPictureDefaultTags = () => {
+    const tags = [...PORTRAIT_LIBRARY_PICTURE_DEFAULT_TAGS]
+    return mergeTagList(tags, getActivePortraitGroupTags())
+  }
+
+  const setCustomPortraitTagDraft = (index: number, prefix: string, value: string) => {
+    setCustomPortraitTagDrafts((prev) => ({
+      ...prev,
+      [`${index}:${prefix}`]: value,
+    }))
+  }
+
+  const addCustomPortraitTag = (index: number, prefix: string) => {
+    const key = `${index}:${prefix}`
+    const tag = normalizeCustomPortraitTag(prefix, customPortraitTagDrafts[key] || "")
+    if (!tag) return
+    addPictureTag(index, tag)
+    setCustomPortraitTagDrafts((prev) => ({
+      ...prev,
+      [key]: "",
+    }))
+  }
+
+  const removePictureTag = (index: number, tag: string) => {
+    setPictures((prev) =>
+      prev.map((pic, i) => (i === index ? { ...pic, tags: (pic.tags || []).filter((item) => item !== tag) } : pic)),
+    )
   }
 
   // AI生成函数
@@ -434,6 +769,129 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
     }
   }, [editingPictureSet])
 
+  useEffect(() => {
+    if (!isPortraitLibrary || editingPictureSet || portraitPresetAppliedRef.current) return
+    portraitPresetAppliedRef.current = true
+    setTitle("Portrait Booking Samples")
+    setSubtitle("Portrait and session-ready portfolio library")
+    setDescription("人像约拍样片库。用于按地点、拍摄内容、画面风格、拍摄技法、设备、展示用途和系列标签筛选照片。")
+    setTagsText(PORTRAIT_LIBRARY_DEFAULT_TAGS.join(", "))
+    setIsPublished(false)
+    setFillMissingFromSet(true)
+    setPropagateCategoriesToPictures(true)
+    setAutoGenerateTagsForUntagged(false)
+    setAutogenTitlesSubtitles(false)
+    setAsyncEnrich(true)
+  }, [editingPictureSet, isPortraitLibrary])
+
+  useEffect(() => {
+    if (!isPortraitLibrary || editingPictureSet) return
+
+    let cancelled = false
+    const restoreDraft = async () => {
+      try {
+        const draft = await readPortraitLibraryDraft()
+        if (cancelled) return
+        if (!draft) {
+          portraitDraftReadyRef.current = true
+          return
+        }
+
+        setTitle(draft.title || "Portrait Booking Samples")
+        setSubtitle(draft.subtitle || "Portrait and session-ready portfolio library")
+        setDescription(draft.description || "")
+        setTagsText(draft.tagsText || PORTRAIT_LIBRARY_DEFAULT_TAGS.join(", "))
+        setSameSeriesUpload(draft.sameSeriesUpload ?? true)
+        setSeriesTagDraft(draft.seriesTagDraft || createDefaultSeriesName())
+        setPortraitGroupTags(Array.isArray(draft.portraitGroupTags) ? draft.portraitGroupTags : [])
+        setEn(draft.en || { title: "", subtitle: "", description: "" })
+        setZh(draft.zh || { title: "", subtitle: "", description: "" })
+
+        const restoredPictures = await Promise.all(
+          (draft.pictures || []).map(async (pic) => {
+            const file = pic.cover instanceof File ? pic.cover : null
+            if (!file) return { ...pic, cover: null, previewUrl: pic.previewUrl || undefined }
+            const preview = await getImagePreview(file)
+            return {
+              ...pic,
+              cover: file,
+              previewUrl: preview.url,
+              originalSize: preview.size,
+              compressedSize: undefined,
+              compressedFile: null,
+            }
+          }),
+        )
+        if (cancelled) return
+        setPictures(restoredPictures)
+        if (restoredPictures.length > 0 || draft.portraitGroupTags?.length) {
+          setDraftStatus(`已恢复本地草稿：${restoredPictures.length} 张图片`)
+        }
+      } catch (error) {
+        console.warn("Restore portrait draft failed:", error)
+        if (!cancelled) setDraftStatus("本地草稿读取失败，请先不要刷新页面。")
+      } finally {
+        if (!cancelled) portraitDraftReadyRef.current = true
+      }
+    }
+
+    restoreDraft()
+    return () => {
+      cancelled = true
+    }
+  }, [editingPictureSet, isPortraitLibrary])
+
+  useEffect(() => {
+    if (!isPortraitLibrary || editingPictureSet || !portraitDraftReadyRef.current) return
+    if (portraitDraftTimerRef.current) window.clearTimeout(portraitDraftTimerRef.current)
+
+    portraitDraftTimerRef.current = window.setTimeout(() => {
+      const draftPictures = pictures.map((pic) => ({
+        ...pic,
+        previewUrl: undefined,
+        compressedSize: undefined,
+        compressedFile: null,
+      }))
+      const draft: PortraitLibraryDraft = {
+        version: 1,
+        savedAt: new Date().toISOString(),
+        title,
+        subtitle,
+        description,
+        tagsText,
+        sameSeriesUpload,
+        seriesTagDraft,
+        portraitGroupTags,
+        pictures: draftPictures,
+        en,
+        zh,
+      }
+      savePortraitLibraryDraft(draft)
+        .then(() => setDraftStatus(`草稿已自动保存：${pictures.length} 张图片`))
+        .catch((error) => {
+          console.warn("Save portrait draft failed:", error)
+          setDraftStatus("草稿自动保存失败，请先不要刷新页面。")
+        })
+    }, 700)
+
+    return () => {
+      if (portraitDraftTimerRef.current) window.clearTimeout(portraitDraftTimerRef.current)
+    }
+  }, [
+    description,
+    editingPictureSet,
+    en,
+    isPortraitLibrary,
+    pictures,
+    portraitGroupTags,
+    sameSeriesUpload,
+    seriesTagDraft,
+    subtitle,
+    tagsText,
+    title,
+    zh,
+  ])
+
   // 滚动监听
   useEffect(() => {
     const handleScroll = () => {
@@ -503,7 +961,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         location_longitude: null,
         picture_category_ids: [],
         style: null,
-        tags: [],
+        tags: isPortraitLibrary ? getPortraitPictureDefaultTags() : [],
         en: { title: "", subtitle: "", description: "" },
         zh: { title: "", subtitle: "", description: "" },
         cover: null,
@@ -513,6 +971,40 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         image_url: "",
       },
     ])
+  }
+
+  const addPictureFiles = async (files: File[]) => {
+    if (files.length === 0) return
+
+    const toAdd: PictureFormData[] = []
+    for (const file of files) {
+      try {
+        const { url, size } = await getImagePreview(file)
+        toAdd.push({
+          tempId: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+          title: "",
+          subtitle: "",
+          description: "",
+          style: null,
+          season_id: null,
+          location_name: '',
+          location_latitude: null,
+          location_longitude: null,
+          picture_category_ids: [],
+          tags: isPortraitLibrary ? getPortraitPictureDefaultTags() : [],
+          en: { title: "", subtitle: "", description: "" },
+          zh: { title: "", subtitle: "", description: "" },
+          cover: file,
+          previewUrl: url,
+          originalSize: size,
+          compressedSize: undefined,
+          image_url: "",
+        })
+      } catch (err) {
+        console.error("Preview generation failed:", err)
+      }
+    }
+    if (toAdd.length > 0) setPictures((prev) => [...prev, ...toAdd])
   }
 
   const handleRemovePicture = (index: number) => {
@@ -965,9 +1457,15 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
   // dynamic autofill for set-level translations: follow base fields until user manually edits en.*
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitError(null)
     setIsSubmitting(true)
 
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !sessionData.session?.access_token) {
+        throw new Error("管理员登录状态已过期，请重新登录后再保存。")
+      }
+
       // 根据选项，自动补齐集合与图片语种，并获取翻译后的值
       let translatedEn = en
       let translatedZh = zh
@@ -1011,37 +1509,26 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         console.log('Submitting pictures order (top->bottom):', debugOrder)
       } catch {}
 
-      // upload helper to R2 via signed URL
+      // Upload through our own admin API so browser-side R2/CORS failures cannot drop the draft.
       const uploadFile = async (file: File, objectName: string): Promise<string> => {
         try {
-          const res = await fetch("/api/upload-to-r2", {
+          const body = new FormData()
+          body.set("objectName", objectName)
+          body.set("contentType", file.type || "application/octet-stream")
+          body.set("file", file)
+
+          const res = await adminFetch("/api/upload-to-r2", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ objectName, contentType: file.type }),
+            body,
           })
-          if (!res.ok) throw new Error("Failed to get signed URL")
-          const { uploadUrl, contentType } = await res.json()
-          
-          // 尝试读取文件内容，捕获 NotFoundError
-          let buf: ArrayBuffer
-          try {
-            buf = await file.arrayBuffer()
-          } catch (readError: any) {
-            console.error("Failed to read file arrayBuffer:", readError)
-            throw new Error(`无法读取文件 ${file.name}，文件可能已失效。请重新选择文件。`)
+          const data = await res.json().catch(() => ({}))
+          if (!res.ok) {
+            throw new Error(data?.error || `上传接口返回 ${res.status}`)
           }
-          
-          const uploadRes = await fetch(uploadUrl, {
-            method: "PUT",
-            headers: { "Content-Type": contentType || file.type || "application/octet-stream" },
-            body: buf,
-          })
-          if (!uploadRes.ok) throw new Error("File upload failed")
-          // store key path like /picture/xxx
-          return `/${objectName}`
+          return data?.imageUrl || `/${objectName}`
         } catch (error: any) {
           console.error(`Error uploading file ${file.name}:`, error)
-          throw error
+          throw new Error(`上传 ${file.name} 失败：${error?.message || "网络请求失败"}`)
         }
       }
 
@@ -1203,12 +1690,21 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       }
 
       await onSubmit(payload, editingId ?? editingPictureSet?.id)
+      if (isPortraitLibrary) {
+        await clearPortraitLibraryDraft()
+        setDraftStatus("已入库，草稿已清除。")
+      }
       
       // 表单重置逻辑由父组件通过 editingPictureSet 的变化来触发
     } catch (error) {
       console.error("Error submitting form:", error)
-      // 重新抛出错误，让父组件的 toast 能够显示
-      throw error
+      const message = error instanceof Error ? error.message : "保存失败，请检查登录状态或图片文件后重试。"
+      setSubmitError(message)
+      toast({
+        title: isPortraitLibrary ? "保存失败" : t("error"),
+        description: message,
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -1222,10 +1718,243 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       : (b / 1048576).toFixed(2) + " MB"
   }
 
+  const renderAddPictureControls = () => (
+    <div className={isPortraitLibrary ? "flex flex-wrap items-center gap-2" : "flex flex-col sm:flex-row items-center justify-center gap-3 py-6"}>
+      {isPortraitLibrary && (
+        <div className="flex flex-wrap items-center gap-2 rounded-md border border-[#ded4c6] bg-white px-2 py-1.5">
+          <div className="flex flex-col gap-1">
+            <label className="flex items-center gap-2 text-xs font-medium text-[#4e493f]">
+              <input
+                type="checkbox"
+                checked={sameSeriesUpload}
+                onChange={(event) => {
+                  const checked = event.target.checked
+                  setSameSeriesUpload(checked)
+                  if (checked) {
+                    const nextSeries = seriesTagDraft.trim() || createDefaultSeriesName()
+                    setSeriesTagDraft(nextSeries)
+                    const groupTags = mergeTagList(portraitGroupTags, [normalizeCustomPortraitTag("series", nextSeries)])
+                    setPictures((prev) =>
+                      prev.map((pic) => ({
+                        ...pic,
+                        tags: mergeTagList(pic.tags || [], groupTags),
+                      })),
+                    )
+                  }
+                }}
+              />
+              本次导入同一组
+            </label>
+            <p className="text-[11px] leading-4 text-[#8c8172]">
+              整组 tag 会打到所有图片，单张图片可以继续微调。
+            </p>
+          </div>
+          <Input
+            value={seriesTagDraft}
+            onChange={(event) => {
+              const previousTag = getCurrentSeriesTag()
+              const nextValue = event.target.value
+              const nextTag = normalizeCustomPortraitTag("series", nextValue || createDefaultSeriesName())
+              setSeriesTagDraft(nextValue)
+              if (sameSeriesUpload) {
+                setPictures((prev) =>
+                  prev.map((pic) => ({
+                    ...pic,
+                    tags: mergeTagList(
+                      (pic.tags || []).filter((tag) => tag !== previousTag),
+                      [nextTag],
+                    ),
+                  })),
+                )
+              }
+            }}
+            disabled={!sameSeriesUpload}
+            placeholder="组名，如 florence-walk-01"
+            className="h-8 w-48 bg-white text-xs"
+          />
+        </div>
+      )}
+      <Button
+        type="button"
+        onClick={() => bulkInputRef.current?.click()}
+        variant={isPortraitLibrary ? "default" : "outline"}
+        className={
+          isPortraitLibrary
+            ? "bg-[#20231f] text-white hover:bg-[#2b302a]"
+            : "flex items-center gap-2 px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
+        }
+      >
+        <Plus className="h-4 w-4" />
+        选择图片
+      </Button>
+      {isPortraitLibrary && (
+        <Button
+          type="button"
+          onClick={() => folderInputRef.current?.click()}
+          variant="outline"
+          className="border-[#20231f] text-[#20231f] hover:bg-[#f2eadb]"
+        >
+          <FolderOpen className="h-4 w-4" />
+          选择文件夹
+        </Button>
+      )}
+      <Button
+        type="button"
+        onClick={handleAddPicture}
+        variant="outline"
+        className={
+          isPortraitLibrary
+            ? "border-[#ded4c6] text-[#4e493f] hover:bg-[#f7f3ec]"
+            : "flex items-center gap-2 px-6 py-3 border-2 border-dashed border-purple-300 text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200"
+        }
+      >
+        <Plus className="h-4 w-4" />
+        {isPortraitLibrary ? "空白图片" : t('addImageBtn')}
+      </Button>
+      <input
+        ref={bulkInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={async (e) => {
+          const files = Array.from(e.target.files || [])
+          await addPictureFiles(files)
+          if (e.target) e.target.value = ""
+        }}
+      />
+      {isPortraitLibrary && (
+        <input
+          ref={folderInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          {...({ webkitdirectory: "", directory: "" } as any)}
+          onChange={async (e) => {
+            const files = Array.from(e.target.files || [])
+            await addPictureFiles(files)
+            if (e.target) e.target.value = ""
+          }}
+        />
+      )}
+    </div>
+  )
+
+  const renderPortraitGroupTagControls = () => {
+    if (!isPortraitLibrary || !sameSeriesUpload) return null
+
+    const activeGroupTags = getActivePortraitGroupTags()
+
+    return (
+      <div className="rounded-md border border-[#ded4c6] bg-white p-3">
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-[#20231f]">整组 tag</h3>
+            <p className="text-xs leading-5 text-[#8c8172]">
+              这里选择的是这一组照片共同拥有的 tag，会自动加到所有图片；单张图片下面再做个别调整。
+            </p>
+          </div>
+          <span className="text-xs font-medium text-[#8c8172]">{activeGroupTags.length} 个整组 tag</span>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {PORTRAIT_GROUP_TAG_FIELDS.map((field) => {
+            const selectedTags = getTagsByPrefix(portraitGroupTags, field.prefix)
+            const draftKey = `group:${field.prefix}`
+            const draftValue = customPortraitTagDrafts[draftKey] || ""
+            const fieldOptions = getPortraitFieldOptions(field.prefix, field.options)
+
+            return (
+              <div key={field.prefix} className="space-y-2 rounded-md border border-[#e5dccf] bg-[#fbfaf7] p-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs font-semibold text-[#4e493f]">{field.label}</Label>
+                  <span className="text-[11px] text-[#8c8172]">{selectedTags.length} 个</span>
+                </div>
+                <Select value="" onValueChange={(value) => addPortraitGroupTag(value)}>
+                  <SelectTrigger className="h-9 bg-white">
+                    <SelectValue placeholder={`添加${field.label}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fieldOptions.map((option) => {
+                      const alreadySelected = selectedTags.includes(option.value)
+                      return (
+                        <SelectItem key={option.value} value={option.value}>
+                          {alreadySelected ? "✓ " : ""}{option.label}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+                <div className="flex gap-1.5">
+                  <Input
+                    value={draftValue}
+                    onChange={(event) =>
+                      setCustomPortraitTagDrafts((prev) => ({
+                        ...prev,
+                        [draftKey]: event.target.value,
+                      }))
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault()
+                        addCustomPortraitGroupTag(field.prefix)
+                      }
+                    }}
+                    placeholder={`自定义${field.label}`}
+                    className="h-8 bg-white text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addCustomPortraitGroupTag(field.prefix)}
+                    className="h-8 w-8 shrink-0 px-0"
+                    title={`添加整组${field.label}`}
+                  >
+                    +
+                  </Button>
+                </div>
+                {selectedTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => removePortraitGroupTag(tag)}
+                        className="rounded-full bg-[#f2eadb] px-2 py-0.5 text-[11px] font-medium text-[#4e493f] hover:bg-[#e4d7c3]"
+                        title="从整组移除"
+                      >
+                        {tag.replace(`${field.prefix}:`, "")} ×
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {activeGroupTags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {activeGroupTags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-[#ded4c6] bg-[#fbfaf7] px-2.5 py-1 text-xs font-medium text-[#4e493f]"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 relative">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">{isEditMode ? t('editSet') : t('createSet')}</h2>
+        <h2 className="text-2xl font-semibold">{isPortraitLibrary ? "图片标签库" : isEditMode ? t('editSet') : t('createSet')}</h2>
         {isEditMode && onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
             {t('cancelEdit')}
@@ -1233,8 +1962,25 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
         )}
       </div>
 
+      {isPortraitLibrary && (
+        <div className="space-y-3 rounded-md border border-[#ded4c6] bg-[#fbfaf7] p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm font-medium text-[#4e493f]">
+              {pictures.length > 0 ? `${pictures.length} 张图片` : "先设置整组 tag 或导入图片"}
+            </div>
+            {renderAddPictureControls()}
+          </div>
+          {draftStatus && (
+            <p className="rounded-md border border-[#ded4c6] bg-white px-3 py-2 text-xs text-[#6f6659]">
+              {draftStatus}
+            </p>
+          )}
+          {renderPortraitGroupTagControls()}
+        </div>
+      )}
+
       {/* 顶部区域：三列布局（字段+翻译 | 封面 | 其它属性） */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {!isPortraitLibrary && <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* 第一列：基础字段 + 翻译 */}
         <div className="space-y-4">
           <h3 className="text-lg font-bold">{t('setDetails')}</h3>
@@ -1568,7 +2314,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
           {/* removed: Options + AI Tools moved to cover column */}
         </div>
-      </div>
+      </div>}
 
       {/* Pictures list */}
       <div className="space-y-6" ref={picturesContainerRef}>
@@ -1625,10 +2371,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
               </Button>
             </div>
 
-            <div className="p-4 pt-14">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={isPortraitLibrary ? "p-4 pt-14" : "p-4 pt-14"}>
+              <div className={isPortraitLibrary ? "grid grid-cols-1 gap-4 md:grid-cols-[240px_1fr]" : "grid grid-cols-1 md:grid-cols-3 gap-6"}>
                 {/* 第一列：表单字段 + 翻译 */}
-                <div className="space-y-5 order-1 md:col-span-1">
+                {!isPortraitLibrary && <div className="space-y-5 order-1 md:col-span-1">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
                       <Label className="text-sm font-semibold text-gray-700">{t('title')}</Label>
@@ -1755,10 +2501,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                       </div>
                     </div>
                   </div>
-                </div>
+                </div>}
 
                 {/* 第二列：图片预览（并把 AI 分析放在图片下方） */}
-                <div className="space-y-4 order-2 md:col-span-1">
+                <div className={isPortraitLibrary ? "space-y-3 order-1 md:col-span-1" : "space-y-4 order-2 md:col-span-1"}>
                   {pic.previewUrl ? (
                     <div className="space-y-3">
                       <Label className="text-base font-bold text-gray-800">{t('preview')}</Label>
@@ -1771,7 +2517,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                           <img
                             src={pic.previewUrl || "/placeholder.svg"}
                             alt={`Picture ${idx + 1}`}
-                            className="w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"
+                            className={isPortraitLibrary ? "h-72 w-full object-contain group-hover:opacity-90 transition-opacity" : "w-full max-h-80 object-contain group-hover:opacity-90 transition-opacity"}
                             style={{
                               aspectRatio: 'auto'
                             }}
@@ -1800,7 +2546,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         )}
                       </div>
                       {/* AI 分析（放在图片下方） */}
-                    <div className="border-t pt-3">
+                    {!isPortraitLibrary && <div className="border-t pt-3">
                       <h4 className="text-base font-bold mb-2">{t('aiToolsPicture')}</h4>
                         <ImageAnalysisComponent
                           imageUrl={pic.previewUrl}
@@ -1808,7 +2554,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                             handlePictureChange(idx, field, result)
                           }}
                         />
-                      </div>
+                      </div>}
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-48">
@@ -1836,12 +2582,12 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
 
                 </div>
                 {/* 第三列：标签 + 类型 + 季节/位置 */}
-                <div className="space-y-4 order-3 md:col-span-1">
+                <div className={isPortraitLibrary ? "space-y-4 order-2 md:col-span-1" : "space-y-4 order-3 md:col-span-1"}>
                   {/* Picture tags */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-base font-bold">{t('tags')}</h4>
-                      <Button
+                      <h4 className="text-base font-bold">{isPortraitLibrary ? "图片 tag" : t('tags')}</h4>
+                      {!isPortraitLibrary && <Button
                         type="button"
                         variant="outline"
                         size="sm"
@@ -1851,18 +2597,109 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         title={(pic.previewUrl || pic.image_url) ? t('aiGenerateTags') : t('pleaseAddCoverOrImages')}
                       >
                         {isGenerating.tags ? <span className="text-xs text-gray-500">{t('generating')}</span> : <span className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3" /> {t('aiGenerateTags')}</span>}
-                      </Button>
+                      </Button>}
                     </div>
-                    <Input
-                      placeholder={t('tagsPlaceholder')}
-                      value={(pic.tags || []).join(', ')}
-                      onChange={(e) => handlePictureChange(idx, 'tags', e.target.value.split(/[,，]/).map(s => s.trim()).filter(Boolean))}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    />
+                    {isPortraitLibrary ? (
+                      <div className="space-y-4 rounded-md border border-[#ded4c6] bg-[#fbfaf7] p-3">
+                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                          {PORTRAIT_TAG_FIELDS.map((field) => {
+                            const selectedTags = getTagsByPrefix(pic.tags || [], field.prefix)
+                            const draftKey = `${idx}:${field.prefix}`
+                            const draftValue = customPortraitTagDrafts[draftKey] || ""
+                            const fieldOptions = getPortraitFieldOptions(field.prefix, field.options)
+                            return (
+                              <div key={field.prefix} className="space-y-2 rounded-md border border-[#e5dccf] bg-white p-2">
+                                <div className="flex items-center justify-between gap-2">
+                                  <Label className="text-xs font-semibold text-[#4e493f]">{field.label}</Label>
+                                  <span className="text-[11px] text-[#8c8172]">{selectedTags.length} 个</span>
+                                </div>
+                                {"help" in field && field.help && (
+                                  <p className="text-[11px] leading-4 text-[#8c8172]">{field.help}</p>
+                                )}
+                                <Select value="" onValueChange={(value) => addPictureTag(idx, value)}>
+                                  <SelectTrigger className="h-9 bg-white">
+                                    <SelectValue placeholder={`添加${field.label}`} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {fieldOptions.map((option) => {
+                                      const alreadySelected = selectedTags.includes(option.value)
+                                      return (
+                                        <SelectItem key={option.value} value={option.value}>
+                                          {alreadySelected ? "✓ " : ""}{option.label}
+                                        </SelectItem>
+                                      )
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                                <div className="flex gap-1.5">
+                                  <Input
+                                    value={draftValue}
+                                    onChange={(event) => setCustomPortraitTagDraft(idx, field.prefix, event.target.value)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter") {
+                                        event.preventDefault()
+                                        addCustomPortraitTag(idx, field.prefix)
+                                      }
+                                    }}
+                                    placeholder={`自定义${field.label}`}
+                                    className="h-8 bg-white text-xs"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addCustomPortraitTag(idx, field.prefix)}
+                                    className="h-8 w-8 shrink-0 px-0"
+                                    title={`添加${field.label}`}
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                                {selectedTags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {selectedTags.map((tag) => (
+                                      <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => removePictureTag(idx, tag)}
+                                        className="rounded-full bg-[#f2eadb] px-2 py-0.5 text-[11px] font-medium text-[#4e493f] hover:bg-[#e4d7c3]"
+                                        title="点击移除"
+                                      >
+                                        {tag.replace(`${field.prefix}:`, "")} ×
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(pic.tags || []).map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => removePictureTag(idx, tag)}
+                              className="rounded-full border border-[#ded4c6] bg-white px-2.5 py-1 text-xs font-medium text-[#4e493f] hover:border-[#9a8d7b] hover:bg-[#f2eadb]"
+                              title="点击移除"
+                            >
+                              {tag} ×
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <Input
+                        placeholder={t('tagsPlaceholder')}
+                        value={(pic.tags || []).join(', ')}
+                        onChange={(e) => handlePictureChange(idx, 'tags', e.target.value.split(/[,，]/).map(s => s.trim()).filter(Boolean))}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    )}
                   </div>
 
                   {/* Types (categories) */}
-                  <div className="space-y-2 border-t pt-3">
+                  {!isPortraitLibrary && <div className="space-y-2 border-t pt-3">
                     <h4 className="text-base font-bold">{t('typesCategories')}</h4>
                     <p className="text-xs text-gray-500">Examples: Portrait, Landscape, Street, Creative, Documentary, Travel, Architecture, Macro, Night</p>
                     <div className="grid grid-cols-2 gap-2">
@@ -1884,10 +2721,10 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         )
                       })}
                     </div>
-                  </div>
+                  </div>}
 
                   {/* Season & Location */}
-                  <div className="grid grid-cols-1 gap-3 pt-3 border-t">
+                  {!isPortraitLibrary && <div className="grid grid-cols-1 gap-3 pt-3 border-t">
                     <div>
                       <h4 className="text-base font-bold mb-1">{t('season')}</h4>
                       <Select
@@ -1941,7 +2778,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
                         />
                       )}
                     </div>
-                  </div>
+                  </div>}
                 </div>
               </div>
 
@@ -1952,66 +2789,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       </div>
 
       {/* Add pictures buttons (single and bulk) */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-6">
-        <Button 
-          type="button" 
-          onClick={handleAddPicture} 
-          variant="outline"
-          className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-purple-300 text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200"
-        >
-          <Plus className="h-5 w-5" /> 
-          {t('addImageBtn')}
-        </Button>
-        <Button
-          type="button"
-          onClick={() => bulkInputRef.current?.click()}
-          variant="outline"
-          className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
-        >
-          <Plus className="h-5 w-5" />
-          {t('addImagesBulkBtn')}
-        </Button>
-        <input
-          ref={bulkInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={async (e) => {
-            const files = Array.from(e.target.files || [])
-            if (files.length === 0) return
-
-            // For each file, create a picture entry with preview
-            const toAdd: PictureFormData[] = []
-            for (const f of files) {
-              try {
-                const { url, size } = await getImagePreview(f)
-              toAdd.push({
-                tempId: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-                title: "",
-                subtitle: "",
-                description: "",
-                style: null,
-                season_id: null,
-                location_name: '',
-                location_latitude: null,
-                location_longitude: null,
-                cover: f,
-                previewUrl: url,
-                originalSize: size,
-                compressedSize: undefined,
-                image_url: "",
-                })
-              } catch (err) {
-                console.error("Preview generation failed:", err)
-              }
-            }
-            if (toAdd.length > 0) setPictures((prev) => [...prev, ...toAdd])
-            // reset input value to allow re-selecting the same files
-            if (e.target) e.target.value = ""
-          }}
-        />
-      </div>
+      {!isPortraitLibrary && renderAddPictureControls()}
 
       {/* Submit button */}
       {/* Reorder thumbnails */}
@@ -2052,8 +2830,13 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel }: Pictur
       )}
 
       <div className="sticky bottom-0 bg-white py-4 border-t z-[9999] space-y-2">
+        {submitError && (
+          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {submitError}
+          </p>
+        )}
         <Button type="submit" disabled={isSubmitting} className="w-full relative z-[9999]">
-          {isSubmitting ? t('submitting') : isEditMode ? t('updateSet') : t('submitSet')}
+          {isSubmitting ? t('submitting') : isPortraitLibrary ? "保存图片标签" : isEditMode ? t('updateSet') : t('submitSet')}
         </Button>
       </div>
 
