@@ -1,17 +1,17 @@
 {
   "date": "2026-06-28",
-  "overview": "今天主线是受控前沿模型发布、推理成本下降和可替代的本地/路由型 agent 工作流；个人待处理里有 Charlie Puth 票务和一个德国远程 ML 职位筛选。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI URL / arXiv+S2；newsletter 只作线索；OpenAI 官方页本轮 curl 受 Cloudflare 限制，HN/API 可用；0 条候选因缺少 URL 被跳过。",
+  "overview": "今天主线是受控前沿模型准入、推理加速和 coding-agent 路由/记忆工作流；个人待处理里优先处理 Charlie Puth 票务和 Revolut/McKinsey 职位筛选。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN item API / OpenAI URL / arXiv+S2；newsletter 和 Medium 只作线索；OpenAI 官方页 curl 仍受 Cloudflare 限制；0 条候选因缺少 URL 被跳过。",
   "blocks": [
     {
-      "id": "openai-gpt56-controlled-access-20260628",
+      "id": "openai-gpt56-controlled-access-20260628-refresh2",
       "kind": "deep-read",
-      "title": "GPT-5.6 Sol：今天重点是“谁能用”而不只是模型能力",
+      "title": "GPT-5.6 Sol：今天重点是准入制度，不只是模型能力",
       "source": "OpenAI / HN · 2026-06-28",
       "sourceStatus": "未官方核验",
-      "summary": "HN 同时把 OpenAI GPT-5.6 Sol 官方发布页和 Washington Post 的“美国政府参与使用者准入”报道推到榜首。结合 system card，这个发布更像一个能力、安全、政府预览、trusted partner 准入一起变化的案例，而不是普通模型升级。",
+      "summary": "HN item API 显示 OpenAI GPT-5.6 Sol 官方发布页和 WaPo 的使用者准入报道仍是高讨论项；curl 访问 OpenAI 官方页本轮返回 Cloudflare challenge。把它当成能力、安全、政府预览和 trusted partner 准入同时变化的案例，而不是普通模型升级。",
       "why": "它会影响你判断 Codex 长任务、前沿模型可用性、开源备份、本地 agent 路线和安全评测优先级。",
-      "thought": "先读官方发布 URL 和 system card；把 HN/WaPo 当作访问控制争议线索，不要把 newsletter 传闻当事实。",
+      "thought": "先读官方发布 URL 和 system card；HN/WaPo 只作为访问控制争议线索，等待可直接核验的官方文本。",
       "priority": 100,
       "links": [
         {
@@ -37,14 +37,14 @@
       ]
     },
     {
-      "id": "dspark-speculative-decoding-20260628",
+      "id": "dspark-speculative-decoding-20260628-refresh2",
       "kind": "deep-read",
-      "title": "DSpark：speculative decoding 又回到“能省多少推理成本”",
+      "title": "DSpark：speculative decoding 回到 agent 成本问题",
       "source": "DeepSeek GitHub / HN · 2026-06-28",
       "sourceStatus": "官方/高质量源",
-      "summary": "DeepSeek 的 DSpark paper 在 HN 排名前列，主题是用 speculative decoding 加速 LLM inference。它和最近 GLM/本地 agent 成本线索连在一起：agent 不是只缺更强模型，也缺更便宜、更稳的 token 生成路径。",
-      "why": "你现在的工作流同时依赖 Codex、本地模型、Triton 和长任务；推理加速直接影响 agent 是否能从 demo 变成日常工具。",
-      "thought": "只扫两点：draft/verify 路径如何减少延迟，以及它对代码 agent 的长上下文、多步调用是否真的有帮助。",
+      "summary": "HN item API 确认 DSpark paper 指向 DeepSeek GitHub PDF，讨论热度仍高。它和本地 coding agent、模型路由放在一起看：agent 真正日常化的瓶颈不只是能力，也包括多步任务的 token 生成延迟和成本。",
+      "why": "你现在的工作流依赖 Codex、本地模型、Triton 和长任务；推理加速直接影响 agent 是否能从 demo 变成日常工具。",
+      "thought": "只扫 draft/verify 路径、延迟收益和它对代码 agent 多轮调用是否有实际帮助。",
       "priority": 90,
       "links": [
         {
@@ -58,13 +58,13 @@
       ]
     },
     {
-      "id": "workweave-smart-model-routing-20260628",
+      "id": "workweave-model-routing-20260628-refresh2",
       "kind": "signal",
-      "title": "Claude/Codex/Cursor 的模型路由开始变成独立工具层",
+      "title": "Claude/Codex/Cursor 的模型路由开始变成工具层",
       "source": "WorkWeave GitHub / HN · 2026-06-28",
       "sourceStatus": "高质量源",
-      "summary": "Show HN 的 WorkWeave/router 把 smart model routing 直接接到 Claude、Codex 和 Cursor。它不是必须采用的工具，但说明 coding-agent 工作流正在从“选一个模型”转向“按任务、成本、上下文、失败模式动态路由”。",
-      "why": "这和你的本地 Ollama、Codex、Triton 长任务很贴：真正的效率提升可能来自路由和验证层，而不只是换模型。",
+      "summary": "Show HN 的 WorkWeave/router 把 smart model routing 直接接到 Claude、Codex 和 Cursor。它不一定值得马上采用，但说明 coding-agent 工作流正在从“选一个模型”转向按任务、成本、上下文和失败模式动态路由。",
+      "why": "这和你的本地 Ollama、Codex、Triton 长任务很贴：效率提升可能来自路由和验证层，而不只是换模型。",
       "thought": "先看 README 的接入边界和路由策略；如果只是透明代理可跳过，如果能记录失败/成本/回退则值得后续实验。",
       "priority": 82,
       "links": [
@@ -79,12 +79,12 @@
       ]
     },
     {
-      "id": "ahead-of-ai-local-coding-agents-20260628",
+      "id": "ahead-local-coding-agents-20260628-refresh2",
       "kind": "signal",
-      "title": "本地 coding agent：保留为前沿模型受限时的备份路线",
+      "title": "本地 coding agent：作为前沿模型受限时的备份路线",
       "source": "Ahead of AI · 2026-06-27",
       "sourceStatus": "线索",
-      "summary": "Sebastian Raschka 的邮件继续值得保留：它把 open-weight 模型、本地 runtime、Codex/Claude/Qwen-Code harness、长上下文速度和个人 eval 串起来。今天它和 GPT-5.6 访问控制形成互补：一个是前沿模型准入，一个是本地可复现备份。",
+      "summary": "Sebastian Raschka 的文章仍值得保留：它把 open-weight 模型、本地 runtime、Codex/Claude/Qwen-Code harness、长上下文速度和个人 eval 串起来。今天它和 GPT-5.6 准入限制形成互补：一个是前沿模型入口，一个是本地可复现备份。",
       "why": "你已经在 Codex、Ollama、本地服务和 Triton 之间切换；这条线能防止工作流完全依赖单一闭源入口。",
       "thought": "只扫 Qwen/North Mini Code 的资源占用、harness 差异和 eval 失败样例；暂时不用写笔记。",
       "priority": 78,
@@ -104,33 +104,33 @@
       ]
     },
     {
-      "id": "nvidia-bionemo-agent-toolkit-20260628",
-      "kind": "signal",
-      "title": "BioNeMo Agent Toolkit：domain agent 的工具边界值得看",
-      "source": "NVIDIA LinkedIn · 2026-06-27",
+      "id": "concept-sliding-window-memory-20260628",
+      "kind": "concept",
+      "title": "Sliding-window memory：先懂最朴素的 agent 记忆边界",
+      "source": "Medium · 2026-06-28",
       "sourceStatus": "线索",
-      "summary": "NVIDIA newsletter 介绍 BioNeMo Agent Toolkit，把蛋白结构预测、分子对接、生成化学、基因组分析、蛋白设计和 biomarker discovery 包成 agent-callable tools。它的价值不是生物方向本身，而是 scientific agent 如何定义工具、证据和实验闭环。",
-      "why": "这能反向提醒语音健康/biomarker agent：可信工具、实验边界和证据追踪比聊天能力更关键。",
-      "thought": "只当 domain-agent 产品化样例扫一遍；看它怎么定义 tool boundary，不需要沉淀到 Obsidian。",
-      "priority": 70,
+      "summary": "今天 Medium Digest 里有一篇从零讲 LLM memory 的 sliding-window buffers。它不是新论文，但适合作为概念提醒：很多 agent memory 问题第一步不是长期人格记忆，而是明确保留最近 k 轮、丢弃什么、何时升级到检索。",
+      "why": "你在 Codex/Obsidian/agent 工作流里经常遇到上下文压缩和状态污染；这个概念能帮你判断复杂 memory 系统是否真的必要。",
+      "thought": "只把它当作理解入口，不写词典；后续如果讨论 agent memory，再比较 sliding window、summary memory 和 retrieval memory。",
+      "priority": 66,
       "links": [
         {
-          "label": "NVIDIA LinkedIn",
-          "url": "https://www.linkedin.com/comm/pulse/nvidia-bionemo-agent-toolkit-gives-ai-agents-tools-accelerate-scientific-zhjte?lipi=urn%3Ali%3Apage%3Aemail_email_series_follow_newsletter_02%3BDz5fWXHITTq45ZGrBusMJQ%3D%3D&midToken=AQFFuKiydP0yRg&midSig=1CbU9t3NZVlck1&trk=eml-email_series_follow_newsletter_02-newsletter_content_preview-0-title_&trkEmail=eml-email_series_follow_newsletter_02-newsletter_content_preview-0-title_-null-jp2m05~mqwdjt8w~b8-null-null&eid=jp2m05-mqwdjt8w-b8"
+          "label": "Sliding-window buffers",
+          "url": "https://medium.com/@loschiavochristian/building-llm-memory-from-scratch-1-sliding-window-buffers-e7cd39581456?source=email-602672f81880-1782603021850-digest.reader-8993e01dcfd3-e7cd39581456----7-109------------------e847fe52_52b9_4d29_90ab_4737b17b6de9-1"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f09369961b5d24"
+          "url": "https://mail.google.com/mail/#all/19f0c74add39bc55"
         }
       ]
     },
     {
-      "id": "paper-use-snn-wng-20260628",
+      "id": "paper-use-snn-wng-20260628-refresh2",
       "kind": "paper",
       "title": "论文入口：今天继续先看 SNN 语音增强和 WNG/MVDR",
       "source": "arXiv / 本地推荐池 · 2026-06-28",
       "sourceStatus": "本地推荐池",
-      "summary": "今天最值得扫两篇：`Neuromorphic Speech Enhancement with Dual-Branch Spiking Neural Networks` 用 GSU-DBNet 同时建模幅度谱和复谱，394K 参数下 SNN 方法里表现强；`Joint Learning of Covariance Estimation and White Noise Gain for Robust MVDR Beamforming` 把 WNG 阈值做成可学习约束，直接针对麦克风自噪声和阵列 mismatch。",
+      "summary": "刚重跑 arXiv+S2 后前两名仍是：`Neuromorphic Speech Enhancement with Dual-Branch Spiking Neural Networks`，用 GSU-DBNet 同时建模幅度谱和复谱，394K 参数下 SNN 方法表现强；`Joint Learning of Covariance Estimation and White Noise Gain for Robust MVDR Beamforming`，把 WNG 阈值做成可学习约束，直接针对麦克风自噪声和阵列 mismatch。",
       "why": "前者贴低算力/神经形态 USE，后者贴真实阵列鲁棒性；两篇都比单纯追 PESQ 更接近部署问题。",
       "thought": "Tag: speech-enhancement, SNN, robustness, beamforming, WNG；打开推荐池只扫摘要、方法图、参数量、WNG 控制和是否有可复现实验。",
       "priority": 68,
@@ -142,13 +142,13 @@
       ]
     },
     {
-      "id": "action-viagogo-charlie-puth-tickets-20260628",
+      "id": "action-viagogo-charlie-puth-tickets-20260628-refresh2",
       "kind": "action",
-      "title": "票务动作：Charlie Puth 电子票已可下载并需打印",
+      "title": "票务动作：Charlie Puth 电子票要下载并打印",
       "source": "viagogo · 2026-06-27",
       "sourceStatus": "行动项",
       "summary": "viagogo 通知订单 647191205 的 3 张 Charlie Puth / Allas Live 电子票已可下载。活动时间是 2026-07-01 19:00，General Admission，邮件明确说入场只接受打印票，且 18+。",
-      "why": "这是少数真正需要记住时间地点和处理动作的个人邮件，应该放入待处理而不是被促销邮件淹没。",
+      "why": "这是少数真正需要记住时间地点和处理动作的个人邮件，应该继续留在待处理里。",
       "thought": "尽快下载并打印；同时确认 3 张票、Allas Live、7 月 1 日 19:00、18+ 限制。",
       "priority": 76,
       "links": [
@@ -163,27 +163,31 @@
       ]
     },
     {
-      "id": "action-stackadapt-applied-ml-scientist-20260628",
+      "id": "action-revolut-mckinsey-job-screen-20260628",
       "kind": "action",
-      "title": "职位动作：StackAdapt Applied ML Scientist 可快速筛选",
-      "source": "LinkedIn Jobs · 2026-06-27",
+      "title": "职位动作：先筛 Revolut NLP，再扫 McKinsey Tech & AI",
+      "source": "LinkedIn Jobs · 2026-06-28",
       "sourceStatus": "行动项",
-      "summary": "Deep Learning Engineer alert 里最值得看的是 StackAdapt Applied Machine Learning Scientist，Germany Remote，并显示 Aalto alum 信号；THRYVE Machine Learning Researcher 也可作为备选，但 StackAdapt 更像正经 ML product/research 工程岗位。",
-      "why": "这比普通泛数据岗更贴近模型工程与远程欧洲岗位池，适合单独作为行动项。",
-      "thought": "只看三件事：是否真德国 remote、是否接受当前身份/语言、工作是否是 ML scientist 而非广告运营分析。",
-      "priority": 58,
+      "summary": "今天新增职位里 Revolut `Data Scientist (NLP Deep Learning Engineer)` 是最贴近模型工程的一条，Spain Remote；McKinsey `Junior Associate - Tech & AI` 在 Stockholm，但更像咨询/产品转化路线。",
+      "why": "这两条比泛数据岗更值得单独筛：一个贴 NLP/DL，一个贴本地 Stockholm 的 AI strategy/impact 路线。",
+      "thought": "先看 Revolut 是否真 remote、是否接受当前所在地/身份；McKinsey 只扫职责是否需要瑞典语和咨询强度。",
+      "priority": 64,
       "links": [
         {
-          "label": "StackAdapt job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4414213480/?trackingId=WXtcd6dkeg9kdPddSl6cZQ%3D%3D&refId=XuCL%2BGS%2Fi8r9UJhE9kjMWw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BVVN5OEs%2BQlSLW7X9zjC54Q%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3JmNUPAwOblck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4414213480_ssid_15469705780_fmid_jp2m05~mqwedt69~42&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4414213480_ssid_15469705780_fmid_jp2m05~mqwedt69~42-null-jp2m05~mqwedt69~42-null-null&eid=jp2m05-mqwedt69-42&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjE4OWM5ZDA0OTliYWQ4YjY4N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjNWQzZjI2MmJhZDVjYjc4YWU0ZDA0N2ZjNjM2ZjNlYWQ0MWMzZTZjMjM0ZmQ3LDEsMQ%3D%3D"
+          "label": "Revolut job",
+          "url": "https://www.linkedin.com/comm/jobs/view/4372583967/?trackingId=z%2BLrcPXEUhQ4yZ%2Bk44MCEw%3D%3D&refId=fAkDbN2QJz8hRbP0umniLw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BQr8d9FkkRIG%2BZCY2A9iREQ%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3a_PdLMEL2mck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4372583967_ssid_15469705780_fmid_jp2m05~mqxgyp1e~0&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4372583967_ssid_15469705780_fmid_jp2m05~mqxgyp1e~0-null-jp2m05~mqxgyp1e~0-null-null&eid=jp2m05-mqxgyp1e-0&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjI4Y2NmZDg0MzkxYWY4ZjY5N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NmNkZmNhZWI1N2JmYTNiNzU3M2U4ZTA3ZjU4NjAwMzk0MjMzNjNjMzhkZmI0OWMxLDEsMQ%3D%3D"
         },
         {
-          "label": "THRYVE job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4433326367/?trackingId=zCU3uz4QmbGX1Bp1PvR0fQ%3D%3D&refId=XuCL%2BGS%2Fi8r9UJhE9kjMWw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BVVN5OEs%2BQlSLW7X9zjC54Q%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3JmNUPAwOblck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433326367_ssid_15469705780_fmid_jp2m05~mqwedt69~42&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433326367_ssid_15469705780_fmid_jp2m05~mqwedt69~42-null-jp2m05~mqwedt69~42-null-null&eid=jp2m05-mqwedt69-42&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjE4OWM5ZDA0OTliYWQ4YjY4N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjNWQzZjI2MmJhZDVjYjc4YWU0ZDA0N2ZjNjM2ZjNlYWQ0MWMzZTZjMjM0ZmQ3LDEsMQ%3D%3D"
+          "label": "McKinsey job",
+          "url": "https://www.linkedin.com/comm/jobs/view/4333309718/?trackingId=yBdrCib%2FZSjPG%2FxRIWsfrw%3D%3D&refId=qI8O2qBaW7b80oabajIkqw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BGmFJagS6SiSHf4eMNH0IxA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=0W-7bwCsYWmsk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4333309718_ssid_15477663556_fmid_jp2m05~mqxl90b0~38&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4333309718_ssid_15477663556_fmid_jp2m05~mqxl90b0~38-null-jp2m05~mqxl90b0~38-null-null&eid=jp2m05-mqxl90b0-38&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjI4Y2M3ZDA0MzllYTk4ZTZhN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NDBkN2UyZjg1Y2Y5ZjdhNGZlODA1Y2MxNGNlMTI4ZmFhOWVhNmNhNThlNzRhODg0LDEsMQ%3D%3D"
         },
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f09471e0a4f35a"
+          "label": "Revolut Gmail",
+          "url": "https://mail.google.com/mail/#all/19f0d231a22fcc57"
+        },
+        {
+          "label": "McKinsey Gmail",
+          "url": "https://mail.google.com/mail/#all/19f0d90f01cdc4b2"
         }
       ]
     }
