@@ -875,7 +875,14 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                   : "正在读取 feed..."}
               </div>
             </div>
-            {!publicMode ? <div className="flex flex-wrap gap-2 md:justify-end">
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              {publicMode ? (
+                <Link href="/ai-feed" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white">
+                  Admin feed
+                </Link>
+              ) : null}
+              {!publicMode ? (
+                <>
               <span className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#62706e]">
                 Admin only
               </span>
@@ -895,7 +902,9 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                 <RotateCcw className="h-4 w-4" />
                 清空本轮丢弃
               </button>
-            </div> : null}
+                </>
+              ) : null}
+            </div>
           </div>
           {!publicMode ? <div className="border-t border-[#e4e0d8] bg-[#f8f6f0] px-5 py-3 sm:px-6">
             <div className="max-w-4xl text-[13px] leading-6 text-[#62706e]">
