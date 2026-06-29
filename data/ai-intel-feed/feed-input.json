@@ -1,7 +1,7 @@
 {
   "date": "2026-06-29",
-  "overview": "今天主线是 GLM-5.2 的开权重替代争议、agent 工具/凭证边界、LLM judge 评估，以及新增 Stockholm/remote 职位筛选。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；Medium、LinkedIn 只作线索；OpenAI News 未发现比 HP 案例更高优先级更新；0 条候选因缺少 URL 被跳过。",
+  "overview": "今天主线仍是 GLM-5.2 开权重替代争议；新增本地离线 AI 套件、MCP 工具 schema 压缩，以及 DataCrunch 面试确认动作。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；LinkedIn、Medium 只作线索；OpenAI News curl 仍受 Cloudflare 限制；0 条行动候选因缺少 URL 被跳过。",
   "blocks": [
     {
       "id": "glm52-semgrep-cyber-benchmark-20260629",
@@ -29,6 +29,31 @@
         {
           "label": "Unsloth local GLM",
           "url": "https://unsloth.ai/docs/models/glm-5.2"
+        }
+      ]
+    },
+    {
+      "id": "action-datacrunch-interview-20260701",
+      "kind": "action",
+      "title": "DataCrunch 面试：7 月 1 日 15:30",
+      "source": "Google Calendar / Gmail · 2026-06-29",
+      "sourceStatus": "行动项",
+      "summary": "Ruikang Tao 发来 DataCrunch 面试邀请：2026-07-01 15:30-16:30（Europe/Helsinki），参与者包括 Paul Chang，地点写为 Sanomatalo-5-16 / Scharm squark (4)，也提供 Google Meet。邮件提示该邀请尚不在日历中，需要你确认是否加入/回复。",
+      "why": "这是明确需要确认时间、地点和参会方式的个人行动，比普通职位 alert 更优先。",
+      "thought": "先把活动加入日历并确认参加；再准备 DataCrunch / GPU cloud / audio-ML 相关问题。",
+      "priority": 92,
+      "links": [
+        {
+          "label": "Google Meet",
+          "url": "https://meet.google.com/pfn-jdiw-usm?hs=224"
+        },
+        {
+          "label": "Calendar event",
+          "url": "https://calendar.google.com/calendar/event?action=VIEW&eid=NHQ0cWUzN2EyZ2M0bXVnaXVlNTNtbWQ1cjQgNzczODgyNzEyY3VueWxpQG0&tok=MjEjcnVpa2FuZ0BkYXRhY3J1bmNoLmlvMDUyN2JlYzA0NmRkMjk2YTA5OGQxMWFlMzljMzczNDE0YmI4Yjc4NQ&ctz=Europe%2FHelsinki&hl=zh_CN&es=1"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f126b604f5678f"
         }
       ]
     },
@@ -87,23 +112,44 @@
       ]
     },
     {
-      "id": "llm-judges-finetuning-20260629",
+      "id": "mcp-compress-router-tool-schema-20260629",
       "kind": "concept",
-      "title": "LLM judge：评估不只是让模型打分",
-      "source": "Medium · 2026-06-29",
-      "sourceStatus": "线索",
-      "summary": "Cameron Wolfe 的 Medium Digest 条目把 Prometheus、JudgeLM、PandaLM、AutoJ 等 LLM judge 放到一起讲。它不是官方新闻，但适合作为今天的概念块：如果要比较 coding agent、paper triage 或 speech output 质量，judge 的训练数据、rubric 和偏差会决定评估是否可信。",
-      "why": "你最近的 Hybrid-UniSE / Codex 长任务都已经从“有没有指标”转向“评估是否反映真实输出质量”。",
-      "thought": "只扫 judge 训练/校准/偏差部分；术语候选是 `LLM judge`，不改词典。",
-      "priority": 72,
+      "title": "MCP-compress-router：工具 schema 也需要上下文预算",
+      "source": "GitHub / HN · 2026-06-29",
+      "sourceStatus": "高质量讨论",
+      "summary": "这个 Show HN 的思路很直接：多个 MCP server 会把大量工具描述塞进每轮上下文，它用 `get_tool_schema` / `invoke_tool` 两层代理，把常驻 schema 压缩成工具名和少量参数信息。作者给出的例子是 3 个 MCP server 从约 26K token 降到 900-2000 token。",
+      "why": "你现在的 Codex/Gmail/Obsidian/portfolio 工作流正在变成多工具环境，真正的成本和错误源不只在模型，而在工具面暴露多少上下文。",
+      "thought": "把它当成 context compression 概念块：先看 README 的代理边界，再判断这种压缩会不会牺牲工具选择的可解释性。",
+      "priority": 76,
       "links": [
         {
-          "label": "Finetuning LLM Judges",
-          "url": "https://medium.com/@cameronrwolfe/finetuning-llm-judges-for-evaluation-f3495168eda4?source=email-602672f81880-1782689141895-digest.reader--f3495168eda4----7-102------------------0d5ee3bc_d364_4472_a27a_d04cce23313f-1"
+          "label": "MCP-compress-router",
+          "url": "https://github.com/ameshkov/mcp-compress-router"
         },
         {
-          "label": "Medium Digest",
-          "url": "https://mail.google.com/mail/#all/19f119b0b146faef"
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48721511"
+        }
+      ]
+    },
+    {
+      "id": "off-grid-local-ai-mac-20260629",
+      "kind": "signal",
+      "title": "Off Grid：本地 AI 套件的重点是离线端点，而不是又一个聊天壳",
+      "source": "GitHub / HN · 2026-06-29",
+      "sourceStatus": "高质量讨论",
+      "summary": "Off Grid 在 HN 上展示了一个 macOS 本地 AI 套件：llama.cpp 文本、stable-diffusion.cpp 图像、Whisper 语音、Kokoro TTS、LanceDB，并暴露本地 OpenAI-compatible endpoint `127.0.0.1:7878/v1`。它还早、热度不高，但“离线 + 本地端点 + 多模态工具面”贴近你本地 ASR/字幕和低成本 agent loop 的方向。",
+      "why": "如果本地模型栈能以 OpenAI-compatible endpoint 方式接入 Codex/脚本，价值在可替换性、隐私和无 token 成本循环。",
+      "thought": "先只看架构和端点兼容性；不要因为“全家桶”功能多就高估成熟度，重点检查模型下载、离线承诺和许可。",
+      "priority": 71,
+      "links": [
+        {
+          "label": "Off Grid GitHub",
+          "url": "https://github.com/off-grid-ai"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48720845"
         }
       ]
     },
