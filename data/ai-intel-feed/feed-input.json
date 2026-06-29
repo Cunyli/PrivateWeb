@@ -1,7 +1,7 @@
 {
   "date": "2026-06-29",
-  "overview": "今天主线是 GLM-5.2 从榜单热度进入安全/代码基准争议、agent 凭证边界、LLM judge 评估，以及继续跟进 USE 论文和个人待处理。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；Medium、LinkedIn 只作线索；OpenAI News curl 受 Cloudflare 限制；0 条候选因缺少 URL 被跳过。",
+  "overview": "今天主线是 GLM-5.2 的开权重替代争议、agent 工具/凭证边界、LLM judge 评估，以及新增 Stockholm/remote 职位筛选。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；Medium、LinkedIn 只作线索；OpenAI News 未发现比 HP 案例更高优先级更新；0 条候选因缺少 URL 被跳过。",
   "blocks": [
     {
       "id": "glm52-semgrep-cyber-benchmark-20260629",
@@ -108,23 +108,23 @@
       ]
     },
     {
-      "id": "claude-cowork-deliverables-20260629",
+      "id": "herdr-agent-multiplexer-20260629",
       "kind": "signal",
-      "title": "Claude Cowork 101：把 agent 结果当 deliverable 管，而不是聊天",
-      "source": "Medium · 2026-06-29",
-      "sourceStatus": "线索",
-      "summary": "今天 Medium Digest 里有一篇 41 分钟的 Claude cowork/automated workflows 长文。它不一定需要完整读完，但标题方向贴合你当前 Codex 使用方式：agent 价值不在多轮闲聊，而在能不能交付可检查的文件、命令结果、日志、PR 或报告。",
-      "why": "这和你的自动化要求一致：统一刷新、结构化 JSON、构建验证、只提交相关文件，比“写一段总结”更可靠。",
-      "thought": "作为工作流文章只扫目录和例子；如果只是泛泛讲 prompt，可以直接丢弃。",
-      "priority": 66,
+      "title": "Herdr：terminal agent multiplexer 值得看的是并行编排边界",
+      "source": "GitHub / HN · 2026-06-29",
+      "sourceStatus": "高质量讨论",
+      "summary": "Herdr 是一个在终端里管理多个 coding agent 的开源工具，HN 讨论集中在多 agent 并行、任务隔离、输出汇总和人类审查成本。它不是模型能力新闻，但很贴近你当前 Codex 自动化和长任务调度的实际问题。",
+      "why": "当 agent 从单线程助手变成多个并行 worker，真正难点会变成上下文切分、文件冲突、权限边界和验收证据。",
+      "thought": "先看 README 的工作流模型和 HN 的失败模式讨论；如果只是多开终端而没有验收机制，可以直接丢弃。",
+      "priority": 67,
       "links": [
         {
-          "label": "Claude Cowork 101",
-          "url": "https://medium.com/@yousefhosni/claude-cowork-101-from-prompts-to-deliverables-automated-workflows-42f31d73a57f?source=email-602672f81880-1782689141895-digest.reader-5517fd7b58a6-42f31d73a57f----6-109------------------0d5ee3bc_d364_4472_a27a_d04cce23313f-1"
+          "label": "Herdr GitHub",
+          "url": "https://github.com/ogulcancelik/herdr"
         },
         {
-          "label": "Medium Digest",
-          "url": "https://mail.google.com/mail/#all/19f119b0b146faef"
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48714802"
         }
       ]
     },
@@ -167,31 +167,35 @@
       ]
     },
     {
-      "id": "action-linkedin-jobs-revolut-mckinsey-20260629",
+      "id": "action-linkedin-jobs-tandem-polymodal-20260629",
       "kind": "action",
-      "title": "职位筛选：Revolut NLP DL 与 McKinsey Tech & AI",
-      "source": "LinkedIn Job Alerts · 2026-06-28",
+      "title": "职位筛选：Tandem Health 与 Polymodal",
+      "source": "LinkedIn Job Alerts · 2026-06-29",
       "sourceStatus": "行动项",
-      "summary": "LinkedIn 继续推 Revolut `Data Scientist (NLP Deep Learning Engineer)` 和 McKinsey `Junior Associate - Tech & AI`。Revolut 更贴 NLP/deep learning 技术线；McKinsey 更像咨询/tech strategy，需要先判断签证、地点、语言和岗位实际技术含量。",
-      "why": "职位永远单独处理；这两条比泛泛 Data Engineer / social notification 更值得快速筛。",
-      "thought": "先各用 5 分钟看职责和申请门槛，不合适就丢弃，不要让它们挤占主信息流。",
-      "priority": 62,
+      "summary": "今天新增两条更贴近的 LinkedIn 职位：Tandem Health `AI Engineer` / `Software Engineer - Audio` 在 Stockholm，Polymodal `Machine Learning Research Engineer` 为 Amsterdam Area remote。Tandem 更贴医疗语音/音频产品线；Polymodal 更像 research-engineering/founding role，需要先看远程范围和签证限制。",
+      "why": "这两条比昨天的泛咨询/泛 NLP alert 更接近你的 speech AI、health biomarkers 和研究工程背景。",
+      "thought": "先各用 5 分钟看职责、地点/remote、签证和 audio/health 相关度；不合适就丢弃。",
+      "priority": 70,
       "links": [
         {
-          "label": "Revolut job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4372583967/?trackingId=z%2BLrcPXEUhQ4yZ%2Bk44MCEw%3D%3D&refId=fAkDbN2QJz8hRbP0umniLw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BQr8d9FkkRIG%2BZCY2A9iREQ%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3a_PdLMEL2mck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4372583967_ssid_15469705780_fmid_jp2m05~mqxgyp1e~0&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4372583967_ssid_15469705780_fmid_jp2m05~mqxgyp1e~0-null-jp2m05~mqxgyp1e~0-null-null&eid=jp2m05-mqxgyp1e-0&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjI4Y2NmZDg0MzkxYWY4ZjY5N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NmNkZmNhZWI1N2JmYTNiNzU3M2U4ZTA3ZjU4NjAwMzk0MjMzNjNjMzhkZmI0OWMxLDEsMQ%3D%3D"
+          "label": "Tandem AI Engineer",
+          "url": "https://www.linkedin.com/comm/jobs/view/4434284212/?trackingId=ob3O5LUGRdWMecKWtpWK3A%3D%3D&refId=IqgPqeijVVwaO7ziu93ohA%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3B2jDNdakuRE6zo5Bmh0fUcw%3D%3D&midToken=AQFFuKiydP0yRg&midSig=1hJe803j_rnIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434284212_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434284212_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6-null-jp2m05~mqz0ov5t~v6-null-null&eid=jp2m05-mqz0ov5t-v6&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjM4ZGNiZDQ0NzliYWE4YzZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NGRlYWJkZTcwMGFkZDNhNjViMmM3ZDdlYzdiYTkxNzhiNDlkMDFkMzUxOWY3OTFjLDEsMQ%3D%3D"
         },
         {
-          "label": "McKinsey job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4333309718/?trackingId=yBdrCib%2FZSjPG%2FxRIWsfrw%3D%3D&refId=qI8O2qBaW7b80oabajIkqw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BGmFJagS6SiSHf4eMNH0IxA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=0W-7bwCsYWmsk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4333309718_ssid_15477663556_fmid_jp2m05~mqxl90b0~38&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4333309718_ssid_15477663556_fmid_jp2m05~mqxl90b0~38-null-jp2m05~mqxl90b0~38-null-null&eid=jp2m05-mqxl90b0-38&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjI4Y2M3ZDA0MzllYTk4ZTZhN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NDBkN2UyZjg1Y2Y5ZjdhNGZlODA1Y2MxNGNlMTI4ZmFhOWVhNmNhNThlNzRhODg0LDEsMQ%3D%3D"
+          "label": "Tandem Audio Engineer",
+          "url": "https://www.linkedin.com/comm/jobs/view/4434270598/?trackingId=UgUScoUs7oH%2BD9NEM7bRUA%3D%3D&refId=IqgPqeijVVwaO7ziu93ohA%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3B2jDNdakuRE6zo5Bmh0fUcw%3D%3D&midToken=AQFFuKiydP0yRg&midSig=1hJe803j_rnIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4434270598_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4434270598_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6-null-jp2m05~mqz0ov5t~v6-null-null&eid=jp2m05-mqz0ov5t-v6&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjM4ZGNiZDQ0NzliYWE4YzZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NGRlYWJkZTcwMGFkZDNhNjViMmM3ZDdlYzdiYTkxNzhiNDlkMDFkMzUxOWY3OTFjLDEsMQ%3D%3D"
         },
         {
-          "label": "Revolut Gmail",
-          "url": "https://mail.google.com/mail/#all/19f0d231a22fcc57"
+          "label": "Polymodal job",
+          "url": "https://www.linkedin.com/comm/jobs/view/4434277420/?trackingId=CTvqCBY5TdIgjep89SqNhQ%3D%3D&refId=%2FuDVHbYwbJAFrBjhQH8UCQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3Bsung2JrpRGmI3U4kpiBDaA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=0MwmbFZ7ZynIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434277420_ssid_15469705780_fmid_jp2m05~mqywejpl~gu&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434277420_ssid_15469705780_fmid_jp2m05~mqywejpl~gu-null-jp2m05~mqywejpl~gu-null-null&eid=jp2m05-mqywejpl-gu&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjM4ZWM2ZDI0NDliYTc4OTY4N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NmRkM2RmZTU0YzkyY2U5OTJiZjdhMzFkNmMxOTNlZDVkYWQ5NDY5M2E3MWJjYTdmLDEsMQ%3D%3D"
         },
         {
-          "label": "McKinsey Gmail",
-          "url": "https://mail.google.com/mail/#all/19f0d90f01cdc4b2"
+          "label": "Tandem Gmail",
+          "url": "https://mail.google.com/mail/#all/19f12b7d24b5b6bf"
+        },
+        {
+          "label": "Polymodal Gmail",
+          "url": "https://mail.google.com/mail/#all/19f1249cb4e13b49"
         }
       ]
     }
