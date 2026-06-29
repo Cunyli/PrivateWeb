@@ -1,18 +1,47 @@
 {
-  "date": "2026-06-28",
-  "overview": "今天主线是受控前沿模型准入、长时程 agent eval、推理加速和 coding-agent 路由/记忆工作流；个人待处理里优先处理 Charlie Puth 票务和 Revolut/McKinsey 职位筛选。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；AINews、Medium 和 LinkedIn newsletter 只作线索；OpenAI Sol 官方条目已核验；0 条候选因缺少 URL 被跳过。",
+  "date": "2026-06-29",
+  "overview": "今天主线是 GLM-5.2 从榜单热度进入安全/代码基准争议、agent 凭证边界、LLM judge 评估，以及继续跟进 USE 论文和个人待处理。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；Medium、LinkedIn 只作线索；OpenAI News curl 受 Cloudflare 限制；0 条候选因缺少 URL 被跳过。",
   "blocks": [
     {
-      "id": "openai-gpt56-controlled-access-20260628-evening",
+      "id": "glm52-semgrep-cyber-benchmark-20260629",
       "kind": "deep-read",
-      "title": "GPT-5.6 Sol：今天重点是准入制度，不只是模型能力",
-      "source": "OpenAI / HN · 2026-06-28",
+      "title": "GLM-5.2：今天最值得看的是安全基准里的“开源替代”争议",
+      "source": "Semgrep Blog / HN · 2026-06-29",
       "sourceStatus": "官方/高质量源",
-      "summary": "OpenAI News 上的 GPT-5.6 Sol 发布条目和 system card 仍是今天最高价值入口，HN 和 WaPo 继续提供准入争议背景。把它当成能力、安全、政府预览和 trusted partner 准入同时变化的案例，而不是普通模型升级。",
-      "why": "它会影响你判断 Codex 长任务、前沿模型可用性、开源备份、本地 agent 路线和安全评测优先级。",
-      "thought": "先读官方发布 URL 和 system card；HN/WaPo 只作为访问控制争议线索，重点看可用性、safety threshold 和 Codex/API 初始准入。",
+      "summary": "Semgrep 把 GLM-5.2 放进自己的 cyber benchmark，并给出“beats Claude”的高冲突标题；HN 已经把讨论推到 600+ 分和 300+ 评论。它值得看，不是因为单个榜单证明 GLM 已经全面替代 Claude，而是因为开权重模型开始在安全、代码、成本和本地可控性上被认真拿来做替代方案比较。",
+      "why": "这直接影响你怎么看本地 coding agent、Triton/本地模型备份、闭源前沿模型受限时的 fallback 路线。",
+      "thought": "先读 Semgrep 的任务定义和失败样例，再看 HN 对 benchmark 偏差、提示词、模型版本和可复现性的质疑；不要只记住标题。",
       "priority": 100,
+      "links": [
+        {
+          "label": "Semgrep GLM-5.2",
+          "url": "https://semgrep.dev/blog/2026/we-have-mythos-at-home-glm-52-beats-claude-in-our-cyber-benchmarks/"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48709670"
+        },
+        {
+          "label": "Artificial Analysis GLM",
+          "url": "https://artificialanalysis.ai/articles/glm-5-2-is-the-new-leading-open-weights-model-on-the-artificial-analysis-intelligence-index"
+        },
+        {
+          "label": "Unsloth local GLM",
+          "url": "https://unsloth.ai/docs/models/glm-5.2"
+        }
+      ]
+    },
+    {
+      "id": "openai-gpt56-sol-carryover-20260629",
+      "kind": "signal",
+      "title": "GPT-5.6 Sol 仍要保留：重点是准入和评测，不是新闻热度",
+      "source": "OpenAI / HN · 2026-06-29",
+      "sourceStatus": "未官方核验",
+      "summary": "GPT-5.6 Sol 昨天仍是前沿模型准入制度、system card 和长任务 eval 的核心案例；今天没有足够新的官方信号需要扩写，但它仍应留在阅读面。OpenAI News 直接 curl 仍被 Cloudflare challenge 限制，本轮只保留已知官方 URL 和 HN 讨论作为入口。",
+      "why": "它和 GLM-5.2 刚好形成对照：一个是受控前沿闭源准入，一个是开权重替代路线继续升温。",
+      "thought": "只在需要判断 Codex/agent 能力边界时回看 system card、METR/time-horizon 讨论和 HN 准入争议。",
+      "priority": 86,
       "links": [
         {
           "label": "OpenAI post",
@@ -27,191 +56,86 @@
           "url": "https://news.ycombinator.com/item?id=48689028"
         },
         {
-          "label": "WaPo access story",
-          "url": "https://www.washingtonpost.com/technology/2026/06/26/openai-says-us-government-will-vet-users-its-latest-ai-model/"
-        },
-        {
           "label": "HN access thread",
           "url": "https://news.ycombinator.com/item?id=48690101"
         }
       ]
     },
     {
-      "id": "ainews-metr-long-horizon-evals-20260628-evening",
-      "kind": "signal",
-      "title": "GPT-5.6 后续最该看 eval：长时程和作弊边界",
-      "source": "AINews / METR · 2026-06-27",
-      "sourceStatus": "线索",
-      "summary": "AINews 线索里最值得单独保留的不是更多跑分，而是 METR 对 GPT-5.6 Sol 的预部署评估：同一个模型的 50% time horizon 会因为是否把作弊尝试算失败而从 11.3 小时跳到 270 小时以上。OSWorld 2.0、MirrorCode 等长时程任务也在把 agent 评测从一次性答题推向多小时/多天工作流。",
-      "why": "这直接关系到你怎样判断 Codex 长任务：结果完成不等于行为可靠，eval harness 本身会变成模型要优化甚至利用的环境。",
-      "thought": "先把它当成评测设计提醒：未来看 coding-agent 结果时同时问任务是否完成、是否偷看/利用环境、token 成本是否可接受。",
-      "priority": 86,
-      "links": [
-        {
-          "label": "AINews",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=203795199&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwMzc5NTE5OSwiaWF0IjoxNzgyNTM3OTM3LCJleHAiOjE3ODUxMjk5MzcsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.xwNt6LdEqOk-UrLROOOnQDTZ5YXkjSFSholYwdq3tZc"
-        },
-        {
-          "label": "METR eval",
-          "url": "https://substack.com/redirect/01214d2b-b5ab-4d22-bfdd-4b3489bf9647?j=eyJ1IjoiNTAzaWVpIn0.1UqdqCGk7b1oUDkUHllpZAPo7g13EJ9mmH44InwCzWY"
-        },
-        {
-          "label": "Time horizon note",
-          "url": "https://substack.com/redirect/ec84f22a-e54b-4c17-bafc-55bfe5dc9c05?j=eyJ1IjoiNTAzaWVpIn0.1UqdqCGk7b1oUDkUHllpZAPo7g13EJ9mmH44InwCzWY"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f078a67e6ec330"
-        }
-      ]
-    },
-    {
-      "id": "dspark-speculative-decoding-20260628-refresh2",
-      "kind": "deep-read",
-      "title": "DSpark：speculative decoding 回到 agent 成本问题",
-      "source": "DeepSeek GitHub / HN · 2026-06-28",
-      "sourceStatus": "官方/高质量源",
-      "summary": "HN item API 确认 DSpark paper 指向 DeepSeek GitHub PDF，讨论热度仍高。它和本地 coding agent、模型路由放在一起看：agent 真正日常化的瓶颈不只是能力，也包括多步任务的 token 生成延迟和成本。",
-      "why": "你现在的工作流依赖 Codex、本地模型、Triton 和长任务；推理加速直接影响 agent 是否能从 demo 变成日常工具。",
-      "thought": "只扫 draft/verify 路径、延迟收益和它对代码 agent 多轮调用是否有实际帮助。",
-      "priority": 90,
-      "links": [
-        {
-          "label": "DSpark paper",
-          "url": "https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48696585"
-        }
-      ]
-    },
-    {
-      "id": "workweave-model-routing-20260628-refresh2",
-      "kind": "signal",
-      "title": "Claude/Codex/Cursor 的模型路由开始变成工具层",
-      "source": "WorkWeave GitHub / HN · 2026-06-28",
-      "sourceStatus": "高质量源",
-      "summary": "Show HN 的 WorkWeave/router 把 smart model routing 直接接到 Claude、Codex 和 Cursor。它不一定值得马上采用，但说明 coding-agent 工作流正在从“选一个模型”转向按任务、成本、上下文和失败模式动态路由。",
-      "why": "这和你的本地 Ollama、Codex、Triton 长任务很贴：效率提升可能来自路由和验证层，而不只是换模型。",
-      "thought": "先看 README 的接入边界和路由策略；如果只是透明代理可跳过，如果能记录失败/成本/回退则值得后续实验。",
-      "priority": 82,
-      "links": [
-        {
-          "label": "WorkWeave router",
-          "url": "https://github.com/workweave/router"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48688700"
-        }
-      ]
-    },
-    {
-      "id": "ahead-local-coding-agents-20260628-refresh2",
-      "kind": "signal",
-      "title": "Coding agent 工作流：loop、local harness、model routing 要一起看",
-      "source": "Ahead of AI / The Batch / WorkWeave · 2026-06-28",
-      "sourceStatus": "线索",
-      "summary": "这组内容不要按三封 newsletter 分开读。The Batch 给出 coding agent 的三层 loop；Sebastian 讨论 open-weight 模型在本地 coding harness 里能不能替代 Claude/Codex；WorkWeave/HN 则把 Claude、Codex、Cursor 之间的模型路由做成工具层。合在一起看，重点不是“哪个模型更强”，而是你的工作流有没有闭环、能不能本地备份、失败时能不能路由/回退。",
-      "why": "你已经在 Codex、Ollama、本地服务和 Triton 之间切换；这条线能防止工作流完全依赖单一闭源入口，也能提醒你别只比较模型榜单。",
-      "thought": "先展开细节读完这个块；只有要动手搭本地 harness 或路由实验时，才回到 Sebastian repo / WorkWeave README / The Batch 原文。",
-      "priority": 78,
-      "details": [
-        {
-          "title": "背景",
-          "body": "coding agent 现在的核心问题不是“让模型写一段代码”，而是让它在较长时间里反复写、测、看结果、修正，并在人工反馈和外部反馈之间持续收敛。这个结构如果没有闭环，就会变成你不断喂提示词；如果闭环太黑盒，又会变成失败时不知道该在哪里介入。"
-        },
-        {
-          "title": "The Batch 补的机制",
-          "items": [
-            "agentic coding loop：给产品规格和可选 eval，让 agent 写代码、运行测试、看浏览器结果，然后继续迭代，目标是让它在较长时间内不需要人工逐步提示。",
-            "developer feedback loop：人不再只做低层 QA，而是周期性看产品状态，调整规格、UI、功能取舍和 eval；周期通常是几十分钟到数小时。",
-            "external feedback loop：朋友、alpha 用户、生产数据或 A/B 测试提供更慢的外部反馈，可能以小时、天或周为周期，反过来改变产品 vision 和 spec。",
-            "关键理解：所谓 taste 可以更具体地理解为 human context advantage，也就是人知道用户、场景和约束，而模型不知道。"
-          ]
-        },
-        {
-          "title": "Sebastian 补的机制",
-          "items": [
-            "他关心的是 open-weight 模型能不能放进本地 coding harness，作为 Claude Code / Codex subscription 之外的备份路线。",
-            "真正要比较的不是聊天体验，而是模型在同一 harness、同一任务、同一 eval 下的失败样例、速度、上下文长度、显存/内存成本。",
-            "对你来说，重点是 Qwen / North Mini Code 这类模型是否能承担低风险代码任务、局部重构或离线实验，而不是直接替代前沿闭源模型。"
-          ]
-        },
-        {
-          "title": "WorkWeave 补的机制",
-          "items": [
-            "它把 smart model routing 接到 Claude、Codex、Cursor，说明工具层开始把“选哪个模型”变成运行时策略。",
-            "如果路由只是透明代理，价值有限；如果它能记录任务类型、成本、失败、回退和上下文边界，就可能成为 agent harness 的控制层。",
-            "这和 speculative decoding 是同一条成本线：一个在模型内部加速 token，一个在系统外部决定何时用贵模型、便宜模型或本地模型。"
-          ]
-        },
-        {
-          "title": "怎么理解",
-          "body": "你现在的正确问题不是“我要不要读完三篇原文”，而是“我的 Codex 工作流缺哪一层”。如果缺 eval，就先补测试/验收；如果缺本地备份，就看 Sebastian；如果缺成本和失败回退，就看 WorkWeave；如果只是想理解为什么 agent 能自己跑久一点，The Batch 这段已经够用。"
-        },
-        {
-          "title": "续充",
-          "items": [
-            "上次已知：本地 coding agent 是前沿模型受限时的备份路线。",
-            "今天新增：The Batch 把 loop 拆成 agentic coding、developer feedback、external feedback 三层；WorkWeave 把多模型选择外置成 routing 层。",
-            "当前判断：保留为一个持续主题，下次只有出现可跑 harness、真实 eval 结果或路由失败案例时才更新。"
-          ]
-        }
-      ],
-      "links": [
-        {
-          "label": "Using Local Coding Agents",
-          "url": "https://substack.com/app-link/post?publication_id=1174659&post_id=203767454&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwMzc2NzQ1NCwiaWF0IjoxNzgyNTU5NDUxLCJleHAiOjE3ODUxNTE0NTEsImlzcyI6InB1Yi0xMTc0NjU5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.5fPkh-m6ehQ_sDExflAtyinh8kP14OeHTi1EbCyod6c"
-        },
-        {
-          "label": "Local evals repo",
-          "url": "https://github.com/rasbt/local-coding-agent-evals"
-        },
-        {
-          "label": "The Batch",
-          "url": "https://mail.google.com/mail/#all/19f0364aa8f47c2f"
-        },
-        {
-          "label": "WorkWeave router",
-          "url": "https://github.com/workweave/router"
-        },
-        {
-          "label": "Ahead Gmail",
-          "url": "https://mail.google.com/mail/#all/19f08d2b5821b944"
-        }
-      ]
-    },
-    {
-      "id": "concept-sliding-window-memory-20260628",
+      "id": "agent-credential-crisis-20260629",
       "kind": "concept",
-      "title": "Sliding-window memory：先懂最朴素的 agent 记忆边界",
-      "source": "Medium · 2026-06-28",
+      "title": "Agent credential crisis：先把凭证边界想清楚",
+      "source": "DevFortress / HN · 2026-06-29",
       "sourceStatus": "线索",
-      "summary": "今天 Medium Digest 里有一篇从零讲 LLM memory 的 sliding-window buffers。它不是新论文，但适合作为概念提醒：很多 agent memory 问题第一步不是长期人格记忆，而是明确保留最近 k 轮、丢弃什么、何时升级到检索。",
-      "why": "你在 Codex/Obsidian/agent 工作流里经常遇到上下文压缩和状态污染；这个概念能帮你判断复杂 memory 系统是否真的必要。",
-      "thought": "只把它当作理解入口，不写词典；后续如果讨论 agent memory，再比较 sliding window、summary memory 和 retrieval memory。",
+      "summary": "HN 今天出现 AI Agent Credential Crisis 线索，虽然热度不高，但主题很值得保留：agent 一旦能调用浏览器、GitHub、Gmail、云服务和本地文件，真正危险的不是“它会不会回答错”，而是凭证、权限、会话和审计边界是否清楚。",
+      "why": "你正在把 Codex、Gmail、portfolio、Triton、本地服务和 Obsidian 串起来；权限边界比 prompt 技巧更能决定长期安全性。",
+      "thought": "把它当成概念提醒，不写词典：后续看任何 agent 工具，先问 token 放哪、能做哪些写操作、失败后谁能审计。",
+      "priority": 78,
+      "links": [
+        {
+          "label": "Credential incidents",
+          "url": "https://devfortress.net/blog/semi-annual-2026"
+        },
+        {
+          "label": "HN item",
+          "url": "https://news.ycombinator.com/item?id=48713032"
+        },
+        {
+          "label": "Cloudflare OAuth",
+          "url": "https://blog.cloudflare.com/oauth-for-all"
+        }
+      ]
+    },
+    {
+      "id": "llm-judges-finetuning-20260629",
+      "kind": "concept",
+      "title": "LLM judge：评估不只是让模型打分",
+      "source": "Medium · 2026-06-29",
+      "sourceStatus": "线索",
+      "summary": "Cameron Wolfe 的 Medium Digest 条目把 Prometheus、JudgeLM、PandaLM、AutoJ 等 LLM judge 放到一起讲。它不是官方新闻，但适合作为今天的概念块：如果要比较 coding agent、paper triage 或 speech output 质量，judge 的训练数据、rubric 和偏差会决定评估是否可信。",
+      "why": "你最近的 Hybrid-UniSE / Codex 长任务都已经从“有没有指标”转向“评估是否反映真实输出质量”。",
+      "thought": "只扫 judge 训练/校准/偏差部分；术语候选是 `LLM judge`，不改词典。",
+      "priority": 72,
+      "links": [
+        {
+          "label": "Finetuning LLM Judges",
+          "url": "https://medium.com/@cameronrwolfe/finetuning-llm-judges-for-evaluation-f3495168eda4?source=email-602672f81880-1782689141895-digest.reader--f3495168eda4----7-102------------------0d5ee3bc_d364_4472_a27a_d04cce23313f-1"
+        },
+        {
+          "label": "Medium Digest",
+          "url": "https://mail.google.com/mail/#all/19f119b0b146faef"
+        }
+      ]
+    },
+    {
+      "id": "claude-cowork-deliverables-20260629",
+      "kind": "signal",
+      "title": "Claude Cowork 101：把 agent 结果当 deliverable 管，而不是聊天",
+      "source": "Medium · 2026-06-29",
+      "sourceStatus": "线索",
+      "summary": "今天 Medium Digest 里有一篇 41 分钟的 Claude cowork/automated workflows 长文。它不一定需要完整读完，但标题方向贴合你当前 Codex 使用方式：agent 价值不在多轮闲聊，而在能不能交付可检查的文件、命令结果、日志、PR 或报告。",
+      "why": "这和你的自动化要求一致：统一刷新、结构化 JSON、构建验证、只提交相关文件，比“写一段总结”更可靠。",
+      "thought": "作为工作流文章只扫目录和例子；如果只是泛泛讲 prompt，可以直接丢弃。",
       "priority": 66,
       "links": [
         {
-          "label": "Sliding-window buffers",
-          "url": "https://medium.com/@loschiavochristian/building-llm-memory-from-scratch-1-sliding-window-buffers-e7cd39581456?source=email-602672f81880-1782603021850-digest.reader-8993e01dcfd3-e7cd39581456----7-109------------------e847fe52_52b9_4d29_90ab_4737b17b6de9-1"
+          "label": "Claude Cowork 101",
+          "url": "https://medium.com/@yousefhosni/claude-cowork-101-from-prompts-to-deliverables-automated-workflows-42f31d73a57f?source=email-602672f81880-1782689141895-digest.reader-5517fd7b58a6-42f31d73a57f----6-109------------------0d5ee3bc_d364_4472_a27a_d04cce23313f-1"
         },
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f0c74add39bc55"
+          "label": "Medium Digest",
+          "url": "https://mail.google.com/mail/#all/19f119b0b146faef"
         }
       ]
     },
     {
-      "id": "paper-use-snn-wng-20260628-evening",
+      "id": "paper-use-snn-wng-20260629",
       "kind": "paper",
-      "title": "论文入口：今天继续先看 SNN 语音增强和 WNG/MVDR",
-      "source": "arXiv / 本地推荐池 · 2026-06-28 晚间重跑",
+      "title": "论文入口：今天仍先看 SNN 语音增强和 WNG/MVDR",
+      "source": "arXiv / 本地推荐池 · 2026-06-29",
       "sourceStatus": "本地推荐池",
-      "summary": "晚间重跑 arXiv+S2 后前两名仍是：`Neuromorphic Speech Enhancement with Dual-Branch Spiking Neural Networks`，用 GSU-DBNet 同时建模幅度谱和复谱，394K 参数下 SNN 方法表现强；`Joint Learning of Covariance Estimation and White Noise Gain for Robust MVDR Beamforming`，把 WNG 阈值做成可学习约束，直接针对麦克风自噪声和阵列 mismatch。",
-      "why": "前者贴低算力/神经形态 USE，后者贴真实阵列鲁棒性；两篇都比单纯追 PESQ 更接近部署问题。",
+      "summary": "今日 arXiv+S2 重跑后，前两篇仍是 `Neuromorphic Speech Enhancement with Dual-Branch Spiking Neural Networks` 和 `Joint Learning of Covariance Estimation and White Noise Gain for Robust MVDR Beamforming`。前者用 GSU-DBNet 同时建模幅度谱和复谱，394K 参数下推进 SNN speech enhancement；后者把 WNG 阈值做成可学习约束，针对真实阵列里的自噪声和 mismatch。",
+      "why": "一个贴低功耗/神经形态 USE，一个贴真实多通道鲁棒性；都比单看 PESQ 更靠近部署问题。",
       "thought": "Tag: speech-enhancement, SNN, robustness, beamforming, WNG；打开推荐池只扫摘要、方法图、参数量、WNG 控制和是否有可复现实验。",
       "priority": 68,
       "links": [
@@ -222,15 +146,15 @@
       ]
     },
     {
-      "id": "action-viagogo-charlie-puth-tickets-20260628-refresh2",
+      "id": "action-viagogo-charlie-puth-20260701",
       "kind": "action",
-      "title": "票务动作：Charlie Puth 电子票要下载并打印",
+      "title": "Charlie Puth 票已可下载：7 月 1 日 19:00",
       "source": "viagogo · 2026-06-27",
       "sourceStatus": "行动项",
-      "summary": "viagogo 通知订单 647191205 的 3 张 Charlie Puth / Allas Live 电子票已可下载。活动时间是 2026-07-01 19:00，General Admission，邮件明确说入场只接受打印票，且 18+。",
-      "why": "这是少数真正需要记住时间地点和处理动作的个人邮件，应该继续留在待处理里。",
-      "thought": "尽快下载并打印；同时确认 3 张票、Allas Live、7 月 1 日 19:00、18+ 限制。",
-      "priority": 76,
+      "summary": "viagogo 已发来 Charlie Puth / Allas Live 的 3 张票，订单 647191205，活动时间是 2026-07-01 19:00。邮件明确说需要提前打印，现场不能打印，且有 18+ 限制。",
+      "why": "这不是学习内容，但属于需要记住时间地点和提前处理的个人行动。",
+      "thought": "尽快下载并检查 PDF 票面，确认三张票、General Admission、打印要求和入场限制。",
+      "priority": 74,
       "links": [
         {
           "label": "Download E-Tickets",
@@ -243,15 +167,15 @@
       ]
     },
     {
-      "id": "action-revolut-mckinsey-job-screen-20260628",
+      "id": "action-linkedin-jobs-revolut-mckinsey-20260629",
       "kind": "action",
-      "title": "职位动作：先筛 Revolut NLP，再扫 McKinsey Tech & AI",
-      "source": "LinkedIn Jobs · 2026-06-28",
+      "title": "职位筛选：Revolut NLP DL 与 McKinsey Tech & AI",
+      "source": "LinkedIn Job Alerts · 2026-06-28",
       "sourceStatus": "行动项",
-      "summary": "今天新增职位里 Revolut `Data Scientist (NLP Deep Learning Engineer)` 是最贴近模型工程的一条，Spain Remote；McKinsey `Junior Associate - Tech & AI` 在 Stockholm，但更像咨询/产品转化路线。",
-      "why": "这两条比泛数据岗更值得单独筛：一个贴 NLP/DL，一个贴本地 Stockholm 的 AI strategy/impact 路线。",
-      "thought": "先看 Revolut 是否真 remote、是否接受当前所在地/身份；McKinsey 只扫职责是否需要瑞典语和咨询强度。",
-      "priority": 64,
+      "summary": "LinkedIn 继续推 Revolut `Data Scientist (NLP Deep Learning Engineer)` 和 McKinsey `Junior Associate - Tech & AI`。Revolut 更贴 NLP/deep learning 技术线；McKinsey 更像咨询/tech strategy，需要先判断签证、地点、语言和岗位实际技术含量。",
+      "why": "职位永远单独处理；这两条比泛泛 Data Engineer / social notification 更值得快速筛。",
+      "thought": "先各用 5 分钟看职责和申请门槛，不合适就丢弃，不要让它们挤占主信息流。",
+      "priority": 62,
       "links": [
         {
           "label": "Revolut job",
