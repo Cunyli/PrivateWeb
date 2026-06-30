@@ -1,7 +1,7 @@
 {
   "date": "2026-06-30",
-  "overview": "今天最值得看的是 agent 产出证据与人类签署发布策略的边界；同时保留本地/开源模型、HF 研究博客、GPU-free inference、USE 论文入口和 3 个明确行动项。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / arXiv；Medium、LinkedIn、HF Daily Papers 只作线索；OpenAI News 仍受 Cloudflare 限制；S2 全量限流；0 条行动候选因缺少 URL 被跳过。",
+  "overview": "今天最值得看仍是 agent 产出证据与人类签署发布策略的边界；中午新增重点是 DataCrunch 面试改为 15:00-16:00、Skills/SkillSpec 可验证性，以及 Jobgether/Acclaim 职位候选。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / arXiv / S2；AINews、Medium、LinkedIn 只作线索；OpenAI News 仍受 Cloudflare 限制；0 条行动候选因缺少 URL 被跳过。",
   "blocks": [
     {
       "id": "cilock-agent-provenance-20260630",
@@ -113,23 +113,27 @@
       ]
     },
     {
-      "id": "longcat20-moe-20260630",
+      "id": "skillspec-agent-skills-20260630",
       "kind": "signal",
-      "title": "LongCat-2.0：大 MoE 发布只看 active 参数和部署暗示",
-      "source": "LongCat Blog / HN · 2026-06-30",
+      "title": "SkillSpec：agent skill 不能只靠 README 信任",
+      "source": "SkillSpec / HN · 2026-06-30",
       "sourceStatus": "高质量讨论",
-      "summary": "HN front page 出现 LongCat-2.0：1.6T total / 48B active 的 MoE 模型。今天不需要把它当成完整模型评测来读；更有价值的是看 total params、active params、routing、上下文和推理成本之间怎么叙述。",
-      "why": "MoE 的真实部署成本不会由 total parameter 单独决定；这会影响你判断开源/开权重模型在本地或云端 fallback 中到底有多可用。",
-      "thought": "先扫 model card/blog 的 active parameter、上下文长度、推理形态和 benchmark 设置，再决定是否值得后续深读。",
-      "priority": 67,
+      "summary": "HN 中午出现 SkillSpec，核心信号是把 agent skills 是否按 `SKILL.md` 声明运行变成可测试对象。结合 AINews 今天反复提到的 Skills 主题，它提醒你：个人 Codex skills 以后不能只靠文字约定，关键技能应有最小可执行样例和验收检查。",
+      "why": "你现在的 automation、paper、Obsidian、Triton 工作流都依赖 skill 约束；可验证性会直接影响复用和长期维护成本。",
+      "thought": "先把它当作 skill 维护方向：只挑最高频技能补 smoke case，不要把所有技能一次性工程化。",
+      "priority": 68,
       "links": [
         {
-          "label": "LongCat-2.0",
-          "url": "https://longcat.chat/blog/longcat-2.0/"
+          "label": "SkillSpec",
+          "url": "https://skillspec.sh"
         },
         {
           "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48727116"
+          "url": "https://news.ycombinator.com/item?id=48730613"
+        },
+        {
+          "label": "AINews",
+          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204232690&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDIzMjY5MCwiaWF0IjoxNzgyODAyMTc3LCJleHAiOjE3ODUzOTQxNzcsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.rl7t6CB0CveepnkH1nmybBGnN-a4--RIOnioAyMQq68"
         }
       ]
     },
@@ -139,7 +143,7 @@
       "title": "论文入口：今天先扫 WQ-Fusion 和 StoRM noise mismatch",
       "source": "arXiv / 本地推荐池 · 2026-06-30",
       "sourceStatus": "本地推荐池",
-      "summary": "今日 arXiv fresh 检索返回 24 个新近候选，S2 因 429/500 全量限流。最值得扫的是 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation` 和 `A Variational-Flow Analysis of StoRM under Noise-Power Mismatch`：前者是 Whisper + Qwen 的跨域音频表示动态门控，后者直接讨论 diffusion speech enhancement 在噪声功率 mismatch 下的退化结构。",
+      "summary": "今日 arXiv fresh 检索返回 24 个新近候选，Semantic Scholar 本轮正常返回 20 个 hot 候选、合并后 38 个去重候选。最值得扫的是 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation` 和 `A Variational-Flow Analysis of StoRM under Noise-Power Mismatch`：前者是 Whisper + Qwen 的跨域音频表示动态门控，后者直接讨论 diffusion speech enhancement 在噪声功率 mismatch 下的退化结构。",
       "why": "一个贴跨域音频表示和 Audio Encoder Challenge，一个贴你最近关心的 noisy/shifted target、diffusion/flow SE 失败机制。",
       "thought": "Tag: audio-representation, cross-domain, speech-enhancement, diffusion-se, noise-mismatch；打开推荐池只扫摘要、方法图、mismatch 假设和是否有实验证据。",
       "priority": 69,
@@ -153,13 +157,13 @@
     {
       "id": "action-datacrunch-interview-20260701",
       "kind": "action",
-      "title": "DataCrunch 面试：明天 15:30",
-      "source": "Google Calendar / Gmail · 2026-06-29",
+      "title": "DataCrunch 面试：明天改为 15:00",
+      "source": "Google Calendar / Gmail · 2026-06-30",
       "sourceStatus": "行动项",
-      "summary": "Ruikang Tao 发来 DataCrunch 面试邀请：2026-07-01 15:30-16:30（Europe/Helsinki），参与者包括 Paul Chang，地点写为 Sanomatalo-5-16 / Scharm squark (4)，也提供 Google Meet。邮件提示该邀请尚不在日历中，需要你确认是否加入/回复。",
-      "why": "这是明确需要确认时间、地点和参会方式的个人行动，比普通职位 alert 更优先。",
-      "thought": "先把活动加入日历并确认参加；再准备 DataCrunch / GPU cloud / audio-ML 相关问题。",
-      "priority": 92,
+      "summary": "Ruikang Tao 更新了 DataCrunch 面试邀请：2026-07-01 15:00-16:00（Europe/Helsinki），原时间是 15:30-16:30；地点仍是 Sanomatalo-5-16 / Scharm squark (4)，也提供 Google Meet。邮件标记为时间已更改，需要按新时间确认日历/准备。",
+      "why": "这是明确的时间变更行动项，优先级高于普通职位 alert。",
+      "thought": "把准备窗口前移半小时：确认参加链接、地点、Google Meet，并预留 14:30 前完成 DataCrunch/GPU cloud 问题准备。",
+      "priority": 96,
       "links": [
         {
           "label": "Google Meet",
@@ -171,7 +175,7 @@
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f126b604f5678f"
+          "url": "https://mail.google.com/mail/#all/19f17f952fe17b45"
         }
       ]
     },
@@ -197,35 +201,27 @@
       ]
     },
     {
-      "id": "action-linkedin-jobs-polymodal-tandem-20260630",
+      "id": "action-linkedin-jobs-jobgether-acclaim-20260630",
       "kind": "action",
-      "title": "职位筛选：Polymodal / Tandem 仍最贴近",
-      "source": "LinkedIn Job Alerts · 2026-06-29",
+      "title": "职位筛选：Jobgether / Acclaim 新候选",
+      "source": "LinkedIn Job Alerts · 2026-06-30",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时没有比 Polymodal `Machine Learning Research Engineer`、Tandem Health `AI Engineer` / `Software Engineer - Audio` 更贴近的职位。Polymodal 更像 research-engineering/founding role；Tandem 更贴医疗语音/音频产品线。",
-      "why": "LinkedIn 新 alert 很多，但这组比 Telavox、泛数据科学家、促销或社交通知更接近你的 speech AI、health biomarkers 和研究工程背景。",
-      "thought": "先各用 5 分钟看职责、地点/remote、签证和 audio/health 相关度；不合适就丢弃。",
-      "priority": 70,
+      "summary": "中午新增 Jobgether `AI Engineer (Remote, International)`；同一 alert 里还有 Acclaim AI `Machine Learning Engineer (ASR)`、Hire Feed `AI Research Engineer` 等。相比泛 Data Engineer alert，Acclaim AI 的 ASR 方向最贴你的 speech AI 背景，Jobgether 需要先确认是否只是代发聚合岗位。",
+      "why": "职位类单独作为行动项；这批有原始 LinkedIn job URL，可快速筛掉低相关或聚合站岗位。",
+      "thought": "先看 Acclaim AI ASR 和 Jobgether 两个链接：确认职责、remote/visa、是否真实招聘方；不贴合就丢弃，不进入学习流。",
+      "priority": 72,
       "links": [
         {
-          "label": "Tandem AI Engineer",
-          "url": "https://www.linkedin.com/comm/jobs/view/4434284212/?trackingId=ob3O5LUGRdWMecKWtpWK3A%3D%3D&refId=IqgPqeijVVwaO7ziu93ohA%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3B2jDNdakuRE6zo5Bmh0fUcw%3D%3D&midToken=AQFFuKiydP0yRg&midSig=1hJe803j_rnIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434284212_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434284212_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6-null-jp2m05~mqz0ov5t~v6-null-null&eid=jp2m05-mqz0ov5t-v6&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjM4ZGNiZDQ0NzliYWE4YzZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NGRlYWJkZTcwMGFkZDNhNjViMmM3ZDdlYzdiYTkxNzhiNDlkMDFkMzUxOWY3OTFjLDEsMQ%3D%3D"
+          "label": "Jobgether AI Engineer",
+          "url": "https://www.linkedin.com/comm/jobs/view/4433657865/?trackingId=MR%2F2U4%2FhHNyO5xmGg4T3WA%3D%3D&refId=ypBShLkIw0%2BBpIPOtR47IA%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BHSd9IRu2TGeiYl3mr3OauA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=322CK2it82pck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433657865_ssid_15477663556_fmid_jp2m05~mr0budz1~gu&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433657865_ssid_15477663556_fmid_jp2m05~mr0budz1~gu-null-jp2m05~mr0budz1~gu-null-null&eid=jp2m05-mr0budz1-gu&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmM4ZmNhZDY0MzkxYWY4ZDZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTFjYWZmZTM0NzllZjdhMGFiMWM5NmY1OWM5ZDJiMWVkYzQwYTQxOTMyOWFlMGQwLDEsMQ%3D%3D"
         },
         {
-          "label": "Tandem Audio Engineer",
-          "url": "https://www.linkedin.com/comm/jobs/view/4434270598/?trackingId=UgUScoUs7oH%2BD9NEM7bRUA%3D%3D&refId=IqgPqeijVVwaO7ziu93ohA%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3B2jDNdakuRE6zo5Bmh0fUcw%3D%3D&midToken=AQFFuKiydP0yRg&midSig=1hJe803j_rnIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4434270598_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4434270598_ssid_15477663556_fmid_jp2m05~mqz0ov5t~v6-null-jp2m05~mqz0ov5t~v6-null-null&eid=jp2m05-mqz0ov5t-v6&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjM4ZGNiZDQ0NzliYWE4YzZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NGRlYWJkZTcwMGFkZDNhNjViMmM3ZDdlYzdiYTkxNzhiNDlkMDFkMzUxOWY3OTFjLDEsMQ%3D%3D"
+          "label": "Acclaim AI ASR",
+          "url": "https://www.linkedin.com/comm/jobs/view/4433666300/?trackingId=H6Lz1rXAllmOGAAmVwtqnQ%3D%3D&refId=SxXH6eDjLzwkQzR4FlZYHg%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BlPlbiTdQRbCSflxia0w6xw%3D%3D&midToken=AQFFuKiydP0yRg&midSig=0Qi2mtURFWpck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4433666300_ssid_15469705780_fmid_jp2m05~mr0g4pjw~ru&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4433666300_ssid_15469705780_fmid_jp2m05~mr0g4pjw~ru-null-jp2m05~mr0g4pjw~ru-null-null&eid=jp2m05-mr0g4pjw-ru&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmM4ZWNmZDg0MzllYWQ4YTZmN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NGJlY2JlZjY0NDgxZGY5YjdmMzEyMjdhNzI1NzZlNzIxZTIzMmNlYWE3YTgzZWMwLDEsMQ%3D%3D"
         },
         {
-          "label": "Polymodal job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4434277420/?trackingId=CTvqCBY5TdIgjep89SqNhQ%3D%3D&refId=%2FuDVHbYwbJAFrBjhQH8UCQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3Bsung2JrpRGmI3U4kpiBDaA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=0MwmbFZ7ZynIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434277420_ssid_15469705780_fmid_jp2m05~mqywejpl~gu&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434277420_ssid_15469705780_fmid_jp2m05~mqywejpl~gu-null-jp2m05~mqywejpl~gu-null-null&eid=jp2m05-mqywejpl-gu&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YjM4ZWM2ZDI0NDliYTc4OTY4N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NmRkM2RmZTU0YzkyY2U5OTJiZjdhMzFkNmMxOTNlZDVkYWQ5NDY5M2E3MWJjYTdmLDEsMQ%3D%3D"
-        },
-        {
-          "label": "Tandem Gmail",
-          "url": "https://mail.google.com/mail/#all/19f12b7d24b5b6bf"
-        },
-        {
-          "label": "Polymodal Gmail",
-          "url": "https://mail.google.com/mail/#all/19f1249cb4e13b49"
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f17ddab474c223"
         }
       ]
     }
