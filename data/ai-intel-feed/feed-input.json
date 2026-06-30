@@ -1,41 +1,159 @@
 {
-  "date": "2026-06-29",
-  "overview": "今天主线仍是 GLM-5.2 开权重替代争议；新增本地离线 AI 套件、MCP 工具 schema 压缩，以及 DataCrunch 面试确认动作。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / OpenAI News / arXiv+S2；LinkedIn、Medium 只作线索；OpenAI News curl 仍受 Cloudflare 限制；0 条行动候选因缺少 URL 被跳过。",
+  "date": "2026-06-30",
+  "overview": "今天最值得看的是 agent 产出证据与人类签署发布策略的边界；同时保留本地/开源模型、HF 研究博客、GPU-free inference、USE 论文入口和 3 个明确行动项。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / arXiv；Medium、LinkedIn、HF Daily Papers 只作线索；OpenAI News 仍受 Cloudflare 限制；S2 全量限流；0 条行动候选因缺少 URL 被跳过。",
   "blocks": [
     {
-      "id": "glm52-semgrep-cyber-benchmark-20260629",
+      "id": "cilock-agent-provenance-20260630",
       "kind": "deep-read",
-      "title": "GLM-5.2：今天最值得看的是安全基准里的“开源替代”争议",
-      "source": "Semgrep Blog / HN · 2026-06-29",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Semgrep 把 GLM-5.2 放进自己的 cyber benchmark，并给出“beats Claude”的高冲突标题；HN 已经把讨论推到 600+ 分和 300+ 评论。它值得看，不是因为单个榜单证明 GLM 已经全面替代 Claude，而是因为开权重模型开始在安全、代码、成本和本地可控性上被认真拿来做替代方案比较。",
-      "why": "这直接影响你怎么看本地 coding agent、Triton/本地模型备份、闭源前沿模型受限时的 fallback 路线。",
-      "thought": "先读 Semgrep 的任务定义和失败样例，再看 HN 对 benchmark 偏差、提示词、模型版本和可复现性的质疑；不要只记住标题。",
+      "title": "CI/Lock：今天最值得看的是 agent 不能决定“什么能发布”",
+      "source": "CI/Lock / HN · 2026-06-30",
+      "sourceStatus": "高质量讨论",
+      "summary": "Show HN 的 CI/Lock 把 CI step 实际读写的文件、环境、产物和命令记录成 in-toto/DSSE attestation，再由人签署发布策略。它最值得看的点不是又一个 CI 工具，而是把 Claude Code、Codex、Cursor 这类 agent 放在“可以构建证据、不能签署放行”的位置。",
+      "why": "你现在的 Codex 自动化已经会改 feed、跑 build、push 部署；这个边界直接关系到以后哪些步骤能自动化、哪些步骤必须留给人工审查。",
+      "thought": "先读 threat model：它是 forensic evidence，不是运行时拦截；然后对照你的 portfolio/automation 流程，想清楚哪些产物需要可验证 provenance。",
       "priority": 100,
       "links": [
         {
-          "label": "Semgrep GLM-5.2",
-          "url": "https://semgrep.dev/blog/2026/we-have-mythos-at-home-glm-52-beats-claude-in-our-cyber-benchmarks/"
+          "label": "CI/Lock",
+          "url": "https://cilock.dev/"
         },
         {
           "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48709670"
+          "url": "https://news.ycombinator.com/item?id=48728596"
         },
         {
-          "label": "Artificial Analysis GLM",
-          "url": "https://artificialanalysis.ai/articles/glm-5-2-is-the-new-leading-open-weights-model-on-the-artificial-analysis-intelligence-index"
+          "label": "Rookery GitHub",
+          "url": "https://github.com/aflock-ai/rookery"
+        }
+      ]
+    },
+    {
+      "id": "qwen36-local-dev-20260630",
+      "kind": "signal",
+      "title": "Qwen 3.6 27B：本地开发甜点位值得复核",
+      "source": "Quesma / HN · 2026-06-29",
+      "sourceStatus": "高质量讨论",
+      "summary": "HN front page 把 Qwen 3.6 27B 推到今天阅读面，角度是本地开发的“甜点位”：模型不一定是最强，但可能在本地成本、速度、代码任务和可持续 daily loop 之间更平衡。它和昨天 GLM-5.2 的开权重替代争议是同一条主线的更实用版本。",
+      "why": "你关心本地 ASR、Triton/本机 fallback、低成本 coding loop；甜点位模型比单纯追最大模型更可能落地。",
+      "thought": "只看两件事：是否能以 OpenAI-compatible endpoint 接进工具链，以及在真实 repo 修改/验证任务上是否稳定。",
+      "priority": 86,
+      "links": [
+        {
+          "label": "Qwen local dev",
+          "url": "https://quesma.com/blog/qwen-36-is-awesome/"
         },
         {
-          "label": "Unsloth local GLM",
-          "url": "https://unsloth.ai/docs/models/glm-5.2"
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48721903"
+        }
+      ]
+    },
+    {
+      "id": "agentic-orchestrator-human-gates-20260630",
+      "kind": "signal",
+      "title": "Agentic Orchestrator：长任务 agent 的关键是 phase gate",
+      "source": "GitHub / HN · 2026-06-30",
+      "sourceStatus": "高质量讨论",
+      "summary": "DoorDash OSS 的 Agentic Orchestrator 是一个 TUI，用固定阶段来编排 coding agents：澄清、研究、设计、计划、实现、review。它的价值不在“又多开几个 agent”，而在 deterministic harness 把人类 review gates、phase transitions 和 artifact validations 固定下来。",
+      "why": "这正好对应你不想把 Gmail/news/papers/dictionary 拆成多条重复自动化的要求：统一流程可以自动跑，但阶段边界必须清楚。",
+      "thought": "把它当 workflow 参考，不急着安装；先看它如何定义 human gate、验收证据和 merge conflict/review comment 处理。",
+      "priority": 80,
+      "links": [
+        {
+          "label": "Agentic Orchestrator",
+          "url": "https://github.com/doordash-oss/agentic-orchestrator"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48727448"
+        }
+      ]
+    },
+    {
+      "id": "hf-discoformer-density-score-20260630",
+      "kind": "signal",
+      "title": "DiScoFormer：HF 今天的新官方信号是 density + score 合并建模",
+      "source": "Hugging Face Blog · 2026-06-29",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Hugging Face Blog 最新条目是 AllenAI 的 DiScoFormer，主题是让一个 transformer 同时处理 density 与 score、跨分布建模。它不是你主线里的语音增强论文，但属于近期 generative modeling / score-based modeling 的基础方法信号。",
+      "why": "你在看 diffusion/flow speech enhancement 时，经常会碰到 score、density、reverse process 这些概念；这种基础方法可以帮助判断论文里哪些是机制，哪些只是套壳。",
+      "thought": "只扫方法设定和实验对象即可；不要把它放进论文池，先当成理解 diffusion/score family 的背景材料。",
+      "priority": 73,
+      "links": [
+        {
+          "label": "DiScoFormer",
+          "url": "https://huggingface.co/blog/allenai/discoformer"
+        },
+        {
+          "label": "HF Blog feed",
+          "url": "https://huggingface.co/blog/feed.xml"
+        }
+      ]
+    },
+    {
+      "id": "gpu-free-inference-medium-20260630",
+      "kind": "concept",
+      "title": "GPU-free inference：先判断它是硬件路线还是标题党",
+      "source": "Medium Digest · 2026-06-30",
+      "sourceStatus": "线索",
+      "summary": "Medium 今天推了 `Burning a Transformer into Silicon: The Case for GPU-Free AI Inference`，邮件摘要说把 transformer 烧进 50 美元 FPGA。它目前只能作为线索，但概念值得留意：如果 inference 从 GPU 云迁到更小的专用硬件，真正要问的是模型规模、任务范围、量化/编译约束和吞吐延迟。",
+      "why": "这和你关心的本地低成本推理、声学模型部署、边缘设备语音增强都有关系，但很容易被夸张标题误导。",
+      "thought": "打开后只看硬件规格、模型大小、精度损失和可复现实验；没有这些就丢弃。",
+      "priority": 70,
+      "links": [
+        {
+          "label": "GPU-free inference",
+          "url": "https://medium.com/@vishal-ai/burning-a-transformer-into-silicon-the-case-for-gpu-free-ai-inference-6d7b8beb288a?source=email-602672f81880-1782775817522-digest.reader-decdbc13dde6-6d7b8beb288a----0-73------------------be9732df_4592_4636_92ac_c893c70a6a8b-1"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f16c16ac7ff4b4"
+        }
+      ]
+    },
+    {
+      "id": "longcat20-moe-20260630",
+      "kind": "signal",
+      "title": "LongCat-2.0：大 MoE 发布只看 active 参数和部署暗示",
+      "source": "LongCat Blog / HN · 2026-06-30",
+      "sourceStatus": "高质量讨论",
+      "summary": "HN front page 出现 LongCat-2.0：1.6T total / 48B active 的 MoE 模型。今天不需要把它当成完整模型评测来读；更有价值的是看 total params、active params、routing、上下文和推理成本之间怎么叙述。",
+      "why": "MoE 的真实部署成本不会由 total parameter 单独决定；这会影响你判断开源/开权重模型在本地或云端 fallback 中到底有多可用。",
+      "thought": "先扫 model card/blog 的 active parameter、上下文长度、推理形态和 benchmark 设置，再决定是否值得后续深读。",
+      "priority": 67,
+      "links": [
+        {
+          "label": "LongCat-2.0",
+          "url": "https://longcat.chat/blog/longcat-2.0/"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48727116"
+        }
+      ]
+    },
+    {
+      "id": "paper-use-wqfusion-storm-20260630",
+      "kind": "paper",
+      "title": "论文入口：今天先扫 WQ-Fusion 和 StoRM noise mismatch",
+      "source": "arXiv / 本地推荐池 · 2026-06-30",
+      "sourceStatus": "本地推荐池",
+      "summary": "今日 arXiv fresh 检索返回 24 个新近候选，S2 因 429/500 全量限流。最值得扫的是 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation` 和 `A Variational-Flow Analysis of StoRM under Noise-Power Mismatch`：前者是 Whisper + Qwen 的跨域音频表示动态门控，后者直接讨论 diffusion speech enhancement 在噪声功率 mismatch 下的退化结构。",
+      "why": "一个贴跨域音频表示和 Audio Encoder Challenge，一个贴你最近关心的 noisy/shifted target、diffusion/flow SE 失败机制。",
+      "thought": "Tag: audio-representation, cross-domain, speech-enhancement, diffusion-se, noise-mismatch；打开推荐池只扫摘要、方法图、mismatch 假设和是否有实验证据。",
+      "priority": 69,
+      "links": [
+        {
+          "label": "推荐池索引（Obsidian）",
+          "url": "obsidian://open?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
         }
       ]
     },
     {
       "id": "action-datacrunch-interview-20260701",
       "kind": "action",
-      "title": "DataCrunch 面试：7 月 1 日 15:30",
+      "title": "DataCrunch 面试：明天 15:30",
       "source": "Google Calendar / Gmail · 2026-06-29",
       "sourceStatus": "行动项",
       "summary": "Ruikang Tao 发来 DataCrunch 面试邀请：2026-07-01 15:30-16:30（Europe/Helsinki），参与者包括 Paul Chang，地点写为 Sanomatalo-5-16 / Scharm squark (4)，也提供 Google Meet。邮件提示该邀请尚不在日历中，需要你确认是否加入/回复。",
@@ -58,147 +176,13 @@
       ]
     },
     {
-      "id": "openai-gpt56-sol-carryover-20260629",
-      "kind": "signal",
-      "title": "GPT-5.6 Sol 仍要保留：重点是准入和评测，不是新闻热度",
-      "source": "OpenAI / HN · 2026-06-29",
-      "sourceStatus": "未官方核验",
-      "summary": "GPT-5.6 Sol 昨天仍是前沿模型准入制度、system card 和长任务 eval 的核心案例；今天没有足够新的官方信号需要扩写，但它仍应留在阅读面。OpenAI News 直接 curl 仍被 Cloudflare challenge 限制，本轮只保留已知官方 URL 和 HN 讨论作为入口。",
-      "why": "它和 GLM-5.2 刚好形成对照：一个是受控前沿闭源准入，一个是开权重替代路线继续升温。",
-      "thought": "只在需要判断 Codex/agent 能力边界时回看 system card、METR/time-horizon 讨论和 HN 准入争议。",
-      "priority": 86,
-      "links": [
-        {
-          "label": "OpenAI post",
-          "url": "https://openai.com/index/previewing-gpt-5-6-sol/"
-        },
-        {
-          "label": "System card",
-          "url": "https://deploymentsafety.openai.com/gpt-5-6-preview"
-        },
-        {
-          "label": "HN OpenAI",
-          "url": "https://news.ycombinator.com/item?id=48689028"
-        },
-        {
-          "label": "HN access thread",
-          "url": "https://news.ycombinator.com/item?id=48690101"
-        }
-      ]
-    },
-    {
-      "id": "agent-credential-crisis-20260629",
-      "kind": "concept",
-      "title": "Agent credential crisis：先把凭证边界想清楚",
-      "source": "DevFortress / HN · 2026-06-29",
-      "sourceStatus": "线索",
-      "summary": "HN 今天出现 AI Agent Credential Crisis 线索，虽然热度不高，但主题很值得保留：agent 一旦能调用浏览器、GitHub、Gmail、云服务和本地文件，真正危险的不是“它会不会回答错”，而是凭证、权限、会话和审计边界是否清楚。",
-      "why": "你正在把 Codex、Gmail、portfolio、Triton、本地服务和 Obsidian 串起来；权限边界比 prompt 技巧更能决定长期安全性。",
-      "thought": "把它当成概念提醒，不写词典：后续看任何 agent 工具，先问 token 放哪、能做哪些写操作、失败后谁能审计。",
-      "priority": 78,
-      "links": [
-        {
-          "label": "Credential incidents",
-          "url": "https://devfortress.net/blog/semi-annual-2026"
-        },
-        {
-          "label": "HN item",
-          "url": "https://news.ycombinator.com/item?id=48713032"
-        },
-        {
-          "label": "Cloudflare OAuth",
-          "url": "https://blog.cloudflare.com/oauth-for-all"
-        }
-      ]
-    },
-    {
-      "id": "mcp-compress-router-tool-schema-20260629",
-      "kind": "concept",
-      "title": "MCP-compress-router：工具 schema 也需要上下文预算",
-      "source": "GitHub / HN · 2026-06-29",
-      "sourceStatus": "高质量讨论",
-      "summary": "这个 Show HN 的思路很直接：多个 MCP server 会把大量工具描述塞进每轮上下文，它用 `get_tool_schema` / `invoke_tool` 两层代理，把常驻 schema 压缩成工具名和少量参数信息。作者给出的例子是 3 个 MCP server 从约 26K token 降到 900-2000 token。",
-      "why": "你现在的 Codex/Gmail/Obsidian/portfolio 工作流正在变成多工具环境，真正的成本和错误源不只在模型，而在工具面暴露多少上下文。",
-      "thought": "把它当成 context compression 概念块：先看 README 的代理边界，再判断这种压缩会不会牺牲工具选择的可解释性。",
-      "priority": 76,
-      "links": [
-        {
-          "label": "MCP-compress-router",
-          "url": "https://github.com/ameshkov/mcp-compress-router"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48721511"
-        }
-      ]
-    },
-    {
-      "id": "off-grid-local-ai-mac-20260629",
-      "kind": "signal",
-      "title": "Off Grid：本地 AI 套件的重点是离线端点，而不是又一个聊天壳",
-      "source": "GitHub / HN · 2026-06-29",
-      "sourceStatus": "高质量讨论",
-      "summary": "Off Grid 在 HN 上展示了一个 macOS 本地 AI 套件：llama.cpp 文本、stable-diffusion.cpp 图像、Whisper 语音、Kokoro TTS、LanceDB，并暴露本地 OpenAI-compatible endpoint `127.0.0.1:7878/v1`。它还早、热度不高，但“离线 + 本地端点 + 多模态工具面”贴近你本地 ASR/字幕和低成本 agent loop 的方向。",
-      "why": "如果本地模型栈能以 OpenAI-compatible endpoint 方式接入 Codex/脚本，价值在可替换性、隐私和无 token 成本循环。",
-      "thought": "先只看架构和端点兼容性；不要因为“全家桶”功能多就高估成熟度，重点检查模型下载、离线承诺和许可。",
-      "priority": 71,
-      "links": [
-        {
-          "label": "Off Grid GitHub",
-          "url": "https://github.com/off-grid-ai"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48720845"
-        }
-      ]
-    },
-    {
-      "id": "herdr-agent-multiplexer-20260629",
-      "kind": "signal",
-      "title": "Herdr：terminal agent multiplexer 值得看的是并行编排边界",
-      "source": "GitHub / HN · 2026-06-29",
-      "sourceStatus": "高质量讨论",
-      "summary": "Herdr 是一个在终端里管理多个 coding agent 的开源工具，HN 讨论集中在多 agent 并行、任务隔离、输出汇总和人类审查成本。它不是模型能力新闻，但很贴近你当前 Codex 自动化和长任务调度的实际问题。",
-      "why": "当 agent 从单线程助手变成多个并行 worker，真正难点会变成上下文切分、文件冲突、权限边界和验收证据。",
-      "thought": "先看 README 的工作流模型和 HN 的失败模式讨论；如果只是多开终端而没有验收机制，可以直接丢弃。",
-      "priority": 67,
-      "links": [
-        {
-          "label": "Herdr GitHub",
-          "url": "https://github.com/ogulcancelik/herdr"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48714802"
-        }
-      ]
-    },
-    {
-      "id": "paper-use-snn-wng-20260629",
-      "kind": "paper",
-      "title": "论文入口：今天仍先看 SNN 语音增强和 WNG/MVDR",
-      "source": "arXiv / 本地推荐池 · 2026-06-29",
-      "sourceStatus": "本地推荐池",
-      "summary": "今日 arXiv+S2 重跑后，前两篇仍是 `Neuromorphic Speech Enhancement with Dual-Branch Spiking Neural Networks` 和 `Joint Learning of Covariance Estimation and White Noise Gain for Robust MVDR Beamforming`。前者用 GSU-DBNet 同时建模幅度谱和复谱，394K 参数下推进 SNN speech enhancement；后者把 WNG 阈值做成可学习约束，针对真实阵列里的自噪声和 mismatch。",
-      "why": "一个贴低功耗/神经形态 USE，一个贴真实多通道鲁棒性；都比单看 PESQ 更靠近部署问题。",
-      "thought": "Tag: speech-enhancement, SNN, robustness, beamforming, WNG；打开推荐池只扫摘要、方法图、参数量、WNG 控制和是否有可复现实验。",
-      "priority": 68,
-      "links": [
-        {
-          "label": "推荐池索引（Obsidian）",
-          "url": "obsidian://open?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
-        }
-      ]
-    },
-    {
       "id": "action-viagogo-charlie-puth-20260701",
       "kind": "action",
-      "title": "Charlie Puth 票已可下载：7 月 1 日 19:00",
+      "title": "Charlie Puth 票：明天 19:00 前处理",
       "source": "viagogo · 2026-06-27",
       "sourceStatus": "行动项",
       "summary": "viagogo 已发来 Charlie Puth / Allas Live 的 3 张票，订单 647191205，活动时间是 2026-07-01 19:00。邮件明确说需要提前打印，现场不能打印，且有 18+ 限制。",
-      "why": "这不是学习内容，但属于需要记住时间地点和提前处理的个人行动。",
+      "why": "这是需要记住时间地点并提前处理的个人行动。",
       "thought": "尽快下载并检查 PDF 票面，确认三张票、General Admission、打印要求和入场限制。",
       "priority": 74,
       "links": [
@@ -213,13 +197,13 @@
       ]
     },
     {
-      "id": "action-linkedin-jobs-tandem-polymodal-20260629",
+      "id": "action-linkedin-jobs-polymodal-tandem-20260630",
       "kind": "action",
-      "title": "职位筛选：Tandem Health 与 Polymodal",
+      "title": "职位筛选：Polymodal / Tandem 仍最贴近",
       "source": "LinkedIn Job Alerts · 2026-06-29",
       "sourceStatus": "行动项",
-      "summary": "今天新增两条更贴近的 LinkedIn 职位：Tandem Health `AI Engineer` / `Software Engineer - Audio` 在 Stockholm，Polymodal `Machine Learning Research Engineer` 为 Amsterdam Area remote。Tandem 更贴医疗语音/音频产品线；Polymodal 更像 research-engineering/founding role，需要先看远程范围和签证限制。",
-      "why": "这两条比昨天的泛咨询/泛 NLP alert 更接近你的 speech AI、health biomarkers 和研究工程背景。",
+      "summary": "最近 36 小时没有比 Polymodal `Machine Learning Research Engineer`、Tandem Health `AI Engineer` / `Software Engineer - Audio` 更贴近的职位。Polymodal 更像 research-engineering/founding role；Tandem 更贴医疗语音/音频产品线。",
+      "why": "LinkedIn 新 alert 很多，但这组比 Telavox、泛数据科学家、促销或社交通知更接近你的 speech AI、health biomarkers 和研究工程背景。",
       "thought": "先各用 5 分钟看职责、地点/remote、签证和 audio/health 相关度；不合适就丢弃。",
       "priority": 70,
       "links": [
