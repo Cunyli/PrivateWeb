@@ -1,6 +1,6 @@
 {
   "date": "2026-06-30",
-  "overview": "今天最值得看仍是 agent 产出证据与人类签署发布策略的边界；中午新增重点是 DataCrunch 面试改为 15:00-16:00、Skills/SkillSpec 可验证性，以及 Jobgether/Acclaim 职位候选。",
+  "overview": "晚间最值得看仍是 agent 证据链与反馈闭环；新增重点是 local CI、LLM dataframe operators、HF eval 汇总，以及 Ryanair 7 月 8 日航班提醒。",
   "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / arXiv / S2；AINews、Medium、LinkedIn 只作线索；OpenAI News 仍受 Cloudflare 限制；0 条行动候选因缺少 URL 被跳过。",
   "blocks": [
     {
@@ -9,9 +9,9 @@
       "title": "CI/Lock：今天最值得看的是 agent 不能决定“什么能发布”",
       "source": "CI/Lock / HN · 2026-06-30",
       "sourceStatus": "高质量讨论",
-      "summary": "Show HN 的 CI/Lock 把 CI step 实际读写的文件、环境、产物和命令记录成 in-toto/DSSE attestation，再由人签署发布策略。它最值得看的点不是又一个 CI 工具，而是把 Claude Code、Codex、Cursor 这类 agent 放在“可以构建证据、不能签署放行”的位置。",
+      "summary": "CI/Lock 把 CI step 实际读写的文件、环境、产物和命令记录成 in-toto/DSSE attestation，再由人签署发布策略。它最值得看的点不是又一个 CI 工具，而是把 Claude Code、Codex、Cursor 这类 agent 放在“可以构建证据、不能签署放行”的位置。",
       "why": "你现在的 Codex 自动化已经会改 feed、跑 build、push 部署；这个边界直接关系到以后哪些步骤能自动化、哪些步骤必须留给人工审查。",
-      "thought": "先读 threat model：它是 forensic evidence，不是运行时拦截；然后对照你的 portfolio/automation 流程，想清楚哪些产物需要可验证 provenance。",
+      "thought": "先读 threat model：它是 forensic evidence，不是运行时拦截；然后对照 portfolio/automation 流程，想清楚哪些产物需要可验证 provenance。",
       "priority": 100,
       "links": [
         {
@@ -29,61 +29,65 @@
       ]
     },
     {
-      "id": "qwen36-local-dev-20260630",
+      "id": "local-ci-agent-feedback-20260630",
       "kind": "signal",
-      "title": "Qwen 3.6 27B：本地开发甜点位值得复核",
-      "source": "Quesma / HN · 2026-06-29",
+      "title": "Local CI：agent 速度瓶颈不只是模型，而是反馈延迟",
+      "source": "Modern Treasury / HN · 2026-06-30",
       "sourceStatus": "高质量讨论",
-      "summary": "HN front page 把 Qwen 3.6 27B 推到今天阅读面，角度是本地开发的“甜点位”：模型不一定是最强，但可能在本地成本、速度、代码任务和可持续 daily loop 之间更平衡。它和昨天 GLM-5.2 的开权重替代争议是同一条主线的更实用版本。",
-      "why": "你关心本地 ASR、Triton/本机 fallback、低成本 coding loop；甜点位模型比单纯追最大模型更可能落地。",
-      "thought": "只看两件事：是否能以 OpenAI-compatible endpoint 接进工具链，以及在真实 repo 修改/验证任务上是否稳定。",
+      "summary": "Modern Treasury 今天发了 local CI for developers and AI agents 的文章，HN 也有对应条目。它和 CI/Lock 是同一条工程主线的另一面：agent 能不能稳定做事，取决于它多快拿到真实测试、lint、类型检查和集成反馈，而不是只靠更强模型。",
+      "why": "你本地/portfolio 自动化已经有 render、sync、build、push 这些阶段；缩短本地验证闭环会比堆 prompt 更实际。",
+      "thought": "扫它的 pipeline 设计，重点看哪些检查适合本地快速跑，哪些必须留给远端 CI 或人工 gate。",
       "priority": 86,
       "links": [
         {
-          "label": "Qwen local dev",
-          "url": "https://quesma.com/blog/qwen-36-is-awesome/"
+          "label": "Modern Treasury",
+          "url": "https://www.moderntreasury.com/journal/reducing-feedback-latency-with-local-ci-for-developers-and-ai-agents"
         },
         {
           "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48721903"
+          "url": "https://news.ycombinator.com/item?id=48735105"
         }
       ]
     },
     {
-      "id": "agentic-orchestrator-human-gates-20260630",
+      "id": "fenic-llm-dataframe-operators-20260630",
       "kind": "signal",
-      "title": "Agentic Orchestrator：长任务 agent 的关键是 phase gate",
+      "title": "fenic：把 LLM 调用变成 dataframe operator，而不是黑盒 UDF",
       "source": "GitHub / HN · 2026-06-30",
       "sourceStatus": "高质量讨论",
-      "summary": "DoorDash OSS 的 Agentic Orchestrator 是一个 TUI，用固定阶段来编排 coding agents：澄清、研究、设计、计划、实现、review。它的价值不在“又多开几个 agent”，而在 deterministic harness 把人类 review gates、phase transitions 和 artifact validations 固定下来。",
-      "why": "这正好对应你不想把 Gmail/news/papers/dictionary 拆成多条重复自动化的要求：统一流程可以自动跑，但阶段边界必须清楚。",
-      "thought": "把它当 workflow 参考，不急着安装；先看它如何定义 human gate、验收证据和 merge conflict/review comment 处理。",
-      "priority": 80,
+      "summary": "Show HN 的 fenic 把 semantic map/join/filter/reduce、typed outputs、async UDF、token/cost metrics 和 response cache 放进 dataframe planner。真正值得看的是它把 LLM 推理当成可调度、可缓存、可度量的 compute operator，而不是把 prompt 塞进任意 UDF。",
+      "why": "这正贴合你最近的 AI infra / inference 学习线：LLM workload 进入数据系统后，调度、缓存、成本和可复现性会变成核心工程问题。",
+      "thought": "只扫架构和 planner/runtime 部分；如果之后要做日志/邮件/论文流分析，它比手写散乱 prompt pipeline 更值得借鉴。",
+      "priority": 82,
       "links": [
         {
-          "label": "Agentic Orchestrator",
-          "url": "https://github.com/doordash-oss/agentic-orchestrator"
+          "label": "fenic GitHub",
+          "url": "https://github.com/typedef-ai/fenic"
         },
         {
           "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48727448"
+          "url": "https://news.ycombinator.com/item?id=48735301"
+        },
+        {
+          "label": "fenic docs",
+          "url": "https://docs.fenic.ai"
         }
       ]
     },
     {
-      "id": "hf-discoformer-density-score-20260630",
+      "id": "hf-every-eval-ever-model-pages-20260630",
       "kind": "signal",
-      "title": "DiScoFormer：HF 今天的新官方信号是 density + score 合并建模",
-      "source": "Hugging Face Blog · 2026-06-29",
+      "title": "HF Model Pages：Every Eval Ever 开始把模型选择变成可查证入口",
+      "source": "Hugging Face Blog · 2026-06-30",
       "sourceStatus": "官方/高质量源",
-      "summary": "Hugging Face Blog 最新条目是 AllenAI 的 DiScoFormer，主题是让一个 transformer 同时处理 density 与 score、跨分布建模。它不是你主线里的语音增强论文，但属于近期 generative modeling / score-based modeling 的基础方法信号。",
-      "why": "你在看 diffusion/flow speech enhancement 时，经常会碰到 score、density、reverse process 这些概念；这种基础方法可以帮助判断论文里哪些是机制，哪些只是套壳。",
-      "thought": "只扫方法设定和实验对象即可；不要把它放进论文池，先当成理解 diffusion/score family 的背景材料。",
-      "priority": 73,
+      "summary": "Hugging Face 今天的官方博客把 Every Eval Ever 结果接到模型页面。它的价值不是又多一个 leaderboard，而是把模型页、评测结果、社区 eval 和模型选择流程更直接地连起来。",
+      "why": "你在本地模型、ASR/音频模型和 AI infra 学习里经常要判断“哪个模型值得试”；把 eval 汇到模型页能减少只凭 newsletter/榜单标题做选择。",
+      "thought": "先看它支持哪些 eval、如何处理来源和可比性；后续选模型时优先查模型页上的 eval 证据，而不是只看 release 文案。",
+      "priority": 78,
       "links": [
         {
-          "label": "DiScoFormer",
-          "url": "https://huggingface.co/blog/allenai/discoformer"
+          "label": "HF Every Eval Ever",
+          "url": "https://huggingface.co/blog/eee-community-evals"
         },
         {
           "label": "HF Blog feed",
@@ -92,61 +96,44 @@
       ]
     },
     {
-      "id": "gpu-free-inference-medium-20260630",
-      "kind": "concept",
-      "title": "GPU-free inference：先判断它是硬件路线还是标题党",
-      "source": "Medium Digest · 2026-06-30",
-      "sourceStatus": "线索",
-      "summary": "Medium 今天推了 `Burning a Transformer into Silicon: The Case for GPU-Free AI Inference`，邮件摘要说把 transformer 烧进 50 美元 FPGA。它目前只能作为线索，但概念值得留意：如果 inference 从 GPU 云迁到更小的专用硬件，真正要问的是模型规模、任务范围、量化/编译约束和吞吐延迟。",
-      "why": "这和你关心的本地低成本推理、声学模型部署、边缘设备语音增强都有关系，但很容易被夸张标题误导。",
-      "thought": "打开后只看硬件规格、模型大小、精度损失和可复现实验；没有这些就丢弃。",
-      "priority": 70,
+      "id": "agent-eval-skill-verification-20260630",
+      "kind": "theme",
+      "title": "Agent eval：今天的主线从“会不会做”转向“证据能不能验”",
+      "source": "ECP / SkillSpec / HN · 2026-06-30",
+      "sourceStatus": "综合判断",
+      "summary": "HN 今天连续出现 Evaluation Context Protocol 和 SkillSpec 这类项目：一个想把 agent outputs、tool calls、evaluator-visible audit context 做成跨框架协议，另一个强调 skill 是否按声明运行要能测试。它们和 CI/Lock 呼应：agent workflow 的下一步不是堆更多工具，而是把运行证据、评测上下文和 skill contract 做成可审计对象。",
+      "why": "你的 Codex skills、自动化、Triton/Obsidian 工作流越来越依赖文字约束；最先值得补强的是高频技能的 smoke case 和验收证据。",
+      "thought": "不要一次性工程化所有 skill；只挑 automation、paper、Triton 这几条高风险路径，补最小可执行样例和失败判定。",
+      "priority": 76,
       "links": [
         {
-          "label": "GPU-free inference",
-          "url": "https://medium.com/@vishal-ai/burning-a-transformer-into-silicon-the-case-for-gpu-free-ai-inference-6d7b8beb288a?source=email-602672f81880-1782775817522-digest.reader-decdbc13dde6-6d7b8beb288a----0-73------------------be9732df_4592_4636_92ac_c893c70a6a8b-1"
+          "label": "Evaluation Context Protocol",
+          "url": "https://www.evaluationcontextprotocol.io/"
         },
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f16c16ac7ff4b4"
-        }
-      ]
-    },
-    {
-      "id": "skillspec-agent-skills-20260630",
-      "kind": "signal",
-      "title": "SkillSpec：agent skill 不能只靠 README 信任",
-      "source": "SkillSpec / HN · 2026-06-30",
-      "sourceStatus": "高质量讨论",
-      "summary": "HN 中午出现 SkillSpec，核心信号是把 agent skills 是否按 `SKILL.md` 声明运行变成可测试对象。结合 AINews 今天反复提到的 Skills 主题，它提醒你：个人 Codex skills 以后不能只靠文字约定，关键技能应有最小可执行样例和验收检查。",
-      "why": "你现在的 automation、paper、Obsidian、Triton 工作流都依赖 skill 约束；可验证性会直接影响复用和长期维护成本。",
-      "thought": "先把它当作 skill 维护方向：只挑最高频技能补 smoke case，不要把所有技能一次性工程化。",
-      "priority": 68,
-      "links": [
+          "label": "ECP HN",
+          "url": "https://news.ycombinator.com/item?id=48734561"
+        },
         {
           "label": "SkillSpec",
           "url": "https://skillspec.sh"
         },
         {
-          "label": "HN discussion",
+          "label": "SkillSpec HN",
           "url": "https://news.ycombinator.com/item?id=48730613"
-        },
-        {
-          "label": "AINews",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204232690&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDIzMjY5MCwiaWF0IjoxNzgyODAyMTc3LCJleHAiOjE3ODUzOTQxNzcsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.rl7t6CB0CveepnkH1nmybBGnN-a4--RIOnioAyMQq68"
         }
       ]
     },
     {
-      "id": "paper-use-wqfusion-storm-20260630",
+      "id": "paper-use-wqfusion-storm-20260630-evening",
       "kind": "paper",
-      "title": "论文入口：今天先扫 WQ-Fusion 和 StoRM noise mismatch",
+      "title": "论文入口：今天仍然先扫 WQ-Fusion 和 StoRM mismatch",
       "source": "arXiv / 本地推荐池 · 2026-06-30",
       "sourceStatus": "本地推荐池",
-      "summary": "今日 arXiv fresh 检索返回 24 个新近候选，Semantic Scholar 本轮正常返回 20 个 hot 候选、合并后 38 个去重候选。最值得扫的是 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation` 和 `A Variational-Flow Analysis of StoRM under Noise-Power Mismatch`：前者是 Whisper + Qwen 的跨域音频表示动态门控，后者直接讨论 diffusion speech enhancement 在噪声功率 mismatch 下的退化结构。",
+      "summary": "晚间重新跑检索：arXiv fresh 仍是 183 个新近候选，Semantic Scholar 有一个 500 重试后返回 19 个 hot 候选，合并后 38 个去重候选。最值得扫的仍是 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation` 和 `A Variational-Flow Analysis of StoRM under Noise-Power Mismatch`：前者是 Whisper + Qwen 的跨域音频表示动态门控，后者直接讨论 diffusion speech enhancement 在噪声功率 mismatch 下的退化结构。",
       "why": "一个贴跨域音频表示和 Audio Encoder Challenge，一个贴你最近关心的 noisy/shifted target、diffusion/flow SE 失败机制。",
       "thought": "Tag: audio-representation, cross-domain, speech-enhancement, diffusion-se, noise-mismatch；打开推荐池只扫摘要、方法图、mismatch 假设和是否有实验证据。",
-      "priority": 69,
+      "priority": 70,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
@@ -157,7 +144,7 @@
     {
       "id": "action-datacrunch-interview-20260701",
       "kind": "action",
-      "title": "DataCrunch 面试：明天改为 15:00",
+      "title": "DataCrunch 面试：明天 15:00",
       "source": "Google Calendar / Gmail · 2026-06-30",
       "sourceStatus": "行动项",
       "summary": "Ruikang Tao 更新了 DataCrunch 面试邀请：2026-07-01 15:00-16:00（Europe/Helsinki），原时间是 15:30-16:30；地点仍是 Sanomatalo-5-16 / Scharm squark (4)，也提供 Google Meet。邮件标记为时间已更改，需要按新时间确认日历/准备。",
@@ -201,27 +188,23 @@
       ]
     },
     {
-      "id": "action-linkedin-jobs-jobgether-acclaim-20260630",
+      "id": "action-ryanair-bergamo-20260708",
       "kind": "action",
-      "title": "职位筛选：Jobgether / Acclaim 新候选",
-      "source": "LinkedIn Job Alerts · 2026-06-30",
+      "title": "Ryanair 航班：7 月 8 日 23:00 Bergamo",
+      "source": "Ryanair / Gmail · 2026-06-30",
       "sourceStatus": "行动项",
-      "summary": "中午新增 Jobgether `AI Engineer (Remote, International)`；同一 alert 里还有 Acclaim AI `Machine Learning Engineer (ASR)`、Hire Feed `AI Research Engineer` 等。相比泛 Data Engineer alert，Acclaim AI 的 ASR 方向最贴你的 speech AI 背景，Jobgether 需要先确认是否只是代发聚合岗位。",
-      "why": "职位类单独作为行动项；这批有原始 LinkedIn job URL，可快速筛掉低相关或聚合站岗位。",
-      "thought": "先看 Acclaim AI ASR 和 Jobgether 两个链接：确认职责、remote/visa、是否真实招聘方；不贴合就丢弃，不进入学习流。",
-      "priority": 72,
+      "summary": "Ryanair 发来预约 C7DK7U 的 booking 管理提醒：Milan Bergamo (BGY)，2026-07-08 23:00 起飞，gate closes 22:30，landing 01:10。邮件本身是管理提醒，但包含明确航班时间和 booking portal，值得放进待处理防遗忘。",
+      "why": "这是有具体时间地点的出行信息，适合保留到行动区，而不是混入学习流。",
+      "thought": "临近出发前确认登机牌、行李、机场到达时间和 app/booking portal 是否可打开。",
+      "priority": 66,
       "links": [
         {
-          "label": "Jobgether AI Engineer",
-          "url": "https://www.linkedin.com/comm/jobs/view/4433657865/?trackingId=MR%2F2U4%2FhHNyO5xmGg4T3WA%3D%3D&refId=ypBShLkIw0%2BBpIPOtR47IA%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BHSd9IRu2TGeiYl3mr3OauA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=322CK2it82pck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433657865_ssid_15477663556_fmid_jp2m05~mr0budz1~gu&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433657865_ssid_15477663556_fmid_jp2m05~mr0budz1~gu-null-jp2m05~mr0budz1~gu-null-null&eid=jp2m05-mr0budz1-gu&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmM4ZmNhZDY0MzkxYWY4ZDZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTFjYWZmZTM0NzllZjdhMGFiMWM5NmY1OWM5ZDJiMWVkYzQwYTQxOTMyOWFlMGQwLDEsMQ%3D%3D"
-        },
-        {
-          "label": "Acclaim AI ASR",
-          "url": "https://www.linkedin.com/comm/jobs/view/4433666300/?trackingId=H6Lz1rXAllmOGAAmVwtqnQ%3D%3D&refId=SxXH6eDjLzwkQzR4FlZYHg%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BlPlbiTdQRbCSflxia0w6xw%3D%3D&midToken=AQFFuKiydP0yRg&midSig=0Qi2mtURFWpck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4433666300_ssid_15469705780_fmid_jp2m05~mr0g4pjw~ru&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4433666300_ssid_15469705780_fmid_jp2m05~mr0g4pjw~ru-null-jp2m05~mr0g4pjw~ru-null-null&eid=jp2m05-mr0g4pjw-ru&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmM4ZWNmZDg0MzllYWQ4YTZmN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NGJlY2JlZjY0NDgxZGY5YjdmMzEyMjdhNzI1NzZlNzIxZTIzMmNlYWE3YTgzZWMwLDEsMQ%3D%3D"
+          "label": "myRyanair Portal",
+          "url": "https://t1.marketing.ryanairemail.com/r/?id=hfc4576c3-8e3e-4937-bd2b-656c61b2d4bd,a00574,38b0ba0&e=dXRtX3NvdXJjZT1jcm0mdXRtX21lZGl1bT1lbWFpbCZ1dG1fY2FtcGFpZ249ZW1haWxfVV9TRVJWX215UnlhbmFpcl9pZV9ub3NlZ19ub2FiX25vZGl2X25vcF9ub2xzJnAxPS9pZS9lbi8mcDI9OTQyNzY0MDIy&s=Etk3Qg7j-1VSQVA5D474siY20U2d4PS300oB7Uo6Ds8"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f17ddab474c223"
+          "url": "https://mail.google.com/mail/#all/19f190a1fdc6fbaf"
         }
       ]
     }
