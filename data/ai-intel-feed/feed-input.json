@@ -1,138 +1,142 @@
 {
-  "date": "2026-06-30",
-  "overview": "晚间最值得看仍是 agent 证据链与反馈闭环；新增重点是 local CI、LLM dataframe operators、HF eval 汇总，以及 Ryanair 7 月 8 日航班提醒。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / arXiv / S2；AINews、Medium、LinkedIn 只作线索；OpenAI News 仍受 Cloudflare 限制；0 条行动候选因缺少 URL 被跳过。",
+  "date": "2026-07-01",
+  "overview": "今天主线是 agent 从“会做事”走向“会循环、会记忆、会停止”，同时保留 3 个明确行动项。",
+  "sourceStatusLine": "已检查 Gmail / HN / HF Daily Papers / arXiv；OpenAI 官方页仍被 Cloudflare challenge；AINews/Latent.Space 只作线索；arXiv eess.AS 刷新遇到 503/429；0 个候选因缺少 URL 跳过。",
   "blocks": [
     {
-      "id": "cilock-agent-provenance-20260630",
+      "id": "aiewf-loops-software-factory-20260701",
       "kind": "deep-read",
-      "title": "CI/Lock：今天最值得看的是 agent 不能决定“什么能发布”",
-      "source": "CI/Lock / HN · 2026-06-30",
-      "sourceStatus": "高质量讨论",
-      "summary": "CI/Lock 把 CI step 实际读写的文件、环境、产物和命令记录成 in-toto/DSSE attestation，再由人签署发布策略。它最值得看的点不是又一个 CI 工具，而是把 Claude Code、Codex、Cursor 这类 agent 放在“可以构建证据、不能签署放行”的位置。",
-      "why": "你现在的 Codex 自动化已经会改 feed、跑 build、push 部署；这个边界直接关系到以后哪些步骤能自动化、哪些步骤必须留给人工审查。",
-      "thought": "先读 threat model：它是 forensic evidence，不是运行时拦截；然后对照 portfolio/automation 流程，想清楚哪些产物需要可验证 provenance。",
+      "title": "AIEWF：今天最值得看的是 agent loop 变成工程对象",
+      "source": "Latent.Space / AINews · 2026-07-01",
+      "sourceStatus": "线索",
+      "summary": "AI Engineer World's Fair 的 day 2 把 loops、software factories 和 forward deployed engineers 连成一条主线：agent 不只是一次性写代码，而是在任务、反馈、review、部署之间反复运行。它最贴近你现在的 Codex 自动化，因为问题已经从“能不能让 agent 做”变成“loop 的边界、信号和人类介入点在哪里”。",
+      "why": "你每天已经在让自动化抓源、渲染、同步、build、push；这篇值得用来反思哪些 loop 该自动化，哪些 gate 不能丢。",
+      "thought": "先看 loopcraft / software factory / FDE 三段，不要只看发布会热词；把它映射到你的 AI feed、Triton monitor、paper pool 三条循环。",
       "priority": 100,
       "links": [
         {
-          "label": "CI/Lock",
-          "url": "https://cilock.dev/"
+          "label": "Latent.Space",
+          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204384909&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDM4NDkwOSwiaWF0IjoxNzgyODgxMjU3LCJleHAiOjE3ODU0NzMyNTcsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.GDtQXdXbI4EjUYefF0bORwoEaJ0Dcsf1Q9WNGCySO8I"
         },
         {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48728596"
-        },
-        {
-          "label": "Rookery GitHub",
-          "url": "https://github.com/aflock-ai/rookery"
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f1c0112dc7f229"
         }
       ]
     },
     {
-      "id": "local-ci-agent-feedback-20260630",
-      "kind": "signal",
-      "title": "Local CI：agent 速度瓶颈不只是模型，而是反馈延迟",
-      "source": "Modern Treasury / HN · 2026-06-30",
-      "sourceStatus": "高质量讨论",
-      "summary": "Modern Treasury 今天发了 local CI for developers and AI agents 的文章，HN 也有对应条目。它和 CI/Lock 是同一条工程主线的另一面：agent 能不能稳定做事，取决于它多快拿到真实测试、lint、类型检查和集成反馈，而不是只靠更强模型。",
-      "why": "你本地/portfolio 自动化已经有 render、sync、build、push 这些阶段；缩短本地验证闭环会比堆 prompt 更实际。",
-      "thought": "扫它的 pipeline 设计，重点看哪些检查适合本地快速跑，哪些必须留给远端 CI 或人工 gate。",
+      "id": "agent-memory-hn-cluster-20260701",
+      "kind": "theme",
+      "title": "Agent memory：今天的开源信号集中在“共享记忆层”",
+      "source": "Sibyl / Commonplace / Kage / HN · 2026-07-01",
+      "sourceStatus": "综合判断",
+      "summary": "HN 今天集中出现 Sibyl、Commonplace、Kage 这类 agent memory 项目：共同点不是“再做一个聊天记忆”，而是给并行 coding agents 一个可检索、可更新、可验证的新上下文底座。这和你最近学的 working/procedural/semantic/episodic memory 很接近，但工程风险也明显：谁写入、谁验证、何时遗忘。",
+      "why": "你的 Codex skills 和 automations 已经依赖长期偏好与项目上下文；记忆层如果没有 freshness 和验证，会很快变成错误放大器。",
+      "thought": "把它当候选设计空间，不急着装；优先比较 memory write policy、retrieval surface、verification/freshness，而不是 README 里的 agent demo。",
       "priority": 86,
       "links": [
         {
-          "label": "Modern Treasury",
-          "url": "https://www.moderntreasury.com/journal/reducing-feedback-latency-with-local-ci-for-developers-and-ai-agents"
+          "label": "Sibyl",
+          "url": "https://github.com/hyperb1iss/sibyl"
+        },
+        {
+          "label": "Sibyl HN",
+          "url": "https://news.ycombinator.com/item?id=48741558"
+        },
+        {
+          "label": "Commonplace",
+          "url": "https://github.com/itsmeduncan/commonplace"
+        },
+        {
+          "label": "Kage",
+          "url": "https://kage-core.com/"
+        }
+      ]
+    },
+    {
+      "id": "agentic-abstention-stop-rules-20260701",
+      "kind": "concept",
+      "title": "Agentic abstention：会停手比多调用工具更难",
+      "source": "arXiv / HF Daily Papers · 2026-07-01",
+      "sourceStatus": "高质量源",
+      "summary": "HF Daily Papers 今天把 Agentic Abstention 放在高热位置：问题是 agent 在多轮浏览、终端、QA 任务里何时应该回答、继续查、或承认目标不可达。它和普通 LLM abstention 不同，因为“该停手”的证据常常是在和环境交互后才出现。",
+      "why": "这正好对应 Codex 自动化的失败模式：有些任务不是继续跑更多工具能解决，而是应该早停、报告缺口、避免污染输出。",
+      "thought": "先记住一个判断：agent loop 的质量不只看完成率，也看及时 abstain；后续可把它变成自动化失败判定清单。",
+      "priority": 84,
+      "links": [
+        {
+          "label": "Agentic Abstention",
+          "url": "https://arxiv.org/abs/2606.28733"
+        },
+        {
+          "label": "HF Daily Papers",
+          "url": "https://mail.google.com/mail/#all/19f1b34e7e4b27b7"
+        }
+      ]
+    },
+    {
+      "id": "claude-sonnet5-cost-per-task-20260701",
+      "kind": "signal",
+      "title": "Claude Sonnet 5：先看 cost-per-task，不只看 token 单价",
+      "source": "AINews / Artificial Analysis / HN · 2026-07-01",
+      "sourceStatus": "未官方核验",
+      "summary": "AINews 把 Sonnet 5 发布、Fable/Mythos 恢复和效率争议放在一起：关键信号不是模型名，而是 benchmark 里更高 turn-taking / tokenizer 变化可能让实际任务成本偏离标价。HN 上也出现了 Artificial Analysis 的 cost-per-task 讨论。",
+      "why": "你现在常比较 Claude Code、Codex、本地模型和推理服务；真正影响工作流的是完成一个 agent task 的总成本、延迟和失败重试，而不是单独的输入/输出 token 价格。",
+      "thought": "先按未官方核验处理；等官方 release notes 可访问后再核对上下文、价格、工具能力和实际 task cost。",
+      "priority": 80,
+      "links": [
+        {
+          "label": "AINews",
+          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204378783&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDM3ODc4MywiaWF0IjoxNzgyODc1MDUwLCJleHAiOjE3ODU0NjcwNTAsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.n5mL-FABcxAJp2i26n2CLnAT1iaNPvs4JTqO90Ga1v4"
+        },
+        {
+          "label": "Artificial Analysis",
+          "url": "https://artificialanalysis.ai/articles/claude-sonnet-5-agentic-cost"
         },
         {
           "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48735105"
+          "url": "https://news.ycombinator.com/item?id=48740633"
         }
       ]
     },
     {
-      "id": "fenic-llm-dataframe-operators-20260630",
-      "kind": "signal",
-      "title": "fenic：把 LLM 调用变成 dataframe operator，而不是黑盒 UDF",
-      "source": "GitHub / HN · 2026-06-30",
-      "sourceStatus": "高质量讨论",
-      "summary": "Show HN 的 fenic 把 semantic map/join/filter/reduce、typed outputs、async UDF、token/cost metrics 和 response cache 放进 dataframe planner。真正值得看的是它把 LLM 推理当成可调度、可缓存、可度量的 compute operator，而不是把 prompt 塞进任意 UDF。",
-      "why": "这正贴合你最近的 AI infra / inference 学习线：LLM workload 进入数据系统后，调度、缓存、成本和可复现性会变成核心工程问题。",
-      "thought": "只扫架构和 planner/runtime 部分；如果之后要做日志/邮件/论文流分析，它比手写散乱 prompt pipeline 更值得借鉴。",
-      "priority": 82,
-      "links": [
-        {
-          "label": "fenic GitHub",
-          "url": "https://github.com/typedef-ai/fenic"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48735301"
-        },
-        {
-          "label": "fenic docs",
-          "url": "https://docs.fenic.ai"
-        }
-      ]
-    },
-    {
-      "id": "hf-every-eval-ever-model-pages-20260630",
-      "kind": "signal",
-      "title": "HF Model Pages：Every Eval Ever 开始把模型选择变成可查证入口",
-      "source": "Hugging Face Blog · 2026-06-30",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Hugging Face 今天的官方博客把 Every Eval Ever 结果接到模型页面。它的价值不是又多一个 leaderboard，而是把模型页、评测结果、社区 eval 和模型选择流程更直接地连起来。",
-      "why": "你在本地模型、ASR/音频模型和 AI infra 学习里经常要判断“哪个模型值得试”；把 eval 汇到模型页能减少只凭 newsletter/榜单标题做选择。",
-      "thought": "先看它支持哪些 eval、如何处理来源和可比性；后续选模型时优先查模型页上的 eval 证据，而不是只看 release 文案。",
-      "priority": 78,
-      "links": [
-        {
-          "label": "HF Every Eval Ever",
-          "url": "https://huggingface.co/blog/eee-community-evals"
-        },
-        {
-          "label": "HF Blog feed",
-          "url": "https://huggingface.co/blog/feed.xml"
-        }
-      ]
-    },
-    {
-      "id": "agent-eval-skill-verification-20260630",
+      "id": "inference-latency-path-20260701",
       "kind": "theme",
-      "title": "Agent eval：今天的主线从“会不会做”转向“证据能不能验”",
-      "source": "ECP / SkillSpec / HN · 2026-06-30",
+      "title": "Inference path：延迟优化正在从 GPU kernel 外溢到请求路径",
+      "source": "Modal / AMD ROCm / HN · 2026-07-01",
       "sourceStatus": "综合判断",
-      "summary": "HN 今天连续出现 Evaluation Context Protocol 和 SkillSpec 这类项目：一个想把 agent outputs、tool calls、evaluator-visible audit context 做成跨框架协议，另一个强调 skill 是否按声明运行要能测试。它们和 CI/Lock 呼应：agent workflow 的下一步不是堆更多工具，而是把运行证据、评测上下文和 skill contract 做成可审计对象。",
-      "why": "你的 Codex skills、自动化、Triton/Obsidian 工作流越来越依赖文字约束；最先值得补强的是高频技能的 smoke case 和验收证据。",
-      "thought": "不要一次性工程化所有 skill；只挑 automation、paper、Triton 这几条高风险路径，补最小可执行样例和失败判定。",
+      "summary": "今天 HN 的 inference 线索分成两层：Modal 讲用 Pingora、Envoy、Spanner 把 proxying inference requests 压到 6ms，AMD ROCm 讲低延迟 GEMM 加速 LLM inference。合起来看，推理工程不只是模型 kernel，还包括请求路由、状态存储、batching、缓存和硬件后端的整条路径。",
+      "why": "这能帮助你把 vLLM/SGLang/TensorRT-LLM 学习从单点概念扩展到端到端 serving path。",
+      "thought": "先用 TTFT / ITL / queueing / KV cache / proxy latency 五个词拆它；不要把所有延迟都归因给 GPU。",
       "priority": 76,
       "links": [
         {
-          "label": "Evaluation Context Protocol",
-          "url": "https://www.evaluationcontextprotocol.io/"
+          "label": "Modal Blog",
+          "url": "https://modal.com/blog/serverless-servers"
         },
         {
-          "label": "ECP HN",
-          "url": "https://news.ycombinator.com/item?id=48734561"
+          "label": "Modal HN",
+          "url": "https://news.ycombinator.com/item?id=48741624"
         },
         {
-          "label": "SkillSpec",
-          "url": "https://skillspec.sh"
+          "label": "AMD ROCm",
+          "url": "https://rocm.blogs.amd.com/software-tools-optimization/accelerating-llm-inference-on-amd-gpus-with-low-latency-gemms/README.html"
         },
         {
-          "label": "SkillSpec HN",
-          "url": "https://news.ycombinator.com/item?id=48730613"
+          "label": "AMD HN",
+          "url": "https://news.ycombinator.com/item?id=48737691"
         }
       ]
     },
     {
-      "id": "paper-use-wqfusion-storm-20260630-evening",
+      "id": "paper-use-wqfusion-storm-20260701",
       "kind": "paper",
-      "title": "论文入口：今天仍然先扫 WQ-Fusion 和 StoRM mismatch",
-      "source": "arXiv / 本地推荐池 · 2026-06-30",
+      "title": "论文入口：今天先扫 WQ-Fusion，再看 Agentic Abstention",
+      "source": "本地推荐池 / HF Daily Papers · 2026-07-01",
       "sourceStatus": "本地推荐池",
-      "summary": "晚间重新跑检索：arXiv fresh 仍是 183 个新近候选，Semantic Scholar 有一个 500 重试后返回 19 个 hot 候选，合并后 38 个去重候选。最值得扫的仍是 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation` 和 `A Variational-Flow Analysis of StoRM under Noise-Power Mismatch`：前者是 Whisper + Qwen 的跨域音频表示动态门控，后者直接讨论 diffusion speech enhancement 在噪声功率 mismatch 下的退化结构。",
-      "why": "一个贴跨域音频表示和 Audio Encoder Challenge，一个贴你最近关心的 noisy/shifted target、diffusion/flow SE 失败机制。",
-      "thought": "Tag: audio-representation, cross-domain, speech-enhancement, diffusion-se, noise-mismatch；打开推荐池只扫摘要、方法图、mismatch 假设和是否有实验证据。",
+      "summary": "今天 arXiv fresh 刷新遇到 503/429，所以 paper block 不新增池卡片，只保留最值得打开的入口：USE 主线仍先扫 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation`，看跨域音频表示和动态门控；如果还有 10 分钟，再扫 `Agentic Abstention`，把它当作自动化 loop 的停止规则材料。",
+      "why": "WQ-Fusion 贴近跨域音频表示和 speech enhancement 主线；Agentic Abstention 贴近你最近的 Codex/agent workflow 可靠性问题。",
+      "thought": "Tag: audio-representation, cross-domain, speech-enhancement, agent-evaluation, abstention；打开推荐池只扫摘要、方法假设、mismatch/停止条件和是否有可复现实验证据。",
       "priority": 70,
       "links": [
         {
@@ -144,12 +148,12 @@
     {
       "id": "action-datacrunch-interview-20260701",
       "kind": "action",
-      "title": "DataCrunch 面试：明天 15:00",
+      "title": "DataCrunch 面试：今天 15:00",
       "source": "Google Calendar / Gmail · 2026-06-30",
       "sourceStatus": "行动项",
-      "summary": "Ruikang Tao 更新了 DataCrunch 面试邀请：2026-07-01 15:00-16:00（Europe/Helsinki），原时间是 15:30-16:30；地点仍是 Sanomatalo-5-16 / Scharm squark (4)，也提供 Google Meet。邮件标记为时间已更改，需要按新时间确认日历/准备。",
-      "why": "这是明确的时间变更行动项，优先级高于普通职位 alert。",
-      "thought": "把准备窗口前移半小时：确认参加链接、地点、Google Meet，并预留 14:30 前完成 DataCrunch/GPU cloud 问题准备。",
+      "summary": "Ruikang Tao 更新了 DataCrunch 面试邀请：2026-07-01 15:00-16:00（Europe/Helsinki），地点 Sanomatalo-5-16 / Scharm squark (4)，也有 Google Meet；原时间 15:30-16:30 已变更。",
+      "why": "这是今天明确的时间变更和面试行动项，必须比普通阅读更早处理。",
+      "thought": "14:30 前确认参加链接、地点、Google Meet，并快速准备 DataCrunch/GPU cloud、speech AI、Triton/Slurm 相关问题。",
       "priority": 96,
       "links": [
         {
@@ -169,11 +173,11 @@
     {
       "id": "action-viagogo-charlie-puth-20260701",
       "kind": "action",
-      "title": "Charlie Puth 票：明天 19:00 前处理",
+      "title": "Charlie Puth 票：今天 19:00 前打印",
       "source": "viagogo · 2026-06-27",
       "sourceStatus": "行动项",
       "summary": "viagogo 已发来 Charlie Puth / Allas Live 的 3 张票，订单 647191205，活动时间是 2026-07-01 19:00。邮件明确说需要提前打印，现场不能打印，且有 18+ 限制。",
-      "why": "这是需要记住时间地点并提前处理的个人行动。",
+      "why": "这是今天有具体时间地点和打印要求的个人行动。",
       "thought": "尽快下载并检查 PDF 票面，确认三张票、General Admission、打印要求和入场限制。",
       "priority": 74,
       "links": [
@@ -193,7 +197,7 @@
       "title": "Ryanair 航班：7 月 8 日 23:00 Bergamo",
       "source": "Ryanair / Gmail · 2026-06-30",
       "sourceStatus": "行动项",
-      "summary": "Ryanair 发来预约 C7DK7U 的 booking 管理提醒：Milan Bergamo (BGY)，2026-07-08 23:00 起飞，gate closes 22:30，landing 01:10。邮件本身是管理提醒，但包含明确航班时间和 booking portal，值得放进待处理防遗忘。",
+      "summary": "Ryanair 发来预约 C7DK7U 的 booking 管理提醒：Milan Bergamo (BGY)，2026-07-08 23:00 起飞，gate closes 22:30，landing 01:10。邮件本身是管理提醒，但包含明确航班时间和 booking portal。",
       "why": "这是有具体时间地点的出行信息，适合保留到行动区，而不是混入学习流。",
       "thought": "临近出发前确认登机牌、行李、机场到达时间和 app/booking portal 是否可打开。",
       "priority": 66,
