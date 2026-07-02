@@ -1,142 +1,134 @@
 {
-  "date": "2026-07-01",
-  "overview": "今天主线是 agent 从“会做事”走向“会循环、会记忆、会停止”，同时保留 3 个明确行动项。",
-  "sourceStatusLine": "已检查 Gmail / HN / HF Daily Papers / arXiv；OpenAI 官方页仍被 Cloudflare challenge；AINews/Latent.Space 只作线索；arXiv eess.AS 刷新遇到 503/429；0 个候选因缺少 URL 跳过。",
+  "date": "2026-07-02",
+  "overview": "今天主线是 agent loop 的边界感：能自动研究、自动执行，也必须能保留人的判断、凭证和外部信号。",
+  "sourceStatusLine": "已检查 Gmail / HN / HF Blog / Google Blog / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；AINews/Latent.Space 只作线索；S2 有 429/timeout 但已恢复出 20 个 hot 候选；0 个候选因缺少 URL 跳过。",
   "blocks": [
     {
-      "id": "aiewf-loops-software-factory-20260701",
+      "id": "aiewf-autoresearch-human-agency-20260702",
       "kind": "deep-read",
-      "title": "AIEWF：今天最值得看的是 agent loop 变成工程对象",
-      "source": "Latent.Space / AINews · 2026-07-01",
+      "title": "AIEWF：今天最值得看的是 autoresearch 和人的外环",
+      "source": "Latent.Space / AINews · 2026-07-02",
       "sourceStatus": "线索",
-      "summary": "AI Engineer World's Fair 的 day 2 把 loops、software factories 和 forward deployed engineers 连成一条主线：agent 不只是一次性写代码，而是在任务、反馈、review、部署之间反复运行。它最贴近你现在的 Codex 自动化，因为问题已经从“能不能让 agent 做”变成“loop 的边界、信号和人类介入点在哪里”。",
-      "why": "你每天已经在让自动化抓源、渲染、同步、build、push；这篇值得用来反思哪些 loop 该自动化，哪些 gate 不能丢。",
-      "thought": "先看 loopcraft / software factory / FDE 三段，不要只看发布会热词；把它映射到你的 AI feed、Triton monitor、paper pool 三条循环。",
+      "summary": "AIEWF day 3 把 autoresearch、software factory 和 human agency 的冲突讲得更具体：agent 可以维护系统、运行内环，但外环里的目标定义、品味、取舍和责任仍然要有人掌握。它是昨天 loop/factory 主题的更新版，重点从“怎么自动化”转到“自动化到哪里该停”。",
+      "why": "你现在的 AI feed、Triton monitor、论文池都已经是小型 agent loop；这篇更适合用来校准哪些信号可以交给自动化，哪些 gate 必须保留人工判断。",
+      "thought": "先看 autoresearch / Addy Osmani outer loop / Geoffrey Litt human understanding 三段；把它映射成你的自动化规则：工具可跑，判断不可外包。",
       "priority": 100,
       "links": [
         {
           "label": "Latent.Space",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204384909&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDM4NDkwOSwiaWF0IjoxNzgyODgxMjU3LCJleHAiOjE3ODU0NzMyNTcsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.GDtQXdXbI4EjUYefF0bORwoEaJ0Dcsf1Q9WNGCySO8I"
+          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204578515&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDU3ODUxNSwiaWF0IjoxNzgyOTcyOTI4LCJleHAiOjE3ODU1NjQ5MjgsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.yOMyKD6gx6pBwZD8_nDtxG-m-hAh27P1SjEYh9RA5mY"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f1c0112dc7f229"
+          "url": "https://mail.google.com/mail/#all/19f2177e6df970e8"
         }
       ]
     },
     {
-      "id": "agent-memory-hn-cluster-20260701",
-      "kind": "theme",
-      "title": "Agent memory：今天的开源信号集中在“共享记忆层”",
-      "source": "Sibyl / Commonplace / Kage / HN · 2026-07-01",
-      "sourceStatus": "综合判断",
-      "summary": "HN 今天集中出现 Sibyl、Commonplace、Kage 这类 agent memory 项目：共同点不是“再做一个聊天记忆”，而是给并行 coding agents 一个可检索、可更新、可验证的新上下文底座。这和你最近学的 working/procedural/semantic/episodic memory 很接近，但工程风险也明显：谁写入、谁验证、何时遗忘。",
-      "why": "你的 Codex skills 和 automations 已经依赖长期偏好与项目上下文；记忆层如果没有 freshness 和验证，会很快变成错误放大器。",
-      "thought": "把它当候选设计空间，不急着装；优先比较 memory write policy、retrieval surface、verification/freshness，而不是 README 里的 agent demo。",
-      "priority": 86,
-      "links": [
-        {
-          "label": "Sibyl",
-          "url": "https://github.com/hyperb1iss/sibyl"
-        },
-        {
-          "label": "Sibyl HN",
-          "url": "https://news.ycombinator.com/item?id=48741558"
-        },
-        {
-          "label": "Commonplace",
-          "url": "https://github.com/itsmeduncan/commonplace"
-        },
-        {
-          "label": "Kage",
-          "url": "https://kage-core.com/"
-        }
-      ]
-    },
-    {
-      "id": "agentic-abstention-stop-rules-20260701",
-      "kind": "concept",
-      "title": "Agentic abstention：会停手比多调用工具更难",
-      "source": "arXiv / HF Daily Papers · 2026-07-01",
-      "sourceStatus": "高质量源",
-      "summary": "HF Daily Papers 今天把 Agentic Abstention 放在高热位置：问题是 agent 在多轮浏览、终端、QA 任务里何时应该回答、继续查、或承认目标不可达。它和普通 LLM abstention 不同，因为“该停手”的证据常常是在和环境交互后才出现。",
-      "why": "这正好对应 Codex 自动化的失败模式：有些任务不是继续跑更多工具能解决，而是应该早停、报告缺口、避免污染输出。",
-      "thought": "先记住一个判断：agent loop 的质量不只看完成率，也看及时 abstain；后续可把它变成自动化失败判定清单。",
+      "id": "hf-cerebras-gemma4-voice-ai-20260702",
+      "kind": "signal",
+      "title": "Voice AI：HF/Cerebras 把 Gemma 4 推向实时语音",
+      "source": "Hugging Face Blog · 2026-07-01",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Hugging Face Blog 的新信号是 Cerebras + Gemma 4 做实时 voice AI：这不是一篇 USE 论文，但它说明语音交互、低延迟推理和本地/边缘模型正在继续合流。对你来说，值得看的是 voice stack 的端到端约束，而不是只看模型名。",
+      "why": "它贴近你的 ASR/声卡翻译/语音增强工作流：最终体验受模型、推理延迟、流式接口和音频前处理共同决定。",
+      "thought": "把它当 voice-serving 线索扫一遍：输入流、延迟预算、模型大小、API 形态和是否能和本地 ASR/SE 管线接上。",
       "priority": 84,
       "links": [
         {
-          "label": "Agentic Abstention",
-          "url": "https://arxiv.org/abs/2606.28733"
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/cerebras-gemma4-voice-ai"
         },
         {
-          "label": "HF Daily Papers",
-          "url": "https://mail.google.com/mail/#all/19f1b34e7e4b27b7"
+          "label": "HF RSS",
+          "url": "https://huggingface.co/blog/feed.xml"
         }
       ]
     },
     {
-      "id": "claude-sonnet5-cost-per-task-20260701",
+      "id": "cloudflare-ai-traffic-control-20260702",
       "kind": "signal",
-      "title": "Claude Sonnet 5：先看 cost-per-task，不只看 token 单价",
-      "source": "AINews / Artificial Analysis / HN · 2026-07-01",
-      "sourceStatus": "未官方核验",
-      "summary": "AINews 把 Sonnet 5 发布、Fable/Mythos 恢复和效率争议放在一起：关键信号不是模型名，而是 benchmark 里更高 turn-taking / tokenizer 变化可能让实际任务成本偏离标价。HN 上也出现了 Artificial Analysis 的 cost-per-task 讨论。",
-      "why": "你现在常比较 Claude Code、Codex、本地模型和推理服务；真正影响工作流的是完成一个 agent task 的总成本、延迟和失败重试，而不是单独的输入/输出 token 价格。",
-      "thought": "先按未官方核验处理；等官方 release notes 可访问后再核对上下文、价格、工具能力和实际 task cost。",
-      "priority": 80,
+      "title": "Cloudflare：AI crawler 控制正在变成默认站点能力",
+      "source": "Cloudflare Blog / HN · 2026-07-02",
+      "sourceStatus": "官方/高质量源",
+      "summary": "HN 今天出现 Cloudflare 的 AI traffic options：站点开始把 AI crawler、内容授权和访问控制变成普通客户也要面对的配置项。它不是模型新闻，但会影响未来 agent 抓网页、RAG 建索引、内容引用和版权边界。",
+      "why": "你的自动化依赖网页和 newsletter 线索；如果更多站点主动管控 AI 流量，sourceStatusLine 里的“官方源访问受限”会越来越常见。",
+      "thought": "先记住这个趋势：抓取失败不是单纯网络问题，可能是站点级 AI policy；后续 feed 源要更重视 official API、RSS、邮件原文和可追溯链接。",
+      "priority": 78,
       "links": [
         {
-          "label": "AINews",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204378783&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDM3ODc4MywiaWF0IjoxNzgyODc1MDUwLCJleHAiOjE3ODU0NjcwNTAsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.n5mL-FABcxAJp2i26n2CLnAT1iaNPvs4JTqO90Ga1v4"
+          "label": "Cloudflare Blog",
+          "url": "https://blog.cloudflare.com/content-independence-day-ai-options/"
         },
         {
-          "label": "Artificial Analysis",
-          "url": "https://artificialanalysis.ai/articles/claude-sonnet-5-agentic-cost"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48740633"
+          "label": "Cloudflare HN",
+          "url": "https://news.ycombinator.com/item?id=48758617"
         }
       ]
     },
     {
-      "id": "inference-latency-path-20260701",
+      "id": "agent-credential-contract-checks-20260702",
       "kind": "theme",
-      "title": "Inference path：延迟优化正在从 GPU kernel 外溢到请求路径",
-      "source": "Modal / AMD ROCm / HN · 2026-07-01",
+      "title": "Agent safety：今天的开源信号集中在凭证和规则校验",
+      "source": "GitHub / HN · 2026-07-02",
       "sourceStatus": "综合判断",
-      "summary": "今天 HN 的 inference 线索分成两层：Modal 讲用 Pingora、Envoy、Spanner 把 proxying inference requests 压到 6ms，AMD ROCm 讲低延迟 GEMM 加速 LLM inference。合起来看，推理工程不只是模型 kernel，还包括请求路由、状态存储、batching、缓存和硬件后端的整条路径。",
-      "why": "这能帮助你把 vLLM/SGLang/TensorRT-LLM 学习从单点概念扩展到端到端 serving path。",
-      "thought": "先用 TTFT / ITL / queueing / KV cache / proxy latency 五个词拆它；不要把所有延迟都归因给 GPU。",
+      "summary": "HN 今天的 agent 小工具里，Ghbrk 关注让 agents 跑 git/gh 但不暴露 SSH keys/API tokens，Agents.md is lying 关注 agent 指令没人校验，Pokayoke 关注把 repo conventions 变成 deterministic checks。共同点不是更强模型，而是给 agent loop 加边界和可验证规则。",
+      "why": "这正好对应你的 Codex 自动化：真正的风险往往不是模型不会写代码，而是权限、规则、上下文和检查信号混在一起。",
+      "thought": "不用急着安装；先把它们当设计样本，比较 token/SSH 隔离、AGENTS.md 可信度、规则变代码检查这三类防线。",
       "priority": 76,
       "links": [
         {
-          "label": "Modal Blog",
-          "url": "https://modal.com/blog/serverless-servers"
+          "label": "Ghbrk",
+          "url": "https://github.com/marconae/ghbrk"
         },
         {
-          "label": "Modal HN",
-          "url": "https://news.ycombinator.com/item?id=48741624"
+          "label": "Ghbrk HN",
+          "url": "https://news.ycombinator.com/item?id=48758568"
         },
         {
-          "label": "AMD ROCm",
-          "url": "https://rocm.blogs.amd.com/software-tools-optimization/accelerating-llm-inference-on-amd-gpus-with-low-latency-gemms/README.html"
+          "label": "Agents.md is lying",
+          "url": "https://hunch-pi.vercel.app/blog/post?slug=agents-md-is-lying-to-your-agent"
         },
         {
-          "label": "AMD HN",
-          "url": "https://news.ycombinator.com/item?id=48737691"
+          "label": "Pokayoke",
+          "url": "https://pokayoke.codes"
         }
       ]
     },
     {
-      "id": "paper-use-wqfusion-storm-20260701",
+      "id": "google-gemma4-local-agent-recap-20260702",
+      "kind": "concept",
+      "title": "Local multimodal agents：Google 月报值得只扫 Gemma 4 线索",
+      "source": "Google Blog / LinkedIn Newsletter · 2026-07-01",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Google 的 June AI recap 里信息很多，但今天只值得抓一个概念：Gemma 4 12B 把本地、视觉、语音和 agent 工作流放在同一条叙事里。它和 HF/Cerebras voice AI 信号相互印证：本地 multimodal agent 会越来越像一个完整工作流组件，而不是单独聊天模型。",
+      "why": "这能帮助你判断本地 ASR、语音增强、dictation 和小模型工具链的方向：端侧能力是否够用，要看内存、延迟、语音/视觉接口和隐私边界。",
+      "thought": "只扫 Gemma 4 12B 和 Gemini computer-use 两段；不要被整月 recap 的营销项分散注意力。",
+      "priority": 72,
+      "links": [
+        {
+          "label": "Gemma 4 12B",
+          "url": "https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemma-4-12b/"
+        },
+        {
+          "label": "Gemini computer use",
+          "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-computer-use-gemini-3-5-flash/"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f1f37f4a4991d1"
+        }
+      ]
+    },
+    {
+      "id": "paper-use-room-sim-wqfusion-20260702",
       "kind": "paper",
-      "title": "论文入口：今天先扫 WQ-Fusion，再看 Agentic Abstention",
-      "source": "本地推荐池 / HF Daily Papers · 2026-07-01",
+      "title": "论文入口：先看房间仿真，再扫 WQ-Fusion",
+      "source": "本地推荐池 / arXiv+S2 · 2026-07-02",
       "sourceStatus": "本地推荐池",
-      "summary": "今天 arXiv fresh 刷新遇到 503/429，所以 paper block 不新增池卡片，只保留最值得打开的入口：USE 主线仍先扫 `WQ-Fusion: Dynamic Gated Attention for Cross-Domain Audio Representation`，看跨域音频表示和动态门控；如果还有 10 分钟，再扫 `Agentic Abstention`，把它当作自动化 loop 的停止规则材料。",
-      "why": "WQ-Fusion 贴近跨域音频表示和 speech enhancement 主线；Agentic Abstention 贴近你最近的 Codex/agent workflow 可靠性问题。",
-      "thought": "Tag: audio-representation, cross-domain, speech-enhancement, agent-evaluation, abstention；打开推荐池只扫摘要、方法假设、mismatch/停止条件和是否有可复现实验证据。",
+      "summary": "今天 arXiv+S2 刷出 39 个去重候选，最值得看 2 篇：`Improving multichannel speech enhancement through accurate room-acoustic simulations`，因为它直接讨论仿真保真度如何影响真实测量数据上的多通道语音增强；`WQ-Fusion` 继续值得扫，重点是 Whisper/Qwen 双编码器和 gated attention 做跨域音频表示。",
+      "why": "第一篇贴近你最近关心的房间仿真、domain shift 和 enhancement 评估可比性；第二篇贴近跨域音频表示和 speech-enhancement 主线。",
+      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, cross-domain, audio-representation；打开推荐池只扫摘要、仿真设置、真实测量评估和是否能借鉴到 Hybrid-UniSE 数据增强。",
       "priority": 70,
       "links": [
         {
@@ -146,69 +138,44 @@
       ]
     },
     {
-      "id": "action-datacrunch-interview-20260701",
+      "id": "action-ayy-maventa-invoice-20260707",
       "kind": "action",
-      "title": "DataCrunch 面试：今天 15:00",
-      "source": "Google Calendar / Gmail · 2026-06-30",
+      "title": "AYY 发票：7 月 7 日到期",
+      "source": "Maventa / Gmail · 2026-07-01",
       "sourceStatus": "行动项",
-      "summary": "Ruikang Tao 更新了 DataCrunch 面试邀请：2026-07-01 15:00-16:00（Europe/Helsinki），地点 Sanomatalo-5-16 / Scharm squark (4)，也有 Google Meet；原时间 15:30-16:30 已变更。",
-      "why": "这是今天明确的时间变更和面试行动项，必须比普通阅读更早处理。",
-      "thought": "14:30 前确认参加链接、地点、Google Meet，并快速准备 DataCrunch/GPU cloud、speech AI、Triton/Slurm 相关问题。",
-      "priority": 96,
+      "summary": "Maventa 发来 Aalto-yliopiston ylioppilaskunta invoice 78533，收件人 Li Lijie，due date 是 2026-07-07。邮件提供了安全查看链接，并给出查看密码 76974。",
+      "why": "这是明确截止日期的账单类个人行动，应该留在待处理区而不是混入阅读流。",
+      "thought": "今天先打开确认金额和付款信息；如果不是你预期的 AYY 账单，再联系 AYY 核实。",
+      "priority": 86,
       "links": [
         {
-          "label": "Google Meet",
-          "url": "https://meet.google.com/pfn-jdiw-usm?hs=224"
-        },
-        {
-          "label": "Calendar event",
-          "url": "https://calendar.google.com/calendar/event?action=VIEW&eid=NHQ0cWUzN2EyZ2M0bXVnaXVlNTNtbWQ1cjQgNzczODgyNzEyY3VueWxpQG0&tok=MjEjcnVpa2FuZ0BkYXRhY3J1bmNoLmlvMDUyN2JlYzA0NmRkMjk2YTA5OGQxMWFlMzljMzczNDE0YmI4Yjc4NQ&ctz=Europe%2FHelsinki&hl=zh_CN&es=1"
+          "label": "Maventa invoice",
+          "url": "https://secure.maventa.com/invoice_view/e780c31d-8502-44de-b089-084afdfce477?lang=EN"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f17f952fe17b45"
+          "url": "https://mail.google.com/mail/#all/19f1bebc5ae5e323"
         }
       ]
     },
     {
-      "id": "action-viagogo-charlie-puth-20260701",
+      "id": "action-tandem-health-ai-engineer-20260702",
       "kind": "action",
-      "title": "Charlie Puth 票：今天 19:00 前打印",
-      "source": "viagogo · 2026-06-27",
+      "title": "职位线索：Tandem Health AI Engineer",
+      "source": "LinkedIn Job Alert · 2026-07-02",
       "sourceStatus": "行动项",
-      "summary": "viagogo 已发来 Charlie Puth / Allas Live 的 3 张票，订单 647191205，活动时间是 2026-07-01 19:00。邮件明确说需要提前打印，现场不能打印，且有 18+ 限制。",
-      "why": "这是今天有具体时间地点和打印要求的个人行动。",
-      "thought": "尽快下载并检查 PDF 票面，确认三张票、General Admission、打印要求和入场限制。",
-      "priority": 74,
+      "summary": "LinkedIn 的 Sweden job alert 里，Tandem Health AI Engineer 是今天最相关的职位候选；同一封里还有 Volvo Cars / Lovable / Mentimeter / Bliqat，但与 speech AI 或 agent workflow 的贴合度较低。",
+      "why": "LinkedIn/job 按规则单独进待处理，不混入主学习流；Tandem Health 比普通 data role 更贴近 AI 工程和健康场景。",
+      "thought": "只花 5 分钟扫 JD：是否真实涉及 LLM/agent、health data、Python/ML infra；不合适就直接丢弃。",
+      "priority": 58,
       "links": [
         {
-          "label": "Download E-Tickets",
-          "url": "https://www.viagogo.com/secure/downloadetickets?token=UEI5Z2pLZitnbE9TOTVkbmUzek90NzVhY2w2OE1KSEZuNUVLUUgyRlN1ZTN0bEtxaXRSZ3BGSHJBQTZ2RktBcnU0NW9lTStlWVpHZjhHeDNmZEJzQ05ielBhLzlCVmJn0&pcid=OPENRATE-1085290-647191205&messageId=14485340209&emailsendid=14485340209"
+          "label": "Tandem Health job",
+          "url": "https://www.linkedin.com/comm/jobs/view/4435375188/?trackingId=8nnT9OPZiQND7BnG0t5Ksw%3D%3D&refId=Qz5Q4%2FMp6%2FpBryNDuDhX6Q%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3ByU5wXqfaSbKLsZzxWIxWtg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=37hwgMLAuWrYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4435375188_ssid_15477663556_fmid_jp2m05~mr3b0ey2~3i&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4435375188_ssid_15477663556_fmid_jp2m05~mr3b0ey2~3i-null-jp2m05~mr3b0ey2~3i-null-null&eid=jp2m05-mr3b0ey2-3i&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmQ4N2NhZDY0NTkxYTY4ZjZmN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NDFmOGNiODk2NGYzZjViZjY5MGQ2YzM3NGNlYzlhYjM4MjBiNDBlZTY0NmRmOTdmLDEsMQ%3D%3D"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f0a4f9632f42db"
-        }
-      ]
-    },
-    {
-      "id": "action-ryanair-bergamo-20260708",
-      "kind": "action",
-      "title": "Ryanair 航班：7 月 8 日 23:00 Bergamo",
-      "source": "Ryanair / Gmail · 2026-06-30",
-      "sourceStatus": "行动项",
-      "summary": "Ryanair 发来预约 C7DK7U 的 booking 管理提醒：Milan Bergamo (BGY)，2026-07-08 23:00 起飞，gate closes 22:30，landing 01:10。邮件本身是管理提醒，但包含明确航班时间和 booking portal。",
-      "why": "这是有具体时间地点的出行信息，适合保留到行动区，而不是混入学习流。",
-      "thought": "临近出发前确认登机牌、行李、机场到达时间和 app/booking portal 是否可打开。",
-      "priority": 66,
-      "links": [
-        {
-          "label": "myRyanair Portal",
-          "url": "https://t1.marketing.ryanairemail.com/r/?id=hfc4576c3-8e3e-4937-bd2b-656c61b2d4bd,a00574,38b0ba0&e=dXRtX3NvdXJjZT1jcm0mdXRtX21lZGl1bT1lbWFpbCZ1dG1fY2FtcGFpZ249ZW1haWxfVV9TRVJWX215UnlhbmFpcl9pZV9ub3NlZ19ub2FiX25vZGl2X25vcF9ub2xzJnAxPS9pZS9lbi8mcDI9OTQyNzY0MDIy&s=Etk3Qg7j-1VSQVA5D474siY20U2d4PS300oB7Uo6Ds8"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f190a1fdc6fbaf"
+          "url": "https://mail.google.com/mail/#all/19f222aace385084"
         }
       ]
     }
