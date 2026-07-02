@@ -1,8 +1,29 @@
 {
   "date": "2026-07-02",
-  "overview": "今天主线是 agent loop 的边界感：能自动研究、自动执行，也必须能保留人的判断、凭证和外部信号。",
-  "sourceStatusLine": "已检查 Gmail / HN / HF Blog / Google Blog / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；AINews/Latent.Space 只作线索；S2 有 429/timeout 但已恢复出 20 个 hot 候选；0 个候选因缺少 URL 跳过。",
+  "overview": "二轮主线更偏工程评估：agent 不只要能完成任务，还要能被按 senior-engineer 级别、权限边界和运行成本来验证。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / Medium / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；AINews/Latent.Space/Medium 只作线索；S2 agent-memory 查询两次 429 后恢复，0 个候选因缺少 URL 跳过。",
   "blocks": [
+    {
+      "id": "senior-swe-bench-agent-eval-20260702",
+      "kind": "deep-read",
+      "title": "Senior SWE-Bench：今天最值得看的是 agent 能不能像 senior 一样交付",
+      "source": "Snorkel AI / HN · 2026-07-02",
+      "sourceStatus": "官方/高质量源",
+      "summary": "HN 今天的新高信号是 Senior SWE-Bench：一个开源 benchmark，目标不是测 agent 会不会改一行 bug，而是评估它在更接近 senior engineer 的复杂软件任务中能否理解上下文、分解工作、验证改动并交付可维护结果。",
+      "why": "这正好对应你现在用 Codex 做自动化和 repo 维护的核心问题：能力评估要从“跑通了吗”升级到“是否有工程判断、是否可复查、是否没有破坏上下文”。",
+      "thought": "先看任务设计和评分维度，再对照你的自动化要求：读现状、保护无关改动、验证、只 stage 相关文件，这些都应该是 agent benchmark 的基本能力。",
+      "priority": 100,
+      "links": [
+        {
+          "label": "Senior SWE-Bench",
+          "url": "https://senior-swe-bench.snorkel.ai/"
+        },
+        {
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48755928"
+        }
+      ]
+    },
     {
       "id": "aiewf-autoresearch-human-agency-20260702",
       "kind": "deep-read",
@@ -12,7 +33,7 @@
       "summary": "AIEWF day 3 把 autoresearch、software factory 和 human agency 的冲突讲得更具体：agent 可以维护系统、运行内环，但外环里的目标定义、品味、取舍和责任仍然要有人掌握。它是昨天 loop/factory 主题的更新版，重点从“怎么自动化”转到“自动化到哪里该停”。",
       "why": "你现在的 AI feed、Triton monitor、论文池都已经是小型 agent loop；这篇更适合用来校准哪些信号可以交给自动化，哪些 gate 必须保留人工判断。",
       "thought": "先看 autoresearch / Addy Osmani outer loop / Geoffrey Litt human understanding 三段；把它映射成你的自动化规则：工具可跑，判断不可外包。",
-      "priority": 100,
+      "priority": 92,
       "links": [
         {
           "label": "Latent.Space",
@@ -96,39 +117,39 @@
       ]
     },
     {
-      "id": "google-gemma4-local-agent-recap-20260702",
+      "id": "medium-mcp-harness-engineering-20260702",
       "kind": "concept",
-      "title": "Local multimodal agents：Google 月报值得只扫 Gemma 4 线索",
-      "source": "Google Blog / LinkedIn Newsletter · 2026-07-01",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Google 的 June AI recap 里信息很多，但今天只值得抓一个概念：Gemma 4 12B 把本地、视觉、语音和 agent 工作流放在同一条叙事里。它和 HF/Cerebras voice AI 信号相互印证：本地 multimodal agent 会越来越像一个完整工作流组件，而不是单独聊天模型。",
-      "why": "这能帮助你判断本地 ASR、语音增强、dictation 和小模型工具链的方向：端侧能力是否够用，要看内存、延迟、语音/视觉接口和隐私边界。",
-      "thought": "只扫 Gemma 4 12B 和 Gemini computer-use 两段；不要被整月 recap 的营销项分散注意力。",
-      "priority": 72,
+      "title": "MCP/harness：今天只需要先分清协议、工具和评估脚手架",
+      "source": "Medium / Gmail · 2026-07-02",
+      "sourceStatus": "线索",
+      "summary": "Medium digest 同时推了 `MCP is Dead`、harness engineering 和 Claude Code architecture 文章；这些不适合作为事实源，但说明一个学习主题：现在很多争论把 MCP 协议、agent harness、工具权限和评估脚手架混在一起说。",
+      "why": "你最近的 Codex/skill/automation 工作正卡在这些边界上；先把概念拆开，比追一篇标题党文章更有价值。",
+      "thought": "只扫标题和结构：MCP 是连接协议，harness 是运行与验证环境，agent skill 是可复用任务封装；不要把某个工具体验误当成协议结论。",
+      "priority": 73,
       "links": [
         {
-          "label": "Gemma 4 12B",
-          "url": "https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemma-4-12b/"
+          "label": "MCP is Dead",
+          "url": "https://medium.com/@101/mcp-is-dead-cf16b667ba6d?source=email-602672f81880-1782948521043-digest.reader-819cc2aaeee0-cf16b667ba6d----0-73------------------78747545_ce33_48a7_94ba_0df693b31aa8-1"
         },
         {
-          "label": "Gemini computer use",
-          "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-computer-use-gemini-3-5-flash/"
+          "label": "Harness Engineering",
+          "url": "https://medium.com/@yanli.liu/harness-engineering-what-every-ai-engineer-needs-to-know-in-2026-0ab649e5686a?source=email-602672f81880-1782948521043-digest.reader-3fe99b2acc4-0ab649e5686a----3-109------------------78747545_ce33_48a7_94ba_0df693b31aa8-1"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f1f37f4a4991d1"
+          "url": "https://mail.google.com/mail/#all/19f210e1d00a98d7"
         }
       ]
     },
     {
-      "id": "paper-use-room-sim-wqfusion-20260702",
+      "id": "paper-use-room-sim-ambidrop-20260702",
       "kind": "paper",
-      "title": "论文入口：先看房间仿真，再扫 WQ-Fusion",
+      "title": "论文入口：先看房间仿真，再扫 AmbiDrop",
       "source": "本地推荐池 / arXiv+S2 · 2026-07-02",
       "sourceStatus": "本地推荐池",
-      "summary": "今天 arXiv+S2 刷出 39 个去重候选，最值得看 2 篇：`Improving multichannel speech enhancement through accurate room-acoustic simulations`，因为它直接讨论仿真保真度如何影响真实测量数据上的多通道语音增强；`WQ-Fusion` 继续值得扫，重点是 Whisper/Qwen 双编码器和 gated attention 做跨域音频表示。",
-      "why": "第一篇贴近你最近关心的房间仿真、domain shift 和 enhancement 评估可比性；第二篇贴近跨域音频表示和 speech-enhancement 主线。",
-      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, cross-domain, audio-representation；打开推荐池只扫摘要、仿真设置、真实测量评估和是否能借鉴到 Hybrid-UniSE 数据增强。",
+      "summary": "二轮 arXiv+S2 刷出 40 个去重候选，最值得看 2 篇：`Improving multichannel speech enhancement through accurate room-acoustic simulations`，因为它直接测试仿真保真度对真实测量数据上多通道 SE 的影响；`AmbiDrop` 则看 array-agnostic neural speech enhancement，重点是用 Ambisonics 表示和 channel dropout 去适配未知阵列。",
+      "why": "两篇都贴近你最近的 room simulation、domain shift、multichannel SE 和真实部署可比性问题，比泛泛的音频表示论文更值得先扫。",
+      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, array-agnostic, robustness；打开推荐池只扫实验设置、真实测量评估、阵列变化和是否能迁移到 Hybrid-UniSE 数据增强。",
       "priority": 70,
       "links": [
         {
@@ -159,23 +180,23 @@
       ]
     },
     {
-      "id": "action-tandem-health-ai-engineer-20260702",
+      "id": "action-natural-negative-mlops-engineer-20260702",
       "kind": "action",
-      "title": "职位线索：Tandem Health AI Engineer",
+      "title": "职位线索：Natural Negative MLOps/ML Engineer",
       "source": "LinkedIn Job Alert · 2026-07-02",
       "sourceStatus": "行动项",
-      "summary": "LinkedIn 的 Sweden job alert 里，Tandem Health AI Engineer 是今天最相关的职位候选；同一封里还有 Volvo Cars / Lovable / Mentimeter / Bliqat，但与 speech AI 或 agent workflow 的贴合度较低。",
-      "why": "LinkedIn/job 按规则单独进待处理，不混入主学习流；Tandem Health 比普通 data role 更贴近 AI 工程和健康场景。",
-      "thought": "只花 5 分钟扫 JD：是否真实涉及 LLM/agent、health data、Python/ML infra；不合适就直接丢弃。",
-      "priority": 58,
+      "summary": "LinkedIn 的 Deep Learning Engineer alert 里，Natural Negative 的 MLOps/ML Engineer 是二轮更贴近工程栈的职位候选；同一封里还有 Revolut Applied AI、Hire Feed ML Engineer 和若干泛 data roles。",
+      "why": "LinkedIn/job 按规则单独进待处理，不混入主学习流；这条比普通 Data Scientist alert 更接近 Python/ML infra/MLOps。",
+      "thought": "只花 5 分钟看它是否真实涉及训练/部署/监控，而不是只做数据清洗；如果 JD 泛化或公司方向不合适就丢弃。",
+      "priority": 56,
       "links": [
         {
-          "label": "Tandem Health job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4435375188/?trackingId=8nnT9OPZiQND7BnG0t5Ksw%3D%3D&refId=Qz5Q4%2FMp6%2FpBryNDuDhX6Q%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3ByU5wXqfaSbKLsZzxWIxWtg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=37hwgMLAuWrYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4435375188_ssid_15477663556_fmid_jp2m05~mr3b0ey2~3i&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4435375188_ssid_15477663556_fmid_jp2m05~mr3b0ey2~3i-null-jp2m05~mr3b0ey2~3i-null-null&eid=jp2m05-mr3b0ey2-3i&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmQ4N2NhZDY0NTkxYTY4ZjZmN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NDFmOGNiODk2NGYzZjViZjY5MGQ2YzM3NGNlYzlhYjM4MjBiNDBlZTY0NmRmOTdmLDEsMQ%3D%3D"
+          "label": "Natural Negative job",
+          "url": "https://www.linkedin.com/comm/jobs/view/4434489387/?trackingId=YTYc0Cp3H8CQgHdXoBRJpg%3D%3D&refId=JNyFoUKy7%2BvLpMOfGXwydQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BAcrqaUHJTSmurdIypr5H6g%3D%3D&midToken=AQFFuKiydP0yRg&midSig=23E0gjirJ3rYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434489387_ssid_15469705780_fmid_jp2m05~mr36q39d~b6&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434489387_ssid_15469705780_fmid_jp2m05~mr36q39d~b6-null-jp2m05~mr36q39d~b6-null-null&eid=jp2m05-mr36q39d-b6&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmQ4OGM5ZDQ0ODliYWE4ZTZmN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5N2JiNmNmZDM3MjllZDA5NDRjOGY0ZjRiN2RmZjY5YmM4ZTkyNzI3ZjAxZWNjODY3LDEsMQ%3D%3D"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f222aace385084"
+          "url": "https://mail.google.com/mail/#all/19f21bd816d1160f"
         }
       ]
     }
