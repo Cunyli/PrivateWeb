@@ -1,93 +1,106 @@
 {
-  "date": "2026-07-02",
-  "overview": "第三轮主线更集中：agent 不是只靠更长 loop，而是靠 skill vocabulary、MCP 发布面、质量契约和可回溯上下文来变成可维护系统。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / OpenAI News / Anthropic RSS / arXiv+S2；OpenAI News 仍被 Cloudflare challenge，Anthropic RSS 路径 404；AINews/Medium/LinkedIn newsletter 只作线索；0 个候选因缺少 URL 跳过。",
+  "date": "2026-07-03",
+  "overview": "今天主线很清楚：agent 热点从“能不能循环”转向控制层、可复用技能、可读上下文和可量化质量约束。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge，The Batch/AINews/Medium/LinkedIn 只作线索；0 个候选因缺少 URL 跳过。",
   "blocks": [
     {
-      "id": "skill-engineering-human-control-20260702",
+      "id": "aiewf-loops-control-layer-20260703",
       "kind": "deep-read",
-      "title": "Skill engineering：今天最值得看的是“不要 one-shot 设计”",
-      "source": "Latent.Space / AINews · 2026-07-02",
+      "title": "AIEWF：今天最值得看的是 loop 的控制层",
+      "source": "Latent.Space / AINews · 2026-07-03",
       "sourceStatus": "线索",
-      "summary": "Latent.Space 新文把 Impeccable 的 design skills 当成案例：好的 skill 不是让 agent 自动把设计做完，而是把专家词汇、上下文和人能控制的调节点压缩进可复用指令。重点是 skill engineering 作为一门工艺，而不是某个前端工具本身。",
-      "why": "这直接贴合你现在维护 Codex skills、AGENTS.md 和自动化规则的工作：真正有用的 skill 应该让人更精确地表达判断，而不是把判断交给 auto mode。",
-      "thought": "先看 skill vocabulary、harness/model 差异、routing 和“no auto”几段；然后反推你的 skill 是否把专家判断写清楚，还是只堆了泛泛提示词。",
+      "summary": "AIEWF 最后一日把争论集中到 agent loops：支持者说循环已经成为软件开发的新基本功，反方提醒 hype 正在跑在工程纪律前面。更关键的是 2026 AI Engineer Survey 里，agents 已经从读写草稿走向系统内写操作，而控制层仍主要靠人类批准、权限和零散 sandbox/memory。",
+      "why": "这正好对应你现在的 Codex 自动化边界：真正要提高的不是自动跑更多轮，而是让每一轮有可验证的进入条件、退出条件和回滚边界。",
+      "thought": "先扫 loops debate、survey controls 和 Claude Tag 几段；重点想清楚哪些任务能闭环，哪些必须保留人类 review。",
       "priority": 100,
       "links": [
         {
-          "label": "Latent.Space",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204688240&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDY4ODI0MCwiaWF0IjoxNzgzMDAzMDM2LCJleHAiOjE3ODU1OTUwMzYsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.ywzeDJKoS8fX1Ee3lW-uxwBsfKotaCKlQY_78ribEcE"
+          "label": "AIEWF Dispatch",
+          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204783208&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDc4MzIwOCwiaWF0IjoxNzgzMDU1NTk2LCJleHAiOjE3ODU2NDc1OTYsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.alzzhTWS0GJiAIjiBgcrtS1xddT6Rg7Z5LpwdKU3_Sk"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f234342508dd54"
+          "url": "https://mail.google.com/mail/#all/19f266545b711ae9"
         }
       ]
     },
     {
-      "id": "manufact-mcp-cloud-20260702",
+      "id": "vercel-agents-new-software-20260703",
       "kind": "deep-read",
-      "title": "Manufact：MCP 开始从协议争论变成发布和监控问题",
-      "source": "Manufact / HN · 2026-07-02",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Launch HN 的 Manufact 把 MCP 放到生产发布面：连接 GitHub repo、部署 MCP server、测试 ChatGPT/Claude 客户端中的行为、准备 marketplace submission，并监控真实 tool calls。它的价值不在“又一个 MCP 云”，而在说明 MCP 的难点已经转向 auth、UI、审核、测试和客户端差异。",
-      "why": "这和你的 Codex/Gmail/Drive/Calendar connector 使用经验很近：connector 真正难的是稳定运行边界，而不是单次 demo 能不能调通。",
-      "thought": "先扫 HN 自述里的 catch 列表；把 MCP 看成新的产品发布面，后续比较工具时重点问是否有测试、权限、观测和回滚。",
-      "priority": 91,
+      "title": "Vercel/eve：agent 正在变成另一类软件发布面",
+      "source": "Latent.Space / AINews · 2026-07-03",
+      "sourceStatus": "线索",
+      "summary": "Andrew Qu 把 Vercel 的 agent 经验拆成几个实用 primitive：模型切换、fallback、resumability、filesystem agents、skills、compaction、subagents、sandbox 和 long-running jobs。最有价值的判断是：agent 不是普通 web app 的替代 UI，而是需要自己的 context、tool、观测和长期运行接口。",
+      "why": "这贴近你现在的 AI feed、Codex skills 和 connector 使用：skill 的核心价值是把过期模型知识 forward-correct 成当前产品事实。",
+      "thought": "重点看 skills/current knowledge 和 agent-readable web；这能反推你的 AGENTS.md、技能和 portfolio feed 是否足够机器可读。",
+      "priority": 92,
       "links": [
         {
-          "label": "Manufact",
-          "url": "https://manufact.com"
+          "label": "Vercel agents",
+          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204762364&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDc2MjM2NCwiaWF0IjoxNzgzMDM3NTAyLCJleHAiOjE3ODU2Mjk1MDIsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.b1blDGzG4wanhk3G4n4KMDpXmBT2kYFFYB9ZyE9miBI"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f25513adac98f0"
+        }
+      ]
+    },
+    {
+      "id": "gpt56-restricted-release-20260703",
+      "kind": "signal",
+      "title": "GPT-5.6：重点不是型号名，而是受限发布流程",
+      "source": "The Batch / Axios · 2026-07-03",
+      "sourceStatus": "未官方核验",
+      "summary": "The Batch 今天继续讲 GPT-5.6 Sol/Terra/Luna 的受限预览、价格/能力分层和安全 guardrails；外部新闻也把主线指向美国政府参与的 restricted release。OpenAI 官方 news 页面本轮 curl 仍被 Cloudflare challenge，不能直接官方核验。",
+      "why": "如果 frontier model 发布进入受控流程，开发者真正要关注的是可用性、延迟、拒答、账户审查和 trusted access，而不是只看 benchmark。",
+      "thought": "把它当 model-governance 信号看；等官方页面能访问或 release notes 更新后再把细节升级为事实。",
+      "priority": 86,
+      "links": [
+        {
+          "label": "The Batch",
+          "url": "https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/MXjl5P1vdVQN6-3JQdWscT_W2bnPc75R1h61N74PqtW5nR3bW7Y9pgv6lZ3mXW4sWTc-7L_x6wN96YpFrQXDmpW5j3WPt7jsRXpW9b0nvK4Nly9YW4zw1-d1Q6NcFN4l1X4DPVdXbVr0x9n3G4zCgW8StPff556gWqW3FTj8W9fHYVLN30N_kFY4gQ-W2YtFpv98PPxhW7sVVxc5jf_zPW1XY0mb7k_RxwW1ZnWpM5-7Z4nVmxLHR1sqK_gW7LWD3y6FrkcXN2w0Rh132PkzW5KYcg11RFFyRW2ly6Zz7LSy45W970tdd3yTRY2W3_CQfC7_LVgPW7T9-PP2_L_k8W2k058W4zbdLRW5dnK_Q2MfZm5W5J2sJr8ppR8JN4j0BNW6Pvv8W5Tv3351k7g2zW68sLj63YsCS9W4L8TNB84jP72W3MSR4S3FTYDsW3pqT7d2ps8gSW4f9vb18Xyl_WW6Qc2j_5K2gGyW549_8W4d14DfVYZSxW1TYWJTW3cHc8l8YV1KYW12W9pH1bc0qBW1Tl2gJ4GVJ37W41gy6K3X231bW4Cqsr319pDhpW4V0Y3_6ZX6grW60wcfn2j1pKHf3pvxF404"
+        },
+        {
+          "label": "Axios",
+          "url": "https://www.axios.com/2026/06/26/openai-gpt-sol-terra-luna-trump"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f276dbb383a090"
+        }
+      ]
+    },
+    {
+      "id": "scopewalker-agent-quality-mcp-20260703",
+      "kind": "concept",
+      "title": "Scopewalker：把 agent 质量约束做成可查询数字",
+      "source": "GitHub / HN · 2026-07-03",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Scopewalker 是一个本地 MCP server，给 coding agents 提供只读的代码度量：行数、认知复杂度、嵌套、参数数量、超大文件/函数、doc coverage、TODO/FIXME/HACK 和 prop drilling。它不是替代 review，而是让 agent 在动手前能看到硬边界。",
+      "why": "这和你的 AGENTS.md 偏好高度一致：与其写“不要生成 1000 行文件”，不如让 agent 能实时查询项目里哪里已经越界。",
+      "thought": "今天只理解这个模式：规则文本负责意图，MCP 度量负责证据；暂时不需要接入工具。",
+      "priority": 82,
+      "links": [
+        {
+          "label": "Scopewalker",
+          "url": "https://github.com/timohaa/scopewalker-mcp"
         },
         {
           "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48762862"
-        },
-        {
-          "label": "mcp-use",
-          "url": "https://github.com/mcp-use/mcp-use"
+          "url": "https://news.ycombinator.com/item?id=48772579"
         }
       ]
     },
     {
-      "id": "agent-quality-contracts-20260702",
-      "kind": "theme",
-      "title": "Agent quality：今天的新信号都在把经验变成可检查契约",
-      "source": "GitHub / HN · 2026-07-02",
-      "sourceStatus": "综合判断",
-      "summary": "QUALITY.md、api-doctor 和 ctx 指向同一个判断：coding agent 的下一层能力不是更会自由发挥，而是把质量标准、官方文档规则和过往 session 证据变成可搜索、可测试、可复查的契约。它们分别覆盖项目质量说明、API 集成检查和本地 agent 历史检索。",
-      "why": "这正好对应你自动化里的硬规则：读 memory、保护无关改动、验证 build、只 stage 相关文件；这些都应该从文本偏好升级成可执行检查。",
-      "thought": "不用急着采用任一工具；先把三类契约分开：质量标准、外部 API 禁区、历史证据检索，然后看哪些能并入现有 Codex workflow。",
-      "priority": 84,
-      "links": [
-        {
-          "label": "QUALITY.md",
-          "url": "https://getquality.md"
-        },
-        {
-          "label": "QUALITY.md HN",
-          "url": "https://news.ycombinator.com/item?id=48763963"
-        },
-        {
-          "label": "api-doctor",
-          "url": "https://github.com/qualtyco/api-doctor"
-        },
-        {
-          "label": "ctx",
-          "url": "https://github.com/ctxrs/ctx"
-        }
-      ]
-    },
-    {
-      "id": "hf-cerebras-gemma4-voice-ai-20260702",
+      "id": "hf-cerebras-gemma4-voice-ai-20260703",
       "kind": "signal",
-      "title": "Voice AI：HF/Cerebras 把 Gemma 4 推向实时语音",
+      "title": "Voice AI：HF/Cerebras 仍是语音端到端栈线索",
       "source": "Hugging Face Blog · 2026-07-01",
       "sourceStatus": "官方/高质量源",
-      "summary": "Hugging Face Blog 的新信号是 Cerebras + Gemma 4 做实时 voice AI：这不是 USE 论文，但它说明语音交互、低延迟推理和本地/边缘模型正在继续合流。对你来说，值得看的是 voice stack 的端到端约束，而不是只看模型名。",
-      "why": "它贴近你的 ASR/声卡翻译/语音增强工作流：最终体验受模型、推理延迟、流式接口和音频前处理共同决定。",
-      "thought": "把它当 voice-serving 线索扫一遍：输入流、延迟预算、模型大小、API 形态和是否能和本地 ASR/SE 管线接上。",
-      "priority": 80,
+      "summary": "Hugging Face RSS 里最新高相关官方信号仍是 Cerebras + Gemma 4 的实时 voice AI。它不直接回答语音增强问题，但能提醒你看完整 voice-serving 约束：音频输入流、推理延迟、API 形态、模型大小和交互体验。",
+      "why": "这贴近你本地 ASR/翻译/SE 管线：最终体验通常卡在流式接口和延迟预算，而不只是模型准确率。",
+      "thought": "如果今天只扫一段，就看它如何组织实时语音应用的三种模式，再想能否映射到你的本地麦克风/ASR/SE workflow。",
+      "priority": 76,
       "links": [
         {
           "label": "HF Blog",
@@ -100,36 +113,15 @@
       ]
     },
     {
-      "id": "skill-loop-autoresearch-20260702",
-      "kind": "signal",
-      "title": "Autoresearch 更新：loop 需要 recipe，不只是多跑几轮",
-      "source": "Latent.Space / AINews · 2026-07-02",
-      "sourceStatus": "线索",
-      "summary": "昨天的 autoresearch 线索今天可以降级为补充阅读：Introspection 把 agent loop 拆成 inner loop、outer loop 和 agent recipe，强调要记录 evals、judges、人类偏好和失败历史。它和 skill engineering 的共同点是：可复用能力来自被结构化的经验。",
-      "why": "你的 AI feed 和 Triton monitor 已经是小型 loop；下一步真正有用的是把反馈信号和失败案例纳入 recipe，而不是盲目提高自动化程度。",
-      "thought": "只扫 recipe / inner-outer loop 两段；把它当作 workflow 设计语言，不要当成需要立刻接入的新平台。",
-      "priority": 75,
-      "links": [
-        {
-          "label": "Autoresearch",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204548385&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDU0ODM4NSwiaWF0IjoxNzgyOTUwMDEyLCJleHAiOjE3ODU1NDIwMTIsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.6sSe9gwR4bhlpAFKKDW5dwzx5OJ1MZdB7IN67M2NIeY"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f201a36961efba"
-        }
-      ]
-    },
-    {
-      "id": "paper-use-room-sim-wqfusion-20260702-third",
+      "id": "paper-room-sim-ambidrop-20260703",
       "kind": "paper",
-      "title": "论文入口：先看房间仿真，再扫 WQ-Fusion",
-      "source": "本地推荐池 / arXiv+S2 · 2026-07-02",
+      "title": "论文入口：先看房间仿真，再扫 AmbiDrop",
+      "source": "本地推荐池 / arXiv+S2 · 2026-07-03",
       "sourceStatus": "本地推荐池",
-      "summary": "第三轮 arXiv+S2 正常完成，40 个去重候选里最值得先看 2 篇：`Improving multichannel speech enhancement through accurate room-acoustic simulations`，因为它直接比较 room-acoustic simulation fidelity 对真实测量数据上多通道 SE 的影响；`WQ-Fusion` 则看 Whisper/Qwen 双编码器和 dynamic gated attention 如何做跨域音频表示。",
-      "why": "第一篇贴近你最近的 TAU/room simulation/domain shift 主线，第二篇适合作为 cross-domain audio representation 的轻扫对象。",
-      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, cross-domain, audio-representation；打开推荐池只扫实验设置、真实测量评估、gated fusion 是否能迁移到 Hybrid-UniSE 表示层。",
-      "priority": 70,
+      "summary": "今天 arXiv+S2 完成，43 个去重候选里最值得先看 2 篇：`Improving multichannel speech enhancement through accurate room-acoustic simulations`，因为它直接比较 room-acoustic simulation fidelity 对真实测量数据上多通道 SE 的影响；`AmbiDrop` 则用 Ambisonics 输入和 channel-wise dropout 做 array-agnostic neural speech enhancement。",
+      "why": "第一篇贴近你最近的 TAU/room simulation/domain shift 主线，第二篇适合从阵列泛化、真实录音和边缘部署角度轻扫。",
+      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, array-agnostic, robustness；打开推荐池只扫实验设置、真实测量评估、Ambisonics/ASM 是否能启发 Hybrid-UniSE 的多通道侧。",
+      "priority": 72,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
@@ -143,10 +135,10 @@
       "title": "AYY 发票：7 月 7 日到期",
       "source": "Maventa / Gmail · 2026-07-01",
       "sourceStatus": "行动项",
-      "summary": "Maventa 发来 Aalto-yliopiston ylioppilaskunta invoice 78533，收件人 Li Lijie，due date 是 2026-07-07。邮件提供了安全查看链接，并给出查看密码 76974。",
-      "why": "这是明确截止日期的账单类个人行动，应该留在待处理区而不是混入阅读流。",
+      "summary": "Maventa 发来 Aalto-yliopiston ylioppilaskunta invoice 78533，due date 是 2026-07-07。邮件提供了安全查看链接，并给出查看密码 76974。",
+      "why": "这是明确截止日期的账单类个人行动，应该继续留在待处理区。",
       "thought": "今天先打开确认金额和付款信息；如果不是你预期的 AYY 账单，再联系 AYY 核实。",
-      "priority": 86,
+      "priority": 88,
       "links": [
         {
           "label": "Maventa invoice",
@@ -159,23 +151,23 @@
       ]
     },
     {
-      "id": "action-natural-negative-mlops-engineer-20260702",
+      "id": "action-giotto-ml-engineer-20260703",
       "kind": "action",
-      "title": "职位线索：Natural Negative MLOps/ML Engineer",
-      "source": "LinkedIn Job Alert · 2026-07-02",
+      "title": "职位线索：Giotto.ai ML Engineer",
+      "source": "LinkedIn Job Alert · 2026-07-03",
       "sourceStatus": "行动项",
-      "summary": "LinkedIn 的 Deep Learning Engineer alert 里，Natural Negative 的 MLOps/ML Engineer 仍是今天更贴近工程栈的职位候选；同一封里还有 Revolut Applied AI、Hire Feed ML Engineer 和若干泛 data roles。",
-      "why": "LinkedIn/job 按规则单独进待处理，不混入主学习流；这条比普通 Data Scientist alert 更接近 Python/ML infra/MLOps。",
-      "thought": "只花 5 分钟看它是否真实涉及训练/部署/监控，而不是只做数据清洗；如果 JD 泛化或公司方向不合适就丢弃。",
-      "priority": 56,
+      "summary": "LinkedIn 的 Deep Learning Engineer alert 里，Giotto.ai Machine Learning Engineer 是今天更值得先筛的一条：Switzerland remote、AI company，和同封里的 Sourcein AI/ML/LLM Research Engineer 都比泛 data roles 更贴近你的方向。",
+      "why": "职位类按规则单独进待处理；这条比 Volvo/Data Scientist 类 alert 更值得 5 分钟快速判断。",
+      "thought": "先看 JD 是否真涉及模型训练、推理或 speech/ML infra；如果只是泛应用开发就直接丢弃。",
+      "priority": 58,
       "links": [
         {
-          "label": "Natural Negative job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4434489387/?trackingId=YTYc0Cp3H8CQgHdXoBRJpg%3D%3D&refId=JNyFoUKy7%2BvLpMOfGXwydQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BAcrqaUHJTSmurdIypr5H6g%3D%3D&midToken=AQFFuKiydP0yRg&midSig=23E0gjirJ3rYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434489387_ssid_15469705780_fmid_jp2m05~mr36q39d~b6&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4434489387_ssid_15469705780_fmid_jp2m05~mr36q39d~b6-null-jp2m05~mr36q39d~b6-null-null&eid=jp2m05-mr36q39d-b6&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU1YmQ4OGM5ZDQ0ODliYWE4ZTZmN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5N2JiNmNmZDM3MjllZDA5NDRjOGY0ZjRiN2RmZjY5YmM4ZTkyNzI3ZjAxZWNjODY3LDEsMQ%3D%3D"
+          "label": "Giotto.ai job",
+          "url": "https://www.linkedin.com/comm/jobs/view/4436195984/?trackingId=9OwAtZicmwjjiOLcg6QT7A%3D%3D&refId=o%2BU5dV4%2FmK8nxu6AsKevvg%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BckMAo%2Bs7Q7ijst%2BdHxa5EA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2qW2ZQbL1qtsk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436195984_ssid_15469705780_fmid_jp2m05~mr4qg9np~2h&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436195984_ssid_15469705780_fmid_jp2m05~mr4qg9np~2h-null-jp2m05~mr4qg9np~2h-null-null&eid=jp2m05-mr4qg9np-2h&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjQ4OGNmZDA0NTk4YTY4ODZhN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTNkMWY4YzQ1NGJlZTM4Mjg1Y2RhN2U4OTM5NjkxNGZjMGRiM2UzMjMxODUzZWU0LDEsMQ%3D%3D"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f21bd816d1160f"
+          "url": "https://mail.google.com/mail/#all/19f2750eeab2e358"
         }
       ]
     }
