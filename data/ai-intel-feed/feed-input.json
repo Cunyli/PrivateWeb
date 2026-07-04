@@ -1,127 +1,135 @@
 {
-  "date": "2026-07-03",
-  "overview": "今天主线很清楚：agent 热点从“能不能循环”转向控制层、可复用技能、可读上下文和可量化质量约束。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge，The Batch/AINews/Medium/LinkedIn 只作线索；0 个候选因缺少 URL 跳过。",
+  "date": "2026-07-04",
+  "overview": "今天主线是 agent 从“提示词技巧”继续下沉到 runtime：浏览器可控状态、持久证据层、权限拦截、测试流程和可学习能力，论文侧仍以房间仿真和多通道/端侧语音增强最贴近当前研究。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / OpenAI News / Anthropic / arXiv+S2；OpenAI News 仍被 Cloudflare challenge，Anthropic RSS 路径返回 404 页面；AIMS/Medium/LinkedIn 只作线索；0 个 action 候选因缺少 URL 跳过。",
   "blocks": [
     {
-      "id": "aiewf-loops-control-layer-20260703",
-      "kind": "deep-read",
-      "title": "AIEWF：今天最值得看的是 loop 的控制层",
-      "source": "Latent.Space / AINews · 2026-07-03",
-      "sourceStatus": "线索",
-      "summary": "AIEWF 最后一日把争论集中到 agent loops：支持者说循环已经成为软件开发的新基本功，反方提醒 hype 正在跑在工程纪律前面。更关键的是 2026 AI Engineer Survey 里，agents 已经从读写草稿走向系统内写操作，而控制层仍主要靠人类批准、权限和零散 sandbox/memory。",
-      "why": "这正好对应你现在的 Codex 自动化边界：真正要提高的不是自动跑更多轮，而是让每一轮有可验证的进入条件、退出条件和回滚边界。",
-      "thought": "先扫 loops debate、survey controls 和 Claude Tag 几段；重点想清楚哪些任务能闭环，哪些必须保留人类 review。",
+      "id": "agent-runtime-webmcp-guardrails-20260704",
+      "kind": "theme",
+      "title": "Agent runtime：今天最值得看的是“应用怎样给 agent 接口”",
+      "source": "HN / GitHub / Blog · 2026-07-04",
+      "sourceStatus": "综合判断",
+      "summary": "HN 今天没有一个压倒性新闻，但几个小项目共同指向同一件事：agent 的质量不再只靠 prompt，而靠 runtime 给它可读状态、可控动作、持久证据和权限闸门。Routing24 把路线规划应用暴露成 Claude Cowork/WebMCP 可操作的状态+动作模型，Open Kioku 做本地证据层，Owthorize 拦截破坏性 tool call，Agent Harness 则把 production agent 定义在运行时而不是提示词。",
+      "why": "这正好对应你的 Codex/portfolio/AI feed 工作流：下一步真正值钱的是把页面、repo 和工具做成 agent 可检查、可恢复、可拒绝的接口。",
+      "thought": "先扫 Routing24 和 Open Kioku，再看 Owthorize 的权限边界；重点想哪些本地 workflow 应该暴露状态，哪些动作必须保留人工确认。",
       "priority": 100,
       "links": [
         {
-          "label": "AIEWF Dispatch",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204783208&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDc4MzIwOCwiaWF0IjoxNzgzMDU1NTk2LCJleHAiOjE3ODU2NDc1OTYsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.alzzhTWS0GJiAIjiBgcrtS1xddT6Rg7Z5LpwdKU3_Sk"
+          "label": "Routing24 / HN",
+          "url": "https://news.ycombinator.com/item?id=48786769"
         },
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f266545b711ae9"
+          "label": "Routing24 skill",
+          "url": "https://github.com/routing24/skill"
+        },
+        {
+          "label": "Open Kioku / HN",
+          "url": "https://news.ycombinator.com/item?id=48785607"
+        },
+        {
+          "label": "Owthorize",
+          "url": "https://www.npmjs.com/package/owthorize"
         }
       ]
     },
     {
-      "id": "vercel-agents-new-software-20260703",
-      "kind": "deep-read",
-      "title": "Vercel/eve：agent 正在变成另一类软件发布面",
-      "source": "Latent.Space / AINews · 2026-07-03",
-      "sourceStatus": "线索",
-      "summary": "Andrew Qu 把 Vercel 的 agent 经验拆成几个实用 primitive：模型切换、fallback、resumability、filesystem agents、skills、compaction、subagents、sandbox 和 long-running jobs。最有价值的判断是：agent 不是普通 web app 的替代 UI，而是需要自己的 context、tool、观测和长期运行接口。",
-      "why": "这贴近你现在的 AI feed、Codex skills 和 connector 使用：skill 的核心价值是把过期模型知识 forward-correct 成当前产品事实。",
-      "thought": "重点看 skills/current knowledge 和 agent-readable web；这能反推你的 AGENTS.md、技能和 portfolio feed 是否足够机器可读。",
-      "priority": 92,
-      "links": [
-        {
-          "label": "Vercel agents",
-          "url": "https://substack.com/app-link/post?publication_id=1084089&post_id=204762364&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwNDc2MjM2NCwiaWF0IjoxNzgzMDM3NTAyLCJleHAiOjE3ODU2Mjk1MDIsImlzcyI6InB1Yi0xMDg0MDg5Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.b1blDGzG4wanhk3G4n4KMDpXmBT2kYFFYB9ZyE9miBI"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f25513adac98f0"
-        }
-      ]
-    },
-    {
-      "id": "gpt56-restricted-release-20260703",
-      "kind": "signal",
-      "title": "GPT-5.6：重点不是型号名，而是受限发布流程",
-      "source": "The Batch / Axios · 2026-07-03",
-      "sourceStatus": "未官方核验",
-      "summary": "The Batch 今天继续讲 GPT-5.6 Sol/Terra/Luna 的受限预览、价格/能力分层和安全 guardrails；外部新闻也把主线指向美国政府参与的 restricted release。OpenAI 官方 news 页面本轮 curl 仍被 Cloudflare challenge，不能直接官方核验。",
-      "why": "如果 frontier model 发布进入受控流程，开发者真正要关注的是可用性、延迟、拒答、账户审查和 trusted access，而不是只看 benchmark。",
-      "thought": "把它当 model-governance 信号看；等官方页面能访问或 release notes 更新后再把细节升级为事实。",
-      "priority": 86,
-      "links": [
-        {
-          "label": "The Batch",
-          "url": "https://info.deeplearning.ai/e3t/Ctc/LX+113/cJhC404/MXjl5P1vdVQN6-3JQdWscT_W2bnPc75R1h61N74PqtW5nR3bW7Y9pgv6lZ3mXW4sWTc-7L_x6wN96YpFrQXDmpW5j3WPt7jsRXpW9b0nvK4Nly9YW4zw1-d1Q6NcFN4l1X4DPVdXbVr0x9n3G4zCgW8StPff556gWqW3FTj8W9fHYVLN30N_kFY4gQ-W2YtFpv98PPxhW7sVVxc5jf_zPW1XY0mb7k_RxwW1ZnWpM5-7Z4nVmxLHR1sqK_gW7LWD3y6FrkcXN2w0Rh132PkzW5KYcg11RFFyRW2ly6Zz7LSy45W970tdd3yTRY2W3_CQfC7_LVgPW7T9-PP2_L_k8W2k058W4zbdLRW5dnK_Q2MfZm5W5J2sJr8ppR8JN4j0BNW6Pvv8W5Tv3351k7g2zW68sLj63YsCS9W4L8TNB84jP72W3MSR4S3FTYDsW3pqT7d2ps8gSW4f9vb18Xyl_WW6Qc2j_5K2gGyW549_8W4d14DfVYZSxW1TYWJTW3cHc8l8YV1KYW12W9pH1bc0qBW1Tl2gJ4GVJ37W41gy6K3X231bW4Cqsr319pDhpW4V0Y3_6ZX6grW60wcfn2j1pKHf3pvxF404"
-        },
-        {
-          "label": "Axios",
-          "url": "https://www.axios.com/2026/06/26/openai-gpt-sol-terra-luna-trump"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f276dbb383a090"
-        }
-      ]
-    },
-    {
-      "id": "scopewalker-agent-quality-mcp-20260703",
+      "id": "aims-continuous-learning-work-20260704",
       "kind": "concept",
-      "title": "Scopewalker：把 agent 质量约束做成可查询数字",
-      "source": "GitHub / HN · 2026-07-03",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Scopewalker 是一个本地 MCP server，给 coding agents 提供只读的代码度量：行数、认知复杂度、嵌套、参数数量、超大文件/函数、doc coverage、TODO/FIXME/HACK 和 prop drilling。它不是替代 review，而是让 agent 在动手前能看到硬边界。",
-      "why": "这和你的 AGENTS.md 偏好高度一致：与其写“不要生成 1000 行文件”，不如让 agent 能实时查询项目里哪里已经越界。",
-      "thought": "今天只理解这个模式：规则文本负责意图，MCP 度量负责证据；暂时不需要接入工具。",
-      "priority": 82,
+      "title": "连续学习：AI 替代工作的门槛不是会做任务，而是会变成熟手",
+      "source": "Artificial Intelligence Made Simple · 2026-07-04",
+      "sourceStatus": "线索",
+      "summary": "AIMS 的 Martin Ford 访谈把“AI 与工作”讨论从任务能力转到连续学习：新员工从第一天到六个月后的进步，来自在真实工作里试错、吸收反馈和迁移到新情境；冻结发布的模型即使会做很多任务，也不等于能像人一样在岗位里持续变强。",
+      "why": "这个概念比泛泛谈失业更有用，因为它能帮助判断哪些任务适合自动化，哪些仍需要人类建立反馈回路、组织上下文和责任边界。",
+      "thought": "把它当作今天的概念块：看第 1、3、5 节即可，重点是 continuous learning、task consolidation 和 liability，而不是整场直播。",
+      "priority": 88,
       "links": [
         {
-          "label": "Scopewalker",
-          "url": "https://github.com/timohaa/scopewalker-mcp"
+          "label": "AIMS post",
+          "url": "https://substack.com/app-link/post?publication_id=1315074&post_id=203730526&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwMzczMDUyNiwiaWF0IjoxNzgzMTczMzkxLCJleHAiOjE3ODU3NjUzOTEsImlzcyI6InB1Yi0xMzE1MDc0Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.hzpKKb63G2SO2SFTjQk9WTrt5qi2zNXuTbjZTgQtMOw"
         },
         {
-          "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48772579"
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f2d6aad9b008ae"
         }
       ]
     },
     {
-      "id": "hf-cerebras-gemma4-voice-ai-20260703",
+      "id": "llm-judges-eval-finetuning-20260704",
+      "kind": "deep-read",
+      "title": "LLM judge 微调：评估系统不能只靠一个强模型打分",
+      "source": "Medium · 2026-07-04",
+      "sourceStatus": "线索",
+      "summary": "Medium digest 里最值得保留的是 Cameron Wolfe 的 LLM judge 评估长文，覆盖 Prometheus、JudgeLM、PandaLM、AutoJ 等 judge 微调路线。它不是官方新发布，但适合补上一个工程直觉：当 agent/workflow 越来越依赖自动评估，judge 的训练数据、偏差、校准和任务边界会变成系统质量的一部分。",
+      "why": "这和你最近反复做的自动化验收、paper 筛选、代码 review 评分很贴近：评估器本身也需要证据、版本和失败样例。",
+      "thought": "只扫数据构造和 failure mode 两段；不要把它当事实源，先把它当一份 judge 设计 checklist。",
+      "priority": 80,
+      "links": [
+        {
+          "label": "LLM judges",
+          "url": "https://medium.com/@cameronrwolfe/finetuning-llm-judges-for-evaluation-f3495168eda4?source=email-602672f81880-1783121275783-digest.reader--f3495168eda4----8-109------------------ed42c94a_c9da_440f_984a_75af982a470f-1"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f2b5ad2cae2a31"
+        }
+      ]
+    },
+    {
+      "id": "hf-agenticsts-skillcoach-20260704",
       "kind": "signal",
-      "title": "Voice AI：HF/Cerebras 仍是语音端到端栈线索",
-      "source": "Hugging Face Blog · 2026-07-01",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Hugging Face RSS 里最新高相关官方信号仍是 Cerebras + Gemma 4 的实时 voice AI。它不直接回答语音增强问题，但能提醒你看完整 voice-serving 约束：音频输入流、推理延迟、API 形态、模型大小和交互体验。",
-      "why": "这贴近你本地 ASR/翻译/SE 管线：最终体验通常卡在流式接口和延迟预算，而不只是模型准确率。",
-      "thought": "如果今天只扫一段，就看它如何组织实时语音应用的三种模式，再想能否映射到你的本地麦克风/ASR/SE workflow。",
+      "title": "HF Daily Papers：agent memory 和 skill-use 评估今天有两条可扫",
+      "source": "Hugging Face Daily Papers · 2026-07-04",
+      "sourceStatus": "线索",
+      "summary": "HF Daily Papers 今天的可读线索是 `AgenticSTS: A Bounded-Memory Testbed for Long-Horizon LLM Agents` 和 `SkillCoach: Self-Evolving Rubrics for Evaluating and Enhancing Agentic Skill-Use`。前者贴近长期任务里的有限记忆测试，后者贴近技能使用的自演化 rubrics，和今天 HN 的 runtime/证据层主题能互相支撑。",
+      "why": "如果你想改进 Codex skill 或自动化验收，这两篇比泛 agent benchmark 更贴近“记忆怎么限制、技能怎么评价”。",
+      "thought": "只打开 HF 页面看摘要和评论热度；如果机制真强，再另开 paper note，不在本轮自动写 Obsidian。",
       "priority": 76,
       "links": [
         {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/cerebras-gemma4-voice-ai"
+          "label": "AgenticSTS",
+          "url": "https://huggingface.co/papers/2607.02255?utm_source=digest-papers&utm_medium=email&utm_campaign=2026-07-03"
         },
         {
-          "label": "HF RSS",
-          "url": "https://huggingface.co/blog/feed.xml"
+          "label": "SkillCoach",
+          "url": "https://huggingface.co/papers/2607.01874?utm_source=digest-papers&utm_medium=email&utm_campaign=2026-07-03"
+        },
+        {
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f2aa75a3dcab2f"
         }
       ]
     },
     {
-      "id": "paper-room-sim-ambidrop-20260703",
-      "kind": "paper",
-      "title": "论文入口：先看房间仿真，再扫 AmbiDrop",
-      "source": "本地推荐池 / arXiv+S2 · 2026-07-03",
-      "sourceStatus": "本地推荐池",
-      "summary": "今天 arXiv+S2 完成，43 个去重候选里最值得先看 2 篇：`Improving multichannel speech enhancement through accurate room-acoustic simulations`，因为它直接比较 room-acoustic simulation fidelity 对真实测量数据上多通道 SE 的影响；`AmbiDrop` 则用 Ambisonics 输入和 channel-wise dropout 做 array-agnostic neural speech enhancement。",
-      "why": "第一篇贴近你最近的 TAU/room simulation/domain shift 主线，第二篇适合从阵列泛化、真实录音和边缘部署角度轻扫。",
-      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, array-agnostic, robustness；打开推荐池只扫实验设置、真实测量评估、Ambisonics/ASM 是否能启发 Hybrid-UniSE 的多通道侧。",
+      "id": "webmcp-agent-readable-app-20260704",
+      "kind": "concept",
+      "title": "WebMCP：把网页变成 agent 可读工具，而不是只让 agent 看像素",
+      "source": "GitHub / HN · 2026-07-04",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Routing24 的 Show HN 价值不在路线规划本身，而在它把业务 app 的 reduced state 和 action model 暴露给浏览器 agent，降低 agent 从视觉 UI 猜状态的成本。这个方向如果标准化为 WebMCP，就会把前端设计的一部分变成“给人读”和“给 agent 操作”两套接口。",
+      "why": "你的 AI feed、portfolio 管理面和本地工具如果未来要更好地被 Codex 操作，最缺的可能不是按钮，而是稳定状态、明确命令和可验证结果。",
+      "thought": "把 WebMCP 当作概念先理解：可读状态、动作 schema、权限边界、解释输出，这四个比炫酷 UI 更重要。",
       "priority": 72,
+      "links": [
+        {
+          "label": "Routing24 skill",
+          "url": "https://github.com/routing24/skill"
+        },
+        {
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48786769"
+        }
+      ]
+    },
+    {
+      "id": "paper-room-sim-lmpan-20260704",
+      "kind": "paper",
+      "title": "论文入口：继续先看房间仿真，备选扫端侧 AEC/NS",
+      "source": "本地推荐池 / arXiv+S2 · 2026-07-04",
+      "sourceStatus": "本地推荐池",
+      "summary": "今天 arXiv+S2 正常完成，43 个去重候选里仍然最值得先看 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较仿真精度对真实测量数据上多通道 SE 的影响，和 TAU/room simulation/domain shift 主线高度贴合。第二个轻扫候选是 `LMPAN`，因为它把 full-duplex acoustic echo cancellation 和 noise suppression 合在 480K 参数端侧模型里，适合从实时语音链路角度看。",
+      "why": "第一篇能回答“仿真是否真的改善真实评估”这个主问题；LMPAN 则提醒你端侧 spoken dialogue 不只需要 denoise，还要同时处理 echo、参考信号对齐和下游 ASR/VAD。",
+      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, AEC, streaming-se；打开推荐池只扫房间仿真的实验设置/真实测量评估，以及 LMPAN 的 alignment 模块和实时约束。",
+      "priority": 70,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
@@ -135,10 +143,10 @@
       "title": "AYY 发票：7 月 7 日到期",
       "source": "Maventa / Gmail · 2026-07-01",
       "sourceStatus": "行动项",
-      "summary": "Maventa 发来 Aalto-yliopiston ylioppilaskunta invoice 78533，due date 是 2026-07-07。邮件提供了安全查看链接，并给出查看密码 76974。",
-      "why": "这是明确截止日期的账单类个人行动，应该继续留在待处理区。",
-      "thought": "今天先打开确认金额和付款信息；如果不是你预期的 AYY 账单，再联系 AYY 核实。",
-      "priority": 88,
+      "summary": "Maventa 发来的 Aalto-yliopiston ylioppilaskunta invoice 78533 仍应保留到待处理区，due date 是 2026-07-07。邮件里有安全查看链接和查看密码，适合今天或明天直接确认金额与付款信息。",
+      "why": "这是明确截止日期的账单类个人动作，继续保留比让它从信息流自然消失更安全。",
+      "thought": "先打开发票确认金额；如果不是预期的 AYY 账单，再联系 AYY 核实。",
+      "priority": 86,
       "links": [
         {
           "label": "Maventa invoice",
@@ -151,23 +159,31 @@
       ]
     },
     {
-      "id": "action-giotto-ml-engineer-20260703",
+      "id": "action-lorex-tandem-lovable-jobs-20260704",
       "kind": "action",
-      "title": "职位线索：Giotto.ai ML Engineer",
-      "source": "LinkedIn Job Alert · 2026-07-03",
+      "title": "职位筛选：Lorex / Tandem / Lovable",
+      "source": "LinkedIn Job Alert · 2026-07-04",
       "sourceStatus": "行动项",
-      "summary": "LinkedIn 的 Deep Learning Engineer alert 里，Giotto.ai Machine Learning Engineer 是今天更值得先筛的一条：Switzerland remote、AI company，和同封里的 Sourcein AI/ML/LLM Research Engineer 都比泛 data roles 更贴近你的方向。",
-      "why": "职位类按规则单独进待处理；这条比 Volvo/Data Scientist 类 alert 更值得 5 分钟快速判断。",
-      "thought": "先看 JD 是否真涉及模型训练、推理或 speech/ML infra；如果只是泛应用开发就直接丢弃。",
-      "priority": 58,
+      "summary": "今天的 Swedish job alert 里比普通 data roles 更值得快速筛的是 Lorex Labs Machine Learning Engineer、Tandem Health AI Engineer 和 Lovable Researcher, Post Training。Nestlé Master Data、Volvo、泛 Data Scientist 和美国远程数据岗不放入主信息流。",
+      "why": "这三条分别贴近 ML engineering、health AI 和 post-training，比泛数据/BI/数据迁移 alert 更符合当前画像。",
+      "thought": "先用 5 分钟看 JD 是否有模型训练、post-training、speech/health 或 ML infra；没有这些关键词就直接丢弃。",
+      "priority": 60,
       "links": [
         {
-          "label": "Giotto.ai job",
-          "url": "https://www.linkedin.com/comm/jobs/view/4436195984/?trackingId=9OwAtZicmwjjiOLcg6QT7A%3D%3D&refId=o%2BU5dV4%2FmK8nxu6AsKevvg%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BckMAo%2Bs7Q7ijst%2BdHxa5EA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2qW2ZQbL1qtsk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436195984_ssid_15469705780_fmid_jp2m05~mr4qg9np~2h&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436195984_ssid_15469705780_fmid_jp2m05~mr4qg9np~2h-null-jp2m05~mr4qg9np~2h-null-null&eid=jp2m05-mr4qg9np-2h&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjQ4OGNmZDA0NTk4YTY4ODZhN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTNkMWY4YzQ1NGJlZTM4Mjg1Y2RhN2U4OTM5NjkxNGZjMGRiM2UzMjMxODUzZWU0LDEsMQ%3D%3D"
+          "label": "Lorex Labs",
+          "url": "https://www.linkedin.com/comm/jobs/view/4433167510/?trackingId=gTfs6KIozPKq5VTn4j4S6A%3D%3D&refId=JRuD2A4fCdx9KwWhK4spdQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BszuoM9j8RuOufz0z3NfEBA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2VBnJeB4NOuYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433167510_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433167510_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw-null-jp2m05~mr6a6fvt~hw-null-null&eid=jp2m05-mr6a6fvt-hw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4OWNhZDY0MzllYWI4OTZkN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjMmYzYzMxYjg1ZDJiMDdhNTk4OTNiNzQxNmRjYzJmODNmNzYzMWQ2OWI1MDYxLDEsMQ%3D%3D"
+        },
+        {
+          "label": "Tandem Health",
+          "url": "https://www.linkedin.com/comm/jobs/view/4436492407/?trackingId=uXgAJY4Q81h0ovr%2Fy0lCEA%3D%3D&refId=JRuD2A4fCdx9KwWhK4spdQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BszuoM9j8RuOufz0z3NfEBA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2VBnJeB4NOuYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4436492407_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4436492407_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw-null-jp2m05~mr6a6fvt~hw-null-null&eid=jp2m05-mr6a6fvt-hw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4OWNhZDY0MzllYWI4OTZkN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjMmYzYzMxYjg1ZDJiMDdhNTk4OTNiNzQxNmRjYzJmODNmNzYzMWQ2OWI1MDYxLDEsMQ%3D%3D"
+        },
+        {
+          "label": "Lovable",
+          "url": "https://www.linkedin.com/comm/jobs/view/4406570106/?trackingId=QMBgNQRpvxuTn9Jum1mkNw%3D%3D&refId=JRuD2A4fCdx9KwWhK4spdQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BszuoM9j8RuOufz0z3NfEBA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2VBnJeB4NOuYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4406570106_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4406570106_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw-null-jp2m05~mr6a6fvt~hw-null-null&eid=jp2m05-mr6a6fvt-hw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4OWNhZDY0MzllYWI4OTZkN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjMmYzYzMxYjg1ZDJiMDdhNTk4OTNiNzQxNmRjYzJmODNmNzYzMWQ2OWI1MDYxLDEsMQ%3D%3D"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f2750eeab2e358"
+          "url": "https://mail.google.com/mail/#all/19f2ce4f7154781d"
         }
       ]
     }
