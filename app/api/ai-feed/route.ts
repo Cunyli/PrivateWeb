@@ -1,15 +1,23 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { NextResponse } from "next/server"
+import { mergeFeedWithPrivateImports, normalizePrivateImports } from "@/lib/ai-feed-linkedin-import"
+import { aiFeedImportDbError, isAiFeedImportTableMissing, readAiFeedPrivateImports } from "@/lib/ai-feed-private-imports.server"
 import { requireAdminRequest } from "@/utils/admin-auth.server"
 
 const feedDir = join(process.cwd(), "data", "ai-intel-feed")
 
+type NodeError = Error & { code?: string }
+
+function isNotFound(error: unknown) {
+  return typeof error === "object" && error !== null && (error as NodeError).code === "ENOENT"
+}
+
 async function readJsonFile(path: string, fallback: unknown) {
   try {
     return JSON.parse(await readFile(path, "utf8"))
-  } catch (error: any) {
-    if (error?.code === "ENOENT") return fallback
+  } catch (error) {
+    if (isNotFound(error)) return fallback
     throw error
   }
 }
@@ -20,10 +28,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
-  const [feed, sharedState] = await Promise.all([
+  const ownerEmail = String(auth.user.email || "").trim().toLowerCase()
+  const [feed, sharedState, privateImports] = await Promise.all([
     readJsonFile(join(feedDir, "feed-input.json"), { date: "", blocks: [] }),
     readJsonFile(join(feedDir, "shared-state.json"), { state: {}, exposurePool: {}, pinned: {} }),
+    readAiFeedPrivateImports(ownerEmail),
   ])
+  if (privateImports.error && !isAiFeedImportTableMissing(privateImports.error)) {
+    return aiFeedImportDbError(privateImports.error)
+  }
 
-  return NextResponse.json({ feed, sharedState })
+  return NextResponse.json({
+    feed: mergeFeedWithPrivateImports(feed, normalizePrivateImports(privateImports.imports)),
+    sharedState,
+    privateImports: {
+      count: privateImports.imports.blocks.length,
+      storage: "supabase",
+      ready: !privateImports.error,
+      error: privateImports.error?.message,
+    },
+  })
 }

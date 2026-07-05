@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, EyeOff, Plus, RefreshCw, RotateCcw, Star, Trash2 } from "lucide-react"
+import { BriefcaseBusiness, Check, ChevronDown, ChevronUp, Copy, ExternalLink, EyeOff, MessageSquareText, Plus, RefreshCw, RotateCcw, Send, Star, Trash2 } from "lucide-react"
 import { adminFetch } from "@/utils/admin-auth-client"
 
 type FeedKind = "deep-read" | "signal" | "theme" | "concept" | "paper" | "action"
@@ -68,6 +68,7 @@ type SharedState = {
 
 type AiTaskType = "ai" | "work" | "job" | "paper" | "project"
 type AiTaskStatus = "inbox" | "next" | "waiting" | "done" | "snoozed"
+type LinkedInImportType = "job" | "post"
 
 type AiTask = {
   id: string
@@ -83,7 +84,34 @@ type AiTask = {
   updatedAt?: string
 }
 
+type LinkedInImportDraft = {
+  type: LinkedInImportType
+  url: string
+  company: string
+  role: string
+  location: string
+  author: string
+  topic: string
+  summary: string
+  why: string
+  thought: string
+  priority: string
+  extraLabel: string
+  extraUrl: string
+}
+
+type LinkedInImportResponse = {
+  block?: FeedBlock
+  feed?: FeedPayload
+  persisted?: boolean
+  inserted?: boolean
+  replaced?: boolean
+  storage?: "supabase"
+  error?: string
+}
+
 const feedApiPath = "/api/ai-feed"
+const linkedinImportApiPath = "/api/ai-feed/import"
 const publicFeedApiPath = "/api/ai-feed/public"
 const taskApiPath = "/api/ai-tasks"
 const stateKey = "ai-intel-feed-state-v1"
@@ -175,6 +203,22 @@ const taskStatusStyles: Record<AiTaskStatus, { active: string; badge: string; ca
     badge: "bg-[#eef0ee] text-[#62706e]",
     card: "border-l-[4px] border-l-[#8a938f]",
   },
+}
+
+const emptyLinkedInImportDraft: LinkedInImportDraft = {
+  type: "job",
+  url: "",
+  company: "",
+  role: "",
+  location: "",
+  author: "",
+  topic: "",
+  summary: "",
+  why: "",
+  thought: "",
+  priority: "",
+  extraLabel: "",
+  extraUrl: "",
 }
 
 function titleSignature(value: string) {
@@ -303,6 +347,11 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
   const [taskError, setTaskError] = useState("")
   const [taskDraft, setTaskDraft] = useState({ title: "", type: "ai" as AiTaskType, dueAt: "", note: "" })
   const [taskComposerOpen, setTaskComposerOpen] = useState(false)
+  const [linkedinImportOpen, setLinkedinImportOpen] = useState(false)
+  const [linkedinImportBusy, setLinkedinImportBusy] = useState(false)
+  const [linkedinImportError, setLinkedinImportError] = useState("")
+  const [linkedinImportResult, setLinkedinImportResult] = useState("")
+  const [linkedinImportDraft, setLinkedinImportDraft] = useState<LinkedInImportDraft>(emptyLinkedInImportDraft)
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({})
 
   const feedStamp = feed?.generatedAt || feed?.date || ""
@@ -530,6 +579,306 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
       sourceBlockId: blockKey(block),
       sourceTitle: block.title,
     })
+  }
+
+  function updateLinkedInImportDraft(patch: Partial<LinkedInImportDraft>) {
+    setLinkedinImportDraft((current) => ({ ...current, ...patch }))
+    setLinkedinImportError("")
+    setLinkedinImportResult("")
+  }
+
+  function selectLinkedInImportType(type: LinkedInImportType) {
+    setLinkedinImportDraft((current) => ({ ...current, type }))
+    setLinkedinImportError("")
+    setLinkedinImportResult("")
+  }
+
+  function buildLinkedInImportItem() {
+    const links = linkedinImportDraft.extraUrl.trim()
+      ? [{ label: linkedinImportDraft.extraLabel.trim() || "Source", url: linkedinImportDraft.extraUrl.trim() }]
+      : []
+    const priority = linkedinImportDraft.priority.trim() ? Number(linkedinImportDraft.priority) : undefined
+    const item: Record<string, unknown> = {
+      type: linkedinImportDraft.type,
+      url: linkedinImportDraft.url.trim(),
+      why: linkedinImportDraft.why.trim(),
+      thought: linkedinImportDraft.thought.trim() || undefined,
+      priority,
+      links,
+    }
+
+    if (linkedinImportDraft.type === "job") {
+      item.company = linkedinImportDraft.company.trim()
+      item.role = linkedinImportDraft.role.trim()
+      item.location = linkedinImportDraft.location.trim()
+      item.summary = linkedinImportDraft.summary.trim() || undefined
+    } else {
+      item.author = linkedinImportDraft.author.trim()
+      item.topic = linkedinImportDraft.topic.trim()
+      item.summary = linkedinImportDraft.summary.trim()
+    }
+
+    return item
+  }
+
+  async function submitLinkedInImport() {
+    setLinkedinImportBusy(true)
+    setLinkedinImportError("")
+    setLinkedinImportResult("")
+    try {
+      const response = await adminFetch(linkedinImportApiPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item: buildLinkedInImportItem() }),
+      })
+      const data = (await response.json().catch(() => ({}))) as LinkedInImportResponse
+      if (!response.ok) {
+        setLinkedinImportError(data.error || `Import request failed: ${response.status}`)
+        return
+      }
+
+      if (data.feed) setFeed(data.feed)
+
+      const message = data.persisted
+        ? data.inserted
+          ? "已写入 Supabase 私有信息流"
+          : data.replaced
+            ? "已更新 Supabase 私有信息流"
+            : "已存在，未重复添加"
+        : data.error || "已生成预览，但没有持久写入"
+      setLinkedinImportResult(message)
+      showToast(message)
+
+      if (data.persisted) {
+        setLinkedinImportDraft({ ...emptyLinkedInImportDraft, type: linkedinImportDraft.type })
+        setLinkedinImportOpen(false)
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (message.includes("Missing admin session")) setAuthNeeded(true)
+      setLinkedinImportError(message)
+    } finally {
+      setLinkedinImportBusy(false)
+    }
+  }
+
+  function renderLinkedInImporter() {
+    if (!linkedinImportOpen) return null
+    const isJob = linkedinImportDraft.type === "job"
+    const inputClass = "min-h-[42px] rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f6f66]"
+    const labelClass = "grid gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#62706e]"
+
+    return (
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-[rgba(28,37,38,0.42)] px-4 py-6">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            void submitLinkedInImport()
+          }}
+          className="max-h-[calc(100vh-48px)] w-full max-w-[680px] overflow-y-auto rounded-xl border border-[#d7ddda] bg-[#fffdfa] p-4 shadow-[0_24px_80px_rgba(28,37,38,0.24)] sm:p-5"
+        >
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="m-0 text-xl font-semibold leading-tight tracking-normal text-[#182120]">导入 LinkedIn</h2>
+              <div className="mt-1 text-sm text-[#62706e]">写入私有信息流，不进入公开预览。</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setLinkedinImportOpen(false)}
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7ddda] bg-white text-[#62706e]"
+              aria-label="关闭"
+              title="关闭"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => selectLinkedInImportType("job")}
+              className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                isJob ? "border-[#2f6f66] bg-[#e9f2ef] text-[#2f6f66]" : "border-[#d7ddda] bg-white text-[#62706e]"
+              }`}
+            >
+              <BriefcaseBusiness className="h-4 w-4" />
+              职位
+            </button>
+            <button
+              type="button"
+              onClick={() => selectLinkedInImportType("post")}
+              className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                !isJob ? "border-[#2f6f66] bg-[#e9f2ef] text-[#2f6f66]" : "border-[#d7ddda] bg-white text-[#62706e]"
+              }`}
+            >
+              <MessageSquareText className="h-4 w-4" />
+              Post
+            </button>
+          </div>
+
+          <div className="grid gap-3">
+            <label className={labelClass}>
+              URL
+              <input
+                value={linkedinImportDraft.url}
+                onChange={(event) => updateLinkedInImportDraft({ url: event.target.value })}
+                placeholder={isJob ? "linkedin.com/jobs/view/..." : "linkedin.com/feed/update/activity:..."}
+                className={inputClass}
+                required
+                autoFocus
+              />
+            </label>
+
+            {isJob ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className={labelClass}>
+                  公司
+                  <input
+                    value={linkedinImportDraft.company}
+                    onChange={(event) => updateLinkedInImportDraft({ company: event.target.value })}
+                    className={inputClass}
+                    required
+                  />
+                </label>
+                <label className={labelClass}>
+                  职位
+                  <input
+                    value={linkedinImportDraft.role}
+                    onChange={(event) => updateLinkedInImportDraft({ role: event.target.value })}
+                    className={inputClass}
+                    required
+                  />
+                </label>
+                <label className={labelClass}>
+                  地点
+                  <input
+                    value={linkedinImportDraft.location}
+                    onChange={(event) => updateLinkedInImportDraft({ location: event.target.value })}
+                    className={inputClass}
+                  />
+                </label>
+                <label className={labelClass}>
+                  优先级
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={linkedinImportDraft.priority}
+                    onChange={(event) => updateLinkedInImportDraft({ priority: event.target.value })}
+                    placeholder="64"
+                    className={inputClass}
+                  />
+                </label>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className={labelClass}>
+                  作者
+                  <input
+                    value={linkedinImportDraft.author}
+                    onChange={(event) => updateLinkedInImportDraft({ author: event.target.value })}
+                    className={inputClass}
+                    required
+                  />
+                </label>
+                <label className={labelClass}>
+                  主题
+                  <input
+                    value={linkedinImportDraft.topic}
+                    onChange={(event) => updateLinkedInImportDraft({ topic: event.target.value })}
+                    className={inputClass}
+                    required
+                  />
+                </label>
+                <label className={`${labelClass} sm:col-span-2`}>
+                  优先级
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={linkedinImportDraft.priority}
+                    onChange={(event) => updateLinkedInImportDraft({ priority: event.target.value })}
+                    placeholder="58"
+                    className={inputClass}
+                  />
+                </label>
+              </div>
+            )}
+
+            <label className={labelClass}>
+              摘要
+              <textarea
+                value={linkedinImportDraft.summary}
+                onChange={(event) => updateLinkedInImportDraft({ summary: event.target.value })}
+                placeholder={isJob ? "可空；空时按公司/职位/地点生成。" : ""}
+                className="min-h-[86px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
+                required={!isJob}
+              />
+            </label>
+
+            <label className={labelClass}>
+              价值
+              <textarea
+                value={linkedinImportDraft.why}
+                onChange={(event) => updateLinkedInImportDraft({ why: event.target.value })}
+                className="min-h-[86px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
+                required
+              />
+            </label>
+
+            <label className={labelClass}>
+              处理
+              <textarea
+                value={linkedinImportDraft.thought}
+                onChange={(event) => updateLinkedInImportDraft({ thought: event.target.value })}
+                className="min-h-[74px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
+              />
+            </label>
+
+            <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
+              <label className={labelClass}>
+                外链标签
+                <input
+                  value={linkedinImportDraft.extraLabel}
+                  onChange={(event) => updateLinkedInImportDraft({ extraLabel: event.target.value })}
+                  placeholder={isJob ? "Company" : "Source"}
+                  className={inputClass}
+                />
+              </label>
+              <label className={labelClass}>
+                外链 URL
+                <input
+                  value={linkedinImportDraft.extraUrl}
+                  onChange={(event) => updateLinkedInImportDraft({ extraUrl: event.target.value })}
+                  className={inputClass}
+                />
+              </label>
+            </div>
+          </div>
+
+          {linkedinImportError ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{linkedinImportError}</div> : null}
+          {linkedinImportResult ? <div className="mt-4 rounded-lg border border-[#cfe2dd] bg-[#f3faf7] px-3 py-2 text-sm text-[#2f6f66]">{linkedinImportResult}</div> : null}
+
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setLinkedinImportOpen(false)}
+              className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              disabled={linkedinImportBusy}
+              className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Send className="h-4 w-4" />
+              {linkedinImportBusy ? "导入中" : "导入"}
+            </button>
+          </div>
+        </form>
+      </div>
+    )
   }
 
   function renderBlockDetails(block: FeedBlock) {
@@ -883,6 +1232,18 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               ) : null}
               {!publicMode ? (
                 <>
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkedinImportError("")
+                  setLinkedinImportResult("")
+                  setLinkedinImportOpen(true)
+                }}
+                className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white"
+              >
+                <BriefcaseBusiness className="h-4 w-4" />
+                导入 LinkedIn
+              </button>
               <span className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#62706e]">
                 Admin only
               </span>
@@ -1019,6 +1380,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
         {toast}
       </div>
       {!publicMode ? renderTaskComposer() : null}
+      {!publicMode ? renderLinkedInImporter() : null}
     </main>
   )
 }
