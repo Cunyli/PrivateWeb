@@ -34,11 +34,37 @@ type FeedBlock = {
   details?: FeedDetailSection[]
 }
 
+type FeedOverflow = {
+  summary?: string
+  counts?: {
+    candidates?: number
+    overflow?: number
+    duplicates?: number
+    hidden?: number
+  }
+  themes?: Array<{
+    title: string
+    count?: number
+    note?: string
+  }>
+}
+
+type FeedCandidate = {
+  title: string
+  source?: string
+  reason?: string
+  priority?: number
+  status?: "candidate" | "overflow" | "duplicate" | "watch" | string
+  links?: FeedLink[]
+}
+
 type FeedPayload = {
   date: string
   generatedAt?: string
   overview?: string
   sourceStatusLine?: string
+  overflow?: FeedOverflow
+  candidatePool?: FeedCandidate[]
   blocks: FeedBlock[]
 }
 
@@ -126,6 +152,13 @@ const kindLabel: Record<FeedKind, string> = {
   concept: "概念",
   paper: "论文",
   action: "待处理",
+}
+
+const candidateStatusLabel: Record<string, string> = {
+  candidate: "候选",
+  overflow: "压下",
+  duplicate: "重复",
+  watch: "观察",
 }
 
 const preferredOrder: Record<FeedKind, number> = {
@@ -449,6 +482,19 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
   const handled = Math.max(0, roundTotal - activeBlocks.length)
   const progress = roundTotal ? Math.min(100, Math.round((handled / roundTotal) * 100)) : 0
   const openTaskCount = tasks.filter((task) => task.status !== "done").length
+  const overflow = publicMode ? undefined : feed?.overflow
+  const candidatePool = publicMode ? [] : feed?.candidatePool || []
+  const visibleCandidates = candidatePool.slice(0, 8)
+  const overflowCounts = overflow?.counts || {}
+  const hasOverflowInfo = Boolean(
+    overflow?.summary ||
+      overflow?.themes?.length ||
+      candidatePool.length ||
+      overflowCounts.candidates ||
+      overflowCounts.overflow ||
+      overflowCounts.duplicates ||
+      overflowCounts.hidden,
+  )
 
   function persistState(nextState = state, nextExposurePool = exposurePool, nextPinned = pinned) {
     writeJsonMap(stateKey, nextState)
@@ -1207,6 +1253,102 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
     )
   }
 
+  function renderCandidatePool() {
+    if (!hasOverflowInfo) return null
+
+    const countChips: string[] = []
+    if (typeof overflowCounts.candidates === "number") countChips.push(`候选 ${overflowCounts.candidates}`)
+    if (typeof overflowCounts.overflow === "number") countChips.push(`压下 ${overflowCounts.overflow}`)
+    if (typeof overflowCounts.duplicates === "number") countChips.push(`重复 ${overflowCounts.duplicates}`)
+    if (typeof overflowCounts.hidden === "number") countChips.push(`隐藏 ${overflowCounts.hidden}`)
+
+    return (
+      <section className="rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="mb-1 text-lg font-semibold tracking-normal">候选池</h2>
+            <p className="m-0 text-sm leading-6 text-[#62706e]">
+              主信息流只保留最高价值块；这里记录被压下去但仍值得知道的候选。
+            </p>
+          </div>
+          {candidatePool.length ? (
+            <span className="rounded-full border border-[#cfe2dd] bg-[#f3faf7] px-2.5 py-1 text-xs font-semibold text-[#2f6f66]">
+              {candidatePool.length}
+            </span>
+          ) : null}
+        </div>
+
+        {overflow?.summary ? <p className="mt-3 text-sm leading-6 text-[#394441]">{overflow.summary}</p> : null}
+
+        {countChips.length ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {countChips.map((chip) => (
+              <span key={chip} className="rounded-full bg-[#f4f1e9] px-2.5 py-1 text-xs text-[#62706e]">
+                {chip}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {overflow?.themes?.length ? (
+          <div className="mt-3 border-t border-[#e4e0d8] pt-3">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b4b5a]">过载主题</div>
+            <ul className="m-0 grid gap-2 p-0">
+              {overflow.themes.slice(0, 4).map((theme) => (
+                <li key={`${theme.title}-${theme.count || 0}`} className="list-none text-sm leading-5 text-[#394441]">
+                  <span className="font-semibold text-[#1c2526]">{theme.title}</span>
+                  {typeof theme.count === "number" ? <span className="text-[#62706e]"> · {theme.count} 条</span> : null}
+                  {theme.note ? <div className="mt-0.5 text-[#62706e]">{theme.note}</div> : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {visibleCandidates.length ? (
+          <ol className="mt-3 grid gap-0 border-t border-[#e4e0d8] p-0">
+            {visibleCandidates.map((candidate, index) => {
+              const firstLink = candidate.links?.find((link) => link.url)
+              const status = candidate.status ? candidateStatusLabel[candidate.status] || candidate.status : "候选"
+              return (
+                <li key={`${candidate.title}-${index}`} className="list-none border-b border-[#e4e0d8] py-3 last:border-b-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold leading-5 text-[#1c2526]">{candidate.title}</div>
+                      <div className="mt-1 text-xs text-[#62706e]">
+                        {candidate.source || "来源未标注"} · {status}
+                        {typeof candidate.priority === "number" ? ` · P${candidate.priority}` : ""}
+                      </div>
+                    </div>
+                    {firstLink ? (
+                      <a
+                        href={firstLink.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#d7ddda] text-[#2f6f66]"
+                        aria-label={`打开 ${candidate.title}`}
+                        title={firstLink.label || "打开链接"}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    ) : null}
+                  </div>
+                  {candidate.reason ? <p className="m-0 mt-1 text-[13px] leading-5 text-[#62706e]">{candidate.reason}</p> : null}
+                </li>
+              )
+            })}
+          </ol>
+        ) : null}
+
+        {candidatePool.length > visibleCandidates.length ? (
+          <div className="mt-3 text-xs text-[#62706e]">
+            还有 {candidatePool.length - visibleCandidates.length} 个候选保留在 JSON 中。
+          </div>
+        ) : null}
+      </section>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-[#f4f1e9] text-[#1c2526]">
       <div className="mx-auto w-[min(1120px,calc(100vw-32px))] py-7 sm:py-8">
@@ -1331,42 +1473,45 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
           </div>
 
           {!publicMode ? <aside className="grid min-h-0 gap-4 lg:sticky lg:top-5 lg:max-h-[calc(100vh-40px)] lg:grid-rows-[auto_minmax(0,1fr)] lg:overflow-hidden">
-            <section className="shrink-0 rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
-              <h2 className="mb-2 text-lg font-semibold tracking-normal">阅读状态</h2>
-              <div className="text-sm text-[#62706e]">{handled} / {roundTotal} 个本轮已处理 · 剩余 {activeBlocks.length}</div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e5e1d7]">
-                <div className="h-full bg-gradient-to-r from-[#2f6f66] to-[#8b4b5a] transition-[width]" style={{ width: `${progress}%` }} />
-              </div>
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-[#e4e0d8] bg-[#fffdfa] px-3 py-2">
-                <div>
-                  <div className="text-sm font-semibold text-[#1c2526]">工作待办</div>
-                  <div className="mt-0.5 text-xs text-[#62706e]">{openTaskCount} 个未完成</div>
+            <div className="grid shrink-0 gap-4">
+              <section className="rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
+                <h2 className="mb-2 text-lg font-semibold tracking-normal">阅读状态</h2>
+                <div className="text-sm text-[#62706e]">{handled} / {roundTotal} 个本轮已处理 · 剩余 {activeBlocks.length}</div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e5e1d7]">
+                  <div className="h-full bg-gradient-to-r from-[#2f6f66] to-[#8b4b5a] transition-[width]" style={{ width: `${progress}%` }} />
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-[#e4e0d8] bg-[#fffdfa] px-3 py-2">
+                  <div>
+                    <div className="text-sm font-semibold text-[#1c2526]">工作待办</div>
+                    <div className="mt-0.5 text-xs text-[#62706e]">{openTaskCount} 个未完成</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTaskComposerOpen(true)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] text-white"
+                    aria-label="新增待办"
+                    title="新增待办"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-4 border-t border-[#d7ddda] pt-3 text-[13px] leading-5 text-[#62706e]">
+                  <div className="mb-1 font-semibold">状态同步</div>
+                  <p className="m-0">
+                    当前页会导入随 feed 同步来的共享状态快照，再用本浏览器状态继续记录新的丢弃/钉住。页头的 Gmail/OpenAI 文字是本轮采集状态，不代表网页连接失败。
+                  </p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setTaskComposerOpen(true)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] text-white"
-                  aria-label="新增待办"
-                  title="新增待办"
+                  onClick={() => window.location.reload()}
+                  className="mt-4 inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
                 >
-                  <Plus className="h-4 w-4" />
+                  <RefreshCw className="h-4 w-4" />
+                  重新读取
                 </button>
-              </div>
-              <div className="mt-4 border-t border-[#d7ddda] pt-3 text-[13px] leading-5 text-[#62706e]">
-                <div className="mb-1 font-semibold">状态同步</div>
-                <p className="m-0">
-                  当前页会导入随 feed 同步来的共享状态快照，再用本浏览器状态继续记录新的丢弃/钉住。页头的 Gmail/OpenAI 文字是本轮采集状态，不代表网页连接失败。
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="mt-4 inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
-              >
-                <RefreshCw className="h-4 w-4" />
-                重新读取
-              </button>
-            </section>
+              </section>
+              {renderCandidatePool()}
+            </div>
             {renderTasks()}
           </aside> : null}
         </div>
