@@ -1,97 +1,118 @@
 {
-  "date": "2026-07-04",
-  "overview": "今天主线是 agent 从“提示词技巧”继续下沉到 runtime：浏览器可控状态、持久证据层、权限拦截、测试流程和可学习能力，论文侧仍以房间仿真和多通道/端侧语音增强最贴近当前研究。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / OpenAI News / Anthropic / arXiv+S2；OpenAI News 仍被 Cloudflare challenge，Anthropic RSS 路径返回 404 页面；AIMS/Medium/LinkedIn 只作线索；0 个 action 候选因缺少 URL 跳过。",
+  "date": "2026-07-05",
+  "overview": "今天主线是 agent 工程从“会调用工具”继续走向可审计运行时：日志成为状态来源、本地上下文通过 MCP 暴露、权限和预算要前置，论文侧仍以房间仿真和多通道语音增强最贴近当前研究。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Daily Papers / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；Medium/LinkedIn 只作线索；S2 语音健康组 429 失败；0 个 action 候选因缺少 URL 跳过。",
   "blocks": [
     {
-      "id": "agent-runtime-webmcp-guardrails-20260704",
+      "id": "agent-log-runtime-20260705",
       "kind": "theme",
-      "title": "Agent runtime：今天最值得看的是“应用怎样给 agent 接口”",
-      "source": "HN / GitHub / Blog · 2026-07-04",
+      "title": "Agent runtime：今天最值得看的是“日志就是 agent”",
+      "source": "arXiv / HN · 2026-07-05",
       "sourceStatus": "综合判断",
-      "summary": "HN 今天没有一个压倒性新闻，但几个小项目共同指向同一件事：agent 的质量不再只靠 prompt，而靠 runtime 给它可读状态、可控动作、持久证据和权限闸门。Routing24 把路线规划应用暴露成 Claude Cowork/WebMCP 可操作的状态+动作模型，Open Kioku 做本地证据层，Owthorize 拦截破坏性 tool call，Agent Harness 则把 production agent 定义在运行时而不是提示词。",
-      "why": "这正好对应你的 Codex/portfolio/AI feed 工作流：下一步真正值钱的是把页面、repo 和工具做成 agent 可检查、可恢复、可拒绝的接口。",
-      "thought": "先扫 Routing24 和 Open Kioku，再看 Owthorize 的权限边界；重点想哪些本地 workflow 应该暴露状态，哪些动作必须保留人工确认。",
+      "summary": "HN 新浮出的 `The Log is the Agent` 把 agent runtime 的核心从对话循环转到 append-only event log：状态是日志的确定性投影，行为只响应 graph 变化并写入新事件。结合昨天的 WebMCP、本地证据层和权限闸门，今天的判断很明确：agent 要真正能复盘、fork、回滚和审计，日志不能只是 observability 附属品。",
+      "why": "这直接对应你的 Codex 自动化、AI feed 和研究实验：如果每次运行都能从日志重放和分叉，调试成本会比事后看摘要低很多。",
+      "thought": "先扫 abstract、determinism contract 和 fork/diff 设计；重点想哪些本地 workflow 应该把“事件日志”作为第一等输出，而不只是保存最终文件。",
       "priority": 100,
       "links": [
         {
-          "label": "Routing24 / HN",
-          "url": "https://news.ycombinator.com/item?id=48786769"
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2605.21997"
         },
         {
-          "label": "Routing24 skill",
-          "url": "https://github.com/routing24/skill"
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48790912"
         },
         {
-          "label": "Open Kioku / HN",
-          "url": "https://news.ycombinator.com/item?id=48785607"
+          "label": "Local MCP / HN",
+          "url": "https://news.ycombinator.com/item?id=48790887"
         },
         {
-          "label": "Owthorize",
-          "url": "https://www.npmjs.com/package/owthorize"
+          "label": "Agent budget RFC / HN",
+          "url": "https://news.ycombinator.com/item?id=48789750"
         }
       ]
     },
     {
-      "id": "aims-continuous-learning-work-20260704",
+      "id": "local-mcp-private-context-20260705",
       "kind": "concept",
-      "title": "连续学习：AI 替代工作的门槛不是会做任务，而是会变成熟手",
-      "source": "Artificial Intelligence Made Simple · 2026-07-04",
-      "sourceStatus": "线索",
-      "summary": "AIMS 的 Martin Ford 访谈把“AI 与工作”讨论从任务能力转到连续学习：新员工从第一天到六个月后的进步，来自在真实工作里试错、吸收反馈和迁移到新情境；冻结发布的模型即使会做很多任务，也不等于能像人一样在岗位里持续变强。",
-      "why": "这个概念比泛泛谈失业更有用，因为它能帮助判断哪些任务适合自动化，哪些仍需要人类建立反馈回路、组织上下文和责任边界。",
-      "thought": "把它当作今天的概念块：看第 1、3、5 节即可，重点是 continuous learning、task consolidation 和 liability，而不是整场直播。",
+      "title": "Local MCP：本地上下文不是云连接器能解决的全部问题",
+      "source": "Local MCP / HN · 2026-07-05",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Show HN 的 Local MCP 值得作为概念块：它把 Mail、Calendar、iMessage、Slack/Teams 本地存储和文件系统暴露给 Claude Desktop、Claude Code、Cursor、ChatGPT 等客户端；桌面/CLI 路径走 localhost，网页 AI 才需要可选 relay。无论产品本身是否采用，它准确指出了 agent 的一个缺口：很多真实上下文只存在本机，不在公开 API 里。",
+      "why": "这和你偏好的隐私/本地优先 workflow 非常贴近，也能反过来评估哪些自动化应留在 Mac、本地 Obsidian、Triton 或受控浏览器里。",
+      "thought": "只看架构和权限边界，不急着安装；把它当作“本地 app connector 应该如何解释数据流”的参考。",
       "priority": 88,
       "links": [
         {
-          "label": "AIMS post",
-          "url": "https://substack.com/app-link/post?publication_id=1315074&post_id=203730526&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=503iei&token=eyJ1c2VyX2lkIjozMDI0OTQ2OTgsInBvc3RfaWQiOjIwMzczMDUyNiwiaWF0IjoxNzgzMTczMzkxLCJleHAiOjE3ODU3NjUzOTEsImlzcyI6InB1Yi0xMzE1MDc0Iiwic3ViIjoicG9zdC1yZWFjdGlvbiJ9.hzpKKb63G2SO2SFTjQk9WTrt5qi2zNXuTbjZTgQtMOw"
+          "label": "Local MCP",
+          "url": "https://www.local-mcp.com/en"
         },
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f2d6aad9b008ae"
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48790887"
         }
       ]
     },
     {
-      "id": "llm-judges-eval-finetuning-20260704",
+      "id": "lovable-agentic-coding-cost-20260705",
       "kind": "deep-read",
-      "title": "LLM judge 微调：评估系统不能只靠一个强模型打分",
-      "source": "Medium · 2026-07-04",
-      "sourceStatus": "线索",
-      "summary": "Medium digest 里最值得保留的是 Cameron Wolfe 的 LLM judge 评估长文，覆盖 Prometheus、JudgeLM、PandaLM、AutoJ 等 judge 微调路线。它不是官方新发布，但适合补上一个工程直觉：当 agent/workflow 越来越依赖自动评估，judge 的训练数据、偏差、校准和任务边界会变成系统质量的一部分。",
-      "why": "这和你最近反复做的自动化验收、paper 筛选、代码 review 评分很贴近：评估器本身也需要证据、版本和失败样例。",
-      "thought": "只扫数据构造和 failure mode 两段；不要把它当事实源，先把它当一份 judge 设计 checklist。",
-      "priority": 80,
+      "title": "Lovable 复盘：agentic coding 的瓶颈开始变成成本和运行纪律",
+      "source": "Lovable Blog / HN · 2026-07-04",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Lovable 的 `$85,000 in tokens later` 复盘今天在 HN 有讨论，主题不是单个模型技巧，而是当 coding agent 被大规模用于真实产品时，token 成本、任务拆分、失败重试、评估和工程纪律会一起变成系统问题。它适合作为昨天 agent runtime 主题的工程侧补充。",
+      "why": "你现在的 Codex/portfolio/论文自动化也在从 prompt 走向可运行流程，成本和验收会越来越像一等指标。",
+      "thought": "重点看他们如何界定任务、何时让人介入、怎么衡量失败；不要把它当通用最佳实践，先提取可移植的控制点。",
+      "priority": 84,
       "links": [
         {
-          "label": "LLM judges",
-          "url": "https://medium.com/@cameronrwolfe/finetuning-llm-judges-for-evaluation-f3495168eda4?source=email-602672f81880-1783121275783-digest.reader--f3495168eda4----8-109------------------ed42c94a_c9da_440f_984a_75af982a470f-1"
+          "label": "Lovable post",
+          "url": "https://lovable.dev/blog/85000-in-tokens-later-scaling-agentic-coding-at-lovable"
         },
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f2b5ad2cae2a31"
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48789042"
         }
       ]
     },
     {
-      "id": "hf-agenticsts-skillcoach-20260704",
+      "id": "agent-spend-budget-reservation-20260705",
+      "kind": "concept",
+      "title": "Atomic budget reservation：agent 权限不只管能不能做，还要管能花多少",
+      "source": "GitHub / HN · 2026-07-04",
+      "sourceStatus": "官方/高质量源",
+      "summary": "HN 上的 agent budget RFC 很小，但概念有用：给 agent 调用工具、模型或外部服务前做预算预留，避免多个并发动作同时认为自己还有额度，最后把成本打穿。它和权限拦截、工具确认一样，属于 agent runtime 的安全边界。",
+      "why": "当自动化开始调用搜索、模型、邮件、部署和 GPU 资源，预算是和权限同级的控制面，而不是事后账单分析。",
+      "thought": "把它记成今天的概念候选即可：预算预留、提交/释放、并发一致性、硬上限，这四个词比实现细节更值得先懂。",
+      "priority": 76,
+      "links": [
+        {
+          "label": "Agent budget RFC",
+          "url": "https://github.com/iamapsrajput/agent-budget-protocol/blob/main/RFC.md"
+        },
+        {
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48789750"
+        }
+      ]
+    },
+    {
+      "id": "hf-agent-memory-data-bench-20260705",
       "kind": "signal",
-      "title": "HF Daily Papers：agent memory 和 skill-use 评估今天有两条可扫",
+      "title": "HF Daily Papers：agent 记忆和 data-agent 评估仍值得扫",
       "source": "Hugging Face Daily Papers · 2026-07-04",
       "sourceStatus": "线索",
-      "summary": "HF Daily Papers 今天的可读线索是 `AgenticSTS: A Bounded-Memory Testbed for Long-Horizon LLM Agents` 和 `SkillCoach: Self-Evolving Rubrics for Evaluating and Enhancing Agentic Skill-Use`。前者贴近长期任务里的有限记忆测试，后者贴近技能使用的自演化 rubrics，和今天 HN 的 runtime/证据层主题能互相支撑。",
-      "why": "如果你想改进 Codex skill 或自动化验收，这两篇比泛 agent benchmark 更贴近“记忆怎么限制、技能怎么评价”。",
-      "thought": "只打开 HF 页面看摘要和评论热度；如果机制真强，再另开 paper note，不在本轮自动写 Obsidian。",
-      "priority": 76,
+      "summary": "HF Daily Papers 昨日邮件里仍有两条贴合今天主线的论文线索：`AgenticSTS` 关注 bounded-memory long-horizon agents，`AgenticDataBench` 关注 data agents 的综合评估。它们不是本轮 paper block 的主论文，但适合作为 agent memory / evaluation 的轻量入口。",
+      "why": "如果你后面要改 Codex skills 或自动化验收，记忆限制和数据任务 benchmark 比泛 agent demo 更可迁移。",
+      "thought": "只打开 HF 摘要和评论热度；除非机制明显强，再进入正式 paper note。",
+      "priority": 72,
       "links": [
         {
           "label": "AgenticSTS",
           "url": "https://huggingface.co/papers/2607.02255?utm_source=digest-papers&utm_medium=email&utm_campaign=2026-07-03"
         },
         {
-          "label": "SkillCoach",
-          "url": "https://huggingface.co/papers/2607.01874?utm_source=digest-papers&utm_medium=email&utm_campaign=2026-07-03"
+          "label": "AgenticDataBench",
+          "url": "https://huggingface.co/papers/2607.01647?utm_source=digest-papers&utm_medium=email&utm_campaign=2026-07-03"
         },
         {
           "label": "Gmail source",
@@ -100,35 +121,14 @@
       ]
     },
     {
-      "id": "webmcp-agent-readable-app-20260704",
-      "kind": "concept",
-      "title": "WebMCP：把网页变成 agent 可读工具，而不是只让 agent 看像素",
-      "source": "GitHub / HN · 2026-07-04",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Routing24 的 Show HN 价值不在路线规划本身，而在它把业务 app 的 reduced state 和 action model 暴露给浏览器 agent，降低 agent 从视觉 UI 猜状态的成本。这个方向如果标准化为 WebMCP，就会把前端设计的一部分变成“给人读”和“给 agent 操作”两套接口。",
-      "why": "你的 AI feed、portfolio 管理面和本地工具如果未来要更好地被 Codex 操作，最缺的可能不是按钮，而是稳定状态、明确命令和可验证结果。",
-      "thought": "把 WebMCP 当作概念先理解：可读状态、动作 schema、权限边界、解释输出，这四个比炫酷 UI 更重要。",
-      "priority": 72,
-      "links": [
-        {
-          "label": "Routing24 skill",
-          "url": "https://github.com/routing24/skill"
-        },
-        {
-          "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48786769"
-        }
-      ]
-    },
-    {
-      "id": "paper-room-sim-lmpan-20260704",
+      "id": "paper-room-sim-ambidrop-20260705",
       "kind": "paper",
-      "title": "论文入口：继续先看房间仿真，备选扫端侧 AEC/NS",
-      "source": "本地推荐池 / arXiv+S2 · 2026-07-04",
+      "title": "论文入口：先看房间仿真，再扫 AmbiDrop",
+      "source": "本地推荐池 / arXiv+S2 · 2026-07-05",
       "sourceStatus": "本地推荐池",
-      "summary": "今天 arXiv+S2 正常完成，43 个去重候选里仍然最值得先看 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较仿真精度对真实测量数据上多通道 SE 的影响，和 TAU/room simulation/domain shift 主线高度贴合。第二个轻扫候选是 `LMPAN`，因为它把 full-duplex acoustic echo cancellation 和 noise suppression 合在 480K 参数端侧模型里，适合从实时语音链路角度看。",
-      "why": "第一篇能回答“仿真是否真的改善真实评估”这个主问题；LMPAN 则提醒你端侧 spoken dialogue 不只需要 denoise，还要同时处理 echo、参考信号对齐和下游 ASR/VAD。",
-      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, AEC, streaming-se；打开推荐池只扫房间仿真的实验设置/真实测量评估，以及 LMPAN 的 alignment 模块和实时约束。",
+      "summary": "今天 arXiv+S2 输出 39 个去重候选，最值得先看仍是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `AmbiDrop`，因为它用 Ambisonics 和 channel-wise dropout 做 array-agnostic neural speech enhancement，贴合未知阵列和真实设备鲁棒性。",
+      "why": "第一篇对 TAU/room simulation/domain shift 主线是直接证据；AmbiDrop 则把多通道 SE 从固定麦克风几何推向可泛化阵列，是实验设计上值得借鉴的相邻方向。",
+      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, array-agnostic, robustness；打开推荐池只扫房间仿真的数据构造/真实测量评估，以及 AmbiDrop 的 Ambisonics 输入和 dropout 训练设定。",
       "priority": 70,
       "links": [
         {
@@ -143,7 +143,7 @@
       "title": "AYY 发票：7 月 7 日到期",
       "source": "Maventa / Gmail · 2026-07-01",
       "sourceStatus": "行动项",
-      "summary": "Maventa 发来的 Aalto-yliopiston ylioppilaskunta invoice 78533 仍应保留到待处理区，due date 是 2026-07-07。邮件里有安全查看链接和查看密码，适合今天或明天直接确认金额与付款信息。",
+      "summary": "Maventa 发来的 Aalto-yliopiston ylioppilaskunta invoice 78533 仍应保留到待处理区，due date 是 2026-07-07。邮件里有安全查看链接和查看密码，适合今天确认金额与付款信息。",
       "why": "这是明确截止日期的账单类个人动作，继续保留比让它从信息流自然消失更安全。",
       "thought": "先打开发票确认金额；如果不是预期的 AYY 账单，再联系 AYY 核实。",
       "priority": 86,
@@ -159,15 +159,15 @@
       ]
     },
     {
-      "id": "action-lorex-tandem-lovable-jobs-20260704",
+      "id": "action-lorex-tandem-lovable-poolside-jobs-20260705",
       "kind": "action",
-      "title": "职位筛选：Lorex / Tandem / Lovable",
+      "title": "职位筛选：Lorex / Tandem / Lovable / Poolside",
       "source": "LinkedIn Job Alert · 2026-07-04",
       "sourceStatus": "行动项",
-      "summary": "今天的 Swedish job alert 里比普通 data roles 更值得快速筛的是 Lorex Labs Machine Learning Engineer、Tandem Health AI Engineer 和 Lovable Researcher, Post Training。Nestlé Master Data、Volvo、泛 Data Scientist 和美国远程数据岗不放入主信息流。",
-      "why": "这三条分别贴近 ML engineering、health AI 和 post-training，比泛数据/BI/数据迁移 alert 更符合当前画像。",
+      "summary": "最近 36 小时 LinkedIn alert 里值得快速筛的是 Lorex Labs Machine Learning Engineer、Tandem Health AI Engineer、Lovable Researcher, Post Training，以及 Poolside Member of Engineering (Pre-training / Data Research)。GRiT/ToBeIT/Neotalent 属于泛远程 GenAI，Solace/Help at Home/Swedbank 等泛数据岗不进主流。",
+      "why": "这四条分别贴近 ML engineering、health AI、post-training 和 pre-training/data research，比普通数据/BI/数据迁移 alert 更符合当前画像。",
       "thought": "先用 5 分钟看 JD 是否有模型训练、post-training、speech/health 或 ML infra；没有这些关键词就直接丢弃。",
-      "priority": 60,
+      "priority": 62,
       "links": [
         {
           "label": "Lorex Labs",
@@ -180,6 +180,10 @@
         {
           "label": "Lovable",
           "url": "https://www.linkedin.com/comm/jobs/view/4406570106/?trackingId=QMBgNQRpvxuTn9Jum1mkNw%3D%3D&refId=JRuD2A4fCdx9KwWhK4spdQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BszuoM9j8RuOufz0z3NfEBA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2VBnJeB4NOuYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4406570106_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4406570106_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw-null-jp2m05~mr6a6fvt~hw-null-null&eid=jp2m05-mr6a6fvt-hw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4OWNhZDY0MzllYWI4OTZkN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjMmYzYzMxYjg1ZDJiMDdhNTk4OTNiNzQxNmRjYzJmODNmNzYzMWQ2OWI1MDYxLDEsMQ%3D%3D"
+        },
+        {
+          "label": "Poolside",
+          "url": "https://www.linkedin.com/comm/jobs/view/4416903318/?trackingId=vAZHJ6IypFIF%2F5eoploR8g%3D%3D&refId=A7qItLPNO0ouIshEapwS6g%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BujtdOdhVRFOCjpG9LlU4yQ%3D%3D&midToken=AQFFuKiydP0yRg&midSig=13LKmSQs_WuIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4416903318_ssid_15469705780_fmid_jp2m05~mr65w4ro~tv&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4416903318_ssid_15469705780_fmid_jp2m05~mr65w4ro~tv-null-jp2m05~mr65w4ro~tv-null-null&eid=jp2m05-mr65w4ro-tv&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4YWM5ZDQ0MzkxYWI4ZTY5N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NWJjOGJhYzA3YmY4ZDA4NTYyNTIzZjIxNzM5NzhmY2NjNmI0MTFmNjRjNTI1ZTE4LDEsMQ%3D%3D"
         },
         {
           "label": "Gmail source",
