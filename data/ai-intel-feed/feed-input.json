@@ -1,7 +1,7 @@
 {
   "date": "2026-07-05",
-  "overview": "今天主线是 agent 工程从“会调用工具”继续走向可审计运行时：日志成为状态来源、本地上下文通过 MCP 暴露、权限和预算要前置，论文侧仍以房间仿真和多通道语音增强最贴近当前研究。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Daily Papers / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；Medium/LinkedIn 只作线索；S2 语音健康组 429 失败；0 个 action 候选因缺少 URL 跳过。",
+  "overview": "今天主线仍是 agent 工程从“会调用工具”走向可审计运行时：日志、权限、预算和本地上下文都是控制面；论文侧最值得看的是房间仿真对多通道语音增强的直接证据，待处理区新增 7 月 8 日 La Rocca 入住付款确认。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Daily Papers / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；Medium/LinkedIn/Substack 只作线索；S2 有 429 退避但完成；0 个 action 候选因缺少 URL 跳过。",
   "blocks": [
     {
       "id": "agent-log-runtime-20260705",
@@ -126,7 +126,7 @@
       "title": "论文入口：先看房间仿真，再扫 AmbiDrop",
       "source": "本地推荐池 / arXiv+S2 · 2026-07-05",
       "sourceStatus": "本地推荐池",
-      "summary": "今天 arXiv+S2 输出 39 个去重候选，最值得先看仍是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `AmbiDrop`，因为它用 Ambisonics 和 channel-wise dropout 做 array-agnostic neural speech enhancement，贴合未知阵列和真实设备鲁棒性。",
+      "summary": "本轮 arXiv+S2 输出 43 个去重候选，最值得先看仍是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `AmbiDrop`，因为它用 Ambisonics 和 channel-wise dropout 做 array-agnostic neural speech enhancement，贴合未知阵列和真实设备鲁棒性。",
       "why": "第一篇对 TAU/room simulation/domain shift 主线是直接证据；AmbiDrop 则把多通道 SE 从固定麦克风几何推向可泛化阵列，是实验设计上值得借鉴的相邻方向。",
       "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, array-agnostic, robustness；打开推荐池只扫房间仿真的数据构造/真实测量评估，以及 AmbiDrop 的 Ambisonics 输入和 dropout 训练设定。",
       "priority": 70,
@@ -159,35 +159,48 @@
       ]
     },
     {
-      "id": "action-lorex-tandem-lovable-poolside-jobs-20260705",
+      "id": "action-la-rocca-checkin-20260708",
       "kind": "action",
-      "title": "职位筛选：Lorex / Tandem / Lovable / Poolside",
-      "source": "LinkedIn Job Alert · 2026-07-04",
+      "title": "La Rocca 入住：7 月 8 日已付款",
+      "source": "Guesthouse La Rocca / Gmail · 2026-07-05",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时 LinkedIn alert 里值得快速筛的是 Lorex Labs Machine Learning Engineer、Tandem Health AI Engineer、Lovable Researcher, Post Training，以及 Poolside Member of Engineering (Pre-training / Data Research)。GRiT/ToBeIT/Neotalent 属于泛远程 GenAI，Solace/Help at Home/Swedbank 等泛数据岗不进主流。",
-      "why": "这四条分别贴近 ML engineering、health AI、post-training 和 pre-training/data research，比普通数据/BI/数据迁移 alert 更符合当前画像。",
-      "thought": "先用 5 分钟看 JD 是否有模型训练、post-training、speech/health 或 ML infra；没有这些关键词就直接丢弃。",
-      "priority": 62,
+      "summary": "Guesthouse La Rocca 确认 reservation 2167923898 已全额付款 55 欧元；到达日期是 2026-07-08，离店 2026-07-09，地址是 Via Azzano 47/A, Grassobbio, 24050, IT。",
+      "why": "这是马上发生的住宿确认，信息流里保留一轮能减少到达当天翻邮件成本。",
+      "thought": "今天只需要确认入住时间、交通路线和是否要提前联系房东；付款本身已记录成功。",
+      "priority": 78,
       "links": [
         {
-          "label": "Lorex Labs",
-          "url": "https://www.linkedin.com/comm/jobs/view/4433167510/?trackingId=gTfs6KIozPKq5VTn4j4S6A%3D%3D&refId=JRuD2A4fCdx9KwWhK4spdQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BszuoM9j8RuOufz0z3NfEBA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2VBnJeB4NOuYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433167510_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4433167510_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw-null-jp2m05~mr6a6fvt~hw-null-null&eid=jp2m05-mr6a6fvt-hw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4OWNhZDY0MzllYWI4OTZkN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjMmYzYzMxYjg1ZDJiMDdhNTk4OTNiNzQxNmRjYzJmODNmNzYzMWQ2OWI1MDYxLDEsMQ%3D%3D"
+          "label": "Gmail source",
+          "url": "https://mail.google.com/mail/#all/19f3167ab389db25"
+        }
+      ]
+    },
+    {
+      "id": "action-moonshot-elevenlabs-paires-jobs-20260705",
+      "kind": "action",
+      "title": "职位筛选：Moonshot / ElevenLabs / Paires",
+      "source": "LinkedIn Job Alert · 2026-07-05",
+      "sourceStatus": "行动项",
+      "summary": "今天新的 Deep Learning Engineer alert 里，Moonshot AI/Machine Learning Engineer、ElevenLabs Research Engineer 和 Paires Founding AI Engineer 比 Juul/Data Scientist 或泛数据岗更值得快速筛。旧的 Lorex/Tandem/Lovable/Poolside 可以作为次级备选，不再占主行动块。",
+      "why": "这三条分别贴近 remote AI engineering、音频/语音研究工程和 founding AI engineering，比普通数据科学 alert 更符合当前求职画像。",
+      "thought": "先看 JD 是否明确涉及模型训练、audio/speech、LLM infra 或 research engineering；没有就直接丢弃，避免 job alert 堆积。",
+      "priority": 64,
+      "links": [
+        {
+          "label": "Moonshot",
+          "url": "https://www.linkedin.com/comm/jobs/view/4436724598/?trackingId=MoGmlb5GMU1i7PBLAJZFqw%3D%3D&refId=sfw5noRSqVVuDKTDyFzhDw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BtLtcp%2FEjTXGpxu21Xa8RTg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3RkvVz-gEywck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436724598_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436724598_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw-null-jp2m05~mr7h1mzu~nw-null-null&eid=jp2m05-mr7h1mzu-nw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjY4Y2M4ZDY0MzllYTc4YTZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTBmNGNhODc1Y2YyZjFjMGJjYjZkYmVhM2E4YTdkNzBhYmE5MWQ3NDliNzFjNmQ1LDEsMQ%3D%3D"
         },
         {
-          "label": "Tandem Health",
-          "url": "https://www.linkedin.com/comm/jobs/view/4436492407/?trackingId=uXgAJY4Q81h0ovr%2Fy0lCEA%3D%3D&refId=JRuD2A4fCdx9KwWhK4spdQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BszuoM9j8RuOufz0z3NfEBA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2VBnJeB4NOuYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4436492407_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4436492407_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw-null-jp2m05~mr6a6fvt~hw-null-null&eid=jp2m05-mr6a6fvt-hw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4OWNhZDY0MzllYWI4OTZkN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjMmYzYzMxYjg1ZDJiMDdhNTk4OTNiNzQxNmRjYzJmODNmNzYzMWQ2OWI1MDYxLDEsMQ%3D%3D"
+          "label": "ElevenLabs",
+          "url": "https://www.linkedin.com/comm/jobs/view/4101271157/?trackingId=PLLTT5It6qZ9H0%2B478EucA%3D%3D&refId=sfw5noRSqVVuDKTDyFzhDw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BtLtcp%2FEjTXGpxu21Xa8RTg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3RkvVz-gEywck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4101271157_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4101271157_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw-null-jp2m05~mr7h1mzu~nw-null-null&eid=jp2m05-mr7h1mzu-nw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjY4Y2M4ZDY0MzllYTc4YTZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTBmNGNhODc1Y2YyZjFjMGJjYjZkYmVhM2E4YTdkNzBhYmE5MWQ3NDliNzFjNmQ1LDEsMQ%3D%3D"
         },
         {
-          "label": "Lovable",
-          "url": "https://www.linkedin.com/comm/jobs/view/4406570106/?trackingId=QMBgNQRpvxuTn9Jum1mkNw%3D%3D&refId=JRuD2A4fCdx9KwWhK4spdQ%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BszuoM9j8RuOufz0z3NfEBA%3D%3D&midToken=AQFFuKiydP0yRg&midSig=2VBnJeB4NOuYk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4406570106_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_2_jobid_4406570106_ssid_15477663556_fmid_jp2m05~mr6a6fvt~hw-null-jp2m05~mr6a6fvt~hw-null-null&eid=jp2m05-mr6a6fvt-hw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4OWNhZDY0MzllYWI4OTZkN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTVjMmYzYzMxYjg1ZDJiMDdhNTk4OTNiNzQxNmRjYzJmODNmNzYzMWQ2OWI1MDYxLDEsMQ%3D%3D"
-        },
-        {
-          "label": "Poolside",
-          "url": "https://www.linkedin.com/comm/jobs/view/4416903318/?trackingId=vAZHJ6IypFIF%2F5eoploR8g%3D%3D&refId=A7qItLPNO0ouIshEapwS6g%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BujtdOdhVRFOCjpG9LlU4yQ%3D%3D&midToken=AQFFuKiydP0yRg&midSig=13LKmSQs_WuIk1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4416903318_ssid_15469705780_fmid_jp2m05~mr65w4ro~tv&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_5_jobid_4416903318_ssid_15469705780_fmid_jp2m05~mr65w4ro~tv-null-jp2m05~mr65w4ro~tv-null-null&eid=jp2m05-mr65w4ro-tv&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjU4YWM5ZDQ0MzkxYWI4ZTY5N2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NWJjOGJhYzA3YmY4ZDA4NTYyNTIzZjIxNzM5NzhmY2NjNmI0MTFmNjRjNTI1ZTE4LDEsMQ%3D%3D"
+          "label": "Paires",
+          "url": "https://www.linkedin.com/comm/jobs/view/4433706079/?trackingId=iHNNLMiANRrHgyypDh0%2BkA%3D%3D&refId=sfw5noRSqVVuDKTDyFzhDw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BtLtcp%2FEjTXGpxu21Xa8RTg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3RkvVz-gEywck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_4_jobid_4433706079_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_4_jobid_4433706079_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw-null-jp2m05~mr7h1mzu~nw-null-null&eid=jp2m05-mr7h1mzu-nw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjY4Y2M4ZDY0MzllYTc4YTZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTBmNGNhODc1Y2YyZjFjMGJjYjZkYmVhM2E4YTdkNzBhYmE5MWQ3NDliNzFjNmQ1LDEsMQ%3D%3D"
         },
         {
           "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f2ce4f7154781d"
+          "url": "https://mail.google.com/mail/#all/19f312f97c07ce6c"
         }
       ]
     }
