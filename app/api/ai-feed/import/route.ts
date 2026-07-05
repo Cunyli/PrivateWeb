@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { NextResponse } from "next/server"
 import { buildLinkedInImportBlock, mergeFeedWithPrivateImports, type FeedPayload } from "@/lib/ai-feed-linkedin-import"
-import { aiFeedImportDbError, persistAiFeedPrivateImport } from "@/lib/ai-feed-private-imports.server"
+import { intelFeedDbError, persistIntelFeedItem } from "@/lib/intel-feed-items.server"
 import { requireAdminRequest } from "@/utils/admin-auth.server"
 
 export const dynamic = "force-dynamic"
@@ -59,9 +59,9 @@ export async function POST(request: Request) {
   const ownerEmail = String(auth.user.email || "").trim().toLowerCase()
   const [feed, persisted] = await Promise.all([
     readJsonFile<FeedPayload>(feedPath, { date: "", blocks: [] }),
-    persistAiFeedPrivateImport(ownerEmail, block, replaceExisting),
+    persistIntelFeedItem(ownerEmail, block, replaceExisting),
   ])
-  if (persisted.error || !persisted.result) return aiFeedImportDbError(persisted.error)
+  if (persisted.error || !persisted.result) return intelFeedDbError(persisted.error)
 
   const nextFeed = mergeFeedWithPrivateImports(feed, persisted.result.imports)
 
@@ -71,6 +71,6 @@ export async function POST(request: Request) {
     inserted: persisted.result.inserted,
     replaced: persisted.result.replaced,
     persisted: true,
-    storage: "supabase",
+    storage: "supabase:intel_feed.items",
   })
 }

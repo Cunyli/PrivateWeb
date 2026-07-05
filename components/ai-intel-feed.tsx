@@ -641,9 +641,9 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
 
       const message = data.persisted
         ? data.inserted
-          ? "已写入 Supabase 私有信息流"
+          ? "已写入 Supabase 信息流收件箱"
           : data.replaced
-            ? "已更新 Supabase 私有信息流"
+            ? "已更新 Supabase 信息流收件箱"
             : "已存在，未重复添加"
         : data.error || "已生成预览，但没有持久写入"
       setLinkedinImportResult(message)

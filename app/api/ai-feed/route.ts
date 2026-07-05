@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { NextResponse } from "next/server"
 import { mergeFeedWithPrivateImports, normalizePrivateImports } from "@/lib/ai-feed-linkedin-import"
-import { aiFeedImportDbError, isAiFeedImportTableMissing, readAiFeedPrivateImports } from "@/lib/ai-feed-private-imports.server"
+import { intelFeedDbError, isIntelFeedStorageMissing, readIntelFeedItems } from "@/lib/intel-feed-items.server"
 import { requireAdminRequest } from "@/utils/admin-auth.server"
 
 const feedDir = join(process.cwd(), "data", "ai-intel-feed")
@@ -32,10 +32,10 @@ export async function GET(request: Request) {
   const [feed, sharedState, privateImports] = await Promise.all([
     readJsonFile(join(feedDir, "feed-input.json"), { date: "", blocks: [] }),
     readJsonFile(join(feedDir, "shared-state.json"), { state: {}, exposurePool: {}, pinned: {} }),
-    readAiFeedPrivateImports(ownerEmail),
+    readIntelFeedItems(ownerEmail),
   ])
-  if (privateImports.error && !isAiFeedImportTableMissing(privateImports.error)) {
-    return aiFeedImportDbError(privateImports.error)
+  if (privateImports.error && !isIntelFeedStorageMissing(privateImports.error)) {
+    return intelFeedDbError(privateImports.error)
   }
 
   return NextResponse.json({
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     sharedState,
     privateImports: {
       count: privateImports.imports.blocks.length,
-      storage: "supabase",
+      storage: "supabase:intel_feed.items",
       ready: !privateImports.error,
       error: privateImports.error?.message,
     },
