@@ -1,7 +1,7 @@
 {
   "date": "2026-07-05",
   "overview": "今天主线仍是 agent 工程从“会调用工具”走向可审计运行时：日志、本地上下文、边界权限和成本纪律都是控制面；论文侧最值得看的是房间仿真对多通道语音增强的直接证据，待处理区重点改成住宿取消确认和 7 月 7 日 AYY 发票。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；Medium/LinkedIn/Substack 只作线索；arXiv 沙箱 DNS 失败后已授权重跑，S2 429 退避后完成；0 个 action 候选因缺少 URL 跳过。",
+  "sourceStatusLine": "已直连 HF/HF Blog/Latent/Medium/The Batch/AISimple 公开源；Gmail 仅查 LinkedIn 与个人行动项；OpenAI News 仍被 Cloudflare challenge；0 个 action 候选因缺少 URL 跳过。",
   "blocks": [
     {
       "id": "agent-log-runtime-20260705",
@@ -100,23 +100,19 @@
       "kind": "signal",
       "title": "HF Daily Papers：agent 记忆和 data-agent 评估仍值得扫",
       "source": "Hugging Face Daily Papers · 2026-07-04",
-      "sourceStatus": "线索",
-      "summary": "HF Daily Papers 昨日邮件里仍有两条贴合今天主线的论文线索：`AgenticSTS` 关注 bounded-memory long-horizon agents，`AgenticDataBench` 关注 data agents 的综合评估。它们不是本轮 paper block 的主论文，但适合作为 agent memory / evaluation 的轻量入口。",
+      "sourceStatus": "公开源",
+      "summary": "HF Daily Papers 公开 API 里有两条贴合今天主线的论文线索：`AgenticSTS` 关注 bounded-memory long-horizon agents，`AgenticDataBench` 关注 data agents 的综合评估。它们不是本轮 paper block 的主论文，但适合作为 agent memory / evaluation 的轻量入口。",
       "why": "如果你后面要改 Codex skills 或自动化验收，记忆限制和数据任务 benchmark 比泛 agent demo 更可迁移。",
       "thought": "只打开 HF 摘要和评论热度；除非机制明显强，再进入正式 paper note。",
       "priority": 72,
       "links": [
         {
           "label": "AgenticSTS",
-          "url": "https://huggingface.co/papers/2607.02255?utm_source=digest-papers&utm_medium=email&utm_campaign=2026-07-03"
+          "url": "https://huggingface.co/papers/2607.02255"
         },
         {
           "label": "AgenticDataBench",
-          "url": "https://huggingface.co/papers/2607.01647?utm_source=digest-papers&utm_medium=email&utm_campaign=2026-07-03"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f2aa75a3dcab2f"
+          "url": "https://huggingface.co/papers/2607.01647"
         }
       ]
     },
