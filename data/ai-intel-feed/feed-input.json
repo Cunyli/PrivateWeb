@@ -1,7 +1,7 @@
 {
   "date": "2026-07-05",
-  "overview": "今天主线仍是 agent 工程从“会调用工具”走向可审计运行时：日志、权限、预算和本地上下文都是控制面；论文侧最值得看的是房间仿真对多通道语音增强的直接证据，待处理区新增 7 月 8 日 La Rocca 入住付款确认。",
-  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Daily Papers / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；Medium/LinkedIn/Substack 只作线索；S2 有 429 退避但完成；0 个 action 候选因缺少 URL 跳过。",
+  "overview": "今天主线仍是 agent 工程从“会调用工具”走向可审计运行时：日志、本地上下文、边界权限和成本纪律都是控制面；论文侧最值得看的是房间仿真对多通道语音增强的直接证据，待处理区重点改成住宿取消确认和 7 月 7 日 AYY 发票。",
+  "sourceStatusLine": "已检查 Gmail / sent / HN / HF Blog / OpenAI News / arXiv+S2；OpenAI News 仍被 Cloudflare challenge；Medium/LinkedIn/Substack 只作线索；arXiv 沙箱 DNS 失败后已授权重跑，S2 429 退避后完成；0 个 action 候选因缺少 URL 跳过。",
   "blocks": [
     {
       "id": "agent-log-runtime-20260705",
@@ -75,23 +75,23 @@
       ]
     },
     {
-      "id": "agent-spend-budget-reservation-20260705",
+      "id": "gcp-agentic-perimeter-guardrails-20260705",
       "kind": "concept",
-      "title": "Atomic budget reservation：agent 权限不只管能不能做，还要管能花多少",
-      "source": "GitHub / HN · 2026-07-04",
+      "title": "Agentic perimeter：agent 权限边界正在进入云安全控制面",
+      "source": "Google Cloud Blog / HN · 2026-07-05",
       "sourceStatus": "官方/高质量源",
-      "summary": "HN 上的 agent budget RFC 很小，但概念有用：给 agent 调用工具、模型或外部服务前做预算预留，避免多个并发动作同时认为自己还有额度，最后把成本打穿。它和权限拦截、工具确认一样，属于 agent runtime 的安全边界。",
-      "why": "当自动化开始调用搜索、模型、邮件、部署和 GPU 资源，预算是和权限同级的控制面，而不是事后账单分析。",
-      "thought": "把它记成今天的概念候选即可：预算预留、提交/释放、并发一致性、硬上限，这四个词比实现细节更值得先懂。",
-      "priority": 76,
+      "summary": "Google Cloud 今天在 HN 出现的 agentic perimeter guardrails 不是炫技 demo，而是在说企业会把 agent 访问 SaaS、API、数据和私有服务的路径纳入 VPC Service Controls 一类的边界策略。它和本地 MCP、日志式 runtime 放在一起看，说明 agent 工程的下一层是“能走到哪里、带什么身份、出界时怎么拦”。",
+      "why": "这能帮你判断本地自动化、portfolio 管理面、Gmail/Drive 连接器和 Triton 远程操作哪些应该留在受控边界里，而不是只靠 prompt 约束。",
+      "thought": "先扫威胁模型和边界策略，不急着追产品细节；重点记住 agentic perimeter 是身份、网络和数据边界的组合问题。",
+      "priority": 78,
       "links": [
         {
-          "label": "Agent budget RFC",
-          "url": "https://github.com/iamapsrajput/agent-budget-protocol/blob/main/RFC.md"
+          "label": "Google Cloud Blog",
+          "url": "https://cloud.google.com/blog/products/identity-security/securing-agentic-ai-whats-new-in-vpc-service-controls/"
         },
         {
           "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48789750"
+          "url": "https://news.ycombinator.com/item?id=48795012"
         }
       ]
     },
@@ -126,7 +126,7 @@
       "title": "论文入口：先看房间仿真，再扫 AmbiDrop",
       "source": "本地推荐池 / arXiv+S2 · 2026-07-05",
       "sourceStatus": "本地推荐池",
-      "summary": "本轮 arXiv+S2 输出 43 个去重候选，最值得先看仍是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `AmbiDrop`，因为它用 Ambisonics 和 channel-wise dropout 做 array-agnostic neural speech enhancement，贴合未知阵列和真实设备鲁棒性。",
+      "summary": "晚间 arXiv+S2 重新搜索后仍输出 43 个去重候选，最值得先看还是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `AmbiDrop`，因为它用 Ambisonics 和 channel-wise dropout 做 array-agnostic neural speech enhancement，贴合未知阵列和真实设备鲁棒性。",
       "why": "第一篇对 TAU/room simulation/domain shift 主线是直接证据；AmbiDrop 则把多通道 SE 从固定麦克风几何推向可泛化阵列，是实验设计上值得借鉴的相邻方向。",
       "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, array-agnostic, robustness；打开推荐池只扫房间仿真的数据构造/真实测量评估，以及 AmbiDrop 的 Ambisonics 输入和 dropout 训练设定。",
       "priority": 70,
@@ -159,19 +159,27 @@
       ]
     },
     {
-      "id": "action-la-rocca-checkin-20260708",
+      "id": "action-travel-cancellation-followup-20260705",
       "kind": "action",
-      "title": "La Rocca 入住：7 月 8 日已付款",
-      "source": "Guesthouse La Rocca / Gmail · 2026-07-05",
+      "title": "住宿取消：La Rocca / Tirana 等待确认",
+      "source": "Gmail Sent · 2026-07-05",
       "sourceStatus": "行动项",
-      "summary": "Guesthouse La Rocca 确认 reservation 2167923898 已全额付款 55 欧元；到达日期是 2026-07-08，离店 2026-07-09，地址是 Via Azzano 47/A, Grassobbio, 24050, IT。",
-      "why": "这是马上发生的住宿确认，信息流里保留一轮能减少到达当天翻邮件成本。",
-      "thought": "今天只需要确认入住时间、交通路线和是否要提前联系房东；付款本身已记录成功。",
-      "priority": 78,
+      "summary": "你今天已发邮件取消 Guesthouse La Rocca 7 月 8 日入住和 Artistic Tirana Blloku 7 月 9-14 日预订；La Rocca 之前已有 55 欧元付款记录，Tirana 预订里显示 45 欧元 Stripe 预付。Aille River 和 Trip.com/Kinlay 已有取消确认，不需要占行动块。",
+      "why": "这两封是已经发出的旅行沟通，下一步是等商家确认取消、费用或退款规则，尤其 La Rocca 涉及已付款住宿。",
+      "thought": "明天前如果没有确认，优先追 La Rocca，再追 Tirana；Trip.com 退款状态只需按邮件链接等待 1-7 个工作日。",
+      "priority": 82,
       "links": [
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f3167ab389db25"
+          "label": "La Rocca sent",
+          "url": "https://mail.google.com/mail/#all/19f328828ed5c837"
+        },
+        {
+          "label": "Tirana sent",
+          "url": "https://mail.google.com/mail/#all/19f32689c12e7ae4"
+        },
+        {
+          "label": "Trip refund",
+          "url": "https://triplink.trip.com/forward/middlepages/channel/edm?targetUrl=https%3A%2F%2Fwww.trip.com%2Fcw%2Fhotel%2FctOrderDetailPages%2FCheckOrderAuthPage.html%3ForderId%3D1359045495887597%26locale%3Den-XX%26operate%3DOrderDetail%26token%3DX63D6A9630B4AFFEB727FF5591F0F77E3B0ACFD540BA39476AF1FD526D89BF03%26sign%3DAAEAAQAHb3JkZXJpZDBb6QlBp32oF-5wq1MrttEusWEd1_uXWtP7-9t71dly-tripsign%26requestid%3De63c0ff3-876a-4f85-952e-5a8ee9837c97%26source%3D1%26allianceid%3D%26ouid%3D%26sid%3D&bizData=eyJldmVudCI6ImNsaWNrIiwia2V5IjoiNTE3NTc2ODM0OTE2IiwidGl0bGUiOiJWaWV3X3JlZnVuZF9wcm9ncmVzcyIsInR5cGUiOiJyZWFjdC5jb21wb25lbnQiLCJuYW1lIjoiQGN0cmlwL2Nsb3VkLXJlZnVuZCIsImxhYmVsIjoicmVmdW5kIiwiaWQiOiJzdHJ1X2hRT3VaOG5xcGZ1ekk0RyIsImZpbGVJZCI6ImZpbGVfSDVja0hmbmtrTk40ekpaIiwiYXBwSWQiOiJhcHBsX29mR2V1VWc4aVBKcjZCUSIsImZveHBhZ2VWZXJzaW9uIjoyLCJmcFRyYWNlSWQiOiJjOWQ3NjNlYS1mNjNkLTQ0NjktYTMyOC1jODQ2ZjY3NjhlYTktMTc4MzI1MTQ4ODYyMiIsInRlbXBsYXRlSWQiOiJjb250X3ZwR2czMllKVndPUVBTciIsInRlbXBsYXRlVmVyc2lvbiI6MSwiZGF0YSI6eyJuYW1lIjoiVmlld19yZWZ1bmRfcHJvZ3Jlc3MiLCJvcmRlcklkIjoxMzU5MDQ1NDk1ODg3NTk3LCJlbWFpbFR5cGUiOiJDQU4iLCJ1aWQiOiJfVElISzFxcXRsOTE1NjZtZSIsInJlcXVlc3RJZCI6ImU2M2MwZmYzLTg3NmEtNGY4NS05NTJlLTVhOGVlOTgzN2M5NyJ9fQ%3D%3D"
         }
       ]
     },
