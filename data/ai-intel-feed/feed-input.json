@@ -1,20 +1,20 @@
 {
   "date": "2026-07-06",
-  "overview": "今天主线是本地 agent harness 的能力边界：更深的本机上下文、repo memory 和类 Unix 工具接口都在出现，但权限、压缩和可验证性必须一起看。",
-  "sourceStatusLine": "已直连 HF/HF Blog/Latent/Medium/The Batch/AISimple 等 10 个公开源；Gmail 仅查 LinkedIn/HOAS/航班等个人行动项；OpenAI News 仍被 Cloudflare challenge；0 个可信候选因缺少 URL 被跳过。",
+  "overview": "今天晚间主线继续是本地 agent harness 的权限边界：Office、Kubernetes、secrets、repo memory 和类 Unix 工具接口都在靠近真实工作面，值得把“能做什么”和“该不该授权”一起看。",
+  "sourceStatusLine": "已直连 HF/HF Blog/Latent/Medium/The Batch/AISimple 等 10 个公开源；Gmail 仅查 LinkedIn/HOAS/航班等个人行动项；OpenAI News 仍被 Cloudflare challenge；论文搜索 eess.AS 503 但其余类别和 S2 完成；0 个可信候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "公开源候选很多，但 Medium 泛趋势、LinkedIn 泛岗位和低分 HN demo 被压到候选池或过滤。",
+    "summary": "公开源和 HN 晚间候选很多，但 Medium 泛趋势、低分 HN demo、同质 LinkedIn 岗位和重复 agent harness 讨论被压到候选池或过滤。",
     "counts": {
       "candidates": 40,
-      "overflow": 15,
-      "duplicates": 4,
+      "overflow": 18,
+      "duplicates": 5,
       "hidden": 8
     },
     "themes": [
       {
-        "title": "agent harness 与本地记忆过载",
-        "count": 8,
-        "note": "PAI、Live-Memory、agent permission、compressor 都值得知道，但主页面只保留一个综合判断。"
+        "title": "本地 agent harness 与权限过载",
+        "count": 12,
+        "note": "OfficeCLI、Kars、Keyhole、Causari、PAI、Live-Memory 都指向同一问题，主页面只保留一个综合判断。"
       },
       {
         "title": "Medium 泛 AI 职场文章",
@@ -24,6 +24,74 @@
     ]
   },
   "candidatePool": [
+    {
+      "title": "Kars: treat every AI agent as untrusted code on Kubernetes",
+      "source": "Azure GitHub / HN",
+      "reason": "直接支撑本地 agent 权限边界主题，但单项热度还低，放候选和主题链接。",
+      "priority": 76,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "GitHub",
+          "url": "https://github.com/Azure/kars"
+        },
+        {
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48806383"
+        }
+      ]
+    },
+    {
+      "title": "OfficeCLI: Office suite for AI agents",
+      "source": "GitHub / HN",
+      "reason": "说明 agent 正在进入 Office 文件读写面，和本地文档工具链相关；先观察成熟度。",
+      "priority": 70,
+      "status": "watch",
+      "links": [
+        {
+          "label": "GitHub",
+          "url": "https://github.com/iOfficeAI/OfficeCLI"
+        },
+        {
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48807225"
+        }
+      ]
+    },
+    {
+      "title": "Keyhole: share secrets with AI agents without dumping them into context",
+      "source": "Keyhole / HN",
+      "reason": "secrets UX 与 agent 权限边界高度相关，但当前更像早期 demo。",
+      "priority": 68,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Keyhole",
+          "url": "https://keyhole.maferland.com"
+        },
+        {
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48805782"
+        }
+      ]
+    },
+    {
+      "title": "Causari: content-addressable ledger for AI agent code edits",
+      "source": "Causari / HN",
+      "reason": "agent 代码修改可追溯方向相关，但先放候选，不占主阅读位。",
+      "priority": 64,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Causari",
+          "url": "https://causari.dev/#quickstart"
+        },
+        {
+          "label": "HN",
+          "url": "https://news.ycombinator.com/item?id=48806031"
+        }
+      ]
+    },
     {
       "title": "LeRobot v0.6.0: Imagine, Evaluate, Improve",
       "source": "Hugging Face Blog",
@@ -177,32 +245,36 @@
       "id": "local-agent-harness-permission-20260706",
       "kind": "theme",
       "title": "本地 agent harness：今天最值得看的是“能力越本地，权限越真实”",
-      "source": "HN / GitHub · 2026-07-06",
+      "source": "HN / GitHub · 2026-07-06 evening",
       "sourceStatus": "综合判断",
-      "summary": "HN 今天同时出现了 PAI 这种把个人 assistant 放进类 Unix 本机环境的尝试、Live-Memory 这种被动学习 repo 的 Claude Code MCP，以及 agent 权限过度审计。它们合起来说明一个方向：agent 正从“云端聊天+工具调用”退回到本机上下文、文件系统、事件总线和长期记忆，但安全边界也会变得更硬。",
-      "why": "这直接影响你现在的 Codex/Obsidian/Triton 工作流：越想让 agent 读到真实状态，就越要把权限、可观察日志、最小链接和可撤销本地状态设计清楚。",
-      "thought": "先看 PAI 和 Live-Memory 的接口形态，再用 Maref/Compressor 反向问：哪些权限不该给、哪些上下文不该常驻、哪些压缩会丢证据。",
+      "summary": "HN 晚间继续出现一组本地 agent harness 信号：OfficeCLI 让 agent 读写 Office 文件，Kars 把 agent 当不可信代码放进 Kubernetes 隔离，Keyhole 处理 secrets 不进上下文，Causari 追踪 agent code edits。加上早些时候的 PAI、Live-Memory 和权限审计，它们合起来说明 agent 正靠近真实本机工作面，但授权边界也更具体。",
+      "why": "这直接影响你现在的 Codex/Obsidian/Triton 工作流：越想让 agent 读到真实状态，就越要把文件权限、secret 输入、可观察日志和可撤销本地状态设计清楚。",
+      "thought": "优先看 Kars/Keyhole/OfficeCLI 的接口形态，再反向检查自己的自动化：哪些权限不该给、哪些上下文不该常驻、哪些证据必须可追溯。",
       "priority": 100,
       "links": [
         {
-          "label": "PAI site",
-          "url": "https://www.whitematterlabs.ai/"
+          "label": "Kars repo",
+          "url": "https://github.com/Azure/kars"
         },
         {
-          "label": "PAI / HN",
-          "url": "https://news.ycombinator.com/item?id=48802741"
+          "label": "Kars / HN",
+          "url": "https://news.ycombinator.com/item?id=48806383"
+        },
+        {
+          "label": "OfficeCLI repo",
+          "url": "https://github.com/iOfficeAI/OfficeCLI"
+        },
+        {
+          "label": "Keyhole",
+          "url": "https://keyhole.maferland.com"
+        },
+        {
+          "label": "Causari",
+          "url": "https://causari.dev/#quickstart"
         },
         {
           "label": "Live-Memory repo",
           "url": "https://github.com/shofer-dev/claude-code-live-memory"
-        },
-        {
-          "label": "Maref agent permission audit",
-          "url": "https://github.com/maref-org/maref"
-        },
-        {
-          "label": "Compressor V2",
-          "url": "https://www.edgee.ai/blog/posts/introducing-compressor-v2-three-compression-layers-measured-end-to-end-for-a-50-cost-reduction"
         }
       ]
     },
@@ -284,7 +356,7 @@
       "title": "论文入口：先看房间仿真，再扫 SwiftAudio",
       "source": "本地推荐池 / arXiv+S2 · 2026-07-06",
       "sourceStatus": "本地推荐池",
-      "summary": "今天 arXiv+S2 输出 43 个去重候选。第一篇仍是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `SwiftAudio`，因为它尝试只用 caption 对 text-to-audio diffusion 做 one-step distillation，和低延迟生成音频栈相关。",
+      "summary": "本轮 arXiv+S2 输出 45 个去重候选；eess.AS 类别请求 503，但 cs.SD 等类别和 S2 完成。第一篇仍是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `SwiftAudio`，因为它尝试只用 caption 对 text-to-audio diffusion 做 one-step distillation，和低延迟生成音频栈相关。",
       "why": "房间仿真论文对 TAU/room simulation/domain shift 主线是直接证据；SwiftAudio 则提醒生成音频的延迟和数据效率可能会影响未来 speech/audio 工具链。",
       "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, text-to-audio, diffusion, low-latency；打开推荐池只扫房间仿真的数据构造/真实测量评估，以及 SwiftAudio 的 caption-only distillation 设定。",
       "priority": 72,
