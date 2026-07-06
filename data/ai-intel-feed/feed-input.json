@@ -1,131 +1,293 @@
 {
-  "date": "2026-07-05",
-  "overview": "今天主线仍是 agent 工程从“会调用工具”走向可审计运行时：日志、本地上下文、边界权限和成本纪律都是控制面；论文侧最值得看的是房间仿真对多通道语音增强的直接证据，待处理区重点改成住宿取消确认和 7 月 7 日 AYY 发票。",
-  "sourceStatusLine": "已直连 HF/HF Blog/Latent/Medium/The Batch/AISimple 公开源；Gmail 仅查 LinkedIn 与个人行动项；OpenAI News 仍被 Cloudflare challenge；0 个 action 候选因缺少 URL 跳过。",
+  "date": "2026-07-06",
+  "overview": "今天主线是本地 agent harness 的能力边界：更深的本机上下文、repo memory 和类 Unix 工具接口都在出现，但权限、压缩和可验证性必须一起看。",
+  "sourceStatusLine": "已直连 HF/HF Blog/Latent/Medium/The Batch/AISimple 等 10 个公开源；Gmail 仅查 LinkedIn/HOAS/航班等个人行动项；OpenAI News 仍被 Cloudflare challenge；0 个可信候选因缺少 URL 被跳过。",
+  "overflow": {
+    "summary": "公开源候选很多，但 Medium 泛趋势、LinkedIn 泛岗位和低分 HN demo 被压到候选池或过滤。",
+    "counts": {
+      "candidates": 40,
+      "overflow": 15,
+      "duplicates": 4,
+      "hidden": 8
+    },
+    "themes": [
+      {
+        "title": "agent harness 与本地记忆过载",
+        "count": 8,
+        "note": "PAI、Live-Memory、agent permission、compressor 都值得知道，但主页面只保留一个综合判断。"
+      },
+      {
+        "title": "Medium 泛 AI 职场文章",
+        "count": 6,
+        "note": "多数是观点重复或商业软文，不改变今天的研究/工作动作。"
+      }
+    ]
+  },
+  "candidatePool": [
+    {
+      "title": "LeRobot v0.6.0: Imagine, Evaluate, Improve",
+      "source": "Hugging Face Blog",
+      "reason": "机器人数据/评估循环有意思，但不如本地 agent harness 直接影响今天工作流。",
+      "priority": 74,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/lerobot-release-v060"
+        }
+      ]
+    },
+    {
+      "title": "HF Kernels: Major Updates",
+      "source": "Hugging Face Blog",
+      "reason": "推理内核更新值得以后看性能细节，本轮只作为系统栈候选。",
+      "priority": 73,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/revamped-kernels"
+        }
+      ]
+    },
+    {
+      "title": "ScarfBench: enterprise Java framework migration agents",
+      "source": "Hugging Face Blog",
+      "reason": "agent 评测方向相关，但企业 Java 迁移离当前主线稍远。",
+      "priority": 70,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/ibm-research/scarfbench"
+        }
+      ]
+    },
+    {
+      "title": "AIEWF Daily Dispatch: loops debate",
+      "source": "Latent.Space",
+      "reason": "延续 AIEWF 讨论，但上几轮已覆盖 loop/control-layer 主线。",
+      "priority": 68,
+      "status": "duplicate",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/aiewf-daily-dispatch-locomotives"
+        }
+      ]
+    },
+    {
+      "title": "Vercel's Andrew Qu on agents as new software",
+      "source": "Latent.Space",
+      "reason": "可作后续产品判断材料，今天不压过本地 harness/权限主题。",
+      "priority": 67,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/vercel-agents-new-software"
+        }
+      ]
+    },
+    {
+      "title": "The website of the future may assemble itself",
+      "source": "Latent.Space",
+      "reason": "与 portfolio/AI feed 有启发，但事实主张偏产品愿景。",
+      "priority": 61,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/the-website-of-the-future"
+        }
+      ]
+    },
+    {
+      "title": "DataComp-VLM open datasets",
+      "source": "Hugging Face Daily Papers",
+      "reason": "VLM 数据集质量信号不错，但不贴 speech/audio 主线。",
+      "priority": 58,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Paper",
+          "url": "https://huggingface.co/papers/2606.28551"
+        }
+      ]
+    },
+    {
+      "title": "OrbitQuant diffusion transformer quantization",
+      "source": "Hugging Face Daily Papers",
+      "reason": "量化方向相关但更偏 vision/video diffusion，留作观察。",
+      "priority": 56,
+      "status": "watch",
+      "links": [
+        {
+          "label": "HF Paper",
+          "url": "https://huggingface.co/papers/2607.02461"
+        }
+      ]
+    },
+    {
+      "title": "Agent = Model + Harness",
+      "source": "Medium AI Agents",
+      "reason": "和今天主题同向，但来源质量低于 HN/GitHub，放候选不进主块。",
+      "priority": 55,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/@mariano215/agent-model-harness-the-eleven-primitives-that-separate-reliable-ai-agents-from-coin-flips-6c4312044bad"
+        }
+      ]
+    },
+    {
+      "title": "Live-RAG fix for confident wrong answers",
+      "source": "Level Up Coding",
+      "reason": "RAG 质量讨论可读，但标题式结论多，暂不占主阅读位。",
+      "priority": 50,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://levelup.gitconnected.com/my-rag-system-was-confidently-wrong-the-fix-wasnt-a-better-vector-db-4df09de3a7e5"
+        }
+      ]
+    },
+    {
+      "title": "Jobgether / AgileGrid / Cint remote ML roles",
+      "source": "LinkedIn Jobs",
+      "reason": "职位多但同质，主块只保留最可能相关的 Tandem/Jobgether筛选入口。",
+      "priority": 45,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Jobgether Switzerland",
+          "url": "https://www.linkedin.com/jobs/view/4435784799/"
+        },
+        {
+          "label": "Jobgether Germany",
+          "url": "https://www.linkedin.com/jobs/view/4435796424/"
+        }
+      ]
+    }
+  ],
   "blocks": [
     {
-      "id": "agent-log-runtime-20260705",
+      "id": "local-agent-harness-permission-20260706",
       "kind": "theme",
-      "title": "Agent runtime：今天最值得看的是“日志就是 agent”",
-      "source": "arXiv / HN · 2026-07-05",
+      "title": "本地 agent harness：今天最值得看的是“能力越本地，权限越真实”",
+      "source": "HN / GitHub · 2026-07-06",
       "sourceStatus": "综合判断",
-      "summary": "HN 新浮出的 `The Log is the Agent` 把 agent runtime 的核心从对话循环转到 append-only event log：状态是日志的确定性投影，行为只响应 graph 变化并写入新事件。结合昨天的 WebMCP、本地证据层和权限闸门，今天的判断很明确：agent 要真正能复盘、fork、回滚和审计，日志不能只是 observability 附属品。",
-      "why": "这直接对应你的 Codex 自动化、AI feed 和研究实验：如果每次运行都能从日志重放和分叉，调试成本会比事后看摘要低很多。",
-      "thought": "先扫 abstract、determinism contract 和 fork/diff 设计；重点想哪些本地 workflow 应该把“事件日志”作为第一等输出，而不只是保存最终文件。",
+      "summary": "HN 今天同时出现了 PAI 这种把个人 assistant 放进类 Unix 本机环境的尝试、Live-Memory 这种被动学习 repo 的 Claude Code MCP，以及 agent 权限过度审计。它们合起来说明一个方向：agent 正从“云端聊天+工具调用”退回到本机上下文、文件系统、事件总线和长期记忆，但安全边界也会变得更硬。",
+      "why": "这直接影响你现在的 Codex/Obsidian/Triton 工作流：越想让 agent 读到真实状态，就越要把权限、可观察日志、最小链接和可撤销本地状态设计清楚。",
+      "thought": "先看 PAI 和 Live-Memory 的接口形态，再用 Maref/Compressor 反向问：哪些权限不该给、哪些上下文不该常驻、哪些压缩会丢证据。",
       "priority": 100,
       "links": [
         {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2605.21997"
+          "label": "PAI site",
+          "url": "https://www.whitematterlabs.ai/"
         },
         {
-          "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48790912"
+          "label": "PAI / HN",
+          "url": "https://news.ycombinator.com/item?id=48802741"
         },
         {
-          "label": "Local MCP / HN",
-          "url": "https://news.ycombinator.com/item?id=48790887"
+          "label": "Live-Memory repo",
+          "url": "https://github.com/shofer-dev/claude-code-live-memory"
         },
         {
-          "label": "Agent budget RFC / HN",
-          "url": "https://news.ycombinator.com/item?id=48789750"
+          "label": "Maref agent permission audit",
+          "url": "https://github.com/maref-org/maref"
+        },
+        {
+          "label": "Compressor V2",
+          "url": "https://www.edgee.ai/blog/posts/introducing-compressor-v2-three-compression-layers-measured-end-to-end-for-a-50-cost-reduction"
         }
       ]
     },
     {
-      "id": "local-mcp-private-context-20260705",
-      "kind": "concept",
-      "title": "Local MCP：本地上下文不是云连接器能解决的全部问题",
-      "source": "Local MCP / HN · 2026-07-05",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Show HN 的 Local MCP 值得作为概念块：它把 Mail、Calendar、iMessage、Slack/Teams 本地存储和文件系统暴露给 Claude Desktop、Claude Code、Cursor、ChatGPT 等客户端；桌面/CLI 路径走 localhost，网页 AI 才需要可选 relay。无论产品本身是否采用，它准确指出了 agent 的一个缺口：很多真实上下文只存在本机，不在公开 API 里。",
-      "why": "这和你偏好的隐私/本地优先 workflow 非常贴近，也能反过来评估哪些自动化应留在 Mac、本地 Obsidian、Triton 或受控浏览器里。",
-      "thought": "只看架构和权限边界，不急着安装；把它当作“本地 app connector 应该如何解释数据流”的参考。",
-      "priority": 88,
-      "links": [
-        {
-          "label": "Local MCP",
-          "url": "https://www.local-mcp.com/en"
-        },
-        {
-          "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48790887"
-        }
-      ]
-    },
-    {
-      "id": "lovable-agentic-coding-cost-20260705",
-      "kind": "deep-read",
-      "title": "Lovable 复盘：agentic coding 的瓶颈开始变成成本和运行纪律",
-      "source": "Lovable Blog / HN · 2026-07-04",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Lovable 的 `$85,000 in tokens later` 复盘今天在 HN 有讨论，主题不是单个模型技巧，而是当 coding agent 被大规模用于真实产品时，token 成本、任务拆分、失败重试、评估和工程纪律会一起变成系统问题。它适合作为昨天 agent runtime 主题的工程侧补充。",
-      "why": "你现在的 Codex/portfolio/论文自动化也在从 prompt 走向可运行流程，成本和验收会越来越像一等指标。",
-      "thought": "重点看他们如何界定任务、何时让人介入、怎么衡量失败；不要把它当通用最佳实践，先提取可移植的控制点。",
+      "id": "hf-gemma4-voice-ai-20260706",
+      "kind": "signal",
+      "title": "HF/Cerebras Gemma 4：实时 voice AI 仍是音频栈重点信号",
+      "source": "Hugging Face Blog · 2026-07-06 refresh",
+      "sourceStatus": "公开源",
+      "summary": "HF Blog 的 Cerebras/Gemma 4 voice AI 仍值得保留：它不是论文细节，但说明低延迟语音生成/理解正在从 demo 进入可服务化的推理栈叙事。",
+      "why": "这和你当前 speech/audio 主线相关：模型质量之外，实时推理、服务延迟和部署形态会越来越决定语音系统能不能用。",
+      "thought": "只扫架构和延迟约束，不把它当 USE 论文证据；可作为后续系统栈观察点。",
       "priority": 84,
       "links": [
         {
-          "label": "Lovable post",
-          "url": "https://lovable.dev/blog/85000-in-tokens-later-scaling-agentic-coding-at-lovable"
-        },
-        {
-          "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48789042"
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/cerebras-gemma4-voice-ai"
         }
       ]
     },
     {
-      "id": "gcp-agentic-perimeter-guardrails-20260705",
-      "kind": "concept",
-      "title": "Agentic perimeter：agent 权限边界正在进入云安全控制面",
-      "source": "Google Cloud Blog / HN · 2026-07-05",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Google Cloud 今天在 HN 出现的 agentic perimeter guardrails 不是炫技 demo，而是在说企业会把 agent 访问 SaaS、API、数据和私有服务的路径纳入 VPC Service Controls 一类的边界策略。它和本地 MCP、日志式 runtime 放在一起看，说明 agent 工程的下一层是“能走到哪里、带什么身份、出界时怎么拦”。",
-      "why": "这能帮你判断本地自动化、portfolio 管理面、Gmail/Drive 连接器和 Triton 远程操作哪些应该留在受控边界里，而不是只靠 prompt 约束。",
-      "thought": "先扫威胁模型和边界策略，不急着追产品细节；重点记住 agentic perimeter 是身份、网络和数据边界的组合问题。",
+      "id": "hf-kernels-runtime-20260706",
+      "kind": "signal",
+      "title": "HF Kernels：推理优化正在变成应用层可选项",
+      "source": "Hugging Face Blog · 2026-07-06 refresh",
+      "sourceStatus": "公开源",
+      "summary": "HF Kernels major updates 值得扫一眼：它把 kernel/算子优化从底层框架问题推向更靠近 Hub 和应用开发者的分发层。",
+      "why": "如果以后要比较本地模型、远端服务和 Triton/推理栈，kernel 级优化会影响成本、延迟和可复现部署。",
+      "thought": "先记作 runtime 候选，不需要今天深挖；重点看它支持哪些模型/算子以及是否能复用到音频或 agent 服务。",
+      "priority": 80,
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/revamped-kernels"
+        }
+      ]
+    },
+    {
+      "id": "the-batch-gpt56-robot-models-20260706",
+      "kind": "deep-read",
+      "title": "The Batch：GPT-5.6/机器人/模型调用模型只能当线索读",
+      "source": "DeepLearning.AI The Batch · issue 360",
+      "sourceStatus": "未官方核验",
+      "summary": "The Batch 本期把 OpenAI GPT-5.6 family、新机器人训练方式、models invoking models 放在一起。由于 OpenAI 官方 News 当前仍被 Cloudflare challenge，GPT-5.6 相关内容只能当第三方线索，不当官方事实。",
+      "why": "它的价值不是确认某个发布，而是提醒你关注三条方向：受限模型准入、机器人训练闭环、以及模型作为工具互相调用的产品形态。",
+      "thought": "读的时候把 OpenAI 相关标成未官方核验；真正可沉淀前等官方页或 API changelog 能访问。",
       "priority": 78,
       "links": [
         {
-          "label": "Google Cloud Blog",
-          "url": "https://cloud.google.com/blog/products/identity-security/securing-agentic-ai-whats-new-in-vpc-service-controls/"
+          "label": "The Batch issue 360",
+          "url": "https://www.deeplearning.ai/the-batch/issue-360"
         },
         {
-          "label": "HN",
-          "url": "https://news.ycombinator.com/item?id=48795012"
+          "label": "OpenAI News（访问受限）",
+          "url": "https://openai.com/news/"
         }
       ]
     },
     {
-      "id": "hf-agent-memory-data-bench-20260705",
-      "kind": "signal",
-      "title": "HF Daily Papers：agent 记忆和 data-agent 评估仍值得扫",
-      "source": "Hugging Face Daily Papers · 2026-07-04",
+      "id": "skill-engineering-latent-20260706",
+      "kind": "concept",
+      "title": "Skill engineering：不要把 agent 设计压成一次提示词",
+      "source": "Latent.Space / AINews · 2026-07-06 refresh",
       "sourceStatus": "公开源",
-      "summary": "HF Daily Papers 公开 API 里有两条贴合今天主线的论文线索：`AgenticSTS` 关注 bounded-memory long-horizon agents，`AgenticDataBench` 关注 data agents 的综合评估。它们不是本轮 paper block 的主论文，但适合作为 agent memory / evaluation 的轻量入口。",
-      "why": "如果你后面要改 Codex skills 或自动化验收，记忆限制和数据任务 benchmark 比泛 agent demo 更可迁移。",
-      "thought": "只打开 HF 摘要和评论热度；除非机制明显强，再进入正式 paper note。",
-      "priority": 72,
+      "summary": "Latent.Space 的 skill engineering 文章仍是今天可回看的概念：它强调把可重复工作沉淀成技能、约束、脚本和评估，而不是指望一次性 prompt 解决复杂流程。",
+      "why": "这和你当前 automation/skills/Obsidian 工作流高度贴合：稳定流程应该进入脚本和 skill，而不是每天靠长 prompt 重新解释。",
+      "thought": "把它当工作流设计镜子：哪些 AI feed 规则已经够稳定，可以固化到采集/验证脚本；哪些仍应保留人工判断。",
+      "priority": 75,
       "links": [
         {
-          "label": "AgenticSTS",
-          "url": "https://huggingface.co/papers/2607.02255"
-        },
-        {
-          "label": "AgenticDataBench",
-          "url": "https://huggingface.co/papers/2607.01647"
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/skill-engineering-design"
         }
       ]
     },
     {
-      "id": "paper-room-sim-ambidrop-20260705",
+      "id": "paper-room-sim-swiftaudio-20260706",
       "kind": "paper",
-      "title": "论文入口：先看房间仿真，再扫 AmbiDrop",
-      "source": "本地推荐池 / arXiv+S2 · 2026-07-05",
+      "title": "论文入口：先看房间仿真，再扫 SwiftAudio",
+      "source": "本地推荐池 / arXiv+S2 · 2026-07-06",
       "sourceStatus": "本地推荐池",
-      "summary": "晚间 arXiv+S2 重新搜索后仍输出 43 个去重候选，最值得先看还是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `AmbiDrop`，因为它用 Ambisonics 和 channel-wise dropout 做 array-agnostic neural speech enhancement，贴合未知阵列和真实设备鲁棒性。",
-      "why": "第一篇对 TAU/room simulation/domain shift 主线是直接证据；AmbiDrop 则把多通道 SE 从固定麦克风几何推向可泛化阵列，是实验设计上值得借鉴的相邻方向。",
-      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, array-agnostic, robustness；打开推荐池只扫房间仿真的数据构造/真实测量评估，以及 AmbiDrop 的 Ambisonics 输入和 dropout 训练设定。",
-      "priority": 70,
+      "summary": "今天 arXiv+S2 输出 43 个去重候选。第一篇仍是 `Improving multichannel speech enhancement through accurate room-acoustic simulations`：它直接比较不同房间声学仿真精度对真实测量数据上 multichannel SE 的影响，并报告高保真仿真带来最高 38% 相对 WER median 降低。第二篇轻扫 `SwiftAudio`，因为它尝试只用 caption 对 text-to-audio diffusion 做 one-step distillation，和低延迟生成音频栈相关。",
+      "why": "房间仿真论文对 TAU/room simulation/domain shift 主线是直接证据；SwiftAudio 则提醒生成音频的延迟和数据效率可能会影响未来 speech/audio 工具链。",
+      "thought": "Tag: speech-enhancement, room-acoustics, simulation, multichannel-SE, text-to-audio, diffusion, low-latency；打开推荐池只扫房间仿真的数据构造/真实测量评估，以及 SwiftAudio 的 caption-only distillation 设定。",
+      "priority": 72,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
@@ -134,77 +296,65 @@
       ]
     },
     {
-      "id": "action-ayy-maventa-invoice-20260707",
+      "id": "hoas-application-edit-20260706",
       "kind": "action",
-      "title": "AYY 发票：7 月 7 日到期",
-      "source": "Maventa / Gmail · 2026-07-01",
+      "title": "HOAS 住房申请：需要增加选项",
+      "source": "Gmail private fallback · HOAS · 2026-07-06",
       "sourceStatus": "行动项",
-      "summary": "Maventa 发来的 Aalto-yliopiston ylioppilaskunta invoice 78533 仍应保留到待处理区，due date 是 2026-07-07。邮件里有安全查看链接和查看密码，适合今天确认金额与付款信息。",
-      "why": "这是明确截止日期的账单类个人动作，继续保留比让它从信息流自然消失更安全。",
-      "thought": "先打开发票确认金额；如果不是预期的 AYY 账单，再联系 AYY 核实。",
-      "priority": 86,
+      "summary": "HOAS 发来明确动作：你当前住房申请选择的 apartment options 太少，建议编辑申请、增加更多选项来提高拿到 offer 的概率。",
+      "why": "这是会影响住房结果的个人事项，比普通提醒邮件重要。",
+      "thought": "今天优先打开 HOAS application 页面，扩大可接受房源范围；不要处理 HOAS newsletter 的退订链接。",
+      "priority": 96,
       "links": [
         {
-          "label": "Maventa invoice",
-          "url": "https://secure.maventa.com/invoice_view/e780c31d-8502-44de-b089-084afdfce477?lang=EN"
+          "label": "Edit HOAS application",
+          "url": "https://hoas.fi/en/housing-application"
         },
         {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f1bebc5ae5e323"
+          "label": "How to apply",
+          "url": "https://hoas.fi/en/applicants/how-to-apply-for-a-hoas-apartment"
         }
       ]
     },
     {
-      "id": "action-travel-cancellation-followup-20260705",
+      "id": "ryanair-checkin-milan-20260708",
       "kind": "action",
-      "title": "住宿取消：La Rocca / Tirana 等待确认",
-      "source": "Gmail Sent · 2026-07-05",
+      "title": "Ryanair：7 月 8 日米兰航班要线上值机",
+      "source": "Gmail private fallback · Ryanair · 2026-07-06",
       "sourceStatus": "行动项",
-      "summary": "你今天已发邮件取消 Guesthouse La Rocca 7 月 8 日入住和 Artistic Tirana Blloku 7 月 9-14 日预订；La Rocca 之前已有 55 欧元付款记录，Tirana 预订里显示 45 欧元 Stripe 预付。Aille River 和 Trip.com/Kinlay 已有取消确认，不需要占行动块。",
-      "why": "这两封是已经发出的旅行沟通，下一步是等商家确认取消、费用或退款规则，尤其 La Rocca 涉及已付款住宿。",
-      "thought": "明天前如果没有确认，优先追 La Rocca，再追 Tirana；Trip.com 退款状态只需按邮件链接等待 1-7 个工作日。",
-      "priority": 82,
+      "summary": "Ryanair 提醒 2026-07-08 晚上飞 Milan Bergamo，需至少提前 2 小时线上 check-in 并准备电子登机牌，否则机场值机可能收费。",
+      "why": "这是明确会过期的旅行动作，应该留在待处理而不是被邮件噪声淹没。",
+      "thought": "不要把邮件里的追踪链接或 reservation code 存进 feed；直接从 Ryanair 官网/App 处理 check-in。",
+      "priority": 92,
       "links": [
         {
-          "label": "La Rocca sent",
-          "url": "https://mail.google.com/mail/#all/19f328828ed5c837"
-        },
-        {
-          "label": "Tirana sent",
-          "url": "https://mail.google.com/mail/#all/19f32689c12e7ae4"
-        },
-        {
-          "label": "Trip refund",
-          "url": "https://triplink.trip.com/forward/middlepages/channel/edm?targetUrl=https%3A%2F%2Fwww.trip.com%2Fcw%2Fhotel%2FctOrderDetailPages%2FCheckOrderAuthPage.html%3ForderId%3D1359045495887597%26locale%3Den-XX%26operate%3DOrderDetail%26token%3DX63D6A9630B4AFFEB727FF5591F0F77E3B0ACFD540BA39476AF1FD526D89BF03%26sign%3DAAEAAQAHb3JkZXJpZDBb6QlBp32oF-5wq1MrttEusWEd1_uXWtP7-9t71dly-tripsign%26requestid%3De63c0ff3-876a-4f85-952e-5a8ee9837c97%26source%3D1%26allianceid%3D%26ouid%3D%26sid%3D&bizData=eyJldmVudCI6ImNsaWNrIiwia2V5IjoiNTE3NTc2ODM0OTE2IiwidGl0bGUiOiJWaWV3X3JlZnVuZF9wcm9ncmVzcyIsInR5cGUiOiJyZWFjdC5jb21wb25lbnQiLCJuYW1lIjoiQGN0cmlwL2Nsb3VkLXJlZnVuZCIsImxhYmVsIjoicmVmdW5kIiwiaWQiOiJzdHJ1X2hRT3VaOG5xcGZ1ekk0RyIsImZpbGVJZCI6ImZpbGVfSDVja0hmbmtrTk40ekpaIiwiYXBwSWQiOiJhcHBsX29mR2V1VWc4aVBKcjZCUSIsImZveHBhZ2VWZXJzaW9uIjoyLCJmcFRyYWNlSWQiOiJjOWQ3NjNlYS1mNjNkLTQ0NjktYTMyOC1jODQ2ZjY3NjhlYTktMTc4MzI1MTQ4ODYyMiIsInRlbXBsYXRlSWQiOiJjb250X3ZwR2czMllKVndPUVBTciIsInRlbXBsYXRlVmVyc2lvbiI6MSwiZGF0YSI6eyJuYW1lIjoiVmlld19yZWZ1bmRfcHJvZ3Jlc3MiLCJvcmRlcklkIjoxMzU5MDQ1NDk1ODg3NTk3LCJlbWFpbFR5cGUiOiJDQU4iLCJ1aWQiOiJfVElISzFxcXRsOTE1NjZtZSIsInJlcXVlc3RJZCI6ImU2M2MwZmYzLTg3NmEtNGY4NS05NTJlLTVhOGVlOTgzN2M5NyJ9fQ%3D%3D"
+          "label": "Ryanair",
+          "url": "https://www.ryanair.com/"
         }
       ]
     },
     {
-      "id": "action-moonshot-elevenlabs-paires-jobs-20260705",
+      "id": "linkedin-jobs-tandem-jobgether-20260706",
       "kind": "action",
-      "title": "职位筛选：Moonshot / ElevenLabs / Paires",
-      "source": "LinkedIn Job Alert · 2026-07-05",
+      "title": "职位筛选：Tandem Audio / Jobgether AI ML",
+      "source": "Gmail private fallback · LinkedIn Jobs · 2026-07-06",
       "sourceStatus": "行动项",
-      "summary": "今天新的 Deep Learning Engineer alert 里，Moonshot AI/Machine Learning Engineer、ElevenLabs Research Engineer 和 Paires Founding AI Engineer 比 Juul/Data Scientist 或泛数据岗更值得快速筛。旧的 Lorex/Tandem/Lovable/Poolside 可以作为次级备选，不再占主行动块。",
-      "why": "这三条分别贴近 remote AI engineering、音频/语音研究工程和 founding AI engineering，比普通数据科学 alert 更符合当前求职画像。",
-      "thought": "先看 JD 是否明确涉及模型训练、audio/speech、LLM infra 或 research engineering；没有就直接丢弃，避免 job alert 堆积。",
-      "priority": 64,
+      "summary": "LinkedIn 新职位里最值得单独看的是 Tandem Health 的 AI Engineer / Software Engineer - Audio，以及 Jobgether 的 remote AI/ML Research Engineer；Data Entry、泛 Data Scientist 和社交通知已过滤。",
+      "why": "LinkedIn/job 单独作为行动项处理，不混入学习主信息流；这些比泛岗位更贴近 speech/audio/ML 方向。",
+      "thought": "只快速筛 JD 和地点/remote 条件；如果不匹配就丢弃，不保留邮件 redirect 链接。",
+      "priority": 66,
       "links": [
         {
-          "label": "Moonshot",
-          "url": "https://www.linkedin.com/comm/jobs/view/4436724598/?trackingId=MoGmlb5GMU1i7PBLAJZFqw%3D%3D&refId=sfw5noRSqVVuDKTDyFzhDw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BtLtcp%2FEjTXGpxu21Xa8RTg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3RkvVz-gEywck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436724598_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_0_jobid_4436724598_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw-null-jp2m05~mr7h1mzu~nw-null-null&eid=jp2m05-mr7h1mzu-nw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjY4Y2M4ZDY0MzllYTc4YTZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTBmNGNhODc1Y2YyZjFjMGJjYjZkYmVhM2E4YTdkNzBhYmE5MWQ3NDliNzFjNmQ1LDEsMQ%3D%3D"
+          "label": "Tandem AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4436953436/"
         },
         {
-          "label": "ElevenLabs",
-          "url": "https://www.linkedin.com/comm/jobs/view/4101271157/?trackingId=PLLTT5It6qZ9H0%2B478EucA%3D%3D&refId=sfw5noRSqVVuDKTDyFzhDw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BtLtcp%2FEjTXGpxu21Xa8RTg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3RkvVz-gEywck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4101271157_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_1_jobid_4101271157_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw-null-jp2m05~mr7h1mzu~nw-null-null&eid=jp2m05-mr7h1mzu-nw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjY4Y2M4ZDY0MzllYTc4YTZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTBmNGNhODc1Y2YyZjFjMGJjYjZkYmVhM2E4YTdkNzBhYmE5MWQ3NDliNzFjNmQ1LDEsMQ%3D%3D"
+          "label": "Tandem Software Engineer - Audio",
+          "url": "https://www.linkedin.com/jobs/view/4436938954/"
         },
         {
-          "label": "Paires",
-          "url": "https://www.linkedin.com/comm/jobs/view/4433706079/?trackingId=iHNNLMiANRrHgyypDh0%2BkA%3D%3D&refId=sfw5noRSqVVuDKTDyFzhDw%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BtLtcp%2FEjTXGpxu21Xa8RTg%3D%3D&midToken=AQFFuKiydP0yRg&midSig=3RkvVz-gEywck1&trk=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_4_jobid_4433706079_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw&trkEmail=eml-email_job_alert_digest_01-primary_job_list-0-job_posting_4_jobid_4433706079_ssid_15469705780_fmid_jp2m05~mr7h1mzu~nw-null-jp2m05~mr7h1mzu~nw-null-null&eid=jp2m05-mr7h1mzu-nw&otpToken=MTMwNDE3ZTAxYjI4YzBjMWIzMmQwZmViNDExNmU0YjY4Y2M4ZDY0MzllYTc4YTZiN2JjZjA3NmM0ODVkNTRmMmY1ZDRkZGU5NTBmNGNhODc1Y2YyZjFjMGJjYjZkYmVhM2E4YTdkNzBhYmE5MWQ3NDliNzFjNmQ1LDEsMQ%3D%3D"
-        },
-        {
-          "label": "Gmail source",
-          "url": "https://mail.google.com/mail/#all/19f312f97c07ce6c"
+          "label": "Jobgether AI/ML Research Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4435784799/"
         }
       ]
     }
