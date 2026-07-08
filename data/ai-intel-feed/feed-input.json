@@ -1,98 +1,106 @@
 {
   "date": "2026-07-08",
-  "overview": "今天主线是先处理旅行值机/晚到入住，再看 agent harness 的证据链、HF 跨云运行面、LeRobot 数据闭环和 USE 论文更新。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源；Gmail 仅查 Ryanair/booking/LinkedIn/个人 sent 兜底；OpenAI 官方未进入本轮主源；0 个可信候选因缺少 URL 被跳过。",
+  "overview": "今晚优先处理 Milan Bergamo 晚到/值机和明天 Tirana 值机；阅读主线是 agent governed state、HF 推理/跨云运行，以及一条 USE 论文更新。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源；Gmail 仅查 Ryanair/booking/AYY/LinkedIn/sent 私人兜底；OpenAI News 仍为 Cloudflare 403 challenge；0 个可信候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "公开源候选 40 条里，泛 Medium 趋势文和重复 agent 编码建议被压到候选池或溢出。",
+    "summary": "公开源 40 条候选里，泛 Medium 趋势文、低讨论 HN agent 项目和重复 agent 编码建议被压到候选池或溢出。",
     "counts": {
-      "candidates": 40,
-      "overflow": 18,
+      "candidates": 13,
+      "overflow": 20,
       "duplicates": 4,
-      "hidden": 6
+      "hidden": 8
     },
     "themes": [
       {
-        "title": "Agent loop / harness 内容拥挤",
-        "count": 7,
-        "note": "只保留一条综合判断，其余放入 candidatePool。"
+        "title": "Agent governance / harness 内容拥挤",
+        "count": 9,
+        "note": "只保留一条综合判断，其余作为候选背景。"
       },
       {
-        "title": "Medium 泛 AI 产品/营销文章偏多",
-        "count": 8,
-        "note": "缺少直接行动价值或技术细节，未进入主信息流。"
+        "title": "HF 跨云/托管运行发布较多",
+        "count": 4,
+        "note": "保留 vLLM backend 与 SkyPilot storage 两条，其余放候选池。"
+      },
+      {
+        "title": "Medium 泛 AI/生产力文章偏多",
+        "count": 10,
+        "note": "缺少原始技术证据或当前行动价值，未进入主信息流。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "CanvasAgent: Enabling Complex Image Creation and Editing via Visual Tool Orchestration",
+      "title": "SWE-Review: Closing the Loop on Issue Resolution with Agentic Code Review",
       "source": "Hugging Face Daily Papers",
-      "reason": "视觉工具编排很新，但与当前 speech/agent 主线距离稍远。",
+      "reason": "与 Codex/PR 质量闭环强相关，但今天主线更偏运行治理；保留为稍后深读。",
+      "priority": 72,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.06065"
+        },
+        {
+          "label": "Project",
+          "url": "https://swe-lego.github.io/SWE-Review/"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/SWE-Lego/SWE-Review"
+        }
+      ]
+    },
+    {
+      "title": "RuleChef: Grounding LLM Task Knowledge in Human-Editable Rules",
+      "source": "Hugging Face Daily Papers",
+      "reason": "人可编辑规则和 agent harness 很贴近，但论文信号不如今天的 governed-state 主题直接。",
+      "priority": 64,
+      "status": "watch",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.01293"
+        },
+        {
+          "label": "Project",
+          "url": "https://krlabsorg.github.io/rulechef/"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/KRLabsOrg/rulechef"
+        }
+      ]
+    },
+    {
+      "title": "Vercel: agents are a new kind of software",
+      "source": "Latent.Space / AINews",
+      "reason": "适合补 agent-readable websites/skills/sandbox 背景，但不是今天最高优先级。",
       "priority": 58,
       "status": "candidate",
       "links": [
         {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2607.05465"
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/vercel-agents-new-software"
         }
       ]
     },
     {
-      "title": "From Foundation to Application: Improving VLA Models in Practice",
-      "source": "Hugging Face Daily Papers",
-      "reason": "机器人/VLA 与 LeRobot 有关联，但今天已有更直接的 LeRobot release block。",
-      "priority": 55,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2607.06403"
-        }
-      ]
-    },
-    {
-      "title": "Bibby AI: Editor-Native Agentic Academic Writing",
-      "source": "Hugging Face Daily Papers",
-      "reason": "适合之后讨论论文写作工作流，今天不压过研究主线。",
-      "priority": 50,
+      "title": "The Field Guide to Fable",
+      "source": "Latent.Space / AINews",
+      "reason": "模型发布讨论热度高，但未做官方核验；先作为 watch。",
+      "priority": 54,
       "status": "watch",
       "links": [
         {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2607.05435"
-        }
-      ]
-    },
-    {
-      "title": "Image2Sim: Scaling Embodied Navigation via Generative Neural Simulator",
-      "source": "Hugging Face Daily Papers",
-      "reason": "具身模拟信号不错，但与今天的 USE/agent runtime 主线不够贴近。",
-      "priority": 48,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2607.05765"
-        }
-      ]
-    },
-    {
-      "title": "AIEWF Daily Dispatch: loops debate and AI engineering state",
-      "source": "Latent.Space / AINews",
-      "reason": "延续 loop engineering 主题，作为背景阅读保留。",
-      "priority": 54,
-      "status": "candidate",
-      "links": [
-        {
           "label": "Latent.Space",
-          "url": "https://www.latent.space/p/aiewf-daily-dispatch-locomotives"
+          "url": "https://www.latent.space/p/ainews-the-field-guide-to-fable"
         }
       ]
     },
     {
       "title": "The Batch issue 360: GPT-5.6, robots, models invoking models",
       "source": "DeepLearning.AI The Batch",
-      "reason": "综合新闻价值不错，但其中模型发布未做官方核验。",
+      "reason": "综合新闻密度高，但其中模型发布需官方源复核。",
       "priority": 52,
       "status": "watch",
       "links": [
@@ -103,86 +111,103 @@
       ]
     },
     {
-      "title": "Google open knowledge format / second brain",
-      "source": "Medium AI Agents",
-      "reason": "可作为知识库互操作概念候选，但需要官方源再核验。",
-      "priority": 45,
-      "status": "watch",
+      "title": "Show HN: Kastor - Terraform-style specs for AI agents",
+      "source": "GitHub / HN",
+      "reason": "和 agent spec/governance 方向一致，但当前讨论量仍低，适合候选观察。",
+      "priority": 51,
+      "status": "candidate",
       "links": [
         {
-          "label": "Medium",
-          "url": "https://gowtamsingulur.medium.com/googles-new-open-knowledge-format-fixes-the-messy-second-brain-problem-01beb72ffadd"
+          "label": "GitHub",
+          "url": "https://github.com/weirdGuy/kastor"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48833183"
         }
       ]
     },
     {
-      "title": "System Design: PostgreSQL as reliable email queue",
-      "source": "Level Up Coding",
-      "reason": "工程文章可读，但不是 AI 信息流核心。",
-      "priority": 42,
+      "title": "Talon: Self-hosted AI agent harness for chat, terminal, and desktop",
+      "source": "GitHub / HN",
+      "reason": "本地 agent harness 相关，但 HN 讨论和证据不足，先不占主块。",
+      "priority": 48,
+      "status": "watch",
+      "links": [
+        {
+          "label": "GitHub",
+          "url": "https://github.com/dylanneve1/talon"
+        },
+        {
+          "label": "HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48833307"
+        }
+      ]
+    },
+    {
+      "title": "Threat Reports Should Not Become Vibes",
+      "source": "Medium AI Agents",
+      "reason": "evidence-first TTP extraction 主题可迁移到 agent evidence chain，但来源不是官方。",
+      "priority": 46,
       "status": "candidate",
       "links": [
         {
           "label": "Article",
-          "url": "https://levelup.gitconnected.com/system-design-turning-postgresql-into-a-reliable-email-queue-no-redis-no-kafka-no-new-infra-5cffe15192b1"
+          "url": "https://cyberzen.medium.com/threat-reports-should-not-become-vibes-building-an-evidence-first-ttp-extraction-agent-6f5793b4c044"
         }
       ]
     },
     {
-      "title": "NVIDIA Nemotron-Labs-Audex-2B audio task model",
+      "title": "There Is No Safe Place to Store a JWT",
+      "source": "Level Up Coding",
+      "reason": "安全工程文章可读，但不是今天 AI/语音主线。",
+      "priority": 43,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://levelup.gitconnected.com/there-is-no-safe-place-to-store-a-jwt-a356470272a4"
+        }
+      ]
+    },
+    {
+      "title": "Disaggregated Prefill/Decode",
       "source": "Medium ML",
-      "reason": "与音频相关但不是官方 NVIDIA/HF 源，本轮只作待核验线索。",
+      "reason": "推理架构概念有价值，但需要官方/工程源补强后再做概念块。",
       "priority": 50,
       "status": "watch",
       "links": [
         {
           "label": "Article",
-          "url": "https://medium.com/data-science-in-your-pocket/nvidia-nemotron-labs-audex-2b-llm-for-all-audio-tasks-fc72de371ac0"
+          "url": "https://medium.com/@sarthakrawat3000/disaggregated-prefill-decode-the-architecture-quietly-rewiring-how-llms-get-served-65e9ce717c32"
         }
       ]
     },
     {
-      "title": "AI agent bankrupted operator while scanning DN42",
-      "source": "HN",
-      "reason": "高讨论度 agent 权限事故，适合作为 harness 风险背景。",
-      "priority": 53,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Original",
-          "url": "https://lantian.pub/en/article/fun/ai-agent-bankrupted-their-operator-scan-dn42lantian.lantian/"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48500012"
-        }
-      ]
-    },
-    {
-      "title": "StackAdapt / Sonova / Monzo 等远程 ML 岗",
+      "title": "THRYVE / Diabolocom / Neat speech-audio job leads",
       "source": "LinkedIn jobs",
-      "reason": "有少数远程/音频/平台相关岗位，但需单独筛，不混入学习流。",
-      "priority": 46,
+      "reason": "有语音/音频/ML 相关岗位，但要单独筛选，不混入学习主信息流。",
+      "priority": 55,
       "status": "candidate",
       "links": [
         {
-          "label": "StackAdapt",
-          "url": "https://www.linkedin.com/jobs/view/4400621286"
+          "label": "Diabolocom",
+          "url": "https://www.linkedin.com/jobs/view/4433960163"
         },
         {
-          "label": "Sonova",
-          "url": "https://www.linkedin.com/jobs/view/4437171347"
+          "label": "Neat Audio",
+          "url": "https://www.linkedin.com/jobs/view/4437715452"
         },
         {
-          "label": "Monzo",
-          "url": "https://www.linkedin.com/jobs/view/4430348585"
+          "label": "THRYVE",
+          "url": "https://www.linkedin.com/jobs/view/4433326367"
         }
       ]
     },
     {
       "title": "Improving multichannel speech enhancement through accurate room-acoustic simulations",
       "source": "arXiv search",
-      "reason": "本轮论文最高分，适合进入 paper block 的首篇推荐。",
+      "reason": "USE 相关度高，但本轮 paper block 只推荐 1-2 篇；作为同组候选保留。",
       "priority": 62,
       "status": "candidate",
       "links": [
@@ -191,18 +216,39 @@
           "url": "https://arxiv.org/abs/2606.31552"
         }
       ]
+    },
+    {
+      "title": "AYY 8 月 3 日公共区域清洁检查：先记住日期",
+      "source": "AYY Gmail, 2026-07-07",
+      "reason": "有明确 2026-08-03 日期和潜在费用，但不是今天必须处理；先从主待处理降到候选池。",
+      "priority": 44,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Gmail message",
+          "url": "https://mail.google.com/mail/#all/19f3bd755abe2a36"
+        },
+        {
+          "label": "AYY recycling guide",
+          "url": "https://ayyasunnot.fi/en/for-residents/recycling-and-waste-disposal/"
+        },
+        {
+          "label": "AYY housing guide",
+          "url": "https://ayyasunnot.fi/en/for-residents/housing-guide/"
+        }
+      ]
     }
   ],
   "blocks": [
     {
-      "id": "travel-checkin-bgy-late-arrival-20260708",
+      "id": "travel-checkin-bgy-late-arrival-20260708-evening",
       "kind": "action",
-      "title": "今晚 Milan Bergamo 行程：先值机，再按晚到入住流程走",
+      "title": "今晚 Milan Bergamo：值机和晚到入住是最高优先级",
       "source": "Ryanair / Guesthouse La Rocca Gmail, 2026-07-07~08",
       "sourceStatus": "行动项",
-      "summary": "今天 7 月 8 日晚间飞 Milan Bergamo，Ryanair 提醒必须提前线上值机；住宿方已确认晚到后按 shuttle/自助取钥匙流程入住。",
-      "why": "这是会过期且会产生机场值机费用或入住摩擦的个人事项，优先级高于阅读。",
-      "thought": "先完成 Ryanair 在线值机并保留登机牌；落地后按已确认的 shuttle/现金晚到流程处理。",
+      "summary": "Ryanair 提醒今晚 7 月 8 日 23:00 飞 Milan Bergamo，需要至少提前 2 小时线上值机；La Rocca 晚到入住已确认走 P1 EST 的 VOLA PARKING shuttle/自助取钥匙流程。",
+      "why": "这是会过期且可能产生机场值机费用或入住摩擦的个人事项，优先级高于阅读。",
+      "thought": "先完成 Ryanair 在线值机并保存登机牌；落地后按已确认的 shuttle/现金晚到流程处理，不再把邮件里的私人细节写入页面。",
       "priority": 100,
       "links": [
         {
@@ -216,14 +262,35 @@
       ]
     },
     {
-      "id": "agent-harness-evidence-chain-20260708",
+      "id": "ryanair-tirana-checkin-20260709",
+      "kind": "action",
+      "title": "明天 Tirana 航班：今天顺手完成线上值机",
+      "source": "Ryanair Gmail, 2026-07-07",
+      "sourceStatus": "行动项",
+      "summary": "Ryanair 提醒 7 月 9 日 18:00 去 Tirana 的航班需要线上值机，登机口 17:30 关闭，落地 19:55。",
+      "why": "这是明天会过期的低成本动作，顺手处理能避免机场值机费和出发前临时压力。",
+      "thought": "今晚或明早把数字登机牌下载到 Ryanair app；页面只保留公共 check-in 入口，不保存邮件追踪链接。",
+      "priority": 92,
+      "links": [
+        {
+          "label": "Ryanair check-in",
+          "url": "https://www.ryanair.com/ie/en/lp/check-in"
+        },
+        {
+          "label": "Gmail message",
+          "url": "https://mail.google.com/mail/#all/19f3b82024efb47b"
+        }
+      ]
+    },
+    {
+      "id": "agent-governed-state-20260708",
       "kind": "theme",
-      "title": "Agent harness：今天最值得看的是“证据链，而不是更会跑”",
-      "source": "Latent.Space / Medium / Level Up Coding / HN",
+      "title": "Agent governed state：今天最值得看的是“谁能改真相”",
+      "source": "Latent.Space / Elastic Blog / Databricks Blog / GitHub / HN",
       "sourceStatus": "综合判断",
-      "summary": "Lilian Weng 的 harness engineering、agent complaint feedback loop、loop engineering 技巧和 HN 上的 agent 权限事故指向同一件事：agent 系统需要可审计的失败证据链，而不是只看成功截图或 dashboard。",
-      "why": "这直接影响你维护 Codex/技能/自动化时如何设计权限、日志、复盘和人类外环。",
-      "thought": "读的时候重点找三类结构：失败如何被记录、谁有权继续执行、证据如何变成下一轮工具或提示改进。",
+      "summary": "Lilian Weng 的 harness engineering、Elastic/Databricks 的 agent governance，以及 HN 上 Cruxible/Kastor 这类 governed truth/spec 项目，指向同一条线：agent 系统的核心不只是工具调用，而是状态、权限、证据和变更审批。",
+      "why": "这直接影响你的 Codex skill、自动化和 Obsidian/AI-feed 工作流：哪些事实可被自动写入，哪些必须由人批准，哪些只应停留在候选池。",
+      "thought": "读的时候关注三件事：状态模型是否可重放，变更是否有 attribution receipt，agent 是否只能提出 proposal 而不能直接改长期真相。",
       "priority": 88,
       "links": [
         {
@@ -231,92 +298,67 @@
           "url": "https://www.latent.space/p/ainews-lilian-weng-summarizes-35"
         },
         {
-          "label": "Let the Agent Complain",
-          "url": "https://medium.com/data-science-collective/let-the-agent-complain-a-feedback-loop-for-better-ai-tools-b55085f2ddd4"
+          "label": "Elastic agent governance",
+          "url": "https://www.elastic.co/blog/the-future-of-governing-ai-agents"
         },
         {
-          "label": "17 loop techniques",
-          "url": "https://levelup.gitconnected.com/testing-17-agentic-loop-engineering-techniques-for-reliable-ai-agents-7966adad5835"
+          "label": "Databricks Omnigent policies",
+          "url": "https://www.databricks.com/blog/contextual-policies-omnigent-using-session-state-better-govern-ai-agents"
         },
         {
-          "label": "HN agent cost incident",
-          "url": "https://news.ycombinator.com/item?id=48500012"
+          "label": "Cruxible GitHub",
+          "url": "https://github.com/cruxible-ai/cruxible"
+        },
+        {
+          "label": "Kastor HN discussion",
+          "url": "https://news.ycombinator.com/item?id=48833183"
         }
       ]
     },
     {
-      "id": "hf-cross-cloud-runtime-surface-20260708",
-      "kind": "signal",
-      "title": "HF 模型资产继续变成跨云运行面",
-      "source": "Hugging Face Blog, 2026-07-07",
+      "id": "hf-native-speed-vllm-transformers-20260708",
+      "kind": "deep-read",
+      "title": "HF native-speed vLLM backend：Transformers 和 serving 的边界继续变薄",
+      "source": "Hugging Face Blog, 2026-07-08",
       "sourceStatus": "官方/高质量源",
-      "summary": "Hugging Face 连续发布 SageMaker Studio 一键入口、Foundry Managed Compute、SkyPilot zero-egress storage，说明 Hub 正在从“模型仓库”变成跨云训练/部署/存储入口。",
-      "why": "这会影响你之后选 HF Jobs、本地 Triton、云端 managed compute 时的迁移成本判断。",
-      "thought": "先把它当作运行面趋势，不急着迁移；关注数据出入、GPU 计费、artifact 可复现性。",
-      "priority": 76,
+      "summary": "Hugging Face 发布 native-speed vLLM transformers modeling backend，重点是让 Transformers 模型代码更直接地进入 vLLM serving 路径，减少“研究代码”和“生产推理代码”的割裂。",
+      "why": "这对你理解 vLLM、prefill/decode、KV cache、模型 serving 迁移成本很直接，比泛泛的推理趋势文更值得先读。",
+      "thought": "阅读时把它当作一个接口契约问题：模型定义、权重加载、generation 行为和 serving runtime 哪些地方终于可以少写胶水代码。",
+      "priority": 82,
       "links": [
         {
-          "label": "SageMaker Studio",
-          "url": "https://huggingface.co/blog/amazon/one-click-to-sagemaker-studio"
-        },
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend"
+        }
+      ]
+    },
+    {
+      "id": "hf-skypilot-zero-egress-storage-20260708",
+      "kind": "signal",
+      "title": "HF + SkyPilot：跨云训练/推理的成本控制点在数据出口",
+      "source": "Hugging Face Blog, 2026-07-08",
+      "sourceStatus": "官方/高质量源",
+      "summary": "HF 的 SkyPilot/zero-egress storage 文章把跨云运行 AI workloads 的关键问题落到数据存储和出口费用，而不是只讲 GPU 选择。",
+      "why": "这对 Triton/HF Jobs/远端实验的成本直觉有用：模型和数据怎么放，可能比换一张 GPU 更影响总成本和可复现性。",
+      "thought": "先看它的数据路径和 cache/egress 假设，之后再决定是否值得用于自己的训练或推理部署。",
+      "priority": 74,
+      "links": [
         {
-          "label": "Foundry Managed Compute",
-          "url": "https://huggingface.co/blog/microsoft/foundry-managed-compute"
-        },
-        {
-          "label": "SkyPilot storage",
+          "label": "HF Blog",
           "url": "https://huggingface.co/blog/skypilot-hf-storage"
         }
       ]
     },
     {
-      "id": "lerobot-v060-data-loop-20260708",
-      "kind": "signal",
-      "title": "LeRobot v0.6.0 把机器人训练写成 Imagine/Evaluate/Improve 闭环",
-      "source": "Hugging Face Blog, 2026-07-07",
-      "sourceStatus": "官方/高质量源",
-      "summary": "LeRobot v0.6.0 的核心价值不是单点模型，而是把机器人数据、评估和改进循环组织成可复用 workflow。",
-      "why": "它和 agent loop engineering 是同一个工程问题：真实世界系统要围绕反馈闭环，而不是围绕一次性 demo。",
-      "thought": "扫 release 时优先看数据采集、评估指标和失败样本如何回流，而不是只看模型名。",
-      "priority": 72,
-      "links": [
-        {
-          "label": "LeRobot v0.6.0",
-          "url": "https://huggingface.co/blog/lerobot-release-v060"
-        }
-      ]
-    },
-    {
-      "id": "hf-daily-visual-tool-agents-20260708",
-      "kind": "signal",
-      "title": "HF Daily Papers 今天的 tool-agent 信号在视觉生成链路",
-      "source": "Hugging Face Daily Papers, 2026-07-08",
-      "sourceStatus": "公开源",
-      "summary": "CanvasAgent 关注多轮视觉创作/编辑中的工具编排，Bibby AI 则把 academic writing 做成 editor-native agent pipeline；两者都在把复杂工作流拆成可审计工具序列。",
-      "why": "它们不直接服务 speech，但能补充你对“agent 是否应该原生贴在工作表面里”的判断。",
-      "thought": "只需要快速浏览任务表示和工具调用方式；如果没有真实失败/评估部分，就放到候选即可。",
-      "priority": 66,
-      "links": [
-        {
-          "label": "CanvasAgent",
-          "url": "https://huggingface.co/papers/2607.05465"
-        },
-        {
-          "label": "Bibby AI",
-          "url": "https://huggingface.co/papers/2607.05435"
-        }
-      ]
-    },
-    {
-      "id": "paper-use-room-specialization-beamforming-20260708",
+      "id": "paper-use-context-specialization-20260708",
       "kind": "paper",
-      "title": "论文提醒：room simulation、USE specialization 和 beamforming 都值得看",
-      "source": "start-my-day arXiv/S2 search, 2026-07-08",
+      "title": "论文更新：小模型在 USE 里可能靠“上下文专门化”赢回来",
+      "source": "arXiv search / 本地推荐池",
       "sourceStatus": "本地推荐池",
-      "summary": "本轮 top paper 是 Improving multichannel speech enhancement through accurate room-acoustic simulations：直接比较高保真房间声学仿真对多通道 SE 的收益；另两篇值得并列看的是 Ranking the Impact of Contextual Specialization in Neural Speech Enhancement，以及 Weakly Guided and Autoregressive Beamformer Parameterization。",
-      "why": "这三篇分别对准仿真数据可信度、个性化/上下文 specialization、移动说话人 beamforming，和你的 USE/TAU/多通道判断都贴得很近。",
-      "thought": "Tags: speech-enhancement, room-acoustics, simulation, contextual-adaptation, personalization, beamforming, array-agnostic-SE；去 Obsidian 推荐池索引决定是否沉淀。",
-      "priority": 64,
+      "summary": "推荐先看 Ranking the Impact of Contextual Specialization in Neural Speech Enhancement：它比较 speaker identity、noise type、gender、language、SNR 等专门化维度，结论是 speaker/language specialization 对小模型收益最大。可补读 room-acoustic simulation 那篇：高保真房间声学模拟能让 multichannel SE 的 WER 中位数相对下降最高 38%。",
+      "why": "这两篇都和 Hybrid-UniSE/USE 主线有关：一篇影响个性化/资源受限增强策略，一篇影响模拟数据是否值得投入。",
+      "thought": "Tags: speech-enhancement, contextual-adaptation, personalization, hearing-aids, room-acoustics, simulation；去 Obsidian 推荐池索引查看，不在本轮写新论文日报。",
+      "priority": 76,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
@@ -325,48 +367,27 @@
       ]
     },
     {
-      "id": "ryanair-tirana-checkin-20260709",
+      "id": "linkedin-speech-audio-jobs-20260708",
       "kind": "action",
-      "title": "明天 Tirana 航班也需要提前线上值机",
-      "source": "Ryanair Gmail, 2026-07-08",
+      "title": "LinkedIn 职位：只筛语音/音频/远程 ML，不混进学习流",
+      "source": "LinkedIn jobs Gmail, 2026-07-07~08",
       "sourceStatus": "行动项",
-      "summary": "Ryanair 今天又提醒 7 月 9 日去 Tirana 的航班需要线上值机，登机口关闭时间早于起飞时间。",
-      "why": "它不是今天第一动作，但会在明天过期，适合保留在待处理。",
-      "thought": "今晚或明早顺手完成 check-in，避免临近出发时和住宿/交通事项叠在一起。",
-      "priority": 60,
+      "summary": "近 36 小时有 Diabolocom AI Research Engineer (Speech & Conversational AI)、Neat Machine Learning Engineer - Audio、THRYVE Machine Learning Researcher 等线索；MEDiSTRAVA/Assaia/NRC 等更泛的数据岗先降级。",
+      "why": "这是求职动作，不是技术阅读；需要单独快速筛 fit、地点、签证/远程和申请成本。",
+      "thought": "优先看 Diabolocom 和 Neat；若当天没有申请时间，把它们保留为 job screening 候选，不要让它们占学习主线。",
+      "priority": 70,
       "links": [
         {
-          "label": "Ryanair check-in",
-          "url": "https://www.ryanair.com/ie/en/lp/check-in"
-        }
-      ]
-    },
-    {
-      "id": "linkedin-audio-remote-job-screen-20260708",
-      "kind": "action",
-      "title": "LinkedIn 职位只筛 speech/audio/remote 几条",
-      "source": "LinkedIn Job Alerts Gmail, 2026-07-07~08",
-      "sourceStatus": "行动项",
-      "summary": "今天可看的岗位主要是 Diabolocom Speech & Conversational AI、Neat Audio、Sonova Deep Learning、StackAdapt/Monzo/Haystack 这类远程或平台岗；数据录入、社交推荐和 Premium 营销已过滤。",
-      "why": "职位信息应单独行动，不应该污染学习主信息流。",
-      "thought": "只花 10 分钟看 speech/audio 和远程平台岗，低匹配 Data Scientist/assistant 类直接丢弃。",
-      "priority": 54,
-      "links": [
-        {
-          "label": "Diabolocom speech AI",
+          "label": "Diabolocom",
           "url": "https://www.linkedin.com/jobs/view/4433960163"
         },
         {
-          "label": "Neat audio ML",
+          "label": "Neat Audio",
           "url": "https://www.linkedin.com/jobs/view/4437715452"
         },
         {
-          "label": "Sonova deep learning",
-          "url": "https://www.linkedin.com/jobs/view/4437171347"
-        },
-        {
-          "label": "Monzo ML platform",
-          "url": "https://www.linkedin.com/jobs/view/4430348585"
+          "label": "THRYVE",
+          "url": "https://www.linkedin.com/jobs/view/4433326367"
         }
       ]
     }
