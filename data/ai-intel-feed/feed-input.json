@@ -1,106 +1,132 @@
 {
-  "date": "2026-07-08",
-  "overview": "今晚优先处理 Milan Bergamo 晚到/值机和明天 Tirana 值机；阅读主线是 agent governed state、HF 推理/跨云运行，以及一条 USE 论文更新。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源；Gmail 仅查 Ryanair/booking/AYY/LinkedIn/sent 私人兜底；OpenAI News 仍为 Cloudflare 403 challenge；0 个可信候选因缺少 URL 被跳过。",
+  "date": "2026-07-10",
+  "overview": "今天优先处理 7 月 22 日英国 ETA；阅读主线是 agent experience 基础设施、HF serving/data contracts、评测泄漏，以及 USE 论文更新。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 39 条候选；Gmail 仅查 LinkedIn/Ryanair/booking/sent 等个人兜底；本轮公开源无访问受限，0 个可信候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "公开源 40 条候选里，泛 Medium 趋势文、低讨论 HN agent 项目和重复 agent 编码建议被压到候选池或溢出。",
+    "summary": "39 条公开候选中，泛 Medium 趋势文、模型发布传闻和重复 agent 操作建议被压到候选池或溢出，不进入 10-15 分钟主阅读负担。",
     "counts": {
-      "candidates": 13,
-      "overflow": 20,
-      "duplicates": 4,
-      "hidden": 8
+      "candidates": 14,
+      "overflow": 18,
+      "duplicates": 3,
+      "hidden": 4
     },
     "themes": [
       {
-        "title": "Agent governance / harness 内容拥挤",
-        "count": 9,
-        "note": "只保留一条综合判断，其余作为候选背景。"
+        "title": "Fable/Grok/模型发布讨论拥挤",
+        "count": 5,
+        "note": "多来自 newsletter 或 Medium，缺少官方核验，保留为 watch 而非主块。"
       },
       {
-        "title": "HF 跨云/托管运行发布较多",
-        "count": 4,
-        "note": "保留 vLLM backend 与 SkyPilot storage 两条，其余放候选池。"
+        "title": "Agent workflow 建议重复",
+        "count": 7,
+        "note": "Planning/Goal modes、feedback loop、schema validation 都有价值，但今天用一个 infrastructure/theme 块承接。"
       },
       {
-        "title": "Medium 泛 AI/生产力文章偏多",
+        "title": "泛 Medium AI 内容偏噪",
         "count": 10,
-        "note": "缺少原始技术证据或当前行动价值，未进入主信息流。"
+        "note": "标题热但行动价值和原始技术证据弱，未进入主信息流。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "SWE-Review: Closing the Loop on Issue Resolution with Agentic Code Review",
+      "title": "Native-speed vLLM transformers modeling backend",
+      "source": "Hugging Face Blog",
+      "reason": "已进入主信息流；保留在候选池便于从来源审计回看。",
+      "priority": 82,
+      "status": "duplicate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend"
+        }
+      ]
+    },
+    {
+      "title": "Data for Agents",
+      "source": "Hugging Face Blog / NVIDIA",
+      "reason": "和 agent experience 基础设施主线相关，作为 theme 支撑和单独深读候选。",
+      "priority": 74,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/nvidia/open-data-for-agents"
+        }
+      ]
+    },
+    {
+      "title": "UniClawBench: A Universal Benchmark for Proactive Agents on Real-World Tasks",
       "source": "Hugging Face Daily Papers",
-      "reason": "与 Codex/PR 质量闭环强相关，但今天主线更偏运行治理；保留为稍后深读。",
+      "reason": "真实任务、Docker live eval、闭环评测与 Codex 自动化质量相关，但今天只作为 agent eval 信号。",
       "priority": 72,
       "status": "candidate",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.06065"
+          "url": "https://huggingface.co/papers/2607.08768"
         },
         {
           "label": "Project",
-          "url": "https://swe-lego.github.io/SWE-Review/"
+          "url": "https://uniclawbench.github.io/"
         },
         {
           "label": "GitHub",
-          "url": "https://github.com/SWE-Lego/SWE-Review"
+          "url": "https://github.com/HKU-MMLab/UniClawBench"
         }
       ]
     },
     {
-      "title": "RuleChef: Grounding LLM Task Knowledge in Human-Editable Rules",
+      "title": "Video-Oasis: Rethinking Evaluation of Video Understanding",
       "source": "Hugging Face Daily Papers",
-      "reason": "人可编辑规则和 agent harness 很贴近，但论文信号不如今天的 governed-state 主题直接。",
-      "priority": 64,
+      "reason": "评测泄漏/shortcut 主题值得回看，但不直接改变今天的 speech/agent 工作。",
+      "priority": 68,
       "status": "watch",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.01293"
+          "url": "https://huggingface.co/papers/2603.29616"
         },
         {
           "label": "Project",
-          "url": "https://krlabsorg.github.io/rulechef/"
+          "url": "https://limgeuntaekk.github.io/Video-Oasis/"
         },
         {
           "label": "GitHub",
-          "url": "https://github.com/KRLabsOrg/rulechef"
+          "url": "https://github.com/sejong-rcv/Video-Oasis"
         }
       ]
     },
     {
-      "title": "Vercel: agents are a new kind of software",
+      "title": "Why AI Infrastructure must evolve for Agent Experience",
       "source": "Latent.Space / AINews",
-      "reason": "适合补 agent-readable websites/skills/sandbox 背景，但不是今天最高优先级。",
-      "priority": 58,
+      "reason": "今天最高价值阅读之一，保留为 Modal/agent cloud 深读入口。",
+      "priority": 78,
       "status": "candidate",
       "links": [
         {
           "label": "Latent.Space",
-          "url": "https://www.latent.space/p/vercel-agents-new-software"
+          "url": "https://www.latent.space/p/modal2026"
         }
       ]
     },
     {
-      "title": "The Field Guide to Fable",
+      "title": "Lilian Weng summarizes 35 papers on Harness Engineering for RSI",
       "source": "Latent.Space / AINews",
-      "reason": "模型发布讨论热度高，但未做官方核验；先作为 watch。",
-      "priority": 54,
+      "reason": "前几轮已读过相关主线；本轮只作为 agent governance 背景，不重复占主块。",
+      "priority": 58,
       "status": "watch",
       "links": [
         {
           "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-the-field-guide-to-fable"
+          "url": "https://www.latent.space/p/ainews-lilian-weng-summarizes-35"
         }
       ]
     },
     {
       "title": "The Batch issue 360: GPT-5.6, robots, models invoking models",
       "source": "DeepLearning.AI The Batch",
-      "reason": "综合新闻密度高，但其中模型发布需官方源复核。",
+      "reason": "综合新闻密度高，但模型发布部分未做官方复核，暂作 watch。",
       "priority": 52,
       "status": "watch",
       "links": [
@@ -111,220 +137,162 @@
       ]
     },
     {
-      "title": "Show HN: Kastor - Terraform-style specs for AI agents",
-      "source": "GitHub / HN",
-      "reason": "和 agent spec/governance 方向一致，但当前讨论量仍低，适合候选观察。",
-      "priority": 51,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "GitHub",
-          "url": "https://github.com/weirdGuy/kastor"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48833183"
-        }
-      ]
-    },
-    {
-      "title": "Talon: Self-hosted AI agent harness for chat, terminal, and desktop",
-      "source": "GitHub / HN",
-      "reason": "本地 agent harness 相关，但 HN 讨论和证据不足，先不占主块。",
-      "priority": 48,
-      "status": "watch",
-      "links": [
-        {
-          "label": "GitHub",
-          "url": "https://github.com/dylanneve1/talon"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48833307"
-        }
-      ]
-    },
-    {
-      "title": "Threat Reports Should Not Become Vibes",
-      "source": "Medium AI Agents",
-      "reason": "evidence-first TTP extraction 主题可迁移到 agent evidence chain，但来源不是官方。",
+      "title": "Anthropic’s Claude Certified Architect Exam: schema validated",
+      "source": "Medium AI agents tag",
+      "reason": "schema 只能验证形状、不能验证事实的提醒有用，但来源不是官方且主线已有更强支撑。",
       "priority": 46,
       "status": "candidate",
       "links": [
         {
           "label": "Article",
-          "url": "https://cyberzen.medium.com/threat-reports-should-not-become-vibes-building-an-evidence-first-ttp-extraction-agent-6f5793b4c044"
+          "url": "https://medium.com/@richardhightower/anthropics-claude-certified-architect-exam-cca-f-the-schema-validated-05fb69d6696f"
         }
       ]
     },
     {
-      "title": "There Is No Safe Place to Store a JWT",
-      "source": "Level Up Coding",
-      "reason": "安全工程文章可读，但不是今天 AI/语音主线。",
-      "priority": 43,
+      "title": "Let the Agent Complain: A Feedback Loop for Better AI Tools",
+      "source": "Data Science Collective",
+      "reason": "适合作为 Codex workflow 迭代背景，但今天不作为最高优先级阅读。",
+      "priority": 45,
       "status": "candidate",
       "links": [
         {
           "label": "Article",
-          "url": "https://levelup.gitconnected.com/there-is-no-safe-place-to-store-a-jwt-a356470272a4"
+          "url": "https://medium.com/data-science-collective/let-the-agent-complain-a-feedback-loop-for-better-ai-tools-b55085f2ddd4"
         }
       ]
     },
     {
-      "title": "Disaggregated Prefill/Decode",
-      "source": "Medium ML",
-      "reason": "推理架构概念有价值，但需要官方/工程源补强后再做概念块。",
-      "priority": 50,
+      "title": "You don’t need thinking levels in Claude Code. You need Planning and Goal modes.",
+      "source": "Data Science Collective",
+      "reason": "和 Codex 使用习惯相关，但属于方法建议，不压过公开官方/研究信号。",
+      "priority": 43,
       "status": "watch",
       "links": [
         {
           "label": "Article",
-          "url": "https://medium.com/@sarthakrawat3000/disaggregated-prefill-decode-the-architecture-quietly-rewiring-how-llms-get-served-65e9ce717c32"
+          "url": "https://medium.com/data-science-collective/you-dont-need-thinking-levels-in-claude-code-you-need-planning-and-goal-modes-2f328e56fba0"
         }
       ]
     },
     {
-      "title": "THRYVE / Diabolocom / Neat speech-audio job leads",
-      "source": "LinkedIn jobs",
-      "reason": "有语音/音频/ML 相关岗位，但要单独筛选，不混入学习主信息流。",
-      "priority": 55,
+      "title": "Noisy Environment Adaptation of Neural Speech Codec via Focal Mask and Noise Feature Separation",
+      "source": "arXiv search",
+      "reason": "neural audio codec + noisy adaptation 值得跟踪，但本轮 paper block 只放 1-2 篇最贴近 USE 的论文。",
+      "priority": 60,
       "status": "candidate",
       "links": [
         {
-          "label": "Diabolocom",
-          "url": "https://www.linkedin.com/jobs/view/4433960163"
-        },
-        {
-          "label": "Neat Audio",
-          "url": "https://www.linkedin.com/jobs/view/4437715452"
-        },
-        {
-          "label": "THRYVE",
-          "url": "https://www.linkedin.com/jobs/view/4433326367"
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2607.04195"
         }
       ]
     },
     {
-      "title": "Improving multichannel speech enhancement through accurate room-acoustic simulations",
+      "title": "Weakly Guided and Autoregressive Beamformer Parameterization for Moving Speaker Extraction",
       "source": "arXiv search",
-      "reason": "USE 相关度高，但本轮 paper block 只推荐 1-2 篇；作为同组候选保留。",
+      "reason": "beamforming/array-agnostic SE 很相关，但今天优先 contextual specialization 与 room simulation。",
       "priority": 62,
       "status": "candidate",
       "links": [
         {
           "label": "arXiv",
-          "url": "https://arxiv.org/abs/2606.31552"
+          "url": "https://arxiv.org/abs/2607.04471"
         }
       ]
     },
     {
-      "title": "AYY 8 月 3 日公共区域清洁检查：先记住日期",
-      "source": "AYY Gmail, 2026-07-07",
-      "reason": "有明确 2026-08-03 日期和潜在费用，但不是今天必须处理；先从主待处理降到候选池。",
-      "priority": 44,
+      "title": "28DIGITAL Alumni Startup Competition deadline: 2026-09-01",
+      "source": "Gmail sent fallback, 2026-07-08",
+      "reason": "你近 36 小时转发过该机会；有明确截止日期，但不是今天必须行动。",
+      "priority": 38,
       "status": "watch",
       "links": [
         {
-          "label": "Gmail message",
-          "url": "https://mail.google.com/mail/#all/19f3bd755abe2a36"
-        },
+          "label": "Competition page",
+          "url": "https://28digital.eu/alumni-startup-competition/"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn F-Secure hiring/network prompt",
+      "source": "LinkedIn Gmail fallback",
+      "reason": "只有邮件营销跳转和公司级提示，没有 canonical jobs/view 链接；按规则不进入行动项。",
+      "priority": 20,
+      "status": "overflow",
+      "links": [
         {
-          "label": "AYY recycling guide",
-          "url": "https://ayyasunnot.fi/en/for-residents/recycling-and-waste-disposal/"
-        },
-        {
-          "label": "AYY housing guide",
-          "url": "https://ayyasunnot.fi/en/for-residents/housing-guide/"
+          "label": "F-Secure careers",
+          "url": "https://www.f-secure.com/en/careers"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "travel-checkin-bgy-late-arrival-20260708-evening",
+      "id": "uk-eta-ryanair-stansted-20260722",
       "kind": "action",
-      "title": "今晚 Milan Bergamo：值机和晚到入住是最高优先级",
-      "source": "Ryanair / Guesthouse La Rocca Gmail, 2026-07-07~08",
+      "title": "7 月 22 日 UK ETA：先确认是否要申请",
+      "source": "Ryanair Gmail fallback, 2026-07-09",
       "sourceStatus": "行动项",
-      "summary": "Ryanair 提醒今晚 7 月 8 日 23:00 飞 Milan Bergamo，需要至少提前 2 小时线上值机；La Rocca 晚到入住已确认走 P1 EST 的 VOLA PARKING shuttle/自助取钥匙流程。",
-      "why": "这是会过期且可能产生机场值机费用或入住摩擦的个人事项，优先级高于阅读。",
-      "thought": "先完成 Ryanair 在线值机并保存登机牌；落地后按已确认的 shuttle/现金晚到流程处理，不再把邮件里的私人细节写入页面。",
-      "priority": 100,
+      "summary": "Ryanair 提醒 2026-07-22 17:30 前往 London Stansted 的行程可能需要英国 ETA；邮件建议至少提前 3 天申请。",
+      "why": "这是有截止窗口的个人旅行事项；若需要 ETA，最晚应在 7 月 19 日前处理，避免登机牌或入境前摩擦。",
+      "thought": "今天只需要确认护照/居留身份是否豁免；页面保留 GOV.UK 与 Ryanair 公共入口，不保存邮件追踪链接或预订号细节。",
+      "priority": 96,
       "links": [
         {
-          "label": "Ryanair check-in",
-          "url": "https://www.ryanair.com/ie/en/lp/check-in"
+          "label": "GOV.UK ETA",
+          "url": "https://www.gov.uk/guidance/apply-for-an-electronic-travel-authorisation-eta"
         },
-        {
-          "label": "Gmail thread",
-          "url": "https://mail.google.com/mail/#all/19ed6b3821bf14d3"
-        }
-      ]
-    },
-    {
-      "id": "ryanair-tirana-checkin-20260709",
-      "kind": "action",
-      "title": "明天 Tirana 航班：今天顺手完成线上值机",
-      "source": "Ryanair Gmail, 2026-07-07",
-      "sourceStatus": "行动项",
-      "summary": "Ryanair 提醒 7 月 9 日 18:00 去 Tirana 的航班需要线上值机，登机口 17:30 关闭，落地 19:55。",
-      "why": "这是明天会过期的低成本动作，顺手处理能避免机场值机费和出发前临时压力。",
-      "thought": "今晚或明早把数字登机牌下载到 Ryanair app；页面只保留公共 check-in 入口，不保存邮件追踪链接。",
-      "priority": 92,
-      "links": [
         {
           "label": "Ryanair check-in",
           "url": "https://www.ryanair.com/ie/en/lp/check-in"
         },
         {
           "label": "Gmail message",
-          "url": "https://mail.google.com/mail/#all/19f3b82024efb47b"
+          "url": "https://mail.google.com/mail/#all/19f4851e5a691cfe"
         }
       ]
     },
     {
-      "id": "agent-governed-state-20260708",
+      "id": "agent-experience-infra-20260710",
       "kind": "theme",
-      "title": "Agent governed state：今天最值得看的是“谁能改真相”",
-      "source": "Latent.Space / Elastic Blog / Databricks Blog / GitHub / HN",
+      "title": "Agent Experience：今天最值得看的是基础设施契约",
+      "source": "Latent.Space / Hugging Face Blog / HF Daily Papers / Medium",
       "sourceStatus": "综合判断",
-      "summary": "Lilian Weng 的 harness engineering、Elastic/Databricks 的 agent governance，以及 HN 上 Cruxible/Kastor 这类 governed truth/spec 项目，指向同一条线：agent 系统的核心不只是工具调用，而是状态、权限、证据和变更审批。",
-      "why": "这直接影响你的 Codex skill、自动化和 Obsidian/AI-feed 工作流：哪些事实可被自动写入，哪些必须由人批准，哪些只应停留在候选池。",
-      "thought": "读的时候关注三件事：状态模型是否可重放，变更是否有 attribution receipt，agent 是否只能提出 proposal 而不能直接改长期真相。",
-      "priority": 88,
+      "summary": "Modal CTO 访谈、HF/NVIDIA 的 Data for Agents、UniClawBench、以及 agent feedback-loop 文章都指向同一个问题：agent 体验不是更会聊天，而是数据、沙箱、权限、评测和反馈能否成为可复用契约。",
+      "why": "这直接影响你的 Codex 自动化和 AI-feed：哪些状态能被 agent 改、哪些只能提 proposal、哪些证据需要被保留到候选池。",
+      "thought": "阅读时盯住三个接口：数据如何暴露给 agent、运行环境如何复现、评测是否检查真实闭环任务而非只看漂亮输出。",
+      "priority": 90,
       "links": [
         {
-          "label": "Lilian Weng harness summary",
-          "url": "https://www.latent.space/p/ainews-lilian-weng-summarizes-35"
+          "label": "Modal CTO on Agent Experience",
+          "url": "https://www.latent.space/p/modal2026"
         },
         {
-          "label": "Elastic agent governance",
-          "url": "https://www.elastic.co/blog/the-future-of-governing-ai-agents"
+          "label": "HF Data for Agents",
+          "url": "https://huggingface.co/blog/nvidia/open-data-for-agents"
         },
         {
-          "label": "Databricks Omnigent policies",
-          "url": "https://www.databricks.com/blog/contextual-policies-omnigent-using-session-state-better-govern-ai-agents"
+          "label": "UniClawBench",
+          "url": "https://huggingface.co/papers/2607.08768"
         },
         {
-          "label": "Cruxible GitHub",
-          "url": "https://github.com/cruxible-ai/cruxible"
-        },
-        {
-          "label": "Kastor HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48833183"
+          "label": "Agent feedback loop",
+          "url": "https://medium.com/data-science-collective/let-the-agent-complain-a-feedback-loop-for-better-ai-tools-b55085f2ddd4"
         }
       ]
     },
     {
-      "id": "hf-native-speed-vllm-transformers-20260708",
+      "id": "hf-native-speed-vllm-transformers-20260710",
       "kind": "deep-read",
-      "title": "HF native-speed vLLM backend：Transformers 和 serving 的边界继续变薄",
+      "title": "HF native-speed vLLM backend：研究代码和 serving 边界继续变薄",
       "source": "Hugging Face Blog, 2026-07-08",
       "sourceStatus": "官方/高质量源",
-      "summary": "Hugging Face 发布 native-speed vLLM transformers modeling backend，重点是让 Transformers 模型代码更直接地进入 vLLM serving 路径，减少“研究代码”和“生产推理代码”的割裂。",
-      "why": "这对你理解 vLLM、prefill/decode、KV cache、模型 serving 迁移成本很直接，比泛泛的推理趋势文更值得先读。",
-      "thought": "阅读时把它当作一个接口契约问题：模型定义、权重加载、generation 行为和 serving runtime 哪些地方终于可以少写胶水代码。",
-      "priority": 82,
+      "summary": "Hugging Face 发布 native-speed vLLM transformers modeling backend，重点是让 Transformers 模型代码更直接进入 vLLM serving 路径，减少模型定义和生产推理之间的胶水层。",
+      "why": "这比泛泛的 inference 趋势文更值得读：它改变的是模型接口、权重加载、generation 行为和 serving runtime 的契约边界。",
+      "thought": "读的时候把它映射到 vLLM/KV cache/prefill-decode 的学习线：哪些行为终于能少 fork 一份生产代码。",
+      "priority": 84,
       "links": [
         {
           "label": "HF Blog",
@@ -333,61 +301,86 @@
       ]
     },
     {
-      "id": "hf-skypilot-zero-egress-storage-20260708",
+      "id": "hf-data-for-agents-20260710",
       "kind": "signal",
-      "title": "HF + SkyPilot：跨云训练/推理的成本控制点在数据出口",
-      "source": "Hugging Face Blog, 2026-07-08",
+      "title": "Data for Agents：agent 能力开始转向数据可操作性",
+      "source": "Hugging Face Blog / NVIDIA, 2026-07-08",
       "sourceStatus": "官方/高质量源",
-      "summary": "HF 的 SkyPilot/zero-egress storage 文章把跨云运行 AI workloads 的关键问题落到数据存储和出口费用，而不是只讲 GPU 选择。",
-      "why": "这对 Triton/HF Jobs/远端实验的成本直觉有用：模型和数据怎么放，可能比换一张 GPU 更影响总成本和可复现性。",
-      "thought": "先看它的数据路径和 cache/egress 假设，之后再决定是否值得用于自己的训练或推理部署。",
-      "priority": 74,
+      "summary": "HF/NVIDIA 的 Data for Agents 把注意力放到 agent 可用的数据层：不是只给模型更多上下文，而是让数据集、任务、环境和工具以 agent 可消费的方式组织。",
+      "why": "这和你的 AI-feed/candidatePool 很贴近：阅读面、候选池、可点击证据和写入权限本质上也是 agent 数据契约。",
+      "thought": "先看它如何定义 agent-facing data，再反推自己的自动化是否也需要更清楚地区分 public source、private fallback 和 durable note。",
+      "priority": 78,
       "links": [
         {
           "label": "HF Blog",
-          "url": "https://huggingface.co/blog/skypilot-hf-storage"
+          "url": "https://huggingface.co/blog/nvidia/open-data-for-agents"
         }
       ]
     },
     {
-      "id": "paper-use-context-specialization-20260708",
+      "id": "video-oasis-eval-shortcuts-20260710",
+      "kind": "concept",
+      "title": "Video-Oasis：评测集可能不需要视觉就能被刷高分",
+      "source": "Hugging Face Daily Papers, 2026-07-10",
+      "sourceStatus": "公开源",
+      "summary": "Video-Oasis 报告说一半现有 video understanding benchmarks 可以在没有视觉输入时被解决，暴露出评测集里的语言/数据 shortcut。",
+      "why": "它不是你的主线论文，但会影响怎么判断 benchmark：一个系统看起来会理解视频、音频或 agent 任务时，先问它是不是只在利用题面泄漏。",
+      "thought": "把它当作今天的概念提醒：评测之前先做 ablation，禁掉关键模态或状态，看分数是否仍然异常高。",
+      "priority": 72,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2603.29616"
+        },
+        {
+          "label": "Project",
+          "url": "https://limgeuntaekk.github.io/Video-Oasis/"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/sejong-rcv/Video-Oasis"
+        }
+      ]
+    },
+    {
+      "id": "uniclawbench-proactive-agents-20260710",
+      "kind": "signal",
+      "title": "UniClawBench：proactive agent 评测开始要求真实闭环环境",
+      "source": "Hugging Face Daily Papers, 2026-07-10",
+      "sourceStatus": "公开源",
+      "summary": "UniClawBench 提出面向真实任务的 proactive agent benchmark，包含 live Docker container evaluation 和多角色闭环评估。",
+      "why": "这比静态问答式 agent benchmark 更接近 Codex 自动化需要面对的失败模式：环境状态、工具调用、长期任务和验证责任。",
+      "thought": "先不急着深读全论文，重点看它如何定义任务完成、环境复现和 agent 角色边界。",
+      "priority": 70,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.08768"
+        },
+        {
+          "label": "Project",
+          "url": "https://uniclawbench.github.io/"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/HKU-MMLab/UniClawBench"
+        }
+      ]
+    },
+    {
+      "id": "paper-use-context-specialization-20260710",
       "kind": "paper",
-      "title": "论文更新：小模型在 USE 里可能靠“上下文专门化”赢回来",
+      "title": "论文更新：小 USE 模型可能靠上下文专门化赢回来",
       "source": "arXiv search / 本地推荐池",
       "sourceStatus": "本地推荐池",
-      "summary": "推荐先看 Ranking the Impact of Contextual Specialization in Neural Speech Enhancement：它比较 speaker identity、noise type、gender、language、SNR 等专门化维度，结论是 speaker/language specialization 对小模型收益最大。可补读 room-acoustic simulation 那篇：高保真房间声学模拟能让 multichannel SE 的 WER 中位数相对下降最高 38%。",
-      "why": "这两篇都和 Hybrid-UniSE/USE 主线有关：一篇影响个性化/资源受限增强策略，一篇影响模拟数据是否值得投入。",
+      "summary": "推荐先看 Ranking the Impact of Contextual Specialization in Neural Speech Enhancement：它比较 speaker identity、noise type、gender、language、SNR 等专门化维度，发现 speaker/language specialization 对小模型收益最大。可补读 Improving multichannel speech enhancement through accurate room-acoustic simulations：高保真房间声学模拟让 multichannel SE 的 WER 中位数相对下降最高 38%。",
+      "why": "这两篇都贴近 Hybrid-UniSE/USE：一篇影响个性化和资源受限增强策略，一篇影响模拟数据是否值得投入。",
       "thought": "Tags: speech-enhancement, contextual-adaptation, personalization, hearing-aids, room-acoustics, simulation；去 Obsidian 推荐池索引查看，不在本轮写新论文日报。",
       "priority": 76,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
           "url": "obsidian://open?vault=LearningProject&file=Papers/%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
-        }
-      ]
-    },
-    {
-      "id": "linkedin-speech-audio-jobs-20260708",
-      "kind": "action",
-      "title": "LinkedIn 职位：只筛语音/音频/远程 ML，不混进学习流",
-      "source": "LinkedIn jobs Gmail, 2026-07-07~08",
-      "sourceStatus": "行动项",
-      "summary": "近 36 小时有 Diabolocom AI Research Engineer (Speech & Conversational AI)、Neat Machine Learning Engineer - Audio、THRYVE Machine Learning Researcher 等线索；MEDiSTRAVA/Assaia/NRC 等更泛的数据岗先降级。",
-      "why": "这是求职动作，不是技术阅读；需要单独快速筛 fit、地点、签证/远程和申请成本。",
-      "thought": "优先看 Diabolocom 和 Neat；若当天没有申请时间，把它们保留为 job screening 候选，不要让它们占学习主线。",
-      "priority": 70,
-      "links": [
-        {
-          "label": "Diabolocom",
-          "url": "https://www.linkedin.com/jobs/view/4433960163"
-        },
-        {
-          "label": "Neat Audio",
-          "url": "https://www.linkedin.com/jobs/view/4437715452"
-        },
-        {
-          "label": "THRYVE",
-          "url": "https://www.linkedin.com/jobs/view/4433326367"
         }
       ]
     }
