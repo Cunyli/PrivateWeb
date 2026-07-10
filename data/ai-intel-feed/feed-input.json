@@ -1,14 +1,14 @@
 {
   "date": "2026-07-10",
   "overview": "今天优先处理 7 月 22 日英国 ETA；阅读主线是 agent experience 基础设施、HF serving/data contracts、评测泄漏，以及 USE 论文更新。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 39 条候选；Gmail 仅查 LinkedIn/Ryanair/booking/sent 等个人兜底；本轮公开源无访问受限，0 个可信候选因缺少 URL 被跳过。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 40 条候选；Gmail 仅查 LinkedIn/Ryanair/booking/sent 等个人兜底；本轮公开源无访问受限，0 个可信候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "39 条公开候选中，泛 Medium 趋势文、模型发布传闻和重复 agent 操作建议被压到候选池或溢出，不进入 10-15 分钟主阅读负担。",
+    "summary": "40 条公开候选中，泛 Medium 趋势文、模型发布传闻和重复 agent 操作建议被压到候选池或溢出，不进入 10-15 分钟主阅读负担。",
     "counts": {
       "candidates": 14,
       "overflow": 18,
       "duplicates": 3,
-      "hidden": 4
+      "hidden": 5
     },
     "themes": [
       {
@@ -215,15 +215,23 @@
       ]
     },
     {
-      "title": "LinkedIn F-Secure hiring/network prompt",
-      "source": "LinkedIn Gmail fallback",
-      "reason": "只有邮件营销跳转和公司级提示，没有 canonical jobs/view 链接；按规则不进入行动项。",
-      "priority": 20,
-      "status": "overflow",
+      "title": "LinkedIn Sweden/remote AI roles: Sandvik, Haystack, Umanova",
+      "source": "LinkedIn Gmail fallback, 2026-07-09",
+      "reason": "本轮可提取 canonical jobs/view 链接；适合作为求职候选回看，但职位适配度和紧急性不足以进入主待处理。",
+      "priority": 34,
+      "status": "candidate",
       "links": [
         {
-          "label": "F-Secure careers",
-          "url": "https://www.f-secure.com/en/careers"
+          "label": "Sandvik Junior Data Scientist",
+          "url": "https://www.linkedin.com/jobs/view/4434526538"
+        },
+        {
+          "label": "Haystack AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4434831228"
+        },
+        {
+          "label": "Umanova AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4437814342"
         }
       ]
     }
