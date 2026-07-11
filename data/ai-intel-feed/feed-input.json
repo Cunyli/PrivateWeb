@@ -1,7 +1,7 @@
 {
   "date": "2026-07-11",
   "overview": "今天最高优先级是地拉那到赫尔辛基出发前检查和 LinkedIn 私信回复；阅读主线是 long-horizon agent memory、agent-facing data contract、attention profiling，以及 USE 论文更新。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 40 条候选；OpenAI News/ChatGPT Release Notes 受 Cloudflare 403 限制未官方核验；Gmail 仅查 LinkedIn/job/travel/booking 个人兜底，sent 查询被 API 限流；0 个可信公开候选因缺少 URL 被跳过。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 40 条候选；OpenAI News/ChatGPT Release Notes 受 Cloudflare 403 限制未官方核验；Gmail 仅查 LinkedIn/job/travel/booking 个人兜底，sent 36h 无新邮件；0 个可信公开候选因缺少 URL 被跳过。",
   "overflow": {
     "summary": "40 条公开候选中，泛 Medium 趋势文、模型发布 newsletter 传闻和重复 loop engineering 建议被压到候选池或溢出，不进入 10-15 分钟主阅读负担。",
     "counts": {
