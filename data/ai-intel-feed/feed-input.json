@@ -1,11 +1,11 @@
 {
   "date": "2026-07-11",
   "overview": "今天最高优先级是地拉那到赫尔辛基出发前检查和 LinkedIn 私信回复；阅读主线是 long-horizon agent memory、agent-facing data contract、attention profiling，以及 USE 论文更新。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 39 条候选；OpenAI News/ChatGPT Release Notes 受 Cloudflare 403 限制未官方核验；Gmail 仅查 LinkedIn/job/travel/booking/sent 个人兜底；0 个可信公开候选因缺少 URL 被跳过。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 40 条候选；OpenAI News/ChatGPT Release Notes 受 Cloudflare 403 限制未官方核验；Gmail 仅查 LinkedIn/job/travel/booking 个人兜底，sent 查询被 API 限流；0 个可信公开候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "39 条公开候选中，泛 Medium 趋势文、模型发布 newsletter 传闻和重复 loop engineering 建议被压到候选池或溢出，不进入 10-15 分钟主阅读负担。",
+    "summary": "40 条公开候选中，泛 Medium 趋势文、模型发布 newsletter 传闻和重复 loop engineering 建议被压到候选池或溢出，不进入 10-15 分钟主阅读负担。",
     "counts": {
-      "candidates": 16,
+      "candidates": 17,
       "overflow": 17,
       "duplicates": 4,
       "hidden": 4
@@ -211,6 +211,31 @@
       ]
     },
     {
+      "title": "LinkedIn Sweden AI roles: OpenAI, BJAK, Redeploy",
+      "source": "LinkedIn Gmail fallback, 2026-07-11",
+      "reason": "新 job alert 里有更贴近 AI deployment / FDE / GenAI 的 canonical jobs/view 链接，但它们是求职行动候选，不混进学习主信息流。",
+      "priority": 38,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "OpenAI AI Deployment Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4428739120"
+        },
+        {
+          "label": "OpenAI Forward Deployed Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4429014190"
+        },
+        {
+          "label": "BJAK Applied AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4437965588"
+        },
+        {
+          "label": "Redeploy GenAI Developer",
+          "url": "https://www.linkedin.com/jobs/view/4428926862"
+        }
+      ]
+    },
+    {
       "title": "LinkedIn Sweden roles: DreamTeams, Tandem Health, Spotify",
       "source": "LinkedIn Gmail fallback, 2026-07-10",
       "reason": "比 data/cloud alert 更接近 AI/health/product engineering，可在有求职窗口时筛。",
@@ -296,7 +321,7 @@
       "sourceStatus": "行动项",
       "summary": "LinkedIn digest 显示 Yikun Liu 有 2 条新消息等待回复；邮件没有正文细节，所以这里只记录需要打开 LinkedIn 查看。",
       "why": "这是人际/项目沟通类个人动作，可能比普通 job alert 更需要及时处理。",
-      "thought": "打开 LinkedIn Messaging 看上下文；不保存邮件里的 comm 跟踪链接、midToken、otpToken 或退订链接。",
+      "thought": "打开 LinkedIn Messaging 看上下文；不保存邮件追踪参数、一次性令牌、redirect 或退订链接。",
       "priority": 88,
       "links": [
         {
