@@ -1,14 +1,14 @@
 {
   "date": "2026-07-13",
-  "overview": "今天主线是 agent 长任务评测、agent data/infra、推理性能边界和语音主线论文；个人待办只保留 LinkedIn 私信与少量高相关职位。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 39 条候选；OpenAI News/ChatGPT Release Notes 仍受 Cloudflare 403 限制未官方核验；Gmail 仅查 LinkedIn/job/travel/booking/billing 等个人兜底，sent 36h 无新邮件；0 个可信公开候选因缺少 URL 被跳过。",
+  "overview": "今天主线是 agent 长任务评测、agent data/infra、推理性能边界和语音主线论文；个人待办保留 LinkedIn 私信与音频/AI 高相关职位。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 39 条候选；OpenAI News/ChatGPT Release Notes 仍受 Cloudflare 403 限制未官方核验；Gmail 仅查 LinkedIn/job/travel/booking/billing 等个人兜底并读 5 封候选，sent 36h 无新邮件；0 个可信公开候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "公开源候选不少，但 Medium 泛化文章、The Batch/Latent 的未官方核验模型发布、已完成旅行邮件和社交噪声被压到候选池或过滤。",
+    "summary": "公开源候选不少，但 Medium 泛化文章、The Batch/Latent 的未官方核验模型发布、低相关 job alert 和社交噪声被压到候选池或过滤。",
     "counts": {
       "candidates": 39,
-      "overflow": 18,
-      "duplicates": 2,
-      "hidden": 7
+      "overflow": 20,
+      "duplicates": 3,
+      "hidden": 8
     },
     "themes": [
       {
@@ -18,8 +18,13 @@
       },
       {
         "title": "Medium agent 泛化文章",
-        "count": 8,
-        "note": "有可点击原文但主张偏通用，保留少数与 workflow/loop 相关项。"
+        "count": 9,
+        "note": "有可点击原文但主张偏通用，只保留少数 workflow/loop 相关项。"
+      },
+      {
+        "title": "LinkedIn 低相关职位",
+        "count": 10,
+        "note": "只把音频、speech、health AI 或明显 ML infra 相关职位保留为候选。"
       }
     ]
   },
@@ -42,19 +47,19 @@
       ]
     },
     {
-      "title": "From RGB Generation to Dense Field Readout",
+      "title": "Flow-ERD: agent-type aware traffic simulation",
       "source": "Hugging Face Daily Papers",
-      "reason": "扩散/视觉 dense prediction 有意思，但与当前 speech/agent/runtime 主线距离较远。",
+      "reason": "多智能体仿真有方法价值，但与当前 speech/agent-runtime 主线距离较远。",
       "priority": 44,
       "status": "candidate",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.06553"
+          "url": "https://huggingface.co/papers/2607.06957"
         },
         {
-          "label": "GitHub",
-          "url": "https://github.com/xmz111/ReChannel"
+          "label": "Project",
+          "url": "https://seulbinhwang.github.io/flow-erd-project-page/"
         }
       ]
     },
@@ -81,19 +86,6 @@
         {
           "label": "HF Blog",
           "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend"
-        }
-      ]
-    },
-    {
-      "title": "Hugging Face Blog: From Hugging Face to Amazon SageMaker Studio in one click",
-      "source": "Hugging Face Blog",
-      "reason": "产品集成更新，价值偏部署便利，不进入 15 分钟阅读主线。",
-      "priority": 36,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/amazon/one-click-to-sagemaker-studio"
         }
       ]
     },
@@ -163,19 +155,6 @@
       ]
     },
     {
-      "title": "Medium: How to Stop an AI From Living in the Past",
-      "source": "Level Up Coding",
-      "reason": "可作为 agent memory / freshness 概念读物，但证据层较弱。",
-      "priority": 36,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Level Up Coding",
-          "url": "https://levelup.gitconnected.com/how-to-stop-an-ai-from-living-in-the-past-f4cb13923f86"
-        }
-      ]
-    },
-    {
       "title": "LinkedIn: Spotify Research Scientist - Generative Audio",
       "source": "LinkedIn job fallback",
       "reason": "音频生成高相关职位，作为行动候选保留，不混入学习主信息流。",
@@ -189,41 +168,54 @@
       ]
     },
     {
+      "title": "LinkedIn: Tandem Health Software Engineer - Audio",
+      "source": "LinkedIn job fallback",
+      "reason": "Stockholm audio role 与 speech/audio 背景贴近，和 Tandem AI Engineer 一起快速筛。",
+      "priority": 59,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4439565960/"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: Sardine Machine Learning Engineer",
+      "source": "LinkedIn job fallback",
+      "reason": "agentic risk 方向有 ML relevance，但远程 UK 与当前 speech 主线弱一些。",
+      "priority": 45,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4431168182/"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: Sourcein AI / ML / LLM Research Engineer",
+      "source": "LinkedIn job fallback",
+      "reason": "LLM research engineer 可回看，但 Prague hybrid 和岗位方向需再筛。",
+      "priority": 44,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4432613117/"
+        }
+      ]
+    },
+    {
       "title": "LinkedIn: Neko Health ML Ops Engineer",
       "source": "LinkedIn job fallback",
-      "reason": "health + ML ops 方向与背景部分相关，先观察不置顶。",
+      "reason": "health + ML ops 与背景部分相关，先观察不置顶。",
       "priority": 48,
       "status": "watch",
       "links": [
         {
           "label": "LinkedIn job",
           "url": "https://www.linkedin.com/jobs/view/4430731132/"
-        }
-      ]
-    },
-    {
-      "title": "LinkedIn: HappyRobot Machine Learning Engineer",
-      "source": "LinkedIn job fallback",
-      "reason": "remote ML engineer，相关但弱于 Mistral Audio。",
-      "priority": 45,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4386619805/"
-        }
-      ]
-    },
-    {
-      "title": "LinkedIn: Twilio Machine Learning Engineer",
-      "source": "LinkedIn job fallback",
-      "reason": "remote ML engineer，保留 canonical job URL 供之后筛。",
-      "priority": 43,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4430782149/"
         }
       ]
     }
@@ -278,12 +270,12 @@
     {
       "id": "mistral-audio-job-20260713",
       "kind": "action",
-      "title": "LinkedIn 职位：Mistral AI Scientist, Audio 优先筛一下",
-      "source": "Gmail private fallback / LinkedIn job alert, 2026-07-12",
+      "title": "LinkedIn 职位：Mistral Audio 与 Tandem Audio 优先筛一下",
+      "source": "Gmail private fallback / LinkedIn job alerts, 2026-07-12 to 2026-07-13",
       "sourceStatus": "行动项",
-      "summary": "Deep Learning Engineer alert 里出现 Mistral 的 AI Scientist, Audio，以及 HappyRobot/Twilio 等 remote ML roles；Mistral Audio 与 speech/audio 主线最贴近。",
-      "why": "职位信息属于个人行动项，应独立于学习信息流；Mistral Audio 值得快速判断是否投或收藏。",
-      "thought": "先看岗位要求和地点/签证现实性；Spotify Generative Audio、Neko Health MLOps 放在候选池继续观察。",
+      "summary": "Deep Learning Engineer alert 里仍有 Mistral AI Scientist, Audio；新的 Sweden alert 里出现 Tandem Health AI Engineer 和 Software Engineer - Audio。Spotify Generative Audio、Neko Health MLOps、Sardine ML Engineer 放入候选池。",
+      "why": "职位信息属于个人行动项，应独立于学习信息流；Mistral/Tandem/Spotify 三类音频或医疗 AI 信号最贴近当前 speech/audio 背景。",
+      "thought": "先看地点/签证/研究含量：Mistral 是 London hybrid，Tandem 是 Stockholm，Spotify 是 Stockholm；只对明显贴近 speech/audio 的岗位继续。",
       "priority": 78,
       "links": [
         {
@@ -291,12 +283,16 @@
           "url": "https://www.linkedin.com/jobs/view/4439095037/"
         },
         {
-          "label": "Spotify Generative Audio",
-          "url": "https://www.linkedin.com/jobs/view/4439314226/"
+          "label": "Tandem Health Software Engineer - Audio",
+          "url": "https://www.linkedin.com/jobs/view/4439565960/"
         },
         {
-          "label": "Neko Health ML Ops",
-          "url": "https://www.linkedin.com/jobs/view/4430731132/"
+          "label": "Tandem Health AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4439581434/"
+        },
+        {
+          "label": "Spotify Generative Audio",
+          "url": "https://www.linkedin.com/jobs/view/4439314226/"
         }
       ]
     },
