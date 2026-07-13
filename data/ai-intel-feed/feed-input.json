@@ -1,55 +1,38 @@
 {
   "date": "2026-07-13",
-  "overview": "今天主线是 agent 长任务评测、agent data/infra、推理性能边界和语音主线论文；个人待办保留 LinkedIn 私信与音频/AI 高相关职位。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 39 条候选；OpenAI News/ChatGPT Release Notes 仍受 Cloudflare 403 限制未官方核验；Gmail 仅查 LinkedIn/job/travel/booking/billing 等个人兜底并读 5 封候选，sent 36h 无新邮件；0 个可信公开候选因缺少 URL 被跳过。",
+  "overview": "今晚主线是 agent 数据/基础设施、vLLM serving 边界、attention profiling、LLM 量化和 speech enhancement 论文；个人待办保留 LinkedIn 私信与音频/AI 职位筛选。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，生成 40 条候选；Gmail 仅查 LinkedIn/job/travel/booking/billing/account 等个人兜底并读 5 封候选，sent 36h 无新邮件；OpenAI 官方本轮未作为直连公开源，The Batch/Latent 的 GPT-5.6 等模型发布内容只保留 watch；0 个可信公开候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "公开源候选不少，但 Medium 泛化文章、The Batch/Latent 的未官方核验模型发布、低相关 job alert 和社交噪声被压到候选池或过滤。",
+    "summary": "40 条公开候选里，泛 Medium 教程、未官方核验模型发布摘要、低相关 job alert 和已过期行程通知被压到候选池或过滤。",
     "counts": {
-      "candidates": 39,
-      "overflow": 20,
-      "duplicates": 3,
-      "hidden": 8
+      "candidates": 40,
+      "overflow": 22,
+      "duplicates": 4,
+      "hidden": 9
     },
     "themes": [
       {
         "title": "模型发布传闻与 newsletter 摘要",
         "count": 5,
-        "note": "OpenAI 官方页 403，未把 GPT-5.6/Claude/Grok 传闻升级为主事实。"
+        "note": "OpenAI 相关内容没有官方直连核验，只保留 watch。"
       },
       {
-        "title": "Medium agent 泛化文章",
-        "count": 9,
-        "note": "有可点击原文但主张偏通用，只保留少数 workflow/loop 相关项。"
+        "title": "Medium agent/AI 泛化文章",
+        "count": 10,
+        "note": "可点击但事实密度参差，只保留 workflow/权限/反馈相关候选。"
       },
       {
         "title": "LinkedIn 低相关职位",
-        "count": 10,
-        "note": "只把音频、speech、health AI 或明显 ML infra 相关职位保留为候选。"
+        "count": 12,
+        "note": "只把 speech/audio/health AI/ML infra 更相关职位保留为行动或 watch。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "KronQ: LLM Quantization via Kronecker-Factored Hessian",
+      "title": "Flow-ERD: Agent-type aware traffic simulation",
       "source": "Hugging Face Daily Papers",
-      "reason": "推理压缩相关，但今天不如 agent benchmark 与 vLLM backend 直接影响判断。",
-      "priority": 58,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.07964"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/Intelligent-Computing-Lab-Panda/KronQ"
-        }
-      ]
-    },
-    {
-      "title": "Flow-ERD: agent-type aware traffic simulation",
-      "source": "Hugging Face Daily Papers",
-      "reason": "多智能体仿真有方法价值，但与当前 speech/agent-runtime 主线距离较远。",
+      "reason": "多智能体仿真方法完整，但与当前 speech/agent-runtime 主线距离较远。",
       "priority": 44,
       "status": "candidate",
       "links": [
@@ -64,10 +47,44 @@
       ]
     },
     {
+      "title": "MedPMC: high-fidelity medical multimodal data",
+      "source": "Hugging Face Daily Papers",
+      "reason": "医疗多模态数据管线值得看，但今天不如 agent data 与 speech paper 贴近主线。",
+      "priority": 48,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.07673"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/Yale-BIDS-Chen-Lab/MedPMC"
+        }
+      ]
+    },
+    {
+      "title": "VaseMuseum: digital intelligent museum for ancient Greek pottery",
+      "source": "Hugging Face Daily Papers",
+      "reason": "VLM + 3D cultural heritage有趣，但行动价值低，保留作轻阅读。",
+      "priority": 32,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.06374"
+        },
+        {
+          "label": "Project",
+          "url": "https://aigeeksgroup.github.io/VaseMuseum"
+        }
+      ]
+    },
+    {
       "title": "Latent.Space: Why AI Infrastructure must evolve for Agent Experience",
       "source": "Latent.Space / AINews",
-      "reason": "与 agent infra 强相关，已支撑主 theme，保留原文便于回看访谈。",
-      "priority": 69,
+      "reason": "支撑 agent infra theme，保留访谈入口便于回看。",
+      "priority": 68,
       "status": "candidate",
       "links": [
         {
@@ -77,22 +94,9 @@
       ]
     },
     {
-      "title": "Hugging Face Blog: Native-speed vLLM transformers modeling backend",
-      "source": "Hugging Face Blog",
-      "reason": "已进主信息流；候选池保留为 runtime 后续回看入口。",
-      "priority": 68,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend"
-        }
-      ]
-    },
-    {
       "title": "The Batch issue 361: Claude Fable / Gemini video engine / DeepSeek speculative decoding",
       "source": "DeepLearning.AI The Batch",
-      "reason": "摘要覆盖面广，但其中部分模型/产品信息需要官方页再核验。",
+      "reason": "摘要覆盖面广，但部分模型/产品事实需要官方页复核，暂不作为主事实。",
       "priority": 50,
       "status": "watch",
       "links": [
@@ -105,7 +109,7 @@
     {
       "title": "The Batch issue 360: GPT-5.6 family and models invoking models",
       "source": "DeepLearning.AI The Batch",
-      "reason": "OpenAI 官方访问受限，作为未官方核验 watch，不放主块。",
+      "reason": "OpenAI 相关内容本轮未官方核验，只放 watch。",
       "priority": 46,
       "status": "watch",
       "links": [
@@ -116,22 +120,22 @@
       ]
     },
     {
-      "title": "AISimple: How to Fix Problems with Your AI Tools",
+      "title": "AISimple: How to Make Legal AI Truthworthy",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "可能对日常 agent 使用有启发，但技术密度低于本轮主块。",
-      "priority": 34,
+      "reason": "AI 法律责任/可信度话题可回看，但技术密度低于 agent data 与 vLLM。",
+      "priority": 35,
       "status": "candidate",
       "links": [
         {
           "label": "AISimple",
-          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-fix-problems-with-your-ai"
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-make-legal-ai-truthworthy"
         }
       ]
     },
     {
       "title": "Medium: Let the Agent Complain",
       "source": "Medium Data Science Collective",
-      "reason": "与 agent feedback loop 相关，保留作 workflow 读物但不作为高可信事实源。",
+      "reason": "贴近 agent feedback loop，但属于个人经验文，不当作高可信事实源。",
       "priority": 42,
       "status": "candidate",
       "links": [
@@ -142,36 +146,36 @@
       ]
     },
     {
-      "title": "Medium: Planning and Goal modes for Claude Code",
-      "source": "Medium Data Science Collective",
-      "reason": "贴近 Codex/agent 工作流，但属于个人经验文，暂作候选。",
-      "priority": 41,
+      "title": "Medium: Your AI Assistant Has Root, and a Stranger Just Whispered to It",
+      "source": "Medium AI tag",
+      "reason": "agent 权限与 prompt injection 风险相关，但需要更权威材料再升级。",
+      "priority": 43,
       "status": "candidate",
       "links": [
         {
           "label": "Medium",
-          "url": "https://medium.com/data-science-collective/you-dont-need-thinking-levels-in-claude-code-you-need-planning-and-goal-modes-2f328e56fba0"
+          "url": "https://medium.com/@dhananjaykaushik96/your-ai-assistant-has-root-and-a-stranger-just-whispered-to-it-01953541e8d3"
         }
       ]
     },
     {
-      "title": "LinkedIn: Spotify Research Scientist - Generative Audio",
-      "source": "LinkedIn job fallback",
-      "reason": "音频生成高相关职位，作为行动候选保留，不混入学习主信息流。",
-      "priority": 60,
-      "status": "watch",
+      "title": "Medium: OWASP Top 10 for LLMs Explained",
+      "source": "Medium AI tag",
+      "reason": "安全概念可作复习，但主线价值低于具体 agent/runtime 发布。",
+      "priority": 36,
+      "status": "candidate",
       "links": [
         {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4439314226/"
+          "label": "Medium",
+          "url": "https://medium.com/@wiemabbassi14/owasp-top-10-for-llms-explained-10-risks-that-can-break-your-ai-app-1b1994e03bc7"
         }
       ]
     },
     {
-      "title": "LinkedIn: Tandem Health Software Engineer - Audio",
+      "title": "LinkedIn: Tandem Health AI Engineer",
       "source": "LinkedIn job fallback",
-      "reason": "Stockholm audio role 与 speech/audio 背景贴近，和 Tandem AI Engineer 一起快速筛。",
-      "priority": 59,
+      "reason": "health AI 相关职位，先和音频岗位一起筛，不混进学习信息流。",
+      "priority": 58,
       "status": "watch",
       "links": [
         {
@@ -183,7 +187,7 @@
     {
       "title": "LinkedIn: Sardine Machine Learning Engineer",
       "source": "LinkedIn job fallback",
-      "reason": "agentic risk 方向有 ML relevance，但远程 UK 与当前 speech 主线弱一些。",
+      "reason": "agentic risk 方向有 ML relevance，但 speech/audio 贴合度一般。",
       "priority": 45,
       "status": "watch",
       "links": [
@@ -194,181 +198,60 @@
       ]
     },
     {
-      "title": "LinkedIn: Sourcein AI / ML / LLM Research Engineer",
+      "title": "LinkedIn: HappyRobot Machine Learning Engineer",
       "source": "LinkedIn job fallback",
-      "reason": "LLM research engineer 可回看，但 Prague hybrid 和岗位方向需再筛。",
-      "priority": 44,
+      "reason": "voice/automation infrastructure 可能相关，但岗位细节需打开 LinkedIn 再筛。",
+      "priority": 47,
       "status": "watch",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4432613117/"
+          "url": "https://www.linkedin.com/jobs/view/4386619805/"
         }
       ]
     },
     {
-      "title": "LinkedIn: Neko Health ML Ops Engineer",
-      "source": "LinkedIn job fallback",
-      "reason": "health + ML ops 与背景部分相关，先观察不置顶。",
-      "priority": 48,
-      "status": "watch",
+      "title": "Kiwi 航班延误通知",
+      "source": "Gmail private fallback / Kiwi.com",
+      "reason": "Tirana -> Helsinki 延误通知已过期，且邮件只含 tracking redirect，不放待处理。",
+      "priority": 20,
+      "status": "overflow",
       "links": [
         {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4430731132/"
+          "label": "Kiwi homepage",
+          "url": "https://www.kiwi.com/"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "agent-long-horizon-terminal-bench-20260713",
+      "id": "agent-data-hf-nvidia-20260713-evening",
       "kind": "deep-read",
-      "title": "Agent 长任务：今天最值得看的是“中途进度也要评分”",
-      "source": "Hugging Face Daily Papers, 2026-07-13",
-      "sourceStatus": "公开源",
-      "summary": "Long-Horizon-Terminal-Bench 把 terminal agent 任务从“最后是否成功”改成带 dense reward 的长程评测，目标是看 agent 在几十分钟、多步骤任务中的中间进展和部分解。",
-      "why": "这比单点 pass/fail 更接近日常 Codex/Claude Code 的真实失败形态：卡住、绕路、半完成、误删上下文。",
-      "thought": "读的时候重点看 grading granularity 和任务设计，判断它能不能反过来指导自己的 agent 工作流验收。",
-      "priority": 92,
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.08964"
-        },
-        {
-          "label": "Project",
-          "url": "https://zli12321.github.io/LHTB/index.html"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/zli12321/LHTB"
-        }
-      ]
-    },
-    {
-      "id": "linkedin-yikun-message-20260713",
-      "kind": "action",
-      "title": "LinkedIn 私信：Yikun 又有一条消息待回复",
-      "source": "Gmail private fallback / LinkedIn, 2026-07-13",
-      "sourceStatus": "行动项",
-      "summary": "Gmail 最近 36 小时出现 Yikun Liu 的 LinkedIn message digest，提示 1 条新消息待回复。邮件只有 tracking redirect，已改用安全的 LinkedIn messaging/profile 入口。",
-      "why": "这是明确需要用户处理的个人沟通项，比普通社交推荐更值得出现在待处理。",
-      "thought": "打开 LinkedIn messaging 看具体内容；不要从邮件 redirect 进入，也不要保存邮件 token 链接。",
-      "priority": 88,
-      "links": [
-        {
-          "label": "LinkedIn messaging",
-          "url": "https://www.linkedin.com/messaging/"
-        },
-        {
-          "label": "Yikun profile",
-          "url": "https://www.linkedin.com/in/liuyikun9/"
-        }
-      ]
-    },
-    {
-      "id": "mistral-audio-job-20260713",
-      "kind": "action",
-      "title": "LinkedIn 职位：Mistral Audio 与 Tandem Audio 优先筛一下",
-      "source": "Gmail private fallback / LinkedIn job alerts, 2026-07-12 to 2026-07-13",
-      "sourceStatus": "行动项",
-      "summary": "Deep Learning Engineer alert 里仍有 Mistral AI Scientist, Audio；新的 Sweden alert 里出现 Tandem Health AI Engineer 和 Software Engineer - Audio。Spotify Generative Audio、Neko Health MLOps、Sardine ML Engineer 放入候选池。",
-      "why": "职位信息属于个人行动项，应独立于学习信息流；Mistral/Tandem/Spotify 三类音频或医疗 AI 信号最贴近当前 speech/audio 背景。",
-      "thought": "先看地点/签证/研究含量：Mistral 是 London hybrid，Tandem 是 Stockholm，Spotify 是 Stockholm；只对明显贴近 speech/audio 的岗位继续。",
-      "priority": 78,
-      "links": [
-        {
-          "label": "Mistral AI Scientist, Audio",
-          "url": "https://www.linkedin.com/jobs/view/4439095037/"
-        },
-        {
-          "label": "Tandem Health Software Engineer - Audio",
-          "url": "https://www.linkedin.com/jobs/view/4439565960/"
-        },
-        {
-          "label": "Tandem Health AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4439581434/"
-        },
-        {
-          "label": "Spotify Generative Audio",
-          "url": "https://www.linkedin.com/jobs/view/4439314226/"
-        }
-      ]
-    },
-    {
-      "id": "agent-data-infra-theme-20260713",
-      "kind": "theme",
-      "title": "Agent infra：数据、环境和体验开始合到一起",
-      "source": "Hugging Face Blog / Latent.Space, 2026-07-13",
-      "sourceStatus": "综合判断",
-      "summary": "HF 的 Data for Agents 强调可用于 agent 训练/评测的数据层，Latent.Space 的 Modal 访谈则把 infra 重点放在 Agent Experience：更快的环境、权限、运行时和反馈循环。",
-      "why": "这说明 agent 能力瓶颈正在从模型调用转向“可复现环境 + 数据闭环 + 工具权限”的工程面。",
-      "thought": "把它和本地 Codex 工作流联系起来看：真正要优化的是任务状态、评测、权限和回滚，而不是多堆 prompt。",
-      "priority": 74,
-      "links": [
-        {
-          "label": "Data for Agents",
-          "url": "https://huggingface.co/blog/nvidia/open-data-for-agents"
-        },
-        {
-          "label": "Modal / Agent Experience",
-          "url": "https://www.latent.space/p/modal2026"
-        },
-        {
-          "label": "Long-Horizon Terminal Bench",
-          "url": "https://huggingface.co/papers/2607.08964"
-        }
-      ]
-    },
-    {
-      "id": "phone-segmentation-phonological-map-20260713",
-      "kind": "signal",
-      "title": "Speech SSL：phonological activation map 值得顺手看",
-      "source": "Hugging Face Daily Papers, 2026-07-13",
-      "sourceStatus": "公开源",
-      "summary": "Phone Segmentation and Recognition through Phonological Activation Mapping 主张 SSL speech model 表征里已有 phonetic structure，可以用 phonological activation map 同时做 phone segmentation 和 recognition。",
-      "why": "这贴近 speech representation / biomarkers / USE 诊断链路：如果 SSL 层级能稳定暴露 phone 结构，后续可用于解释增强前后的语音内容保留。",
-      "thought": "先看它的 segmentation 指标和 model probing 方法，判断能不能借来做 SV-vs-CS 或 content preservation 诊断。",
-      "priority": 72,
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.09020"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/stephenmac7/phone-metrics"
-        }
-      ]
-    },
-    {
-      "id": "attention-profiling-pt3-20260713",
-      "kind": "deep-read",
-      "title": "Attention profiling：别只看总耗时，要看 attention 栈",
-      "source": "Hugging Face Blog, 2026-07-13",
-      "sourceStatus": "公开源",
-      "summary": "HF profiling 系列第三篇聚焦 PyTorch attention profiling，强调用 profiler 拆开 attention kernel、memory、shape 与实现路径，而不是只看端到端耗时。",
-      "why": "这对 LLM serving、speech model 训练和本地性能诊断都实用：瓶颈经常藏在 attention path 的实现选择里。",
-      "thought": "今天不用深挖所有 profiler 细节，先把它作为以后排查训练/推理慢的参考入口。",
-      "priority": 70,
+      "title": "Agent 数据：今天最值得看的是“数据集也是 agent runtime 的一部分”",
+      "source": "Hugging Face Blog, 2026-07-08",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Hugging Face/NVIDIA 的 Data for Agents 把 agent 数据从“训练样本”扩展到任务轨迹、工具调用、环境状态和评测材料，强调数据管线会直接决定 agent 能力边界。",
+      "why": "这和你现在用 Codex/本地工具做长期任务的验收问题贴得很近：没有可复用的数据与轨迹，就很难比较 agent 是否真的变强。",
+      "thought": "读时重点看它如何组织轨迹、工具和开放数据；可以反过来检查自己的自动化/实验日志是否能复用成评测材料。",
+      "priority": 91,
       "links": [
         {
           "label": "HF Blog",
-          "url": "https://huggingface.co/blog/torch-attention-profile"
+          "url": "https://huggingface.co/blog/nvidia/open-data-for-agents"
         }
       ]
     },
     {
-      "id": "native-vllm-transformers-backend-20260713",
+      "id": "native-speed-vllm-transformers-20260713",
       "kind": "signal",
-      "title": "vLLM backend：Transformers serving 的边界继续前移",
-      "source": "Hugging Face Blog, 2026-07-13",
-      "sourceStatus": "公开源",
-      "summary": "Hugging Face 发布 native-speed vLLM transformers modeling backend，目标是在 Transformers 模型生态里取得接近 vLLM 的 serving 性能路径。",
-      "why": "这会影响以后选推理后端的默认判断：不是简单 vLLM vs Transformers，而是两边接口和性能边界继续融合。",
-      "thought": "保留作 infra 学习入口，之后比较 KV cache、batching、backend compatibility 时再细读。",
-      "priority": 68,
+      "title": "vLLM/Transformers：推理后端边界继续靠拢",
+      "source": "Hugging Face Blog, 2026-07-08",
+      "sourceStatus": "官方/高质量源",
+      "summary": "Hugging Face 介绍 native-speed vLLM transformers modeling backend，核心信号是模型定义和高吞吐 serving 后端之间的割裂正在被压缩。",
+      "why": "这会影响之后选 serving 栈、看 KV cache/批处理/模型兼容性文章时的判断，不只是一个工程优化新闻。",
+      "thought": "先把它当成“Transformers 生态正在吸收 vLLM serving 经验”的信号，后续遇到推理实验再回看细节。",
+      "priority": 78,
       "links": [
         {
           "label": "HF Blog",
@@ -377,19 +260,132 @@
       ]
     },
     {
-      "id": "paper-use-contextual-room-sim-20260713",
+      "id": "torch-attention-profile-20260713",
+      "kind": "concept",
+      "title": "Attention profiling：今天值得先懂的不是语法，是瓶颈怎么被看见",
+      "source": "Hugging Face Blog, 2026-07-10",
+      "sourceStatus": "官方/高质量源",
+      "summary": "HF 的 PyTorch profiling 系列第三篇聚焦 attention profiling，适合作为理解训练/推理性能瓶颈的轻量入口。",
+      "why": "你做 speech/ML 系统时经常会遇到“慢在哪里”的判断，这类 profiling 思维比单个 API 更耐用。",
+      "thought": "只需要先抓住 measurement -> kernel/attention path -> optimization hypothesis 这条链，不需要写词典或 Obsidian。",
+      "priority": 72,
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/torch-attention-profile"
+        }
+      ]
+    },
+    {
+      "id": "agent-infra-feedback-theme-20260713",
+      "kind": "theme",
+      "title": "Agent infra 的共同趋势：环境、反馈和权限比模型名更重要",
+      "source": "Latent.Space / Medium / AISimple, 2026-07-08..13",
+      "sourceStatus": "综合判断",
+      "summary": "Modal CTO 访谈、agent feedback loop、Claude Code planning/goal modes 与 AI tool troubleshooting 都指向同一件事：agent 产品的关键不只是模型，而是运行环境、反馈循环和权限边界。",
+      "why": "这能帮你过滤泛泛的 agent 文章：优先读能改变工作流验收、权限控制或任务轨迹设计的材料。",
+      "thought": "把这组作为工作流材料，不要硬合成单一事实；每篇只看它能不能改进你的 Codex/automation 使用方式。",
+      "priority": 70,
+      "links": [
+        {
+          "label": "Latent.Space Modal interview",
+          "url": "https://www.latent.space/p/modal2026"
+        },
+        {
+          "label": "Medium feedback loop",
+          "url": "https://medium.com/data-science-collective/let-the-agent-complain-a-feedback-loop-for-better-ai-tools-b55085f2ddd4"
+        },
+        {
+          "label": "Medium planning/goal modes",
+          "url": "https://medium.com/data-science-collective/you-dont-need-thinking-levels-in-claude-code-you-need-planning-and-goal-modes-2f328e56fba0"
+        },
+        {
+          "label": "AISimple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-fix-problems-with-your-ai"
+        }
+      ]
+    },
+    {
+      "id": "kronq-llm-quantization-20260713",
+      "kind": "signal",
+      "title": "KronQ：量化开始更认真地看 Hessian 结构",
+      "source": "Hugging Face Daily Papers, 2026-07-13",
+      "sourceStatus": "公开源",
+      "summary": "KronQ 用 Kronecker-factored Hessian 做 LLM post-training quantization，试图比只看 activation statistics 的 GPTQ 类方法更贴近输出通道之间的二阶结构。",
+      "why": "这属于推理压缩的底层信号：如果方法站住，未来看本地/低成本部署时不应只问 bits，也要问误差模型怎么建。",
+      "thought": "先存为 inference/quantization 候选；真正读时重点看校准开销、支持层类型和与 GPTQ/AWQ 的对照。",
+      "priority": 69,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.07964"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/Intelligent-Computing-Lab-Panda/KronQ"
+        }
+      ]
+    },
+    {
+      "id": "paper-use-specialization-room-sim-20260713-evening",
       "kind": "paper",
-      "title": "论文更新：USE specialization 与 room simulation 继续排第一",
-      "source": "arXiv search / local recommendation pool, 2026-07-13",
+      "title": "论文提醒：今天仍优先看 contextual specialization 与高保真房间仿真",
+      "source": "本地推荐池 / start-my-day, 2026-07-13",
       "sourceStatus": "本地推荐池",
-      "summary": "推荐 1：Ranking the Impact of Contextual Specialization in Neural Speech Enhancement，比较 speaker/noise/gender/language/SNR specialization，speaker identity 与 language 收益更突出。推荐 2：Improving multichannel speech enhancement through accurate room-acoustic simulations，测试高保真 room-acoustic simulation 对多通道 SE 的训练价值。",
-      "why": "两篇仍贴近当前 USE/TAU/仿真数据主线：一篇回答“按什么上下文专门化”，一篇回答“仿真保真度是否换来下游收益”。",
-      "thought": "Tag: speech-enhancement, contextual-adaptation, personalization, room-acoustics, simulation, multichannel-SE；去 Obsidian 推荐池索引查看，不在本轮自动化写新论文笔记。",
-      "priority": 64,
+      "summary": "1. Ranking the Impact of Contextual Specialization in Neural Speech Enhancement：直接回答 speech enhancement 里 speaker/noise/SNR/language 哪类上下文最值得 specialize，适合连接 hearing-aid/USE 小模型判断。2. Improving multichannel speech enhancement through accurate room-acoustic simulations：把高保真 room-acoustic simulation 和 multichannel SE 的 WER 改善连起来，适合作为数据仿真质量影响模型效果的证据。",
+      "why": "两篇都比普通新模型更贴近你当前 speech enhancement / robustness / simulation 主线。",
+      "thought": "Tag: speech-enhancement, contextual-adaptation, personalization, room-acoustics, simulation, multichannel-SE；去 Obsidian 推荐池索引打开。",
+      "priority": 76,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
           "url": "obsidian://open?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
+        }
+      ]
+    },
+    {
+      "id": "linkedin-yikun-message-20260713-evening",
+      "kind": "action",
+      "title": "LinkedIn 私信：Yikun 有一条消息待回复",
+      "source": "Gmail private fallback / LinkedIn, 2026-07-13",
+      "sourceStatus": "行动项",
+      "summary": "Gmail 最近 36 小时仍提示 Yikun Liu 的 LinkedIn message digest，有 1 条新消息待回复；邮件里的 redirect/token 链接未保存。",
+      "why": "这是明确个人沟通动作，优先级高于普通社交推荐和 job alert。",
+      "thought": "直接打开 LinkedIn messaging 查看内容；不要从邮件 redirect 入口进入。",
+      "priority": 88,
+      "links": [
+        {
+          "label": "LinkedIn messaging",
+          "url": "https://www.linkedin.com/messaging/"
+        },
+        {
+          "label": "LinkedIn profile search",
+          "url": "https://www.linkedin.com/search/results/people/?keywords=Yikun%20Liu"
+        }
+      ]
+    },
+    {
+      "id": "linkedin-audio-ai-jobs-20260713-evening",
+      "kind": "action",
+      "title": "职位筛选：先看 Mistral Audio，再看 Tandem/Spotify",
+      "source": "Gmail private fallback / LinkedIn job alerts, 2026-07-12..13",
+      "sourceStatus": "行动项",
+      "summary": "最新 LinkedIn job alert 里，Mistral AI Scientist, Audio 仍是最贴 speech/audio 主线的岗位；Tandem Health AI/Audio 与 Spotify Generative Audio 作为次级候选。",
+      "why": "LinkedIn/job 单独作为行动项保留，不混入学习信息流；这些岗位与 speech/audio 背景最相关。",
+      "thought": "只快速筛岗位匹配度和地点，不要被 Hire Feed/泛 AI remote 噪声拖走。",
+      "priority": 73,
+      "links": [
+        {
+          "label": "Mistral Audio job",
+          "url": "https://www.linkedin.com/jobs/view/4439095037/"
+        },
+        {
+          "label": "Tandem AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4439565960/"
+        },
+        {
+          "label": "Spotify Generative Audio",
+          "url": "https://www.linkedin.com/jobs/view/4439314226/"
         }
       ]
     }
