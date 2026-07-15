@@ -1,12 +1,12 @@
 {
   "date": "2026-07-15",
-  "overview": "今天主线是 coding agent 从“能修”转向“先理解仓库再修”；个人侧优先处理 Supabase RLS 安全警报和 DataCrunch Google 安全变更；论文侧保留多麦克风 SE 与超轻量 SE 的阅读入口。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 共 10 个公开源；Gmail 仅查 LinkedIn 与个人行动项，sent 36h 无命中；OpenAI News/ChatGPT Release Notes 403 受限，API changelog 可访问；0 个可信候选因缺少 URL 跳过。",
+  "overview": "今天主线是 coding agent 从“多跑几轮”转向“先建立可验证仓库知识”；个人侧优先确认 DataCrunch Google 账号恢复与 Supabase RLS；论文侧保留超轻量 SE 与多麦克风输出驱动 SE 的入口。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 共 10 个公开源；Gmail 仅查 LinkedIn/job 与个人行动项，sent 36h 无命中；OpenAI News/ChatGPT Release Notes 403 受限，API changelog 可访问；0 个可信候选因缺少 URL 跳过。",
   "overflow": {
-    "summary": "Medium 泛化 AI 工具帖、重复 agent 叙事、低相关 LinkedIn 社交通知和已多轮出现的 speech-enhancement 论文被压到候选池或自然丢弃。",
+    "summary": "Medium 泛化工具帖、重复 agent 叙事、LinkedIn 社交通知、验证码邮件和多轮重复的 speech-enhancement 论文被压到候选池或自然丢弃。",
     "counts": {
-      "candidates": 16,
-      "overflow": 13,
+      "candidates": 18,
+      "overflow": 14,
       "duplicates": 5,
       "hidden": 0
     },
@@ -14,17 +14,17 @@
       {
         "title": "Agent/coding-agent 内容拥挤",
         "count": 12,
-        "note": "公开源里多条 agent loop、workflow、repo-knowledge 和采用量文章共享主题，主页面只保留能改变本地工作流判断的信号。"
+        "note": "公开源里多条 agent loop、workflow、repo knowledge 与采用量文章共享主题，主页面只保留能改变本地工作流判断的信号。"
       },
       {
         "title": "Speech enhancement 论文继续密集",
         "count": 10,
-        "note": "arXiv recent 有多麦克风、轻量化、beamforming、codec denoising 等候选；HTML 只保留一个推荐池入口。"
+        "note": "arXiv recent 有超轻量、多麦克风、room simulation、beamforming、MOS robustness 等候选；HTML 只保留一个推荐池入口。"
       },
       {
-        "title": "个人安全/行程提醒偏多",
-        "count": 6,
-        "note": "Google/DataCrunch、Supabase、Zotero/InfiniCloud 验证码和 Ryanair 都出现了；只保留需要用户判断或会过期的事项。"
+        "title": "个人安全与行程提醒偏多",
+        "count": 7,
+        "note": "Google/DataCrunch、Supabase、Zotero/Epassi 验证码和 Ryanair 都出现了；只保留需要判断或会过期的事项。"
       }
     ]
   },
@@ -32,8 +32,8 @@
     {
       "title": "Know Before Fix: QA-Driven Repository Knowledge Acquisition for Software Issue Resolution",
       "source": "Hugging Face Daily Papers",
-      "reason": "和 coding agent 修复前探索直接相关，已进入主块，候选池保留 HF 入口方便回看。",
-      "priority": 83,
+      "reason": "和 coding agent 修复前探索直接相关，主块已承载，候选池保留 HF 入口方便回看。",
+      "priority": 85,
       "status": "candidate",
       "links": [
         {
@@ -45,7 +45,7 @@
     {
       "title": "Multi-Agent LLMs Fail to Explore Each Other",
       "source": "Hugging Face Daily Papers",
-      "reason": "多智能体可靠性信号强，但主页面已有单块承载。",
+      "reason": "多智能体可靠性信号强，主页面已有单块承载。",
       "priority": 87,
       "status": "candidate",
       "links": [
@@ -71,7 +71,7 @@
     {
       "title": "Codex usage up >10x in 6 months",
       "source": "Latent.Space / AINews",
-      "reason": "采用量很吸睛，但需要和官方/产品数据交叉看；作为 watch 不当作独立事实主线。",
+      "reason": "采用量很吸睛，但需要和官方或产品数据交叉看；作为 watch 不当作独立事实主线。",
       "priority": 76,
       "status": "watch",
       "links": [
@@ -160,9 +160,22 @@
       ]
     },
     {
+      "title": "CoFi-Lite: ultra-lightweight speech enhancement",
+      "source": "arXiv / start-my-day",
+      "reason": "本轮最高分 USE 候选，paper block 已推荐；候选池保留 arXiv 入口方便之后单独讨论。",
+      "priority": 72,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2607.10142"
+        }
+      ]
+    },
+    {
       "title": "Listen first: Output-based multi-microphone speech enhancement",
       "source": "arXiv / start-my-day",
-      "reason": "paper block 已推荐；候选池保留 arXiv 入口方便之后单独讨论。",
+      "reason": "多麦克风与 beamforming 决策范式很贴近 USE 鲁棒性，paper block 已推荐。",
       "priority": 70,
       "status": "candidate",
       "links": [
@@ -173,35 +186,22 @@
       ]
     },
     {
-      "title": "CoFi-Lite: ultra-lightweight speech enhancement",
+      "title": "Improving multichannel speech enhancement through accurate room-acoustic simulations",
       "source": "arXiv / start-my-day",
-      "reason": "仍是最高分 USE 候选，但已出现多轮，本轮和新多麦克风论文一起轻量提醒。",
-      "priority": 72,
+      "reason": "room simulation 与多通道 SE 仍值得回看，但已多轮出现，本轮不占主阅读位。",
+      "priority": 68,
       "status": "duplicate",
       "links": [
         {
           "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.10142"
-        }
-      ]
-    },
-    {
-      "title": "Where Speech Enhancement Hurts Recognition",
-      "source": "arXiv / start-my-day",
-      "reason": "ASR mismatch 诊断和当前语音增强研究高度相关，但本轮 paper 主块名额有限。",
-      "priority": 64,
-      "status": "watch",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.11157"
+          "url": "https://arxiv.org/abs/2606.31552"
         }
       ]
     },
     {
       "title": "Yikun LinkedIn message",
       "source": "LinkedIn message",
-      "reason": "仍有 2 条 LinkedIn 消息可回复，但今天更高优先级是安全警报和 RLS。",
+      "reason": "5 条 LinkedIn 消息可回复，但今天更高优先级是账号安全和 RLS。",
       "priority": 60,
       "status": "watch",
       "links": [
@@ -212,23 +212,10 @@
       ]
     },
     {
-      "title": "Hire Feed AI/ML Engineer Remote",
-      "source": "LinkedIn Job Alert",
-      "reason": "远程和薪资信号明确，适合手动筛；不混进学习主信息流。",
-      "priority": 54,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4439790078"
-        }
-      ]
-    },
-    {
       "title": "Norrin AI Engineer Stockholm",
       "source": "LinkedIn Job Alert",
-      "reason": "瑞典 AI Engineer，可与近期职位一起人工筛选。",
-      "priority": 52,
+      "reason": "瑞典 AI Engineer，适合与近期职位一起人工筛选；不混进学习主信息流。",
+      "priority": 54,
       "status": "candidate",
       "links": [
         {
@@ -236,9 +223,65 @@
           "url": "https://www.linkedin.com/jobs/view/4379430488"
         }
       ]
+    },
+    {
+      "title": "Aira Machine Learning Engineer - Energy Optimization",
+      "source": "LinkedIn Job Alert",
+      "reason": "Stockholm hybrid 且与 ML 工程相关，可作为求职候选人工筛。",
+      "priority": 52,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4439148897"
+        }
+      ]
+    },
+    {
+      "title": "Saab AI & Data Product Manager",
+      "source": "LinkedIn Job Alert",
+      "reason": "AI/data 方向但更偏产品管理，保留为低优先级 watch。",
+      "priority": 45,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4431325146"
+        }
+      ]
+    },
+    {
+      "title": "Sunrise Robotics Data Acquisition Specialist",
+      "source": "LinkedIn Job Alert",
+      "reason": "远程 robotics 数据采集岗位，和 AI/audio 主线弱相关，暂作候选。",
+      "priority": 42,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4440030698"
+        }
+      ]
     }
   ],
   "blocks": [
+    {
+      "id": "datacrunch-google-recovered-20260715",
+      "kind": "action",
+      "title": "DataCrunch Google 账号：确认恢复成功邮件是否是本人操作",
+      "source": "Gmail private fallback / Google 2026-07-15",
+      "sourceStatus": "行动项",
+      "summary": "Google 给 DataCrunch 工作账号发来两封 `Account recovered successfully` 安全提醒，个人 Gmail 是该工作账号的 recovery email。",
+      "why": "如果这不是你本人操作，就属于账号接管风险；如果是本人操作，也需要确认 2SV/passkey/recovery 配置没有把自己锁出。",
+      "thought": "只走 Google Account Security Activity 通用入口，不保存邮件里的 disavow 或 secure-account token 链接。",
+      "priority": 100,
+      "links": [
+        {
+          "label": "Google account security activity",
+          "url": "https://myaccount.google.com/notifications"
+        }
+      ]
+    },
     {
       "id": "supabase-rls-security-20260715",
       "kind": "action",
@@ -247,8 +290,8 @@
       "sourceStatus": "行动项",
       "summary": "Supabase security advisor 报告 `Cunyli's Project` 有 public table 未启用 Row-Level Security，邮件标为 critical issue。",
       "why": "这是数据暴露风险，比普通 newsletter 或岗位提醒更需要先处理。",
-      "thought": "不要点邮件里的退订或追踪链接；直接登录 Supabase Dashboard，进该项目的 Advisors/Security 检查 RLS。",
-      "priority": 100,
+      "thought": "不要点退订或追踪链接；直接登录 Supabase Dashboard，进该项目的 Advisors/Security 检查 RLS。",
+      "priority": 98,
       "links": [
         {
           "label": "Supabase project security advisor",
@@ -257,23 +300,6 @@
         {
           "label": "Supabase database advisors docs",
           "url": "https://supabase.com/docs/guides/database/database-advisors"
-        }
-      ]
-    },
-    {
-      "id": "datacrunch-google-security-20260715",
-      "kind": "action",
-      "title": "DataCrunch Google 账号：确认 2SV/passkey/恢复请求都是本人操作",
-      "source": "Gmail private fallback / Google 2026-07-14",
-      "sourceStatus": "行动项",
-      "summary": "Google 给 DataCrunch 工作账号发来 2-Step Verification turned on、sign-in recovery request、new passkey added 三类安全提醒。",
-      "why": "如果这些不是你本人操作，就属于账号接管风险；如果是本人操作，也应确认备份方式不会把自己锁出。",
-      "thought": "只走 Google Account Security Activity 通用入口，不保存邮件里的 tokenized review 链接。",
-      "priority": 98,
-      "links": [
-        {
-          "label": "Google account security activity",
-          "url": "https://myaccount.google.com/notifications"
         }
       ]
     },
@@ -360,12 +386,12 @@
     {
       "id": "openai-official-limited-20260715",
       "kind": "signal",
-      "title": "OpenAI 相关发布：今天只能看 API changelog，News/Release Notes 未官方核验",
+      "title": "OpenAI 相关发布：News/Release Notes 受限，API changelog 可核验",
       "source": "OpenAI API Changelog / Latent.Space / The Batch",
       "sourceStatus": "未官方核验",
-      "summary": "本轮 OpenAI News 和 ChatGPT Release Notes 仍返回 Cloudflare 403；API changelog 可访问。Latent/The Batch 有 OpenAI 模型发布叙事，但不应标成官方核验。",
+      "summary": "本轮 OpenAI News 和 ChatGPT Release Notes 仍返回 Cloudflare 403；API changelog 可访问且 last-modified 为 2026-07-15。Latent/The Batch 有 OpenAI 模型发布叙事，但不应标成官方核验。",
       "why": "这防止把 newsletter 的二手模型发布说法当成官方事实。",
-      "thought": "如果要深入 OpenAI 变化，先从 API changelog 看可核验 API 变更，再等官方页面可访问。",
+      "thought": "如果要深入 OpenAI 变化，先从 API changelog 看可核验 API 变更，再等官方 News/Release Notes 可访问。",
       "priority": 66,
       "links": [
         {
@@ -383,14 +409,14 @@
       ]
     },
     {
-      "id": "paper-use-20260715",
+      "id": "paper-use-20260715-afternoon",
       "kind": "paper",
-      "title": "论文入口：多麦克风输出驱动 SE + 超轻量 CoFi-Lite",
+      "title": "论文入口：超轻量 CoFi-Lite + 多麦克风输出驱动 SE",
       "source": "arXiv / start-my-day 2026-07-15",
       "sourceStatus": "本地推荐池",
-      "summary": "推荐先看 `Listen first: Output-based multi-microphone speech enhancement`：它把 beamformer 选择从输入特征估计改为输出质量评估，和低 SNR、hearing-aid 场景有关。可顺手回看 `CoFi-Lite`：12.87M MACs/s、83.12k 参数的超轻量 SE，对 edge/audio 部署有参考价值。",
-      "why": "一个偏多麦克风决策范式，一个偏轻量模型结构，正好覆盖你当前 USE 主线的鲁棒性和部署两端。",
-      "thought": "Tag: speech-enhancement, multi-mic-SE, beamforming, lightweight-SE, edge-audio；去 Obsidian 推荐池索引继续筛。",
+      "summary": "推荐先看 `CoFi-Lite: Pushing the Limits of Ultra-Lightweight Speech Enhancement`：它用 coarse/fine 双路径和 Cross-Path Fusion，把模型压到 12.87M MACs/s、83.12k 参数。再看 `Listen first: Output-based multi-microphone speech enhancement`：它用输出质量评估选择 MPDR beamformer，在低 SNR 下优于输入驱动 MVDR baseline。",
+      "why": "一个偏轻量部署，一个偏多麦克风决策范式，正好覆盖当前 USE 主线的 edge/audio 与鲁棒 beamforming 两端。",
+      "thought": "Tag: speech-enhancement, lightweight-SE, edge-audio, multi-mic-SE, beamforming；去 Obsidian 推荐池索引继续筛。",
       "priority": 70,
       "links": [
         {
