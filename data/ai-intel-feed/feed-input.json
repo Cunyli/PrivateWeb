@@ -1,40 +1,105 @@
 {
-  "date": "2026-07-14",
-  "overview": "今天主线是 agent/coding-agent 从采用量叙事转向可验证工作流；个人侧先处理 DataCrunch 安全变更和 AYY/Ryanair 时间点；论文侧保留轻量 SE 入口。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 共 10 个公开源；Gmail 仅查 LinkedIn 与个人行动项；OpenAI News/ChatGPT Release Notes 403 受限，API changelog 可访问；0 个可信候选因缺少 URL 跳过。",
+  "date": "2026-07-15",
+  "overview": "今天主线是 coding agent 从“能修”转向“先理解仓库再修”；个人侧优先处理 Supabase RLS 安全警报和 DataCrunch Google 安全变更；论文侧保留多麦克风 SE 与超轻量 SE 的阅读入口。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 共 10 个公开源；Gmail 仅查 LinkedIn 与个人行动项，sent 36h 无命中；OpenAI News/ChatGPT Release Notes 403 受限，API changelog 可访问；0 个可信候选因缺少 URL 跳过。",
   "overflow": {
-    "summary": "Medium 泛化 AI 文章、重复 agent 工具帖、低相关 LinkedIn 岗位和已多轮出现的 speech-enhancement 论文被压到候选池或自然丢弃。",
+    "summary": "Medium 泛化 AI 工具帖、重复 agent 叙事、低相关 LinkedIn 社交通知和已多轮出现的 speech-enhancement 论文被压到候选池或自然丢弃。",
     "counts": {
-      "candidates": 15,
-      "overflow": 11,
+      "candidates": 16,
+      "overflow": 13,
       "duplicates": 5,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "Agent 工具与工作流文章拥挤",
-        "count": 10,
-        "note": "公开源里多条 agent/loop/planning/feedback 文章共享大主题，主页面只保留能改变本地 Codex 工作流判断的几条。"
-      },
-      {
-        "title": "Speech enhancement 论文密集",
+        "title": "Agent/coding-agent 内容拥挤",
         "count": 12,
-        "note": "arXiv recent 里 USE/轻量化/多通道候选很多，但页面只保留 1 个推荐池入口，避免把 HTML 变成论文日报。"
+        "note": "公开源里多条 agent loop、workflow、repo-knowledge 和采用量文章共享主题，主页面只保留能改变本地工作流判断的信号。"
       },
       {
-        "title": "个人邮件动作偏多",
-        "count": 8,
-        "note": "账号安全、搬家、航班、LinkedIn 消息和职位都出现了；只保留会过期或需要确认的三项进入主块。"
+        "title": "Speech enhancement 论文继续密集",
+        "count": 10,
+        "note": "arXiv recent 有多麦克风、轻量化、beamforming、codec denoising 等候选；HTML 只保留一个推荐池入口。"
+      },
+      {
+        "title": "个人安全/行程提醒偏多",
+        "count": 6,
+        "note": "Google/DataCrunch、Supabase、Zotero/InfiniCloud 验证码和 Ryanair 都出现了；只保留需要用户判断或会过期的事项。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Data for Agents",
+      "title": "Know Before Fix: QA-Driven Repository Knowledge Acquisition for Software Issue Resolution",
+      "source": "Hugging Face Daily Papers",
+      "reason": "和 coding agent 修复前探索直接相关，已进入主块，候选池保留 HF 入口方便回看。",
+      "priority": 83,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.11111"
+        }
+      ]
+    },
+    {
+      "title": "Multi-Agent LLMs Fail to Explore Each Other",
+      "source": "Hugging Face Daily Papers",
+      "reason": "多智能体可靠性信号强，但主页面已有单块承载。",
+      "priority": 87,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.11250"
+        }
+      ]
+    },
+    {
+      "title": "5 Trends That Defined AI Engineering at World's Fair 2026",
+      "source": "Latent.Space / AINews",
+      "reason": "宏观 AI engineering 判断有用，但不应覆盖更具体的 repo-knowledge/coding-agent 信号。",
+      "priority": 76,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/aiewf26trends"
+        }
+      ]
+    },
+    {
+      "title": "Codex usage up >10x in 6 months",
+      "source": "Latent.Space / AINews",
+      "reason": "采用量很吸睛，但需要和官方/产品数据交叉看；作为 watch 不当作独立事实主线。",
+      "priority": 76,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-codex-usage-up-10x-in-6-months"
+        }
+      ]
+    },
+    {
+      "title": "Profiling in PyTorch (Part 3): Attention is all you profile",
       "source": "Hugging Face Blog",
-      "reason": "直接支撑 agent 数据集/反馈闭环主题，但主块已用综合判断承载，不单独占阅读位。",
+      "reason": "对 LLM/audio runtime profiling 有价值，主块已保留。",
       "priority": 72,
       "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/torch-attention-profile"
+        }
+      ]
+    },
+    {
+      "title": "Data for Agents",
+      "source": "Hugging Face Blog",
+      "reason": "支撑 agent 数据/反馈闭环主题，但已多轮出现，今天只作为背景入口。",
+      "priority": 72,
+      "status": "duplicate",
       "links": [
         {
           "label": "HF Blog",
@@ -45,7 +110,7 @@
     {
       "title": "Native-speed vLLM transformers modeling backend",
       "source": "Hugging Face Blog",
-      "reason": "推理栈相关且值得回看；主块已保留，候选池留作后续讨论入口。",
+      "reason": "推理栈值得回看，但今天主阅读位优先给 attention profiling。",
       "priority": 72,
       "status": "candidate",
       "links": [
@@ -56,9 +121,35 @@
       ]
     },
     {
+      "title": "Restoration of Claude Fable 5, Gemini's Video Dev Engine, DeepSeek Speeds Up Speculative Decoding",
+      "source": "DeepLearning.AI The Batch",
+      "reason": "The Batch 里 agentic coding loops 相关段落有用，但主题块已覆盖。",
+      "priority": 70,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-361"
+        }
+      ]
+    },
+    {
+      "title": "What is LLM Observability",
+      "source": "Medium Data Science Collective",
+      "reason": "概念相关但 Medium 单篇质量需读后确认，先不进主块。",
+      "priority": 52,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://medium.com/data-science-collective/what-is-llm-observability-6d1afd441e38"
+        }
+      ]
+    },
+    {
       "title": "Let the Agent Complain: A Feedback Loop for Better AI Tools",
       "source": "Medium Data Science Collective",
-      "reason": "和失败样本回流机制相关，但 Medium 单篇质量需读后再确认。",
+      "reason": "和失败样本回流机制相关，但不是今天最高信号。",
       "priority": 52,
       "status": "candidate",
       "links": [
@@ -69,101 +160,24 @@
       ]
     },
     {
-      "title": "You don't need thinking levels in Claude Code. You need Planning and Goal modes.",
-      "source": "Medium Data Science Collective",
-      "reason": "和 Codex/agent 操作模式相关，但还不是必须行动的事实源。",
-      "priority": 52,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://medium.com/data-science-collective/you-dont-need-thinking-levels-in-claude-code-you-need-planning-and-goal-modes-2f328e56fba0"
-        }
-      ]
-    },
-    {
-      "title": "Loop Engineering: The AI Skill Everyone Will Need in 2026",
-      "source": "Medium AI agents tag",
-      "reason": "The Batch 也在讲 agentic coding loops；先保留为同主题候选，避免重复占主阅读位。",
-      "priority": 52,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://medium.com/data-science-collective/loop-engineering-the-ai-skill-everyone-will-need-in-2026-347ad3559ea0"
-        }
-      ]
-    },
-    {
-      "title": "OpenAI launches GPT 5.6...",
-      "source": "Latent.Space / The Batch",
-      "reason": "OpenAI News 和 ChatGPT Release Notes 本轮仍 403，相关模型发布叙事保留为 watch，不当作已官方核验事实。",
-      "priority": 76,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-openai-launches-gpt-56-solterraluna"
-        },
-        {
-          "label": "The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-360"
-        },
-        {
-          "label": "API changelog",
-          "url": "https://developers.openai.com/api/docs/changelog"
-        }
-      ]
-    },
-    {
-      "title": "How to Fix Problems with Your AI Tools",
-      "source": "Artificial Intelligence Made Simple",
-      "reason": "和 AI 工具失效/修复相关，但主块已经用 agent workflow 综合主题覆盖。",
-      "priority": 62,
+      "title": "Listen first: Output-based multi-microphone speech enhancement",
+      "source": "arXiv / start-my-day",
+      "reason": "paper block 已推荐；候选池保留 arXiv 入口方便之后单独讨论。",
+      "priority": 70,
       "status": "candidate",
       "links": [
         {
-          "label": "AISimple",
-          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-fix-problems-with-your-ai"
-        }
-      ]
-    },
-    {
-      "title": "EgoSteer: steerable dexterous manipulation from egocentric videos",
-      "source": "Hugging Face Daily Papers",
-      "reason": "HF 今日热度最高但偏机器人操作，不直接进入你的 speech/agent/runtime 主线。",
-      "priority": 90,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.09701"
-        },
-        {
-          "label": "Project",
-          "url": "https://egosteer.github.io/#/"
-        }
-      ]
-    },
-    {
-      "title": "MET: Culture-Aware Multilingual Moral Reasoning",
-      "source": "Hugging Face Daily Papers",
-      "reason": "评测/对齐方向有质量，但和当前 USE、agent runtime、求职动作距离较远。",
-      "priority": 85,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.11736"
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2607.12529"
         }
       ]
     },
     {
       "title": "CoFi-Lite: ultra-lightweight speech enhancement",
       "source": "arXiv / start-my-day",
-      "reason": "paper block 已推荐；候选池保留 arXiv 入口方便之后单独讨论。",
+      "reason": "仍是最高分 USE 候选，但已出现多轮，本轮和新多麦克风论文一起轻量提醒。",
       "priority": 72,
-      "status": "candidate",
+      "status": "duplicate",
       "links": [
         {
           "label": "arXiv",
@@ -172,35 +186,22 @@
       ]
     },
     {
-      "title": "Improving multichannel speech enhancement through accurate room-acoustic simulations",
+      "title": "Where Speech Enhancement Hurts Recognition",
       "source": "arXiv / start-my-day",
-      "reason": "分数仍高但前几轮已多次出现，本轮作为重复候选保留。",
-      "priority": 70,
-      "status": "duplicate",
+      "reason": "ASR mismatch 诊断和当前语音增强研究高度相关，但本轮 paper 主块名额有限。",
+      "priority": 64,
+      "status": "watch",
       "links": [
         {
           "label": "arXiv",
-          "url": "https://arxiv.org/abs/2606.31552"
-        }
-      ]
-    },
-    {
-      "title": "Ranking the Impact of Contextual Specialization in Neural Speech Enhancement",
-      "source": "arXiv / start-my-day",
-      "reason": "高度相关但已反复出现，本轮不再挤占 paper 主块。",
-      "priority": 68,
-      "status": "duplicate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.04826"
+          "url": "https://arxiv.org/abs/2607.11157"
         }
       ]
     },
     {
       "title": "Yikun LinkedIn message",
       "source": "LinkedIn message",
-      "reason": "有 2 条消息待回复，但这几轮已多次出现；本轮先把更会过期的账号/搬家/航班放进主 action。",
+      "reason": "仍有 2 条 LinkedIn 消息可回复，但今天更高优先级是安全警报和 RLS。",
       "priority": 60,
       "status": "watch",
       "links": [
@@ -211,9 +212,22 @@
       ]
     },
     {
+      "title": "Hire Feed AI/ML Engineer Remote",
+      "source": "LinkedIn Job Alert",
+      "reason": "远程和薪资信号明确，适合手动筛；不混进学习主信息流。",
+      "priority": 54,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4439790078"
+        }
+      ]
+    },
+    {
       "title": "Norrin AI Engineer Stockholm",
       "source": "LinkedIn Job Alert",
-      "reason": "瑞典 AI Engineer，可以和近期职位一起手动筛；不混进学习主信息流。",
+      "reason": "瑞典 AI Engineer，可与近期职位一起人工筛选。",
       "priority": 52,
       "status": "candidate",
       "links": [
@@ -222,78 +236,103 @@
           "url": "https://www.linkedin.com/jobs/view/4379430488"
         }
       ]
-    },
-    {
-      "title": "Hire Feed AI/ML Engineer Remote",
-      "source": "LinkedIn Job Alert",
-      "reason": "远程和薪资信号明确，但岗位质量需要打开 LinkedIn 后人工筛。",
-      "priority": 50,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4439790078"
-        }
-      ]
     }
   ],
   "blocks": [
     {
-      "id": "agent-workflow-adoption-feedback-20260714-evening",
-      "kind": "theme",
-      "title": "Agent 工作流：今天最值得看的是“采用量、数据、反馈要一起看”",
-      "source": "Latent.Space / Hugging Face Blog / Medium",
-      "sourceStatus": "综合判断",
-      "summary": "Latent.Space 把 Codex 使用量增长作为今天的主线，HF 的 Data for Agents 和 Medium 的 agent feedback loop 则提醒：adoption 只是结果，数据、失败样本和反馈闭环才决定 agent 是否能长期变好。",
-      "why": "这直接影响你的本地 Codex/自动化工作：不要只看工具能不能跑，要看失败是否能沉淀成下一轮可验证输入。",
-      "thought": "今天读这组时只问一个问题：我的工作流有没有把失败样本转成候选池、测试或下一轮提示约束。",
-      "priority": 95,
+      "id": "supabase-rls-security-20260715",
+      "kind": "action",
+      "title": "Supabase 项目 RLS：先确认 public 表是否应该公开",
+      "source": "Gmail private fallback / Supabase 2026-07-14",
+      "sourceStatus": "行动项",
+      "summary": "Supabase security advisor 报告 `Cunyli's Project` 有 public table 未启用 Row-Level Security，邮件标为 critical issue。",
+      "why": "这是数据暴露风险，比普通 newsletter 或岗位提醒更需要先处理。",
+      "thought": "不要点邮件里的退订或追踪链接；直接登录 Supabase Dashboard，进该项目的 Advisors/Security 检查 RLS。",
+      "priority": 100,
       "links": [
         {
-          "label": "Latent.Space Codex usage",
-          "url": "https://www.latent.space/p/ainews-codex-usage-up-10x-in-6-months"
+          "label": "Supabase project security advisor",
+          "url": "https://supabase.com/dashboard/project/ncytmmujlnhscchfujkc/advisors/security"
+        },
+        {
+          "label": "Supabase database advisors docs",
+          "url": "https://supabase.com/docs/guides/database/database-advisors"
+        }
+      ]
+    },
+    {
+      "id": "datacrunch-google-security-20260715",
+      "kind": "action",
+      "title": "DataCrunch Google 账号：确认 2SV/passkey/恢复请求都是本人操作",
+      "source": "Gmail private fallback / Google 2026-07-14",
+      "sourceStatus": "行动项",
+      "summary": "Google 给 DataCrunch 工作账号发来 2-Step Verification turned on、sign-in recovery request、new passkey added 三类安全提醒。",
+      "why": "如果这些不是你本人操作，就属于账号接管风险；如果是本人操作，也应确认备份方式不会把自己锁出。",
+      "thought": "只走 Google Account Security Activity 通用入口，不保存邮件里的 tokenized review 链接。",
+      "priority": 98,
+      "links": [
+        {
+          "label": "Google account security activity",
+          "url": "https://myaccount.google.com/notifications"
+        }
+      ]
+    },
+    {
+      "id": "repo-knowledge-before-fix-20260715",
+      "kind": "theme",
+      "title": "Coding agent：今天最值得看的是“先问仓库，再动补丁”",
+      "source": "Hugging Face Daily Papers / Latent.Space / HF Blog / The Batch",
+      "sourceStatus": "综合判断",
+      "summary": "HF Daily Papers 的 repo knowledge acquisition 论文把问题说得很直接：coding agent 在修 issue 前缺少仓库事实会产生错误修复。Latent 和 The Batch 的 agent/coding-loop 讨论说明采用量和循环能力在上升，但真正瓶颈开始转向可验证上下文。",
+      "why": "这和你本地 Codex 工作流完全贴合：先读真实文件、测试、日志和约束，再让 agent 改代码。",
+      "thought": "后续评估 coding agent 时，不只看 benchmark 分数，也看它是否能形成可审计的 repo knowledge 和 failure evidence。",
+      "priority": 92,
+      "links": [
+        {
+          "label": "Know Before Fix",
+          "url": "https://huggingface.co/papers/2607.11111"
+        },
+        {
+          "label": "Latent.Space AI Engineering trends",
+          "url": "https://www.latent.space/p/aiewf26trends"
         },
         {
           "label": "HF Data for Agents",
           "url": "https://huggingface.co/blog/nvidia/open-data-for-agents"
         },
         {
-          "label": "Agent feedback loop",
-          "url": "https://medium.com/data-science-collective/let-the-agent-complain-a-feedback-loop-for-better-ai-tools-b55085f2ddd4"
+          "label": "The Batch issue 361",
+          "url": "https://www.deeplearning.ai/the-batch/issue-361"
         }
       ]
     },
     {
-      "id": "datacrunch-google-security-20260714",
-      "kind": "action",
-      "title": "DataCrunch Google 账号：确认这次恢复请求和 passkey 是本人操作",
-      "source": "Gmail private fallback / Google account alerts",
-      "sourceStatus": "行动项",
-      "summary": "Gmail 里有 lijie.li@datacrunch.io 的 Google 安全通知：2-Step Verification 已开启、收到登录恢复请求、随后新增 passkey。邮件包含敏感链接和恢复状态，本页只保留安全入口。",
-      "why": "如果这些不是你刚刚在 Verda/DataCrunch 上做的设置，风险比普通信息流高，需要立即确认并撤销异常恢复。",
-      "thought": "打开 Google 安全活动和 DataCrunch 控制台核对；不要从邮件里的 tokenized 链接操作。",
-      "priority": 100,
+      "id": "multi-agent-exploration-failure-20260715",
+      "kind": "signal",
+      "title": "Multi-agent LLMs：问题不是会不会对话，而是会不会互相探索",
+      "source": "Hugging Face Daily Papers 2026-07-14",
+      "sourceStatus": "公开源",
+      "summary": "`Multi-Agent LLMs Fail to Explore Each Other` 指出多智能体互动里会出现 myopic 和 polarized interaction patterns，探索能力不足会伤害可靠自治。",
+      "why": "这提醒不要把“多 agent 互相讨论”默认当成鲁棒性来源；它可能只是更有说服力地重复盲点。",
+      "thought": "用于本地 agent 设计时，应该显式要求反例搜索、状态差异检查和外部证据，而不是只增加 agent 数。",
+      "priority": 86,
       "links": [
         {
-          "label": "Google security activity",
-          "url": "https://myaccount.google.com/notifications"
-        },
-        {
-          "label": "DataCrunch console",
-          "url": "https://console.datacrunch.io/"
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.11250"
         }
       ]
     },
     {
-      "id": "hf-pytorch-attention-profile-20260714",
+      "id": "torch-attention-profile-20260715",
       "kind": "deep-read",
-      "title": "PyTorch attention profiling：别只看总耗时，要定位 attention 内部瓶颈",
-      "source": "Hugging Face Blog",
+      "title": "PyTorch profiling：attention 才是今天最值得补的 runtime 细节",
+      "source": "Hugging Face Blog 2026-07-10",
       "sourceStatus": "公开源",
-      "summary": "HF 的 profiling 系列新篇聚焦 attention profiling，适合把模型慢在哪里从“感觉”变成可测的 kernel/shape/内存证据。",
-      "why": "你最近关心推理、训练和音频模型效率，这类 profiling 方法比泛泛优化建议更可迁移。",
-      "thought": "读的时候重点看 profiling 流程和可复用检查清单，而不是只记某个 PyTorch API。",
-      "priority": 82,
+      "summary": "Hugging Face 的 PyTorch profiling 系列第三篇聚焦 attention profile，适合作为理解 LLM/audio runtime 性能瓶颈的技术读物。",
+      "why": "你最近在 LLM inference、vLLM、audio 模型训练/验证之间来回切换，profiling attention 比泛泛读优化技巧更能沉淀机制。",
+      "thought": "读的时候重点看 profiler 输出如何定位 attention kernel、memory 和 batch 维度，而不是只记结论。",
+      "priority": 78,
       "links": [
         {
           "label": "HF Blog",
@@ -302,32 +341,15 @@
       ]
     },
     {
-      "id": "hf-vllm-transformers-backend-20260714",
+      "id": "the-batch-agentic-coding-loops-20260715",
       "kind": "signal",
-      "title": "vLLM transformers backend：推理栈正在向“原生速度 + Transformers 接口”靠拢",
-      "source": "Hugging Face Blog",
-      "sourceStatus": "公开源",
-      "summary": "HF 的 native-speed vLLM transformers modeling backend 是一个 runtime 信号：模型开发接口和高性能 serving backend 的边界在继续变薄。",
-      "why": "这类变化会影响你以后选择 Transformers、vLLM、Triton 或 Jobs 训练/部署路径时的默认判断。",
-      "thought": "先把它当作 serving 栈方向信号：关注接口兼容、batching/KV cache 路径和实际模型覆盖范围。",
-      "priority": 78,
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/native-speed-vllm-transformers-backend"
-        }
-      ]
-    },
-    {
-      "id": "the-batch-agent-loop-specdec-20260714",
-      "kind": "signal",
-      "title": "The Batch：agentic coding loop 和 speculative decoding 都在强调“循环如何停”",
+      "title": "Agentic coding loops：循环条件比“多跑几轮”更关键",
       "source": "DeepLearning.AI The Batch",
       "sourceStatus": "公开源",
-      "summary": "The Batch issue 361 把 agentic coding loops、Gemini 视频开发引擎和 DeepSeek speculative decoding 放在一起看。共同点不是“更自动”，而是循环条件、验证条件和加速条件怎么设计。",
-      "why": "这和你现在的自动化很贴近：循环跑得久不重要，关键是停止条件、证据和失败回流是否清楚。",
-      "thought": "读完可以回看自己的自动化：哪些步骤应该有明确 stop condition，哪些只是习惯性继续跑。",
-      "priority": 75,
+      "summary": "The Batch issue 361 把 agentic coding loops 描述为 agent 持续工作直到满足某个条件；这和本地 Codex 的测试、证据和验收条件直接相关。",
+      "why": "如果停止条件只是“看起来修好了”，循环会放大错误；如果停止条件是测试、日志和人工约束，循环才有工程价值。",
+      "thought": "今天可以把这个当作 Codex 使用习惯提醒：每个长任务都要有明确可验证的 completion condition。",
+      "priority": 74,
       "links": [
         {
           "label": "The Batch issue 361",
@@ -336,32 +358,40 @@
       ]
     },
     {
-      "id": "legal-ai-trustworthy-concept-20260714",
-      "kind": "concept",
-      "title": "Truthworthy Legal AI：今天值得先弄懂的是“可追责输出”",
-      "source": "Artificial Intelligence Made Simple",
-      "sourceStatus": "公开源",
-      "summary": "AISimple 的法律 AI 文章虽然不直接是 research paper，但它把可信 AI 的问题放到高风险场景里：答案是否正确只是第一层，出处、责任边界、可审计性更关键。",
-      "why": "这能反过来帮助你理解 agent harness、workflow evidence 和公司账号安全：高风险自动化不能只追求便利。",
-      "thought": "把它当作概念块，不写词典；只记住今天的判断词是可追责输出。",
-      "priority": 62,
+      "id": "openai-official-limited-20260715",
+      "kind": "signal",
+      "title": "OpenAI 相关发布：今天只能看 API changelog，News/Release Notes 未官方核验",
+      "source": "OpenAI API Changelog / Latent.Space / The Batch",
+      "sourceStatus": "未官方核验",
+      "summary": "本轮 OpenAI News 和 ChatGPT Release Notes 仍返回 Cloudflare 403；API changelog 可访问。Latent/The Batch 有 OpenAI 模型发布叙事，但不应标成官方核验。",
+      "why": "这防止把 newsletter 的二手模型发布说法当成官方事实。",
+      "thought": "如果要深入 OpenAI 变化，先从 API changelog 看可核验 API 变更，再等官方页面可访问。",
+      "priority": 66,
       "links": [
         {
-          "label": "AISimple",
-          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-make-legal-ai-truthworthy"
+          "label": "OpenAI API changelog",
+          "url": "https://developers.openai.com/api/docs/changelog"
+        },
+        {
+          "label": "Latent.Space OpenAI watch",
+          "url": "https://www.latent.space/p/ainews-openai-launches-gpt-56-solterraluna"
+        },
+        {
+          "label": "The Batch issue 360",
+          "url": "https://www.deeplearning.ai/the-batch/issue-360"
         }
       ]
     },
     {
-      "id": "paper-use-cofi-lite-20260714",
+      "id": "paper-use-20260715",
       "kind": "paper",
-      "title": "论文入口：今天先看 CoFi-Lite 的超轻量语音增强",
-      "source": "arXiv / start-my-day",
+      "title": "论文入口：多麦克风输出驱动 SE + 超轻量 CoFi-Lite",
+      "source": "arXiv / start-my-day 2026-07-15",
       "sourceStatus": "本地推荐池",
-      "summary": "今天 paper block 只推荐 1 篇：CoFi-Lite: Pushing the Limits of Ultra-Lightweight Speech Enhancement。推荐理由是它把 full-band envelope 和 low-frequency detail 拆成粗/细两条路径，并用 Cross-Path Fusion 做低成本交互，目标非常贴近 edge/streaming SE。",
-      "why": "它比重复出现的 multichannel/room-acoustic 论文更新鲜，而且直接触到轻量化 USE 部署问题。",
-      "thought": "Tag: speech-enhancement, lightweight-SE, edge-audio, streaming-SE, model-compression。去 Obsidian 推荐池索引里决定是否开详细笔记。",
-      "priority": 72,
+      "summary": "推荐先看 `Listen first: Output-based multi-microphone speech enhancement`：它把 beamformer 选择从输入特征估计改为输出质量评估，和低 SNR、hearing-aid 场景有关。可顺手回看 `CoFi-Lite`：12.87M MACs/s、83.12k 参数的超轻量 SE，对 edge/audio 部署有参考价值。",
+      "why": "一个偏多麦克风决策范式，一个偏轻量模型结构，正好覆盖你当前 USE 主线的鲁棒性和部署两端。",
+      "thought": "Tag: speech-enhancement, multi-mic-SE, beamforming, lightweight-SE, edge-audio；去 Obsidian 推荐池索引继续筛。",
+      "priority": 70,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
@@ -370,40 +400,19 @@
       ]
     },
     {
-      "id": "ayy-moving-20260803",
-      "kind": "action",
-      "title": "AYY 搬家：8 月 3 日前确认清理、钥匙和公共区域责任",
-      "source": "Gmail private fallback / AYY Housing",
-      "sourceStatus": "行动项",
-      "summary": "AYY 今天连续提醒：2026-08-03 是 8 月搬家日；搬出时要清空并清洁自己的房间和公共区域，储物间要清空，AYY 锁留在门上，只归还钥匙。",
-      "why": "这是会产生费用的现实动作，且需要和室友/新租客协调，不能混在普通 newsletter 里自然消失。",
-      "thought": "先确认你属于 apartment-specific 还是 non-apartment-specific storage，再决定钥匙交接或归还方式。",
-      "priority": 88,
-      "links": [
-        {
-          "label": "AYY departing residents",
-          "url": "https://ayyasunnot.fi/en/for-residents/departing-residents/"
-        },
-        {
-          "label": "AYY housing guide",
-          "url": "https://ayyasunnot.fi/en/for-residents/housing-guide/"
-        }
-      ]
-    },
-    {
       "id": "ryanair-shannon-20260722",
       "kind": "action",
-      "title": "Ryanair 7 月 22 日 Shannon：先记住 22:15 gate closes",
-      "source": "Gmail private fallback / Ryanair",
+      "title": "7 月 22 日 Shannon 航班：记住 22:15 gate closes",
+      "source": "Gmail private fallback / Ryanair 2026-07-14",
       "sourceStatus": "行动项",
-      "summary": "Ryanair 邮件提示 2026-07-22 Shannon 航班 22:45 起飞、22:15 gate closes、00:15 落地。本页不保存预订号或邮件追踪链接。",
-      "why": "这是明确时间点的 travel action，适合留在待处理里直到你确认行程和值机状态。",
-      "thought": "用 Ryanair 官方入口或 app 查值机/行程；不要从邮件追踪链接进入。",
-      "priority": 80,
+      "summary": "Ryanair 邮件提醒 2026-07-22 Shannon 航班 22:45 起飞，gate closes 22:15，00:15 到达。",
+      "why": "这是会过期的行程时间点，适合保留为待处理提醒；不保存预订号或邮件 redirect 链接。",
+      "thought": "出发前只用 Ryanair 官网或 app 管理 booking，不从邮件追踪链接进入。",
+      "priority": 62,
       "links": [
         {
-          "label": "myRyanair",
-          "url": "https://www.ryanair.com/ie/en/lp/myryanair"
+          "label": "Ryanair check-in",
+          "url": "https://www.ryanair.com/gb/en/lp/check-in"
         }
       ]
     }
