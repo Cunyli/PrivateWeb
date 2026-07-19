@@ -1,102 +1,89 @@
 {
-  "date": "2026-07-18",
-  "overview": "今天最高优先级是 7 月 22 日 Shannon 航班时间和 agent/eval 可靠性信号；论文入口继续偏向轻量与多麦克风 SE。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium；Gmail 仅查 LinkedIn、Ryanair 与个人行动项；OpenAI News/Release Notes 403，API changelog 可访问；0 个公开候选因缺 URL 跳过。",
+  "date": "2026-07-19",
+  "overview": "今天最高优先级是先确认 Google macOS 授权与 7 月 22 日 Shannon 航班；技术阅读聚焦 agent harness/eval、HF 安全公告和轻量/多麦克风 SE。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium；Gmail 仅查 LinkedIn、Ryanair、Google 安全与个人行动项；OpenAI News/Release Notes 403，API changelog 与 Anthropic News 可访问；0 个公开候选因缺 URL 跳过。",
   "overflow": {
-    "summary": "开源大模型、agent eval、Medium 泛 AI 文章和 LinkedIn 职位较多，主页面只保留会影响今天判断或行动的内容。",
+    "summary": "公开源候选集中在 agent eval、开源模型发布、Medium 泛 AI 方法论和职位提醒，主页面只保留会影响今天判断或行动的内容。",
     "counts": {
-      "candidates": 40,
+      "candidates": 38,
       "overflow": 18,
       "duplicates": 4,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "开源大模型发布密集",
-        "count": 4,
-        "note": "Kimi K3、Inkling 与 The Batch 的 GPT-5.6 讨论相近，合并成一个模型路线主题。"
-      },
-      {
-        "title": "Agent eval/状态边界",
+        "title": "Agent harness 与 eval 继续拥挤",
         "count": 6,
-        "note": "harness evolution、agent 产品化、QA map、Google/Perplexity/HN eval 线索同向，主页面保留最实用入口。"
+        "note": "HF Daily Papers、HF Blog Shippy、The Batch 和多篇 Medium 都在谈 agent loop/skills/eval，主页面保留论文和工程复盘入口。"
       },
       {
-        "title": "LinkedIn job/social 噪声",
+        "title": "开源模型发布与模型路线",
+        "count": 5,
+        "note": "Kimi K3、Inkling、The Batch 模型新闻和 HF 训练栈更新同向，今天合并为候选而非逐条进入主块。"
+      },
+      {
+        "title": "职位与 LinkedIn 社交噪声",
         "count": 12,
-        "note": "只保留有 canonical jobs/view 或明确消息待查的项目，社交推荐和追踪链接跳过。"
+        "note": "只保留 canonical jobs/view、Storytel careers 和通用消息入口；profile view、newsletter、促销和邮件追踪链接跳过。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Rethinking the Evaluation of Harness Evolution for Agents",
+      "title": "Chat2Scenic: Iterative RAG scenario generation",
       "source": "Hugging Face Daily Papers",
-      "reason": "agent harness 评估协议直接相关，但主信息流已有同主题最高块。",
-      "priority": 1,
+      "reason": "自动驾驶场景生成有方法参考价值，但不直接影响今天的 speech/agent 主线。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.12227"
+          "url": "https://huggingface.co/papers/2607.14387"
         },
         {
           "label": "Project",
-          "url": "https://github.com/rethinking-harness-evolution"
+          "url": "https://anonymous-research-paper.github.io/Chat2Scenic/"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/TUM-AVS/Chat2scenic"
         }
       ]
     },
     {
-      "title": "Wandr Benchmark: Evaluating Research Agents That Must Search Wide and Deep",
-      "source": "Perplexity Research / HN",
-      "reason": "研究型 agent eval 值得回看；HN 热度较低，先放候选。",
+      "title": "Hierarchical Denoising for Multi-Step Visual Reasoning",
+      "source": "Hugging Face Daily Papers",
+      "reason": "视觉推理和 diffusion 架构相关，但今天不如 agent eval 与 SE 论文紧贴。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "Perplexity Research",
-          "url": "https://research.perplexity.ai/articles/wandr-benchmark-evaluating-research-agents-that-must-search-wide-and-deep"
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.15278"
         },
         {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48962343"
+          "label": "Project",
+          "url": "https://hierarchical-diffusion-reasoning.github.io/"
         }
       ]
     },
     {
-      "title": "Frontier and Center: Who evaluates the evaluations?",
-      "source": "Google Cloud Blog / HN",
-      "reason": "agent performance evaluation 的官方工程视角，适合和 harness 论文对读。",
-      "priority": 2,
+      "title": "On Locality and Length Generalization in Visual Reasoning",
+      "source": "Hugging Face Daily Papers",
+      "reason": "局部视觉推理可作为模型归纳偏置材料，暂不进入主阅读面。",
+      "priority": 3,
       "status": "candidate",
       "links": [
         {
-          "label": "Google Cloud Blog",
-          "url": "https://cloud.google.com/blog/products/data-analytics/evaluate-agent-performance/"
-        },
-        {
-          "label": "HN discussion",
-          "url": "https://news.ycombinator.com/item?id=48962695"
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.09061"
         }
       ]
     },
     {
-      "title": "Security incident disclosure — July 2026",
+      "title": "Fine-tune video and image models with NVIDIA NeMo Automodel and Diffusers",
       "source": "Hugging Face Blog",
-      "reason": "安全公告保留为复查入口；主块已覆盖。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/security-incident-july-2026"
-        }
-      ]
-    },
-    {
-      "title": "Fine-tune video and image models at scale with NVIDIA NeMo Automodel and Diffusers",
-      "source": "Hugging Face Blog",
-      "reason": "训练栈更新有用，但今天不如 agent/eval 和安全信号紧急。",
+      "reason": "训练栈更新可回看，但今天优先级低于安全与 agent runtime。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -107,9 +94,65 @@
       ]
     },
     {
-      "title": "DeepSeek Speeds Up Speculative Decoding",
+      "title": "Newer Models, Same Advantage",
+      "source": "Hugging Face Blog",
+      "reason": "模型评测/优势叙事可读，但需要和更强官方或 benchmark 来源对照。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/Dharma-AI/newer-models-same-advantages"
+        }
+      ]
+    },
+    {
+      "title": "Kimi K3 2.8T-A50B 与 Inkling 开源模型周",
+      "source": "Latent.Space / AINews",
+      "reason": "开源大模型发布值得回看，但今天没有直接行动点，合并为模型路线候选。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Kimi K3",
+          "url": "https://www.latent.space/p/ainews-kimi-k3-28t-a50b-the-largest"
+        },
+        {
+          "label": "Inkling",
+          "url": "https://www.latent.space/p/ainews-thinkys-inkling-975b-a41b"
+        }
+      ]
+    },
+    {
+      "title": "The Lab of the Future Should Feel Like a Data Center",
+      "source": "Latent.Space / AINews",
+      "reason": "AI for science 方向有启发，但不是今天主线。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/the-lab-of-the-future-should-feel"
+        }
+      ]
+    },
+    {
+      "title": "The Batch issue 362: AI Overviews, reasoning loops, manipulative models",
       "source": "DeepLearning.AI The Batch",
-      "reason": "推理优化主题可读，但今天只作候选。",
+      "reason": "新闻综述质量尚可，但其中 OpenAI/Google 相关主张需要官方页再核验。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "The Batch issue 362",
+          "url": "https://www.deeplearning.ai/the-batch/issue-362"
+        }
+      ]
+    },
+    {
+      "title": "DeepSeek speculative decoding 与 agentic coding loops",
+      "source": "DeepLearning.AI The Batch",
+      "reason": "推理优化和 agent loop 值得候选保留，但不是今天最高价值入口。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -120,78 +163,77 @@
       ]
     },
     {
-      "title": "What is LLM Observability",
-      "source": "Medium Data Science Collective",
-      "reason": "工程概念可读但来源质量一般，低优先级候选。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://medium.com/data-science-collective/what-is-llm-observability-6d1afd441e38"
-        }
-      ]
-    },
-    {
-      "title": "Not All Memories Are Equal",
-      "source": "Medium AI agents tag",
-      "reason": "agent memory 主题贴合，但需要后续用更强来源核验。",
+      "title": "Spec-Driven Development Workflow From Requirements to Code",
+      "source": "Medium Level Up Coding",
+      "reason": "和 Codex 工作流相关，但来源较轻，作为候选而非主块。",
       "priority": 3,
       "status": "watch",
       "links": [
         {
           "label": "Article",
-          "url": "https://medium.com/@ruxiz2005/not-all-memories-are-equal-5b3d8731323e"
+          "url": "https://levelup.gitconnected.com/spec-driven-development-workflow-from-requirements-to-code-80b53f73fc00"
         }
       ]
     },
     {
-      "title": "AI/ML Engineer (Remote) — Hire Feed, UK/Ireland",
+      "title": "Contextual Anchoring 与 hallucination 方法论",
+      "source": "Medium AI tag",
+      "reason": "概念可读但质量不稳定，先作为低优先级候选。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://medium.com/@sokombakuram/contextual-anchoring-how-to-feed-ai-the-why-to-prevent-hallucinations-in-the-what-dea05ecafa71"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn AI/ML 与 AI Agent 职位候选",
       "source": "LinkedIn Jobs",
-      "reason": "职位线索单独保留为行动候选，不混入学习流。",
+      "reason": "职位线索单独保留，不混进学习主信息流。",
       "priority": 2,
       "status": "watch",
       "links": [
         {
-          "label": "UK job",
-          "url": "https://www.linkedin.com/jobs/view/4441931592"
+          "label": "Hire Feed AI/ML Netherlands",
+          "url": "https://www.linkedin.com/jobs/view/4442421738"
         },
         {
-          "label": "Ireland job",
-          "url": "https://www.linkedin.com/jobs/view/4441926930"
+          "label": "Hire Feed AI/ML UK",
+          "url": "https://www.linkedin.com/jobs/view/4442428397"
+        },
+        {
+          "label": "Corafone Junior AI Agent Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4442449386"
+        },
+        {
+          "label": "SEB AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4441977427"
         }
       ]
     },
     {
-      "title": "Staff AI Engineer — Grafana Labs, Sweden remote",
-      "source": "LinkedIn Jobs",
-      "reason": "岗位高级但方向相关，先候选不进主块。",
+      "title": "Storytel Analytics/Data Engineer",
+      "source": "Storytel Careers",
+      "reason": "真实 careers 链接可点击，但岗位方向偏 data engineering，先候选。",
       "priority": 3,
       "status": "watch",
       "links": [
         {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4441475909"
-        }
-      ]
-    },
-    {
-      "title": "Machine Learning Engineer — Prima, London remote",
-      "source": "LinkedIn Jobs",
-      "reason": "可筛选的 ML 职位；保留 canonical job URL。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
+          "label": "Analytics Engineer",
+          "url": "https://jobs.storytel.com/jobs/8090471-analytics-engineer"
+        },
         {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4278525494"
+          "label": "Senior Data Engineer",
+          "url": "https://jobs.storytel.com/jobs/8090473-senior-data-engineer"
         }
       ]
     },
     {
       "title": "CoFi-Lite 与 Listen first 之外的 SE 候选",
       "source": "arXiv / start-my-day",
-      "reason": "Ranking Contextual Specialization、Room-acoustic Simulation、AmbiDrop 等进入论文候选池，主块只放 2 篇。",
+      "reason": "Ranking Contextual Specialization、Room-acoustic Simulation、WNG-MVDR 等值得后续进推荐池，但主块只放 2 篇。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -204,15 +246,15 @@
           "url": "https://arxiv.org/abs/2606.31552"
         },
         {
-          "label": "AmbiDrop",
-          "url": "https://arxiv.org/abs/2607.00548"
+          "label": "WNG-MVDR",
+          "url": "https://arxiv.org/abs/2606.24137"
         }
       ]
     },
     {
       "title": "OpenAI API changelog",
       "source": "OpenAI Developers",
-      "reason": "API changelog 可访问，但 News/Release Notes 官方页本轮被 Cloudflare challenge；先作为核验入口。",
+      "reason": "API changelog 可访问，News/ChatGPT Release Notes 本轮仍被 Cloudflare challenge，先作为核验入口。",
       "priority": 2,
       "status": "watch",
       "links": [
@@ -225,94 +267,52 @@
   ],
   "blocks": [
     {
+      "id": "google-macos-access-20260719",
+      "kind": "action",
+      "title": "Google 账号：确认 macOS 授权是不是本人操作",
+      "source": "Gmail private fallback，2026-07-19 17:20 EEST",
+      "sourceStatus": "行动项",
+      "summary": "Google 发来安全提醒：有一个“macOS”应用被授权访问部分账号数据。如果这是你刚刚在本机触发的系统登录，确认即可；如果不是，要立刻看账号活动和撤销授权。",
+      "why": "账号授权属于 P0 私人安全事项，应该先于阅读流处理。",
+      "thought": "打开 Google 安全活动看时间和设备；若不认识这次授权，撤销 macOS 访问并改密码/检查 2FA。",
+      "priority": 0,
+      "links": [
+        {
+          "label": "Google 安全通知",
+          "url": "https://myaccount.google.com/notifications"
+        },
+        {
+          "label": "Google 第三方连接",
+          "url": "https://myaccount.google.com/connections"
+        }
+      ]
+    },
+    {
       "id": "ryanair-shannon-20260722",
       "kind": "action",
-      "title": "7 月 22 日 Shannon 航班：先记住 22:15 gate closes",
-      "source": "Ryanair 邮件 2026-07-18",
+      "title": "7 月 22 日 Shannon 航班：记住 22:15 gate closes",
+      "source": "Gmail private fallback，2026-07-19 17:18 EEST",
       "sourceStatus": "行动项",
-      "summary": "Ryanair 交通提醒里重复出现 Shannon (SNN) 7 月 22 日 22:45 起飞，gate closes 22:15，landing 00:15。邮件本身偏交通销售，但时间信息对当天行程有用。",
-      "why": "这是会过期的个人事项，比学习信息流更高优先级。",
-      "thought": "当天按 22:15 前完成登机口流程倒推，不保存邮件里的 reservation 或 tracking 链接。",
+      "summary": "Ryanair 提醒 7 月 22 日 Shannon 航班起飞 22:45、gate closes 22:15、落地 00:15。邮件主要是座位营销，但时间点本身需要保留。",
+      "why": "这是带具体时间的出行事项，错过会产生实际成本。",
+      "thought": "今天不用点邮件追踪链接；只确认 boarding pass、机场到达时间和当天交通。",
       "priority": 0,
       "links": [
         {
-          "label": "myRyanair",
-          "url": "https://www.ryanair.com/ie/en/lp/myryanair"
+          "label": "Ryanair check-in",
+          "url": "https://www.ryanair.com/ie/en/lp/check-in"
         }
       ]
     },
     {
-      "id": "linkedin-messages-check",
-      "kind": "action",
-      "title": "LinkedIn：有 5 条新消息，值得手动看一眼",
-      "source": "LinkedIn 邮件 2026-07-18",
-      "sourceStatus": "行动项",
-      "summary": "LinkedIn digest 只显示有 5 条新消息，没有给出可保存的 canonical 单条消息链接；这类内容不进入学习流，只作为个人待处理。",
-      "why": "可能包含 recruiter/项目沟通，但邮件摘要不足以判断事实。",
-      "thought": "直接打开 LinkedIn Messaging 看真实对话；不要从邮件 comm 链接进入或保存 tracking URL。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "LinkedIn Messaging",
-          "url": "https://www.linkedin.com/messaging/"
-        }
-      ]
-    },
-    {
-      "id": "linkedin-ai-jobs-screen",
-      "kind": "action",
-      "title": "LinkedIn 职位：只筛 AI/ML 和语音相关 canonical 链接",
-      "source": "LinkedIn Jobs 2026-07-18",
-      "sourceStatus": "行动项",
-      "summary": "今天 job alert 里最值得快速筛的是 Hire Feed AI/ML Engineer、Prima ML Engineer、Grafana Staff AI Engineer；其余 data/cloud/促销类职位放候选或丢弃。",
-      "why": "职位永远单独处理，不混进学习主信息流。",
-      "thought": "只看 canonical jobs/view 页面，合适再进入求职流程；无关社交推荐不用处理。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "Hire Feed AI/ML UK",
-          "url": "https://www.linkedin.com/jobs/view/4441931592"
-        },
-        {
-          "label": "Hire Feed AI/ML Ireland",
-          "url": "https://www.linkedin.com/jobs/view/4441926930"
-        },
-        {
-          "label": "Prima ML Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4278525494"
-        },
-        {
-          "label": "Grafana Staff AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4441475909"
-        }
-      ]
-    },
-    {
-      "id": "hf-security-july-2026",
-      "kind": "deep-read",
-      "title": "Hugging Face 安全公告：今天最值得读的公开源",
-      "source": "Hugging Face Blog 2026-07-16",
-      "sourceStatus": "官方/高质量源",
-      "summary": "HF Blog 公开发布 July 2026 security incident disclosure。对你现在频繁用 Hub、模型、paper/API 自动化的工作流来说，安全公告比泛 AI 新闻更应该先看。",
-      "why": "它影响账号、token、模型仓库和自动化凭据的风险判断。",
-      "thought": "先看官方公告的影响范围与建议动作；不要从 newsletter 或二手摘要推断安全事实。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/security-incident-july-2026"
-        }
-      ]
-    },
-    {
-      "id": "agent-eval-harness",
+      "id": "agent-harness-eval-20260719",
       "kind": "theme",
-      "title": "Agent eval：不要让 harness 自己考自己",
-      "source": "HF Daily Papers / Google Cloud Blog / Perplexity Research / HN",
+      "title": "Agent harness/eval：今天最值得看的是“评测不能复用训练过的环境”",
+      "source": "Hugging Face Daily Papers / HF Blog / The Batch",
       "sourceStatus": "综合判断",
-      "summary": "今天多个来源都指向同一个问题：agent 或 harness 的评估如果复用优化时的公开测试、单一任务路径或浅搜索，结论会虚高。更好的读法是看搜索宽度、真实任务状态、eval-of-evals 和回归协议。",
-      "why": "这直接影响你判断 Codex/agent 工具是否真的变强，而不是只在熟悉 benchmark 上变好。",
-      "thought": "把 agent 改进先拆成三件事：任务状态是否真实、测试是否隔离、失败是否能复现。",
+      "summary": "HF 今日论文指出 harness evolution 如果用同一公开 benchmark 搜索配置再报告成绩，会把环境本身变成被优化对象；HF Shippy 复盘和 The Batch 的 agentic coding loop 也都指向同一个问题：agent 成败越来越取决于循环、状态和验收条件。",
+      "why": "这直接影响你怎么看 Codex/Claude Code 这类长任务工具：模型能力之外，harness 和 eval 泄漏会制造虚假的进步感。",
+      "thought": "读论文时重点看它如何区分 search space、held-out tasks 和 final report；以后评估 agent 也要把可学习的环境边界写清楚。",
       "priority": 1,
       "links": [
         {
@@ -320,41 +320,12 @@
           "url": "https://huggingface.co/papers/2607.12227"
         },
         {
-          "label": "Google Cloud agent eval",
-          "url": "https://cloud.google.com/blog/products/data-analytics/evaluate-agent-performance/"
+          "label": "Project",
+          "url": "https://github.com/rethinking-harness-evolution"
         },
         {
-          "label": "Wandr benchmark",
-          "url": "https://research.perplexity.ai/articles/wandr-benchmark-evaluating-research-agents-that-must-search-wide-and-deep"
-        },
-        {
-          "label": "HN: agent quota resets",
-          "url": "https://news.ycombinator.com/item?id=48961157"
-        }
-      ]
-    },
-    {
-      "id": "open-models-effort-routing",
-      "kind": "theme",
-      "title": "开源模型周：重点不是参数量，是 effort、路由和许可",
-      "source": "Latent.Space / The Batch / HF Blog",
-      "sourceStatus": "综合判断",
-      "summary": "Latent.Space 连续追 Kimi K3 与 Inkling，The Batch 也把 GPT-5.6、DeepSeek speculative decoding 等放在同一周。今天读这些不必追每个模型榜单，重点是推理 effort、长上下文/路由、开源许可和可复现入口。",
-      "why": "它会影响本地/远端推理选择：模型大小不是唯一约束，token 预算和服务形态同样重要。",
-      "thought": "把 Kimi/Inkling/GPT-5.6 当成 inference-control 案例，而不是单纯排行榜新闻。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "AINews Kimi K3",
-          "url": "https://www.latent.space/p/ainews-kimi-k3-28t-a50b-the-largest"
-        },
-        {
-          "label": "AINews Inkling",
-          "url": "https://www.latent.space/p/ainews-thinkys-inkling-975b-a41b"
-        },
-        {
-          "label": "The Batch issue 360",
-          "url": "https://www.deeplearning.ai/the-batch/issue-360"
+          "label": "Shippy agent blog",
+          "url": "https://huggingface.co/blog/allenai/shippy-tech-blog"
         },
         {
           "label": "The Batch issue 361",
@@ -363,31 +334,106 @@
       ]
     },
     {
-      "id": "shippy-agent-boundaries",
+      "id": "hf-security-incident-20260719",
       "kind": "signal",
-      "title": "Shippy agent 经验：产品化 agent 先管边界",
-      "source": "Hugging Face Blog 2026-07-17",
-      "sourceStatus": "公开源",
-      "summary": "AllenAI 在 HF Blog 写 Shippy 的 agent 构建经验。它比泛泛的 agent 教程更有价值的地方，是把真实产品里的状态、边界、用户反馈和失败路径拿出来讲。",
-      "why": "这和你现在整理 Codex 自动化、feed 和本地工具的痛点相近：agent 要可控，不只是会调用工具。",
-      "thought": "读它时重点看状态管理和失败恢复，而不是复刻 UI 或 demo。",
-      "priority": 2,
+      "title": "Hugging Face 安全公告：把 token、Space 和模型供应链当作一条线看",
+      "source": "Hugging Face Blog，2026-07-16",
+      "sourceStatus": "官方/高质量源",
+      "summary": "HF 发布 July 2026 security incident disclosure。即使今天不深挖细节，也应该把它作为模型/Space/CI 凭据边界的提醒，而不是只当普通平台新闻。",
+      "why": "你现在有 HF、远程训练、portfolio 和 automation 多条凭据路径；这类公告可能影响 token rotation 和公开 demo 资产边界。",
+      "thought": "先读官方公告，若涉及 token 或 hosted artifacts，再回头检查本地/服务器有没有长期暴露的 HF token。",
+      "priority": 1,
       "links": [
         {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/allenai/shippy-tech-blog"
+          "label": "HF security disclosure",
+          "url": "https://huggingface.co/blog/security-incident-july-2026"
         }
       ]
     },
     {
-      "id": "paper-cofi-listen-first",
+      "id": "open-models-crowded-20260719",
+      "kind": "theme",
+      "title": "开源模型周：Kimi K3、Inkling 和 The Batch 都在提示“规模不是唯一变量”",
+      "source": "Latent.Space / The Batch / Hugging Face Blog",
+      "sourceStatus": "公开源",
+      "summary": "Latent.Space 连续覆盖 Kimi K3 和 Inkling，The Batch 继续跟模型/推理路线，HF Blog 也有训练栈更新。共同信号不是“又一个大模型”，而是 open-weight、上下文长度、推理成本和训练工具链正在一起竞争。",
+      "why": "这会影响你选模型、看 benchmark 和判断自托管/远程推理成本，但今天不用逐条阅读所有发布。",
+      "thought": "先把它当成模型路线候选池；只有出现和 speech/audio、agent runtime 或本地部署直接相关的细节再升级为主行动。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "Kimi K3",
+          "url": "https://www.latent.space/p/ainews-kimi-k3-28t-a50b-the-largest"
+        },
+        {
+          "label": "Inkling",
+          "url": "https://www.latent.space/p/ainews-thinkys-inkling-975b-a41b"
+        },
+        {
+          "label": "The Batch issue 360",
+          "url": "https://www.deeplearning.ai/the-batch/issue-360"
+        },
+        {
+          "label": "HF NeMo/Diffusers",
+          "url": "https://huggingface.co/blog/nvidia/scale-diffusers-finetuning-nemo-automodel"
+        }
+      ]
+    },
+    {
+      "id": "linkedin-storytel-screen-20260719",
+      "kind": "action",
+      "title": "职位筛选：只看 Corafone/SEB/Hire Feed 和 Storytel 两条 careers",
+      "source": "Gmail private fallback，LinkedIn Jobs / Storytel Careers",
+      "sourceStatus": "行动项",
+      "summary": "近 36 小时有 LinkedIn AI/ML、Junior AI Agent、SEB AI Engineer，以及 Storytel Analytics/Data Engineer。LinkedIn profile view、newsletter 和社交推荐不进主流。",
+      "why": "这些是可点击的职位线索，但应该作为独立行动项，不和学习信息流混在一起。",
+      "thought": "如果今天只筛一轮，优先看 Corafone/SEB 是否匹配地点和技术栈；Storytel 偏 data engineering，低一档。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "Corafone Junior AI Agent Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4442449386"
+        },
+        {
+          "label": "SEB AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4441977427"
+        },
+        {
+          "label": "Hire Feed AI/ML UK",
+          "url": "https://www.linkedin.com/jobs/view/4442428397"
+        },
+        {
+          "label": "Storytel Analytics Engineer",
+          "url": "https://jobs.storytel.com/jobs/8090471-analytics-engineer"
+        }
+      ]
+    },
+    {
+      "id": "concept-output-based-se-20260719",
+      "kind": "concept",
+      "title": "概念：output-based SE 为什么值得先弄懂",
+      "source": "arXiv / start-my-day",
+      "sourceStatus": "精选",
+      "summary": "传统多麦克风 SE 常先从 noisy input 估计 VAD/协方差/方向等特征，再配置 beamformer；output-based 思路反过来评估增强输出本身，再选择系统设置。",
+      "why": "这和你正在关注的低 SNR、病理语音、beamforming 稳健性很贴：输入侧特征越不可靠，输出侧选择就越可能成为关键。",
+      "thought": "读 Listen first 时重点看它如何定义 output criterion，以及是否真的避免了低 SNR 下的 steering/估计误差。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "Listen first arXiv",
+          "url": "https://arxiv.org/abs/2607.12529"
+        }
+      ]
+    },
+    {
+      "id": "paper-se-20260719",
       "kind": "paper",
-      "title": "论文入口：CoFi-Lite + 输出驱动多麦克风 SE",
-      "source": "arXiv / start-my-day 2026-07-18",
+      "title": "论文入口：今天看 output-based multi-mic SE 与 CoFi-Lite",
+      "source": "arXiv / start-my-day，2026-07-19",
       "sourceStatus": "本地推荐池",
-      "summary": "推荐 2 篇：CoFi-Lite 把轻量 SE 压到 83k 参数和 12.87M MACs/s，适合看 edge/real-time 设计；Listen first 把多麦克风 SE 的 beamformer 选择从输入特征转向输出质量，对低 SNR 下的鲁棒性判断更直接。",
-      "why": "一篇看极限轻量化，一篇看输出驱动的多麦克风选择，都是当前 USE/可部署 SE 主线。",
-      "thought": "Tags: speech-enhancement, lightweight-SE, edge-audio, multi-mic-SE, beamforming；去 Obsidian 推荐池索引里再决定是否沉淀。",
+      "summary": "推荐 2 篇：1. Listen first: Output-based multi-microphone speech enhancement，推荐理由是它把低 SNR 下不可靠的输入特征估计改成输出候选选择，和 beamforming/听感验证直接相关；2. CoFi-Lite: Pushing the Limits of Ultra-Lightweight Speech Enhancement，推荐理由是 83.12k 参数、12.87M MACs/s 的极轻量 SE 设计适合和边缘/实时约束对比。",
+      "why": "这两篇分别覆盖多麦克风稳健性和超轻量部署，都是当前 USE/SE 主线能转化成实验问题的信号。",
+      "thought": "Tags: speech-enhancement, multi-mic-SE, beamforming, lightweight-SE, edge-audio。去 Obsidian 推荐池索引看完整候选，不在本轮自动写日报。",
       "priority": 1,
       "links": [
         {
