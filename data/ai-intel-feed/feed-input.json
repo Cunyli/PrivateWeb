@@ -1,424 +1,400 @@
 {
-  "date": "2026-07-21",
-  "overview": "今天最高优先级是明晚 Ryanair Shannon 航班 check-in 和 Supabase RLS 安全项；技术阅读聚焦 agent 欺骗/胁迫评测、机器人数据采集、HF 安全公告和轻量 speech enhancement 论文。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium；Gmail 仅查 LinkedIn、Ryanair、Supabase 与个人行动项；OpenAI News/Release Notes 403，API changelog 重定向后 404；0 个公开候选因缺 URL 跳过；arXiv/S2 已刷新，S2 一次 429 后恢复。",
+  "date": "2026-07-24",
+  "overview": "今天最值得看的是 HF/OpenAI 评估链路安全更新，其次是物理 AI 仿真、4-bit diffusion 推理、agent 路由和模型操纵评估；个人侧只有 LinkedIn job 候选需要轻筛。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium；Gmail 仅查 LinkedIn、个人行动项、sent 36h 和 HF 账号安全通知；OpenAI News/Release Notes 403，API changelog 200；0 个公开候选因缺 URL 跳过；arXiv 沙盒 DNS 失败且网络审批超时，paper block 降级为 HF/旧推荐池提醒。",
   "overflow": {
-    "summary": "公开候选集中在 agent safety/RL、机器人数据、HF/NVIDIA 边缘模型、Medium 泛 AI 方法论和 LinkedIn 职位噪声，主页面只保留会影响今天行动或判断的内容。",
+    "summary": "39 个公开候选集中在 Physical AI、diffusion/inference、agent 方法论、泛 Medium AI 经验文和 HF Daily Papers；主页面只保留会影响今天阅读或行动的内容。",
     "counts": {
-      "candidates": 38,
+      "candidates": 39,
       "overflow": 22,
       "duplicates": 2,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "Medium 泛 AI 内容过载",
-        "count": 12,
-        "note": "多数是经验文或轻量方法论，保留少量可点击候选但不进入主阅读面。"
+        "title": "Medium 泛 AI 方法论文过载",
+        "count": 16,
+        "note": "多数是教程、经验文或轻观点，保留少量有判断价值的候选但不进入主阅读面。"
       },
       {
-        "title": "LinkedIn 社交噪声",
-        "count": 8,
-        "note": "消息聚合、profile view、游戏和 analytics 不混入学习流。"
+        "title": "LinkedIn 职位和社交噪声",
+        "count": 16,
+        "note": "只保留 canonical jobs/view 职位线索；profile view、Premium、newsletter 和拼图提醒不进入学习流。"
       },
       {
-        "title": "远程数据职位拥挤",
-        "count": 12,
-        "note": "只保留 AI/ML、平台或高相关岗位链接，其余泛 Data Scientist 暂时压下去。"
+        "title": "论文搜索网络受限",
+        "count": 1,
+        "note": "arXiv/Semantic Scholar 未完成本轮刷新，paper block 明确降级，不声称今日论文池已更新。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Masked Diffusion Language Models are Strong and Steerable Text-Based World Models for Agentic RL",
-      "source": "Hugging Face Daily Papers",
-      "reason": "agentic RL 环境生成方向很强，但今天主线先看更直接的 AI-to-AI 管理风险。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.16204"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/patronus-ai/mdlm_world_modeling"
-        }
-      ]
-    },
-    {
-      "title": "UI2App: Benchmarking Visual Interaction Inference in Executable Web Application Generation",
-      "source": "Hugging Face Daily Papers",
-      "reason": "和可执行 Web app 生成评测有关，但今天不如 agent safety 与 paper block 贴近主线。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.06306"
-        },
-        {
-          "label": "Project",
-          "url": "https://chenmancm169.github.io/UI2App-ProjectPage/"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/chenmancm169/UI2App"
-        }
-      ]
-    },
-    {
-      "title": "ReViV: Reconstructing the Viewer and the View in 4D from Monocular Egocentric Video",
-      "source": "Hugging Face Daily Papers",
-      "reason": "egocentric/4D reconstruction 可回看，但不直接影响今天 USE/agent 工作。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.17790"
-        },
-        {
-          "label": "Project",
-          "url": "https://reviv4d.github.io/"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/lvsean/reviv4d"
-        }
-      ]
-    },
-    {
-      "title": "[AINews] not much happened today",
-      "source": "Latent.Space / AINews",
-      "reason": "今日 AINews 本身信号很弱，不占主阅读面。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-not-much-happened-today-173"
-        }
-      ]
-    },
-    {
-      "title": "Kimi K3 2.8T-A50B",
-      "source": "Latent.Space / AINews",
-      "reason": "开源模型规模信号值得候选保留，但不是今天最直接行动。",
+      "title": "Inside the Model Factory - Eiso Kant, Poolside AI",
+      "source": "Latent.Space",
+      "reason": "工程组织和模型工厂访谈值得周末读，但今天主线优先安全和推理。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-kimi-k3-28t-a50b-the-largest"
+          "url": "https://www.latent.space/p/poolside"
         }
       ]
     },
     {
-      "title": "The Hidden Geometry Behind AI Reasoning",
+      "title": "FLUX 3 与多模态 flow/video-action robotics",
+      "source": "Latent.Space",
+      "reason": "图像/视频模型信号很热，但和当前 speech/agent/runtime 主线距离稍远。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-black-forest-labs-flux-3-multimodal"
+        }
+      ]
+    },
+    {
+      "title": "Laguna S 2.1 价格/能力叙事",
+      "source": "Latent.Space",
+      "reason": "可作为模型市场观察，但缺少会改变今天行动的技术细节。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-laguna-s-21-released-cheaper"
+        }
+      ]
+    },
+    {
+      "title": "Robostral Navigate",
+      "source": "HF Daily Papers",
+      "reason": "机器人导航候选，和 Physical AI 主题相关但不如仿真/数据管线直接。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.20785"
+        }
+      ]
+    },
+    {
+      "title": "Visual Contrastive Self-Distillation",
+      "source": "HF Daily Papers",
+      "reason": "视觉自蒸馏候选，适合候选池保留但不进入今天主阅读。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.21556"
+        }
+      ]
+    },
+    {
+      "title": "Show, Don't Tell: spatial cognition in generative pixels",
+      "source": "HF Daily Papers",
+      "reason": "评估角度有意思，但暂时不是 speech/runtime 主线。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.21072"
+        }
+      ]
+    },
+    {
+      "title": "Recurrent Sinusoidal INRs",
+      "source": "HF Daily Papers",
+      "reason": "高保真表示学习候选，可保留给图形/压缩方向后看。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.21485"
+        }
+      ]
+    },
+    {
+      "title": "Rubric-Based Rewards could push AI beyond math and code",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "reasoning 几何解释适合轻阅读，但来源较泛。",
+      "reason": "奖励设计概念相关，但文章来源和可操作性弱于本轮主块。",
       "priority": 3,
-      "status": "watch",
+      "status": "candidate",
       "links": [
         {
-          "label": "Article",
+          "label": "AISimple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-rubric-based-rewards-could-push"
+        }
+      ]
+    },
+    {
+      "title": "Hidden Geometry Behind AI Reasoning",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "可作概念阅读，但今天概念位留给 model routing。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "AISimple",
           "url": "https://www.artificialintelligencemadesimple.com/p/the-hidden-geometry-behind-ai-reasoning"
         }
       ]
     },
     {
-      "title": "The AI Industry is Going Through a Massive Correction",
-      "source": "Artificial Intelligence Made Simple",
-      "reason": "趋势判断可扫读，但缺少直接工程动作。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://www.artificialintelligencemadesimple.com/p/the-ai-industry-is-going-through"
-        }
-      ]
-    },
-    {
-      "title": "Teaching an Agent to Change Its Mind",
-      "source": "Medium Level Up Coding",
-      "reason": "agent memory/backtracking 方向相关，但需要更强实现证据再进入主块。",
+      "title": "From Mentions to Entities: Designing Graphs That Survive Real Data",
+      "source": "Medium ML",
+      "reason": "对知识图谱/实体绑定有参考，但不是今天 AI feed 主线。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
-          "label": "Article",
-          "url": "https://levelup.gitconnected.com/teaching-an-agent-to-change-its-mind-adb35f898bfa"
+          "label": "Medium",
+          "url": "https://medium.com/@ganesh.kolekar/from-mentions-to-entities-designing-graphs-that-survive-real-data-f40c4c01666f"
         }
       ]
     },
     {
-      "title": "Spec-kit Preset in Practice",
-      "source": "Medium Level Up Coding",
-      "reason": "SDD workflow 与工程标准有关，暂作工作流候选。",
+      "title": "When the Model Went Looking for the Answer Key",
+      "source": "Medium AI",
+      "reason": "评估污染主题相关，保留为安全主题的轻量补读。",
       "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://levelup.gitconnected.com/spec-kit-preset-in-practice-embedding-team-engineering-standards-into-the-sdd-workflow-5a226a220c98"
-        }
-      ]
-    },
-    {
-      "title": "How I Built a Blog-to-Podcast AI Agent",
-      "source": "Medium Data Science Collective",
-      "reason": "agent workflow 示例可借鉴，但与今天主线弱相关。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://medium.com/data-science-collective/how-i-built-a-blog-to-podcast-ai-agent-9a7232346bbb"
-        }
-      ]
-    },
-    {
-      "title": "GitHub newsletter: AI made code easy; trust is the bottleneck",
-      "source": "Gmail private fallback",
-      "reason": "只作为 private fallback 线索；邮件来源是 LinkedIn newsletter，未作为公开事实主源。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn article",
-          "url": "https://www.linkedin.com/pulse/ai-made-code-easy-trust-now-bottleneck-github-1s8ac"
-        }
-      ]
-    },
-    {
-      "title": "LinkedIn AI/ML 和数据职位候选",
-      "source": "LinkedIn Jobs",
-      "reason": "职位线索单独保留，不混进学习主信息流。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Noru Software Engineer AI & Platform",
-          "url": "https://www.linkedin.com/jobs/view/4440119019"
-        },
-        {
-          "label": "Vita Health MLE",
-          "url": "https://www.linkedin.com/jobs/view/4438060569"
-        },
-        {
-          "label": "Netrolynx AI/ML Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4442569848"
-        },
-        {
-          "label": "Airbnb Data Scientist Algorithms",
-          "url": "https://www.linkedin.com/jobs/view/4441416228"
-        }
-      ]
-    },
-    {
-      "title": "Aalto Centre for Radical Creativity specialist post",
-      "source": "LinkedIn private fallback",
-      "reason": "Aalto 相关但只有邮件里的 LinkedIn tracking 入口，未写入主块。",
-      "priority": 3,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "Aalto jobs",
-          "url": "https://www.aalto.fi/en/open-positions"
-        }
-      ]
-    },
-    {
-      "title": "OpenAI related LinkedIn post",
-      "source": "LinkedIn private fallback",
-      "reason": "OpenAI 官方页面本轮 403，LinkedIn 邮件动态未官方核验，只保留为 watch。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "OpenAI News",
-          "url": "https://openai.com/news/"
-        }
-      ]
-    },
-    {
-      "title": "Weakly Guided and Autoregressive Beamformer Parameterization",
-      "source": "arXiv/Semantic Scholar",
-      "reason": "moving-speaker/beamforming 相关，但 paper block 只保留前两篇最值得看。",
-      "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.04471"
+          "label": "Medium",
+          "url": "https://medium.com/@iamridhima2001/when-the-model-went-looking-for-the-answer-key-ac9254c32980"
+        }
+      ]
+    },
+    {
+      "title": "Effektify - Junior AI Engineer / Data Scientist",
+      "source": "LinkedIn private fallback",
+      "reason": "瑞典/Lund 初级 AI/Data 方向，可轻筛但优先级低于更贴近 speech/ML 的岗位。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4442952413/"
+        }
+      ]
+    },
+    {
+      "title": "BJAK - Applied AI Engineer",
+      "source": "LinkedIn private fallback",
+      "reason": "Remote Applied AI 候选，保留 canonical job URL，邮件追踪参数已去掉。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4442985735/"
+        }
+      ]
+    },
+    {
+      "title": "B3 Consulting Group - Machine Learning Engineer",
+      "source": "LinkedIn private fallback",
+      "reason": "Stockholm hybrid ML 候选，和本地机会有关但不是必须今天处理。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4029084512/"
+        }
+      ]
+    },
+    {
+      "title": "Synthesia - Research Engineer in Data",
+      "source": "LinkedIn private fallback",
+      "reason": "AI video/data research role，可能值得看 JD，但当前主线优先 speech/audio。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4361211638/"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "ryanair-shannon-checkin-20260722",
-      "kind": "action",
-      "title": "7 月 22 日 Shannon 航班：先完成在线 check-in",
-      "source": "Ryanair Gmail 2026-07-21",
-      "sourceStatus": "行动项",
-      "summary": "Ryanair 提醒明晚 22:45 飞 Shannon，gate closes 22:15；需要至少提前 2 小时在线 check-in，否则可能产生机场 check-in 费用。",
-      "why": "这是明确会过期的个人事项，优先级高于今天的技术阅读。",
-      "thought": "不要从邮件 redirect 打开；直接进 Ryanair/app 完成 check-in 和 boarding pass。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "Ryanair",
-          "url": "https://www.ryanair.com/ie/en"
-        }
-      ]
-    },
-    {
-      "id": "supabase-rls-security-20260721",
-      "kind": "action",
-      "title": "Supabase：继续处理 public table/RLS 安全警告",
-      "source": "Supabase Gmail 2026-07-21",
-      "sourceStatus": "行动项",
-      "summary": "Supabase 再次提示项目存在 `rls_disabled_in_public` critical issue：public schema table 未启用 Row-Level Security，可能允许未授权读写。",
-      "why": "这是实际安全风险，不应被 AI 新闻流淹没。",
-      "thought": "登录 Supabase 后从项目 Advisors/Security 检查，确认是否需要启用 RLS 或收紧 policy。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "Supabase security advisors",
-          "url": "https://supabase.com/dashboard/project/ncytmmujlnhscchfujkc/advisors/security"
-        },
-        {
-          "label": "Supabase docs",
-          "url": "https://supabase.com/docs/guides/database/database-advisors"
-        }
-      ]
-    },
-    {
-      "id": "agent-management-coercion-benchmark",
-      "kind": "deep-read",
-      "title": "AI-to-AI 管理：今天最值得看的不是能力，而是“无提示升级”",
-      "source": "Hugging Face Daily Papers / The Batch",
-      "sourceStatus": "公开源",
-      "summary": "HF 今日论文把 multi-agent 里“上级 agent 面对下级拒绝任务时是否会胁迫、撒谎或诚实报告”做成 benchmark；The Batch 同期也在讨论模型操纵性。",
-      "why": "这直接影响 agent harness 的验收边界：不能只看任务完成率，还要看失败时是否如实暴露。",
-      "thought": "评估长任务 agent 时，把 refusal、escalation、truthfulness 和 audit trail 作为独立 gate。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.15434"
-        },
-        {
-          "label": "The Batch issue 362",
-          "url": "https://www.deeplearning.ai/the-batch/issue-362"
-        }
-      ]
-    },
-    {
-      "id": "robot-data-edge-stack-20260721",
+      "id": "hf-openai-eval-security-20260724",
       "kind": "theme",
-      "title": "机器人数据栈：从采集系统到 edge world model 都在往真实轨迹靠",
-      "source": "Hugging Face Blog / Latent.Space",
-      "sourceStatus": "综合判断",
-      "summary": "HF Blog 的 Grabette 关注机器人操作数据采集，NVIDIA Cosmos 3 Edge 关注边缘侧 world model，Latent.Space 的 Lila 文章则把未来实验室描述成数据中心式采集系统。",
-      "why": "这类信号说明 robotics/VLA 的瓶颈仍是可复用真实数据和部署侧闭环，而不只是模型尺寸。",
-      "thought": "如果后续看 VLA/robotics paper，先问数据如何采、如何标、如何在边缘闭环，而不是只看 benchmark 数字。",
+      "title": "模型评估链路也要当供应链安全面",
+      "source": "Hugging Face Blog / OpenAI",
+      "sourceStatus": "官方/高质量源",
+      "summary": "HF 安全事件的后续把风险点指向模型评估流程本身：第三方模型、评测执行环境、凭据和隔离边界都可能成为攻击面。HF 发给你的账号通知只是确认个人账号无需操作，真正值得读的是公开安全披露和 OpenAI 事件说明。",
+      "why": "你经常运行外部模型、评测脚本和研究代码；这类事故提醒要把 eval harness、token 权限和沙盒隔离纳入默认检查。",
+      "thought": "下一步只需要阅读公开披露并检查自己常用 HF/OpenAI token 权限；本轮没有账号安全待处理动作。",
       "priority": 1,
       "links": [
+        {
+          "label": "HF security disclosure",
+          "url": "https://huggingface.co/blog/security-incident-july-2026"
+        },
+        {
+          "label": "OpenAI incident page",
+          "url": "https://openai.com/index/hugging-face-model-evaluation-security-incident/"
+        },
+        {
+          "label": "Latent cybersecurity roundup",
+          "url": "https://www.latent.space/p/ainews-ai-cybersecurity-becomes-top"
+        }
+      ]
+    },
+    {
+      "id": "physical-ai-simulation-data-20260724",
+      "kind": "theme",
+      "title": "Physical AI 的关键不只是模型，而是仿真和数据采集",
+      "source": "Hugging Face Blog / HF Daily Papers",
+      "sourceStatus": "公开源",
+      "summary": "HF/NVIDIA 的仿真综述和 Grabette 都把重点放在可复现数据、仿真环境、机器人操作记录和合成到真实的闭环上，而不是只展示模型能力。Robostral Navigate 也说明导航任务正在变成数据/环境/策略一体化问题。",
+      "why": "这和 speech enhancement 的真实部署很像：模型结构之外，采集条件、仿真偏差和评测面板才决定是否可迁移。",
+      "thought": "把它当作“评测环境设计”的横向参考，而不是机器人新闻来读。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "HF/NVIDIA simulation overview",
+          "url": "https://huggingface.co/blog/nvidia/state-of-simulation-for-physical-ai"
+        },
         {
           "label": "Grabette",
           "url": "https://huggingface.co/blog/grabette"
         },
         {
-          "label": "Cosmos 3 Edge",
-          "url": "https://huggingface.co/blog/nvidia/cosmos3edge"
-        },
-        {
-          "label": "Lila lab article",
-          "url": "https://www.latent.space/p/the-lab-of-the-future-should-feel"
+          "label": "Robostral Navigate",
+          "url": "https://huggingface.co/papers/2607.20785"
         }
       ]
     },
     {
-      "id": "hf-security-incident-july-2026",
+      "id": "nunchaku-diffusers-20260724",
       "kind": "signal",
-      "title": "Hugging Face 安全公告：token、Space 和供应链要一起看",
-      "source": "Hugging Face Blog 2026-07-16",
-      "sourceStatus": "官方/高质量源",
-      "summary": "HF 发布 July 2026 security incident disclosure；具体影响需要打开官方公告核对，但它已足够作为 token/Space/model supply chain 检查提醒。",
-      "why": "你本地和远端都依赖 HF 资产，安全公告比普通模型新闻更可能产生实际维护动作。",
-      "thought": "今天不需要恐慌；需要的是确认自己是否有暴露 token、Space secret 或自动化下载链路。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "HF security incident",
-          "url": "https://huggingface.co/blog/security-incident-july-2026"
-        }
-      ]
-    },
-    {
-      "id": "mcp-sql-code-mode-concept",
-      "kind": "concept",
-      "title": "概念：SQL Code Mode for MCP 值得先弄懂",
-      "source": "Medium Level Up Coding",
+      "title": "Diffusers 接入 Nunchaku 4-bit 推理，值得看部署边界",
+      "source": "Hugging Face Blog",
       "sourceStatus": "公开源",
-      "summary": "这篇把 MCP server 从“每个操作一个 tool”转向可受控 SQL/code mode 的接口形态来讨论，核心是表达力、权限边界和审计之间的取舍。",
-      "why": "这和你经常让 Codex/Gmail/Drive/Obsidian 工具协作有关：工具接口越强，越要明确权限、查询范围和可回放记录。",
-      "thought": "把它当作 connector 设计概念入口，不写词典；后续讨论 MCP/agent harness 时再沉淀。",
+      "summary": "HF Blog 的 Nunchaku/Diffusers 集成把 4-bit diffusion 推理带进更标准的生态入口，重点不是“又一个量化库”，而是低比特扩散模型能否变成可复用的 serving 组件。",
+      "why": "你当前关注 runtime/inference 和音频生成模型，这类集成会影响以后判断“研究 demo 能不能实际部署”。",
+      "thought": "读时重点看 API 集成边界、模型覆盖范围、质量损失和硬件假设。",
       "priority": 2,
       "links": [
         {
-          "label": "Article",
-          "url": "https://levelup.gitconnected.com/sql-code-mode-for-mcp-e31c5b9c837c"
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/nunchaku-diffusers"
         }
       ]
     },
     {
-      "id": "jobs-ai-ml-screening-20260721",
-      "kind": "action",
-      "title": "职位筛选：只看少量 AI/ML 平台岗，不追泛 DS 噪声",
-      "source": "LinkedIn Jobs Gmail 2026-07-21",
-      "sourceStatus": "行动项",
-      "summary": "近 36 小时 LinkedIn job alert 里泛 Data Scientist 很多；相对值得扫的是 Noru AI & Platform、Vita Health MLE、Netrolynx AI/ML，以及 Airbnb 算法 DS。",
-      "why": "职位应该单独作为行动项，不混入学习主信息流；今天只需要快速判断是否有值得保存/申请的。",
-      "thought": "先用 canonical jobs/view 链接筛掉不匹配地点、seniority 和 visa 条件。",
+      "id": "model-manipulation-eval-20260724",
+      "kind": "deep-read",
+      "title": "今天的 agent safety 入口：怎样判断模型是否操纵用户",
+      "source": "DeepLearning.AI The Batch",
+      "sourceStatus": "公开源",
+      "summary": "The Batch 把 AI Overviews 争议、后台推理和“模型是否操纵用户”的评估问题放在同一期。对 agent 系统来说，关键不是模型有没有坏意，而是交互过程是否诱导用户接受错误目标或错误证据。",
+      "why": "这直接影响你用 Codex/ChatGPT 做长任务时的验收标准：不能只看最终答案，还要看中途证据、权限和可撤销性。",
+      "thought": "把这篇当作评估 checklist 的素材，不必当成新闻逐条追。",
       "priority": 2,
       "links": [
         {
-          "label": "Noru AI & Platform",
-          "url": "https://www.linkedin.com/jobs/view/4440119019"
+          "label": "The Batch issue 362",
+          "url": "https://www.deeplearning.ai/the-batch/issue-362"
         },
         {
-          "label": "Vita Health MLE",
-          "url": "https://www.linkedin.com/jobs/view/4438060569"
-        },
-        {
-          "label": "Netrolynx AI/ML",
-          "url": "https://www.linkedin.com/jobs/view/4442569848"
-        },
-        {
-          "label": "Airbnb Algorithms DS",
-          "url": "https://www.linkedin.com/jobs/view/4441416228"
+          "label": "Latent cybersecurity roundup",
+          "url": "https://www.latent.space/p/ainews-ai-cybersecurity-becomes-top"
         }
       ]
     },
     {
-      "id": "paper-use-20260721",
+      "id": "model-routing-concept-20260724",
+      "kind": "concept",
+      "title": "概念先弄懂：model routing 不是给任务贴复杂度标签",
+      "source": "Medium ML",
+      "sourceStatus": "线索",
+      "summary": "一篇 Medium 文章把 Claude model routing 的核心问题改写成“风险和可恢复性”而不是笼统复杂度。这个概念值得先懂，因为实际 agent 系统经常需要在小模型、强模型、工具调用和人工确认之间做路由。",
+      "why": "如果只按复杂度路由，长任务会在低风险/高不确定和高风险/低不确定场景里做错资源分配。",
+      "thought": "今天只把它作为概念提醒，不写词典；以后设计 Codex 自动化时可用“失败代价 + 可恢复性”做路由准则。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/@rishavsaigal/claude-model-routing-stop-scoring-complexity-score-these-two-things-instead-a6505c9053ce"
+        }
+      ]
+    },
+    {
+      "id": "kimi-open-models-watch-20260724",
+      "kind": "signal",
+      "title": "Kimi/开源模型叙事今天只作观察，不抢主线",
+      "source": "Latent.Space / Medium",
+      "sourceStatus": "公开源",
+      "summary": "Latent.Space 和 Medium 都在推 Kimi/开放模型能力叙事，但本轮信号更像市场和 benchmark 观察，而不是明确影响你今天实验或代码的发布。保留它是为了跟踪开源模型竞争格局。",
+      "why": "开源模型能力变化会影响本地/远程推理选择，但今天缺少足够官方、可复现的技术细节。",
+      "thought": "只看 benchmark 维度和 serving 成本，不要被参数规模叙事带跑。",
+      "priority": 3,
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-laguna-s-21-released-cheaper"
+        },
+        {
+          "label": "Medium",
+          "url": "https://medium.com/data-science-collective/kimi-3-inkling-these-two-open-models-may-change-everything-0af000f36af7"
+        }
+      ]
+    },
+    {
+      "id": "paper-speech-enhancement-20260724",
       "kind": "paper",
-      "title": "论文入口：今天看 output-based multi-mic SE 和 CoFi-Lite",
-      "source": "arXiv/Semantic Scholar 2026-07-21",
+      "title": "论文提醒降级：array-invariant 多通道 SE 仍是优先入口",
+      "source": "HF Daily Papers / 本地推荐池",
       "sourceStatus": "本地推荐池",
-      "summary": "推荐 1：`Listen first: Output-based multi-microphone speech enhancement`，因为它把 beamformer 设置从输入特征估计转向输出质量选择，适合你关注的低 SNR/听感路径。推荐 2：`CoFi-Lite`，因为它用 coarse/fine 双路和 Cross-Path Fusion 把超轻量 SE 压到 edge 资源预算内。",
-      "why": "两篇都比今天的泛 agent/news 更贴合 USE 主线：一个偏多麦/beamforming 决策，一个偏轻量部署结构。",
-      "thought": "Tags: speech-enhancement, multi-mic-SE, beamforming, lightweight-SE, edge-audio；去 Obsidian 推荐池索引后再决定是否沉淀。",
+      "summary": "本轮 arXiv/Semantic Scholar 搜索因网络审批超时未完成刷新，所以不声称有新的今日论文池。轻量提醒仍建议先看 `Towards Array-Invariant Speech Enhancement via Geometry-Aware Dynamic Convolution`：它用麦克风坐标处理阵列泛化；备选是 `CoFi-Lite`，作为超轻量 SE baseline 参考。",
+      "why": "这两篇分别贴近你当前的多通道几何泛化和 edge/audio 轻量化 SE 判断。",
+      "thought": "Tag: speech-enhancement, multi-mic-SE, geometry-aware-SE, array-invariant, edge-audio, lightweight-SE；去 Obsidian 推荐池入口查看，本轮不生成日报。",
       "priority": 1,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
           "url": "obsidian://open?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
+        }
+      ]
+    },
+    {
+      "id": "linkedin-ai-ml-jobs-20260724",
+      "kind": "action",
+      "title": "LinkedIn 职位：只轻筛 SVT/BJAK/Synthesia/Hire Feed",
+      "source": "LinkedIn private fallback，2026-07-23",
+      "sourceStatus": "行动项",
+      "summary": "最近 36 小时 LinkedIn job alert 里有 SVT Applied AI、BJAK Applied AI、Synthesia Research Engineer in Data、Hire Feed AI/ML 等候选；社交邀请、Premium、profile view 和 newsletter 已过滤。",
+      "why": "这些是可点击、无邮件追踪参数的职位线索；需要你自己判断是否值得投递，不应混进学习主信息流。",
+      "thought": "今天只需要 5 分钟扫 JD：保留 speech/audio/ML 系统相关，其他丢弃。",
+      "priority": 0,
+      "links": [
+        {
+          "label": "SVT ML/AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4442978899/"
+        },
+        {
+          "label": "BJAK Applied AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4442985735/"
+        },
+        {
+          "label": "Synthesia Research Engineer in Data",
+          "url": "https://www.linkedin.com/jobs/view/4361211638/"
+        },
+        {
+          "label": "Hire Feed AI/ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4443740142/"
         }
       ]
     }
