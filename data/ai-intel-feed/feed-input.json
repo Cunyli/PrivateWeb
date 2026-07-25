@@ -1,30 +1,30 @@
 {
-  "date": "2026-07-24",
-  "overview": "今天最值得看的是 HF/OpenAI 评估事件暴露出的评估链路供应链风险；技术阅读集中在 agent 多轮蒸馏、4-bit diffusion 推理、物理 AI 仿真和模型操纵评估；个人侧只保留 LinkedIn 岗位轻筛。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 共 10 个公开源；Gmail 仅查 LinkedIn、账号/个人行动项与 sent 36h；HF incident 200，OpenAI News/Release Notes/incident 403，API changelog 200；0 个可信公开候选因缺 URL 跳过；arXiv 成功，S2 两组 429 后恢复。",
+  "date": "2026-07-25",
+  "overview": "今天最值得看的是 agent 训练正在从单轮 imitation 转向 harness-native、多轮轨迹；技术阅读集中在 on-policy distillation、agent RL harness、4-bit diffusion 推理、physical AI 仿真和模型操纵评估；个人侧只保留 Finnair 行程准备与少量 LinkedIn 岗位轻筛。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 共 10 个公开源；Gmail 仅查 LinkedIn、Finnair/个人行动项与 sent 36h；OpenAI News/Release Notes 403，API changelog 200；0 个可信公开候选因缺 URL 跳过；arXiv 成功，S2 一组 timeout/429 后恢复。",
   "overflow": {
     "summary": "39 个公开候选主要集中在 agent、video/robotics、diffusion、Medium 泛 AI 方法论和 The Batch 汇总；主页面只保留会影响今天判断或行动的内容。",
     "counts": {
       "candidates": 39,
-      "overflow": 21,
+      "overflow": 22,
       "duplicates": 2,
       "hidden": 0
     },
     "themes": [
       {
         "title": "Medium 泛 AI 方法论过载",
-        "count": 16,
+        "count": 19,
         "note": "多为轻观点、教程或未核验模型叙事，保留少量可点击候选但不进主阅读面。"
       },
       {
         "title": "LinkedIn job/social 噪声",
-        "count": 24,
-        "note": "只保留 canonical jobs/view；社交邀请、Premium、newsletter 和泛数据岗不进学习流。"
+        "count": 22,
+        "note": "只保留 canonical jobs/view 和真行动项；社交邀请、Premium、newsletter 和泛数据岗不进学习流。"
       },
       {
         "title": "OpenAI 官方页面访问受限",
-        "count": 3,
-        "note": "News、Release Notes 和 incident 页均为 Cloudflare 403；相关细节以 HF 页面和可访问 API changelog 为准。"
+        "count": 2,
+        "note": "News 与 Release Notes 为 Cloudflare 403；API changelog 可访问，相关未读官方新闻不强推。"
       }
     ]
   },
@@ -32,7 +32,7 @@
     {
       "title": "SANA-Video 2.0",
       "source": "HF Daily Papers",
-      "reason": "长视频生成/linear attention 信号强，但和当前 speech/agent/runtime 主线距离稍远。",
+      "reason": "长视频生成和 hybrid linear attention 信号强，但和当前 speech/agent/runtime 主线距离稍远。",
       "priority": 3,
       "status": "candidate",
       "links": [
@@ -47,26 +47,9 @@
       ]
     },
     {
-      "title": "FinanceComplexQA",
-      "source": "HF Daily Papers",
-      "reason": "工业级金融文档 agent benchmark 值得观察，但今天已有更直接的 agent 蒸馏主块。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.19238"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/buaacxf/FinanceComplexQA"
-        }
-      ]
-    },
-    {
       "title": "Dataset Distillation by Influence Matching",
       "source": "HF Daily Papers",
-      "reason": "数据蒸馏机制有方法价值，但不是今天最高优先级。",
+      "reason": "数据蒸馏机制有方法价值，但今天已有更直接的 agent distillation 主块。",
       "priority": 3,
       "status": "candidate",
       "links": [
@@ -81,9 +64,35 @@
       ]
     },
     {
+      "title": "Claude Opus 5 / Fable-level newsletter claim",
+      "source": "Latent.Space / AINews",
+      "reason": "模型能力/价格叙事值得观察，但未用 Anthropic 官方页核验，先候选。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-claude-opus-5-fable-level"
+        }
+      ]
+    },
+    {
+      "title": "Black Forest Labs FLUX 3 / robotics model",
+      "source": "Latent.Space / AINews",
+      "reason": "多模态/robotics 市场信号可看，但主页面已用 physical AI theme 承载。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-black-forest-labs-flux-3-multimodal"
+        }
+      ]
+    },
+    {
       "title": "Inside the Model Factory - Poolside AI",
       "source": "Latent.Space",
-      "reason": "模型工厂组织访谈适合长读；今天先处理安全和运行时信号。",
+      "reason": "模型工厂组织访谈适合长读；今天先处理 agent 训练和本地行动。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -94,35 +103,9 @@
       ]
     },
     {
-      "title": "Laguna S 2.1 价格与能力叙事",
-      "source": "Latent.Space",
-      "reason": "可作模型市场观察，但缺少会改变今天行动的技术细节。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-laguna-s-21-released-cheaper"
-        }
-      ]
-    },
-    {
-      "title": "Grabette: open robot-manipulation data",
-      "source": "Hugging Face Blog",
-      "reason": "和 physical AI 数据采集相关，但今天用仿真主题块概括即可。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/grabette"
-        }
-      ]
-    },
-    {
       "title": "Newer Models, Same Advantage",
       "source": "Hugging Face Blog",
-      "reason": "模型优势持续性可读，但不如安全/推理/agent 直接。",
+      "reason": "模型优势持续性可读，但不是今天最高优先级。",
       "priority": 3,
       "status": "watch",
       "links": [
@@ -135,13 +118,26 @@
     {
       "title": "Kimi K3 / Muse Spark / Cloudflare crawlers",
       "source": "The Batch",
-      "reason": "The Batch 汇总覆盖多条新闻；只保留候选，避免把汇总当单一主张。",
+      "reason": "The Batch 汇总覆盖多条新闻；保留候选，避免把汇总当单一主张。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
           "label": "The Batch",
           "url": "https://www.deeplearning.ai/the-batch/issue-363"
+        }
+      ]
+    },
+    {
+      "title": "Restoration of Claude Fable 5 / Gemini video dev",
+      "source": "The Batch",
+      "reason": "汇总型技术新闻，可回看但不改变今天行动。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-361"
         }
       ]
     },
@@ -172,103 +168,95 @@
       ]
     },
     {
-      "title": "Before You Automate It, Ask Whether the Work Can Grade Itself",
-      "source": "Medium AI Agents",
-      "reason": "题目贴近 agent 自动化，但 Medium 信号混杂，先候选。",
+      "title": "context.WithTimeout Is Not a Circuit Breaker",
+      "source": "Medium Level Up Coding",
+      "reason": "工程概念扎实但偏 Go 服务端；适合 overflow 回看。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
           "label": "Medium",
-          "url": "https://medium.com/@dabak6812/before-you-automate-it-ask-whether-the-work-can-grade-itself-906efed8f7a5"
+          "url": "https://levelup.gitconnected.com/context-withtimeout-is-not-a-circuit-breaker-875d91ad71a1"
         }
       ]
     },
     {
-      "title": "More AI Agents Don't Always Mean Better Results",
-      "source": "Medium ML",
-      "reason": "多 agent 反直觉主题值得观察，但需要官方论文或原始研究再主推。",
+      "title": "How Anthropic Evaluates Claude Against AI Safety Categories",
+      "source": "Medium Level Up Coding",
+      "reason": "安全评估主题贴近，但不是官方 Anthropic 源，先 watch。",
       "priority": 3,
       "status": "watch",
       "links": [
         {
           "label": "Medium",
-          "url": "https://medium.com/next-gen-cloud-journal/more-ai-agents-dont-always-mean-better-results-what-google-deepmind-s-latest-research-reveals-75c129e54643"
+          "url": "https://levelup.gitconnected.com/how-anthropic-evaluates-claude-against-the-14-categories-that-define-ai-safety-623a958d37c2"
         }
       ]
     },
     {
-      "title": "Lovable - Data Scientist",
+      "title": "Rebtel - Machine Learning Engineer",
       "source": "LinkedIn private fallback",
-      "reason": "Stockholm on-site、KTH alumni 信号强，适合和 Nordea 一起轻筛。",
+      "reason": "Stockholm hybrid、KTH alumni 信号可轻筛；canonical URL 已去邮件追踪。",
       "priority": 2,
       "status": "watch",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4317498443/"
+          "url": "https://www.linkedin.com/jobs/view/4436194215/"
         }
       ]
     },
     {
-      "title": "Revolut - Applied AI Engineer",
+      "title": "Lovable - Researcher, Post Training",
       "source": "LinkedIn private fallback",
-      "reason": "Sweden remote Applied AI 候选，canonical URL 已去邮件追踪。",
+      "reason": "Post-training 方向和 agent/LLM 主线贴近，但需要打开 JD 判具体匹配度。",
       "priority": 2,
       "status": "watch",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4407455974/"
+          "url": "https://www.linkedin.com/jobs/view/4406570106/"
         }
       ]
     },
     {
-      "title": "The Agentic Loop - Generative AI Engineer",
+      "title": "Apple - Machine Learning Researcher",
       "source": "LinkedIn private fallback",
-      "reason": "Remote GenAI role 和 agent 主线相关，但地域/质量需打开 JD 再判。",
+      "reason": "Aalto alumni 信号强但 Munich remote 与岗位方向需再核验。",
       "priority": 2,
       "status": "watch",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4444903166/"
+          "url": "https://www.linkedin.com/jobs/view/4443873114/"
+        }
+      ]
+    },
+    {
+      "title": "Jobgether - Machine Learning Engineer Distillation",
+      "source": "LinkedIn private fallback",
+      "reason": "distillation 关键词贴合今天 agent 训练主题，但招聘质量需打开核验。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4444314926/"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "hf-openai-eval-security",
+      "id": "agent-opd-prefix-replay-20260725",
       "kind": "deep-read",
-      "title": "HF/OpenAI 评估事故：评估链路也是供应链面",
-      "source": "Hugging Face / OpenAI",
-      "sourceStatus": "官方/高质量源",
-      "summary": "HF 的账号通知和公开 disclosure 都指向 7 月 16 日披露的安全事件，并称你的账号数据未受影响、无需采取 safeguard action。核心不是单个漏洞，而是模型评估环境也会接触生产级资产。",
-      "why": "如果 eval sandbox、benchmark runner 或自动化评测会触达私有模型/数据/凭据，它就必须按供应链和隔离边界管理。",
-      "thought": "先读 HF disclosure；OpenAI incident 页本轮 403，细节不要从 Medium 标题外推。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "HF disclosure",
-          "url": "https://huggingface.co/blog/security-incident-july-2026"
-        },
-        {
-          "label": "OpenAI incident page",
-          "url": "https://openai.com/index/hugging-face-model-evaluation-security-incident/"
-        }
-      ]
-    },
-    {
-      "id": "agent-opd-prefix-replay",
-      "kind": "paper",
-      "title": "Agent 训练：多轮 on-policy distillation 的成本问题",
-      "source": "HF Daily Papers",
+      "title": "Agent 训练：今天最值得看的是多轮 on-policy distillation",
+      "source": "HF Daily Papers 2026-07-24",
       "sourceStatus": "公开源",
-      "summary": "Multi-Turn On-Policy Distillation with Prefix Replay 关注 agent 在多轮环境交互里的蒸馏：完全在线 OPD 成本高，prefix replay 试图复用交互前缀来降低 rollout 负担。",
-      "why": "这直接贴近长任务 agent 的训练/评估成本：真正难点不是单步答对，而是多轮历史、环境反馈和学生模型更新之间的循环。",
-      "thought": "先看 project/GitHub 是否有可复现实验；可和你现在对 agent harness、长任务评估的兴趣放一起读。",
-      "priority": 1,
+      "summary": "`Multi-Turn On-Policy Distillation with Prefix Replay` 把 agent 蒸馏从单轮回答推进到多轮环境轨迹，用 prefix replay 降低每次都重新 rollout 的成本。",
+      "why": "这直接影响你判断 Codex/Claude Code 这类 harness agent 能否用开放训练栈持续变强。",
+      "thought": "重点看它如何定义轨迹、teacher/student 分布偏移和 replay 边界，而不是只看最终 benchmark。",
+      "priority": 96,
       "links": [
         {
           "label": "HF paper",
@@ -285,15 +273,32 @@
       ]
     },
     {
-      "id": "nunchaku-4bit-diffusers",
+      "id": "openforge-rl-harness-native-20260725",
       "kind": "signal",
-      "title": "4-bit diffusion 推理进入 Diffusers 主路径",
-      "source": "Hugging Face Blog",
+      "title": "OpenForgeRL：agent RL 开始正视 harness 本身",
+      "source": "HF Daily Papers 2026-07-24",
       "sourceStatus": "公开源",
-      "summary": "HF Blog 的 Nunchaku 4-bit Diffusion Inference 说明量化 diffusion 推理正在从研究实现进入常用工具链。它比单篇模型发布更值得看，因为它影响本地生成、部署成本和库接口。",
-      "why": "当优化进入 Diffusers，后续项目会默认继承这个推理路径，真正改变的是工程基线。",
-      "thought": "看 API 使用方式和质量/速度 tradeoff，别只看压缩比例。",
-      "priority": 1,
+      "summary": "`OpenForgeRL` 的问题不是再造一个 benchmark，而是让 Claude Code/Codex/OpenClaw 这类复杂 inference harness 里的 agent 可以被训练。",
+      "why": "如果 harness 是能力来源的一部分，训练栈就不能只优化裸模型回答。",
+      "thought": "把它作为 agent infra 入口：看环境抽象、tool trace、reward 记录和开源训练栈如何连接。",
+      "priority": 91,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.21557"
+        }
+      ]
+    },
+    {
+      "id": "nunchaku-diffusers-4bit-20260725",
+      "kind": "signal",
+      "title": "Diffusers 4-bit 推理：Nunchaku 进入熟悉工具链",
+      "source": "Hugging Face Blog 2026-07-23",
+      "sourceStatus": "公开源",
+      "summary": "HF Blog 介绍 Nunchaku 4-bit diffusion inference 接入 Diffusers，重点是把低比特扩散推理放进已有 Python 生态，而不是独立 demo。",
+      "why": "这类改动会影响本地/边缘图像生成成本，也能迁移到你理解量化、kernel 和 runtime 集成的框架里。",
+      "thought": "读的时候关注 Diffusers API 兼容、量化误差和速度收益的边界。",
+      "priority": 83,
       "links": [
         {
           "label": "HF Blog",
@@ -302,40 +307,40 @@
       ]
     },
     {
-      "id": "physical-ai-simulation",
+      "id": "physical-ai-simulation-data-20260725",
       "kind": "theme",
-      "title": "Physical AI：仿真、数据采集和视频动作模型正在合流",
-      "source": "HF Blog / Latent.Space",
+      "title": "Physical AI：仿真质量和真实数据采集正在合流",
+      "source": "Hugging Face Blog / HF Daily Papers",
       "sourceStatus": "综合判断",
-      "summary": "HF 的 physical AI simulation overview、Grabette 机器人操作数据系统，以及 Latent.Space 对 FLUX 3/video-action robotics 的跟踪，指向同一件事：视觉生成、物理仿真和机器人数据不再是分开的阅读路径。",
-      "why": "如果要判断 robotics/VLA 进展，单看视频生成质量不够，要看它是否能形成可训练、可验证、可迁移的物理闭环。",
-      "thought": "今天只作为趋势主题保存；和 speech 主线距离较远，不需要深挖每条。",
-      "priority": 2,
+      "summary": "HF 的 physical AI 仿真综述、Grabette 机器人操作数据和 SANA-Video 2.0 都指向同一个问题：机器人/视频模型不只缺模型结构，也缺可控数据与可验证环境。",
+      "why": "对 AI infra 学习来说，这提醒你把 simulator、data collection、model runtime 放在同一条链上看。",
+      "thought": "先读仿真综述，再把 Grabette 当成真实数据侧对照；SANA-Video 只作为生成模型能力候选。",
+      "priority": 78,
       "links": [
         {
-          "label": "HF simulation overview",
+          "label": "HF physical AI simulation",
           "url": "https://huggingface.co/blog/nvidia/state-of-simulation-for-physical-ai"
         },
         {
-          "label": "HF Grabette",
+          "label": "Grabette",
           "url": "https://huggingface.co/blog/grabette"
         },
         {
-          "label": "Latent FLUX 3",
-          "url": "https://www.latent.space/p/ainews-black-forest-labs-flux-3-multimodal"
+          "label": "SANA-Video 2.0",
+          "url": "https://huggingface.co/papers/2607.21553"
         }
       ]
     },
     {
-      "id": "model-manipulation-eval",
+      "id": "manipulative-model-eval-20260725",
       "kind": "concept",
-      "title": "先弄懂：怎么判断模型是不是在操纵用户",
+      "title": "概念先看：模型是否 manipulative 需要可操作评估",
       "source": "The Batch",
       "sourceStatus": "公开源",
-      "summary": "The Batch issue 362 把“model manipulation”作为可评估问题来讲：不是泛泛说模型会骗人，而是问怎样设计任务、指标和行为证据来判断模型是否在影响用户选择。",
-      "why": "这和安全评测、agent 权限和产品 UX 都相关；如果评估定义含糊，后续治理会变成口号。",
-      "thought": "把它当概念块读：重点找可操作的评估定义，而不是收集恐慌案例。",
-      "priority": 2,
+      "summary": "The Batch 的模型操纵评估条目值得作为概念块看：它关心模型是否会影响用户判断，而不是单纯答题正确率。",
+      "why": "这和 agent 安全、对话式系统评测、以及你做长期工具自动化时的 trust boundary 都相关。",
+      "thought": "先把它当成 eval design 问题：什么行为算操纵，怎么构造对照，怎样避免只测 prompt 风格。",
+      "priority": 76,
       "links": [
         {
           "label": "The Batch issue 362",
@@ -344,40 +349,15 @@
       ]
     },
     {
-      "id": "openai-api-changelog-watch",
-      "kind": "signal",
-      "title": "OpenAI 官方页面：API changelog 可访问，News/Release Notes 仍受限",
-      "source": "OpenAI API Changelog",
-      "sourceStatus": "官方/高质量源",
-      "summary": "本轮 HEAD 检查显示 API changelog 返回 200，且 last-modified 是 2026-07-24；但 OpenAI News、ChatGPT Release Notes 和 incident 页都返回 Cloudflare challenge 403。",
-      "why": "自动化里凡是涉及 OpenAI 官方变更，今天只能把 API changelog 当已直连官方源；新闻和 release note 不应由邮件或 Medium 代替核验。",
-      "thought": "需要具体 OpenAI 产品更新时再人工打开浏览器核验；本轮 feed 不展开未核验细节。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "OpenAI API changelog",
-          "url": "https://developers.openai.com/api/docs/changelog"
-        },
-        {
-          "label": "OpenAI News",
-          "url": "https://openai.com/news/"
-        },
-        {
-          "label": "ChatGPT Release Notes",
-          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
-        }
-      ]
-    },
-    {
-      "id": "speech-paper-refresh",
+      "id": "papers-use-20260725",
       "kind": "paper",
-      "title": "论文更新：array-invariant SE 和 ultra-lightweight SE",
-      "source": "本地推荐池",
+      "title": "论文更新：阵列无关 SE 与超轻量 SE 各有一个好入口",
+      "source": "本地推荐池 / arXiv 2026-07-25",
       "sourceStatus": "本地推荐池",
-      "summary": "今天 paper block 只推荐两篇：Towards Array-Invariant Speech Enhancement via Geometry-Aware Dynamic Convolution，因为它把麦克风坐标作为几何先验来改造固定阵列 SE；CoFi-Lite，因为它把 83k 参数、12.87M MACs/s 的边缘 SE 做到可和更重模型比较。",
-      "why": "前者贴近多阵列/真实设备泛化，后者贴近轻量化部署，两者都比泛 audio 论文更贴近 USE 主线。",
-      "thought": "Tag: speech-enhancement, multi-mic-SE, geometry-aware-SE, array-invariant, lightweight-SE, edge-audio。去 Obsidian 推荐池索引查看，不在本轮写新日报或池卡片。",
-      "priority": 1,
+      "summary": "推荐 `Towards Array-Invariant Speech Enhancement via Geometry-Aware Dynamic Convolution`：它把麦克风坐标显式注入动态卷积，适合你的多阵列/真实录音 SE 主线；再看 `CoFi-Lite`：它把粗细频谱流拆开，把 83k 参数级超轻量 SE 做到更低复杂度。",
+      "why": "一个偏泛化和阵列几何，一个偏边缘部署，正好覆盖你当前 USE 的鲁棒性与落地成本两侧。",
+      "thought": "Tags: speech-enhancement, multi-mic-SE, geometry-aware-SE, array-invariant, lightweight-SE, edge-audio；去 Obsidian 推荐池入口排阅读顺序。",
+      "priority": 74,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
@@ -386,31 +366,48 @@
       ]
     },
     {
-      "id": "linkedin-ai-job-screen",
+      "id": "finnair-london-prep-20260725",
       "kind": "action",
-      "title": "LinkedIn 岗位轻筛：先看 Nordea AI Safety，再扫本地 AI 产品岗",
-      "source": "LinkedIn private fallback",
+      "title": "Finnair 7 月 28 日伦敦行程：先确认轻行李限制",
+      "source": "Gmail private fallback 2026-07-24",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时 LinkedIn job 邮件里，Nordea Technical AI Safety Specialist 最贴合 AI safety/金融治理；Lovable Data Scientist、Revolut Applied AI Engineer、Napper AI Product Engineer 可作为本地/远程备选。",
-      "why": "这是独立行动项，不混进学习流；只需要轻筛 JD，不需要今天写申请材料。",
-      "thought": "打开 canonical jobs/view 链接，看地点、语言、签证和 seniority，明显不匹配就丢弃。",
-      "priority": 1,
+      "summary": "Finnair 邮件显示 7 月 28 日 HEL-LHR、8 月 2 日 LHR-HEL 行程已出票；票型是 Superlight，核心风险是只有 small bag/carry-on 规则需要出发前确认。",
+      "why": "这是未来 3 天内会影响打包和机场流程的个人事项。",
+      "thought": "打开官方 Manage booking 核对行李、座位和在线值机时间；不要依赖邮件 redirect 链接。",
+      "priority": 97,
       "links": [
         {
-          "label": "Nordea AI Safety",
-          "url": "https://www.linkedin.com/jobs/view/4443910306/"
+          "label": "Finnair Manage booking",
+          "url": "https://www.finnair.com/en/manage"
+        }
+      ]
+    },
+    {
+      "id": "linkedin-job-screen-20260725",
+      "kind": "action",
+      "title": "LinkedIn 岗位轻筛：优先看 Post Training 与 Agentic Loop",
+      "source": "LinkedIn private fallback 2026-07-25",
+      "sourceStatus": "行动项",
+      "summary": "今天岗位提醒里 Rebtel ML、Lovable Post Training、The Agentic Loop GenAI、Sourcein AI/ML/LLM 比泛数据岗更接近当前主线；其余社交/推荐噪声已过滤。",
+      "why": "这类岗位可以帮助校准你当前 agent/runtime 与 speech AI 简历叙事。",
+      "thought": "先快速打开 JD 判断是否要投；不把 LinkedIn newsletter 或社交推荐混进学习主信息流。",
+      "priority": 68,
+      "links": [
+        {
+          "label": "Lovable Post Training",
+          "url": "https://www.linkedin.com/jobs/view/4406570106/"
         },
         {
-          "label": "Lovable Data Scientist",
-          "url": "https://www.linkedin.com/jobs/view/4317498443/"
+          "label": "The Agentic Loop GenAI",
+          "url": "https://www.linkedin.com/jobs/view/4444903166/"
         },
         {
-          "label": "Revolut Applied AI",
-          "url": "https://www.linkedin.com/jobs/view/4407455974/"
+          "label": "Rebtel ML",
+          "url": "https://www.linkedin.com/jobs/view/4436194215/"
         },
         {
-          "label": "Napper AI Product",
-          "url": "https://www.linkedin.com/jobs/view/4441024607/"
+          "label": "Sourcein AI/ML/LLM",
+          "url": "https://www.linkedin.com/jobs/view/4432613117/"
         }
       ]
     }
