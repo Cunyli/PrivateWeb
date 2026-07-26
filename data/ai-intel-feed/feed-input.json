@@ -1,34 +1,86 @@
 {
-  "date": "2026-07-25",
-  "overview": "今天主线是 agent harness 训练、数据/仿真质量和多麦 speech enhancement；个人行动项只保留 Finnair 行李确认与 LinkedIn 职位筛选。",
-  "sourceStatusLine": "已直连 HF/Latent/HF Blog/The Batch/AISimple/Medium 等 10 个公开源；Gmail 仅查 LinkedIn、Finnair 与个人行动项；OpenAI News/Release Notes 403 受限，API changelog 可访问；无可信公开候选因缺少 URL 被跳过。",
+  "date": "2026-07-26",
+  "overview": "今天主线是 harness-native agent 训练、多轮 agent 蒸馏和多麦 speech enhancement；个人行动项只保留 Ryanair 值机和 LinkedIn 职位筛选。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 等 10 个公开源；Gmail 仅查 LinkedIn、Ryanair 与个人行动项；OpenAI News/Presence 本地 HEAD 403 受限，未放入主块；无可信公开候选因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "视频生成、开源模型热点、泛 Medium AI 趋势和低优先级职位被压到候选池/过载区。",
+    "summary": "视频生成、泛 Medium AI 趋势、OpenAI/Anthropic/DeepMind 模型新闻和低相关 LinkedIn 职位被压到候选池/过载区。",
     "counts": {
       "candidates": 40,
-      "overflow": 16,
-      "duplicates": 2,
+      "overflow": 18,
+      "duplicates": 3,
       "hidden": 0
     },
     "themes": [
       {
         "title": "视频/多模态模型发布拥挤",
-        "count": 4,
-        "note": "SANA、FLUX、Laguna 等都可回看，但今天不改变 speech/agent 行动。"
+        "count": 5,
+        "note": "SANA、FLUX、Gemini 相关模型都可回看，但今天不改变 speech/agent 行动。"
       },
       {
         "title": "Medium 泛 AI 趋势过载",
-        "count": 10,
-        "note": "多数缺少官方/论文支撑，只保留和 agent observability/harness 有关的候选。"
+        "count": 12,
+        "note": "多数缺少官方或论文支撑，只保留 agent harness/observability 相关候选。"
       },
       {
         "title": "LinkedIn 职位噪声",
-        "count": 8,
-        "note": "Support、Data Administrator、社交推荐和促销不进入主信息流。"
+        "count": 14,
+        "note": "Data technician、数据库、Profile views、newsletter 和 premium 推广不进主信息流。"
       }
     ]
   },
   "candidatePool": [
+    {
+      "title": "Introducing OpenAI Presence",
+      "source": "OpenAI News",
+      "reason": "疑似重要 production agent 产品信号，但本地官方页 HEAD 403，未进入主信息流。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "OpenAI Presence",
+          "url": "https://openai.com/index/introducing-openai-presence/"
+        }
+      ]
+    },
+    {
+      "title": "GPT-5.6: Frontier intelligence that scales with your ambition",
+      "source": "OpenAI News",
+      "reason": "OpenAI 官方页本地 HEAD 403 受限，未在本轮作为已核验主块。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "OpenAI",
+          "url": "https://openai.com/index/gpt-5-6/"
+        }
+      ]
+    },
+    {
+      "title": "ChatGPT is now a partner for your most ambitious work",
+      "source": "OpenAI News",
+      "reason": "OpenAI 官方页本地 HEAD 403 受限，暂作未官方核验候选。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "OpenAI News",
+          "url": "https://openai.com/news/company-announcements/"
+        }
+      ]
+    },
+    {
+      "title": "Introducing Gemini 3.5 Flash Cyber",
+      "source": "Google DeepMind News",
+      "reason": "安全/模型发布值得观察，但缺少本轮与当前 speech/agent 工作的直接行动连接。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Google DeepMind News",
+          "url": "https://deepmind.google/blog/"
+        }
+      ]
+    },
     {
       "title": "SANA-Video 2.0: Hybrid Linear Attention with Attention Residuals for Efficient Video Generation",
       "source": "Hugging Face Daily Papers",
@@ -37,15 +89,28 @@
       "status": "candidate",
       "links": [
         {
-          "label": "Hugging Face Daily Papers",
+          "label": "HF paper",
           "url": "https://huggingface.co/papers/2607.21553"
         }
       ]
     },
     {
-      "title": "[AINews] Claude Opus 5: Fable-level performance at Opus price (half Fable)",
+      "title": "Dataset Distillation by Influence Matching",
+      "source": "Hugging Face Daily Papers",
+      "reason": "数据蒸馏思想有启发，但低于 OpenForgeRL/OPD 对当前 agent 训练的相关性。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.16859"
+        }
+      ]
+    },
+    {
+      "title": "[AINews] Claude Opus 5: Fable-level performance at Opus price",
       "source": "Latent.Space / AINews",
-      "reason": "AINews 热点，缺少本轮官方核验，暂作观察。",
+      "reason": "newsletter 热点，暂不作为官方核验后的主块。",
       "priority": 3,
       "status": "watch",
       "links": [
@@ -56,35 +121,9 @@
       ]
     },
     {
-      "title": "[AINews] Black Forest Labs FLUX 3 - Multimodal Flow Models that beat Seedance 2.0, Gemini Omni and Grok Imagine, and FLUX-mimic video-action robotics model",
+      "title": "Inside the Model Factory - Eiso Kant, Poolside AI",
       "source": "Latent.Space / AINews",
-      "reason": "多模态/视频模型拥挤主题的一部分，保留回看但不进主块。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Latent.Space / AINews",
-          "url": "https://www.latent.space/p/ainews-black-forest-labs-flux-3-multimodal"
-        }
-      ]
-    },
-    {
-      "title": "[AINews] \"Laguna S 2.1 Released: Cheaper than Deepseek v4 Flash, Better than V4 Pro\"",
-      "source": "Latent.Space / AINews",
-      "reason": "模型发布来自 newsletter，等待官方/技术细节再升级。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Latent.Space / AINews",
-          "url": "https://www.latent.space/p/ainews-laguna-s-21-released-cheaper"
-        }
-      ]
-    },
-    {
-      "title": "Inside the Model Factory — Eiso Kant, Poolside AI",
-      "source": "Latent.Space / AINews",
-      "reason": "Poolside 训练工厂采访值得长读，但今天低于 agent harness 论文优先级。",
+      "reason": "模型工厂长读有价值，但今天阅读预算优先给 agent harness 论文。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -95,152 +134,48 @@
       ]
     },
     {
-      "title": "Newer Models, Same Advantage",
-      "source": "Hugging Face Blog",
-      "reason": "模型优势泛讨论，可信可点但主线价值较弱。",
-      "priority": 3,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "Hugging Face Blog",
-          "url": "https://huggingface.co/blog/Dharma-AI/newer-models-same-advantages"
-        }
-      ]
-    },
-    {
-      "title": "Kimi K3 Redraws the Open Frontier, Muse Spark 1.1 Undercuts Competitors, Cloudflare Moves to Cut Off Crawlers",
-      "source": "DeepLearning.AI The Batch",
-      "reason": "The Batch 综合热点，作为开源模型/爬虫政策观察保留。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "DeepLearning.AI The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-363"
-        }
-      ]
-    },
-    {
-      "title": "AI Overviews Land Google In Hot Water, GPT-Live Puts Reasoning in the Background, How to Tell If Your Model is Manipulative",
-      "source": "DeepLearning.AI The Batch",
-      "reason": "The Batch 往期综合，信息密度够但不如本轮新源。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "DeepLearning.AI The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-362"
-        }
-      ]
-    },
-    {
-      "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code [Guest]",
+      "title": "The Cheapest Way to Make Open Weight AI Models Better",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "rubric reward 主题相关，但不是官方/论文主块。",
+      "reason": "开源模型改进思路可读，但来源不是官方/论文主块。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "AISimple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/the-cheapest-way-to-make-open-weight"
+        }
+      ]
+    },
+    {
+      "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "rubric reward 主题相关，暂作 RL/agent 训练候选。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "Artificial Intelligence Made Simple",
+          "label": "AISimple",
           "url": "https://www.artificialintelligencemadesimple.com/p/how-rubric-based-rewards-could-push"
         }
       ]
     },
     {
-      "title": "The Hidden Geometry Behind AI Reasoning",
-      "source": "Artificial Intelligence Made Simple",
-      "reason": "概念文，标题相关但需要更强证据再进入主流。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Artificial Intelligence Made Simple",
-          "url": "https://www.artificialintelligencemadesimple.com/p/the-hidden-geometry-behind-ai-reasoning"
-        }
-      ]
-    },
-    {
-      "title": "From a Failed Tool Call to a Verified Fix: Building Agent Observability with SigNoz",
+      "title": "OpenCode vs. Grok Build vs. Claude Code",
       "source": "Medium AI agents tag",
-      "reason": "agent observability 主题相关，Medium 来源先放候选。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Medium AI agents tag",
-          "url": "https://medium.com/@phanindrakanaparthi029/from-a-failed-tool-call-to-a-verified-fix-building-agent-observability-with-signoz-218d0e85d3a9"
-        }
-      ]
-    },
-    {
-      "title": "How to Write a Problem Statement an Agent Can Actually Execute",
-      "source": "Medium AI agents tag",
-      "reason": "和 Codex 任务规格有关，但文章质量需人工确认。",
+      "reason": "coding agent 横向比较与日常工具有关，但 Medium 质量需人工确认。",
       "priority": 3,
       "status": "watch",
       "links": [
         {
-          "label": "Medium AI agents tag",
-          "url": "https://medium.com/@soumya-banerjee/how-to-write-a-problem-statement-an-agent-can-actually-execute-9a31ae1d3622"
-        }
-      ]
-    },
-    {
-      "title": "The Hidden Bottleneck in Agent Evolution: What Harness Handbook Reveals About How AI Systems Break",
-      "source": "Medium AI tag",
-      "reason": "harness 主题相关，和 OpenForgeRL 呼应但来源较弱。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Medium AI tag",
-          "url": "https://vlad-vsbd.medium.com/the-hidden-bottleneck-in-agent-evolution-what-harness-handbook-reveals-about-how-ai-systems-break-da63914eb965"
-        }
-      ]
-    },
-    {
-      "title": "context.WithTimeout Is Not a Circuit Breaker",
-      "source": "Medium Level Up Coding",
-      "reason": "工程概念清楚，但偏 Go 后端，不进 AI 主块。",
-      "priority": 3,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "Medium Level Up Coding",
-          "url": "https://levelup.gitconnected.com/context-withtimeout-is-not-a-circuit-breaker-875d91ad71a1"
-        }
-      ]
-    },
-    {
-      "title": "How Anthropic Evaluates Claude Against the 14 Categories That Define AI Safety",
-      "source": "Medium Level Up Coding",
-      "reason": "AI safety 评估主题相关，但非 Anthropic 官方源，本轮只候选。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Medium Level Up Coding",
-          "url": "https://levelup.gitconnected.com/how-anthropic-evaluates-claude-against-the-14-categories-that-define-ai-safety-623a958d37c2"
-        }
-      ]
-    },
-    {
-      "title": "Kimi 3, Inkling: These Two Open Models May Change “Everything”",
-      "source": "Medium Data Science Collective",
-      "reason": "开源模型热文，和 The Batch/Latent 重复，保留去重观察。",
-      "priority": 3,
-      "status": "duplicate",
-      "links": [
-        {
-          "label": "Medium Data Science Collective",
-          "url": "https://medium.com/data-science-collective/kimi-3-inkling-these-two-open-models-may-change-everything-0af000f36af7"
+          "label": "Medium",
+          "url": "https://pub.towardsai.net/opencode-vs-grok-build-vs-claude-code-which-open-coding-agent-should-you-actually-build-on-ab9d940aae57"
         }
       ]
     },
     {
       "title": "Listen first: Output-based multi-microphone speech enhancement",
       "source": "start-my-day / arXiv",
-      "reason": "多麦输出选择框架相关，但今天 paper block 已被前两篇占满。",
+      "reason": "输出驱动 beamformer 选择很贴近多麦 SE，但 paper block 只保留 1-2 篇最高优先级。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -253,7 +188,7 @@
     {
       "title": "Improving multichannel speech enhancement through accurate room-acoustic simulations",
       "source": "start-my-day / arXiv",
-      "reason": "房间声学仿真保真度和 SE 迁移相关，作为后续精读候选。",
+      "reason": "仿真保真度和真实测量迁移很重要，作为后续精读候选。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -262,35 +197,108 @@
           "url": "http://arxiv.org/abs/2606.31552v1"
         }
       ]
-    }
-  ],
-  "blocks": [
+    },
     {
-      "id": "finnair-london-2026-07-28-light-bag",
-      "kind": "action",
-      "title": "Finnair 7 月 28 日伦敦行程：先确认轻行李限制",
-      "source": "Gmail private fallback / Finnair",
-      "sourceStatus": "行动项",
-      "summary": "Finnair 确认了 2026-07-28 HEL 到 LHR、2026-08-02 LHR 返回 HEL 的行程；票种是 Economy Superlight，默认只有 1 个小包、总重 8kg。",
-      "why": "这会直接影响出发前是否要加购随身行李、托运行李或座位，且比普通确认邮件更需要提前处理。",
-      "thought": "今天只需要用 Finnair 官方 Manage Booking 检查行李和座位，不保存预订码、票号、验证码或邮件追踪链接。",
-      "priority": 0,
+      "title": "AmbiDrop: Ambisonics-Based Array-Agnostic Neural Speech Enhancement",
+      "source": "start-my-day / arXiv",
+      "reason": "array-agnostic SE 与多麦泛化相关，但与 Geo-DConv 主题重复。",
+      "priority": 2,
+      "status": "duplicate",
       "links": [
         {
-          "label": "Finnair Manage Booking",
-          "url": "https://www.finnair.com/en/manage"
+          "label": "arXiv",
+          "url": "http://arxiv.org/abs/2607.00548v1"
         }
       ]
     },
     {
-      "id": "openforgerl-harness-native-agent-training",
+      "title": "Umain AI Engineer",
+      "source": "Gmail private fallback / LinkedIn",
+      "reason": "Stockholm AI 工程岗可粗筛，但低于 Lovable/Rebtel/Agentic Loop。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4427937132/"
+        }
+      ]
+    },
+    {
+      "title": "Sourcein AI / ML / LLM Research Engineer",
+      "source": "Gmail private fallback / LinkedIn",
+      "reason": "LLM research 相关，但地点/匹配度需人工再筛。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4432613117/"
+        }
+      ]
+    },
+    {
+      "title": "Machine Learning Engineer - Distillation",
+      "source": "Gmail private fallback / LinkedIn",
+      "reason": "和本轮 OPD/蒸馏主题相关，先放候选池而非主行动。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4444314926/"
+        }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "id": "ryanair-london-2026-07-28-checkin",
+      "kind": "action",
+      "title": "Ryanair 7 月 28 日伦敦 Stansted：必须提前在线值机",
+      "source": "Gmail private fallback / Ryanair",
+      "sourceStatus": "行动项",
+      "summary": "Ryanair 提醒 2026-07-28 飞往 London Stansted 的航班需要至少在计划起飞前 2 小时完成在线值机并准备电子登机牌；邮件说明机场值机会产生高额费用。",
+      "why": "这是明确会过期的个人行动项，比普通航班确认更需要今天处理。",
+      "thought": "只用 Ryanair 官方 check-in / myRyanair 入口处理，不保存预订码、邮件 redirect、tracking URL 或私人行程标识。",
+      "priority": 0,
+      "links": [
+        {
+          "label": "Ryanair check-in",
+          "url": "https://www.ryanair.com/gb/en/check-in"
+        }
+      ]
+    },
+    {
+      "id": "influence-matching-dataset-distillation-2026-07-26",
+      "kind": "signal",
+      "title": "Influence Matching：数据蒸馏从训练轨迹对齐转向最终结果对齐",
+      "source": "Hugging Face Daily Papers",
+      "sourceStatus": "公开源",
+      "summary": "Dataset Distillation by Influence Matching 不再主要拟合每步梯度或训练轨迹，而是让小数据集对最终模型参数产生相似影响。这个视角把数据蒸馏从过程模仿改成 outcome-centric 选择。",
+      "why": "它对低成本 ablation、数据子集选择和小样本代表性判断都有潜在启发。",
+      "thought": "先当作数据选择思想看；除非代码和实验足够清楚，不急着迁移到当前 SE 训练。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.16859"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/hrtan/infmatch"
+        }
+      ]
+    },
+    {
+      "id": "openforgerl-harness-native-agent-training-2026-07-26",
       "kind": "deep-read",
       "title": "OpenForgeRL：把 Codex/Claude Code 这类 harness 直接变成训练环境",
       "source": "Hugging Face Daily Papers",
       "sourceStatus": "公开源",
-      "summary": "这篇把现代 agent 的真实执行外壳当成 RL 训练对象，而不是只在简化 benchmark 里学工具调用。它对“agent 能不能在真实工程环境里学会多轮修复”这个问题更贴近实际。",
-      "why": "这直接对应你最近关心的 Codex、harness、长任务评估和工作流自动化，不只是模型榜单新闻。",
-      "thought": "优先看它如何定义环境、轨迹和 reward，再判断能否迁移到代码任务或研究运维任务。",
+      "summary": "OpenForgeRL 关注现代 agent 在真实 inference harness 中多轮交互、调用工具和访问外部系统时如何训练，而不是只在简化 benchmark 里学工具调用。",
+      "why": "它直接对应长任务 Codex、agent runtime、工具权限和工程环境中的多轮修复能力。",
+      "thought": "把它和 OpenAI Presence 一起看：一个讲生产 agent 部署闭环，一个讲 harness-native 训练闭环。",
       "priority": 1,
       "links": [
         {
@@ -300,48 +308,39 @@
       ]
     },
     {
-      "id": "multi-turn-opd-prefix-replay",
+      "id": "multi-turn-opd-prefix-replay-2026-07-26",
       "kind": "signal",
       "title": "多轮 on-policy distillation：Prefix Replay 试图降低 agent 蒸馏成本",
       "source": "Hugging Face Daily Papers",
       "sourceStatus": "公开源",
-      "summary": "Multi-Turn On-Policy Distillation 关注 teacher agent 与环境多轮交互时，学生如何在更低成本下模仿真实交互历史。Prefix Replay 的价值在于减少完全在线采样的开销。",
+      "summary": "Multi-Turn On-Policy Distillation 研究 agent 多轮环境交互下学生模型如何模仿 teacher，Prefix Replay 的核心价值是减少完全在线 rollout 的成本。",
       "why": "如果 agent 训练从单步监督走向真实交互，蒸馏成本会成为系统瓶颈。",
-      "thought": "把它和 OpenForgeRL 放在一起看：一个讲 harness 环境，一个讲多轮训练数据怎么省。",
+      "thought": "关注它保存/复用哪些 prefix、reward 如何定义，以及是否能服务于真实代码任务。",
       "priority": 1,
       "links": [
         {
           "label": "HF paper",
           "url": "https://huggingface.co/papers/2607.04763"
-        }
-      ]
-    },
-    {
-      "id": "influence-matching-dataset-distillation",
-      "kind": "signal",
-      "title": "Influence Matching：数据蒸馏从训练过程对齐转向最终结果对齐",
-      "source": "Hugging Face Daily Papers",
-      "sourceStatus": "公开源",
-      "summary": "Dataset Distillation by Influence Matching 不再主要拟合每步梯度或训练轨迹，而是让小数据集对最终模型结果产生相似影响。这个角度适合重新理解“少数据能否代表训练分布”。",
-      "why": "它对实验设计、数据子集选择和低成本 ablation 都有潜在启发。",
-      "thought": "先当作数据选择思想看，不急着落到当前 SE 训练，除非它有公开代码或清晰可复现实验。",
-      "priority": 2,
-      "links": [
+        },
         {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.16859"
+          "label": "Project",
+          "url": "https://baohaoliao.github.io/ReOPD/"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/BaohaoLiao/ReOPD"
         }
       ]
     },
     {
-      "id": "nunchaku-4bit-diffusers",
+      "id": "nunchaku-4bit-diffusers-2026-07-26",
       "kind": "signal",
-      "title": "Nunchaku 4-bit diffusion 进 Diffusers：图像/视频生成推理继续压低显存门槛",
+      "title": "Nunchaku 4-bit diffusion 进 Diffusers：低显存推理继续被工程化",
       "source": "Hugging Face Blog",
       "sourceStatus": "公开源",
-      "summary": "Hugging Face 介绍把 Nunchaku 4-bit diffusion inference 接入 Diffusers，重点是让扩散模型在更低资源下运行。它不是 speech 主线，但对端侧/低显存推理模式有参考价值。",
-      "why": "低比特推理和主流推理库集成，往往比单个 demo 更值得跟踪。",
-      "thought": "如果之后看 neural audio codec 或 audio generation 的推理压缩，可以复用这里的工程判断框架。",
+      "summary": "Hugging Face 介绍 Nunchaku 4-bit diffusion inference 接入 Diffusers，让扩散模型在更低资源下运行。它不是 speech 主线，但代表低比特推理从 demo 走向主流库集成。",
+      "why": "低显存/低比特推理的工程路径，对之后看 neural audio codec 或 audio generation 压缩有参考价值。",
+      "thought": "把它作为推理工程案例看，不需要今天深读全部实现。",
       "priority": 2,
       "links": [
         {
@@ -351,14 +350,14 @@
       ]
     },
     {
-      "id": "physical-ai-simulation-data-loop",
+      "id": "physical-ai-simulation-data-loop-2026-07-26",
       "kind": "theme",
-      "title": "Physical AI 的关键不是又一个机器人 demo，而是仿真到真实数据闭环",
-      "source": "Hugging Face Blog / The Batch",
+      "title": "Physical AI 的关键不是新 demo，而是仿真到真实数据闭环",
+      "source": "Hugging Face Blog / Google DeepMind / The Batch",
       "sourceStatus": "综合判断",
-      "summary": "HF/NVIDIA 的仿真概览、Grabette 机器人操控数据系统，以及 The Batch 的机器人训练报道放在一起看，主题是 physical AI 正在围绕“可复现实验、仿真保真度、真实数据采集”重组。",
-      "why": "这和 speech enhancement 的合成房间声学/真实录音落差很像：数据生成流程会决定模型是否真的可迁移。",
-      "thought": "把它作为“仿真质量和真实采集闭环”的跨领域类比，不需要今天深读全部。",
+      "summary": "HF/NVIDIA 的 simulation overview、Grabette 数据记录系统、Google DeepMind 的 science/robotics 新闻和 The Batch 的机器人训练报道放在一起看，主题都是可复现实验、仿真保真度和真实数据采集。",
+      "why": "这和 speech enhancement 的房间声学仿真到真实录音迁移很像：数据生成流程会决定模型是否真能泛化。",
+      "thought": "当作跨领域类比保留，后续读多麦 SE 仿真论文时可用这个框架审查数据闭环。",
       "priority": 2,
       "links": [
         {
@@ -370,20 +369,24 @@
           "url": "https://huggingface.co/blog/grabette"
         },
         {
+          "label": "Google DeepMind News",
+          "url": "https://deepmind.google/blog/"
+        },
+        {
           "label": "The Batch issue 363",
           "url": "https://www.deeplearning.ai/the-batch/issue-363"
         }
       ]
     },
     {
-      "id": "paper-use-2026-07-25",
+      "id": "paper-use-2026-07-26",
       "kind": "paper",
-      "title": "论文提醒：多麦阵列不变 SE + 超轻量 SE",
+      "title": "论文提醒：阵列不变多麦 SE + 输出驱动 beamformer",
       "source": "start-my-day local paper search",
       "sourceStatus": "本地推荐池",
-      "summary": "1. Towards Array-Invariant Speech Enhancement via Geometry-Aware Dynamic Convolution：用麦克风坐标驱动动态卷积，把固定阵列 SE 模型改造成更稳的 array-invariant 系统。2. CoFi-Lite: Pushing the Limits of Ultra-Lightweight Speech Enhancement：用 coarse/fine 双路径和 Cross-Path Fusion 把超轻量 SE 压到很低计算量。",
-      "why": "前者贴近多麦真实部署和阵列拓扑泛化，后者贴近 edge audio/streaming SE 的成本上限。",
-      "thought": "Tag: speech-enhancement, multi-mic-SE, geometry-aware-SE, array-invariant, lightweight-SE, edge-audio。去 Obsidian 推荐池索引决定是否精读。",
+      "summary": "1. Towards Array-Invariant Speech Enhancement via Geometry-Aware Dynamic Convolution：用麦克风坐标驱动动态卷积，把固定阵列 SE 模型改造成更稳的 array-invariant 系统。2. Listen first: Output-based multi-microphone speech enhancement：不依赖 noisy input 的 VAD/特征估计，而是按输出质量选择 MPDR beamformer，在低 SNR 下改善 SNR/ESTOI/PESQ。",
+      "why": "前者贴近真实多麦设备拓扑泛化，后者挑战传统 input-based beamformer 配置，都是当前 USE/多麦 SE 值得优先看的方向。",
+      "thought": "Tag: speech-enhancement, multi-mic-SE, geometry-aware-SE, array-invariant, beamforming, robustness。去 Obsidian 推荐池索引决定是否精读。",
       "priority": 1,
       "links": [
         {
@@ -393,14 +396,14 @@
       ]
     },
     {
-      "id": "linkedin-ai-ml-job-screen-2026-07-25",
+      "id": "linkedin-ai-ml-job-screen-2026-07-26",
       "kind": "action",
-      "title": "LinkedIn 职位筛选：优先看 agent/ML research，而不是泛数据岗",
+      "title": "LinkedIn 职位筛选：优先看 agent/ML research，泛数据岗不进入主线",
       "source": "Gmail private fallback / LinkedIn Job Alerts",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时有 Rebtel ML Engineer、The Agentic Loop Generative AI Engineer、Lovable Researcher/Post Training、Apple ML Researcher、Nordea Technical AI Safety 等职位提醒；泛 Support/Data Administrator 和社交通知已过滤。",
-      "why": "这些是求职/职业探索行动项，应该独立于学习信息流处理。",
-      "thought": "只打开 canonical LinkedIn jobs/view 链接筛 3 个最相关岗位，邮件 redirect、邮件管理链接和 tracking token 不进入 JSON。",
+      "summary": "最近 36 小时有 The Agentic Loop Generative AI Engineer、Lovable Researcher/Post Training、Rebtel ML Engineer、Apple ML Researcher、Sourcein AI/ML/LLM Research Engineer 等提醒；Data technician、数据库、profile views 和 newsletter 已过滤。",
+      "why": "这些是求职/职业探索行动项，应该独立于学习主信息流处理。",
+      "thought": "只打开 canonical LinkedIn jobs/view 链接筛 3 个最相关岗位，邮件跳转、退订入口和追踪参数不进 JSON。",
       "priority": 0,
       "links": [
         {
@@ -412,16 +415,16 @@
           "url": "https://www.linkedin.com/jobs/view/4406570106/"
         },
         {
-          "label": "Apple Machine Learning Researcher",
-          "url": "https://www.linkedin.com/jobs/view/4443873114/"
-        },
-        {
           "label": "Rebtel Machine Learning Engineer",
           "url": "https://www.linkedin.com/jobs/view/4436194215/"
         },
         {
-          "label": "Nordea Technical AI Safety Specialist",
-          "url": "https://www.linkedin.com/jobs/view/4443910306/"
+          "label": "Apple Machine Learning Researcher",
+          "url": "https://www.linkedin.com/jobs/view/4443873114/"
+        },
+        {
+          "label": "Sourcein AI / ML / LLM Research Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4432613117/"
         }
       ]
     }
