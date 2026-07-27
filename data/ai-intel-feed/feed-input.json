@@ -1,7 +1,7 @@
 {
   "date": "2026-07-27",
   "overview": "今天最值得先处理的是 7 月 28 日伦敦行程的在线值机；技术阅读集中在训练控制面、多模态说话人隐私、轻量推理和多麦语音增强。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 共 10 个公开源、40 个候选；Gmail 仅查 LinkedIn 与个人行动项；OpenAI News/ChatGPT Release Notes 仍为 403 Cloudflare，API changelog 可访问；无可信候选因缺少 URL 被跳过。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 共 10 个公开源、40 个候选；Gmail 仅查 LinkedIn、Ryanair、Finnair 与个人安全行动项；OpenAI News/ChatGPT Release Notes 仍为 403 Cloudflare，API changelog 可访问；无可信候选因缺少 URL 被跳过。",
   "overflow": {
     "summary": "模型发布、AI 职场判断和 Medium 泛 AI 文章较多，保留可点击候选但不挤进主阅读面。",
     "counts": {
@@ -193,19 +193,19 @@
       ]
     },
     {
-      "title": "AI Engineer at Umain / AI Data Engineer at Etteplan",
+      "title": "Arm Software ML Engineer / Hired AI-ML Engineer",
       "source": "LinkedIn Job Alerts",
       "reason": "岗位线索独立保留，不混入学习主信息流；只存 canonical job URL。",
       "priority": 1,
       "status": "watch",
       "links": [
         {
-          "label": "Umain AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4427937132"
+          "label": "Arm Software ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4444696273"
         },
         {
-          "label": "Etteplan AI Data Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4436723124"
+          "label": "Hired AI/ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4445379484"
         }
       ]
     },
@@ -387,17 +387,17 @@
     {
       "id": "linkedin-jobs-screening-2026-07-27",
       "kind": "action",
-      "title": "LinkedIn 岗位只做筛选：优先看 Umain、BCG X、Arm",
+      "title": "LinkedIn 岗位只做筛选：优先看 BCG X、Arm、Hired",
       "source": "Gmail private fallback / LinkedIn Job Alerts 2026-07-26-27",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时的 LinkedIn job alert 里，Umain AI Engineer、BCG X Forward Deployed AI Engineer、Arm Software ML Engineer 相对更贴近 AI/ML；Solera Data Entry、泛 Data Analyst 可直接忽略或降级。",
+      "summary": "最近 36 小时的 LinkedIn job alert 里，BCG X Forward Deployed AI Engineer、Arm Software ML Engineer、Hired AI/ML Engineer 相对更贴近 AI/ML；Solera Data Entry、泛 Data Analyst 可直接忽略或降级。",
       "why": "岗位线索应该独立成行动项，不应该污染主学习信息流。",
       "thought": "只打开 canonical jobs/view 链接快速筛 JD，不保存邮件 comm、tracking 或退订链接。",
       "priority": 1,
       "links": [
         {
-          "label": "Umain AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4427937132"
+          "label": "Hired AI/ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4445379484"
         },
         {
           "label": "BCG X Forward Deployed AI Engineer",
