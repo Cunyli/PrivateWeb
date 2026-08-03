@@ -1,285 +1,362 @@
 {
   "date": "2026-08-03",
-  "overview": "今天先处理 AYY/Maventa 发票；技术阅读优先看 GPT-5.6 的 cache/价格语义、streaming speech restoration 的真实延迟成本，以及 GPU warp divergence 的稳定成本模型。",
-  "sourceStatusLine": "本地公开源脚本受沙箱 DNS 限制，10 个源需复查；网页侧已核验 HF Daily Papers、OpenAI、Anthropic、AYY 与 Spotify；Gmail 仅查 LinkedIn/发票/个人行动项；RSS 类源降级，未把 newsletter 邮件当事实源；无可信候选因缺少 URL 被写入主流。",
+  "overview": "今晚最该先处理 AYY/Maventa 发票；技术阅读聚焦本地/边缘推理、GPU 利用率、agent 语义层和两篇语音增强论文。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/The Batch/AISimple/Medium 等 10 个公开源，40 个候选；Gmail 仅查 AYY 发票、LinkedIn 职位/私信与 sent，未搜公开 newsletter；Semantic Scholar 部分 429；无可信 URL 缺失候选进入主流。",
   "overflow": {
-    "summary": "公开 RSS/API 采集降级，候选池只保留网页侧可点击核验项；LinkedIn job alert 较多，除 Spotify generative audio 外暂不进入主块。",
+    "summary": "公开候选里 Medium 工具/趋势文和泛数据岗位较多，压到候选池或溢出，主流只保留当前研究/行动相关内容。",
     "counts": {
-      "candidates": 17,
-      "overflow": 7,
-      "duplicates": 3,
-      "hidden": 0
+      "candidates": 40,
+      "overflow": 15,
+      "duplicates": 0,
+      "hidden": 3
     },
     "themes": [
       {
-        "title": "公开 RSS 直连失败",
+        "title": "Medium 泛 AI/职业/工具文章",
         "count": 10,
-        "note": "脚本输出显示 HF Blog、Latent.Space、Medium、The Batch 等源 DNS 失败；本轮用网页侧可核验公开页面补足。"
+        "note": "可点击但多数是经验帖或趋势帖，信息密度低于 HF/Latent/论文。"
       },
       {
-        "title": "LinkedIn 职位提醒重复",
+        "title": "LinkedIn 数据类远程岗位",
         "count": 6,
-        "note": "Netrolynx AI 同类 job alert 多次出现；只保留最贴近 speech/audio 的 Spotify 岗位。"
+        "note": "作为求职线索保留，但与 speech/audio/ML research 主线不完全对齐。"
       },
       {
-        "title": "OpenAI 价格报道较多",
+        "title": "HF Daily Papers 泛 agent/情感对话论文",
         "count": 3,
-        "note": "媒体有价格下调说法，但官方模型页仍显示原始 rate；主块强调以官方 pricing/docs 为准。"
+        "note": "有论文链接但今天不如 speech enhancement 与 runtime 直接影响当前工作。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Characterizing Warp Divergence from Pascal to Blackwell",
-      "source": "Hugging Face Daily Papers",
-      "reason": "GPU 控制流成本对 Triton/kernel 判断有直接价值，但已压缩进 paper block。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.23402"
-        }
-      ]
-    },
-    {
-      "title": "Real-Time Streamable Generative Speech Restoration with Flow Matching",
-      "source": "Hugging Face Daily Papers",
-      "reason": "speech enhancement 主线高度相关，已作为今日 paper block 的第一篇。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2512.19442"
-        }
-      ]
-    },
-    {
-      "title": "Sol-Attn: Accelerating Video Generation Inference via On-the-Fly Attention Sparsification",
-      "source": "Hugging Face Daily Papers",
-      "reason": "training-free sparse attention 对长序列推理有参考价值，但今天不如 audio/GPU 成本直接。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.24027"
-        },
-        {
-          "label": "Project",
-          "url": "http://nvlabs.github.io/Sana/Sol-Attn/"
-        }
-      ]
-    },
-    {
-      "title": "Codifying the Judge: Scalable Evaluation via Program Distillation",
-      "source": "Hugging Face Daily Papers",
-      "reason": "programmatic judge 对自动评估成本有启发，但不是今天主线。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.22561"
-        },
-        {
-          "label": "Project",
-          "url": "https://sprocketlab.github.io/PAJAMA/"
-        }
-      ]
-    },
-    {
-      "title": "The Physics of Multi-Turn Long-Horizon Planning",
-      "source": "Hugging Face Daily Papers",
-      "reason": "agent planning/post-training 值得跟踪，但论文阅读负担较大，先放观察池。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2607.24720"
-        },
-        {
-          "label": "Project",
-          "url": "https://quester-one.github.io/PlanPhysWebsite/"
-        }
-      ]
-    },
-    {
-      "title": "GPT-5.6 official model page: pricing, cache writes, multi-agent",
-      "source": "OpenAI",
-      "reason": "官方页是价格和 API 能力的基准来源；主块已使用。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "OpenAI launch",
-          "url": "https://openai.com/index/gpt-5-6/"
-        },
-        {
-          "label": "OpenAI API models",
-          "url": "https://developers.openai.com/api/docs/models"
-        }
-      ]
-    },
-    {
-      "title": "GPT-5.6 System Card",
-      "source": "OpenAI Deployment Safety Hub",
-      "reason": "适合作为安全/agent 行为细读材料，但今天先读 API 成本语义。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "System Card",
-          "url": "https://deploymentsafety.openai.com/gpt-5-6"
-        }
-      ]
-    },
-    {
-      "title": "ChatGPT desktop app experience updates",
-      "source": "OpenAI Help Center",
-      "reason": "直接影响 Codex/ChatGPT Work 使用方式，已进入主信息流。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "ChatGPT release notes",
-          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
-        }
-      ]
-    },
-    {
-      "title": "The Making of Claude Code",
-      "source": "Anthropic",
-      "reason": "agent coding workflow 背景重要，但本轮只用作 Claude/agent workbench 主题支撑。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Anthropic newsroom",
-          "url": "https://www.anthropic.com/news"
-        }
-      ]
-    },
-    {
-      "title": "Introducing Claude Sonnet 5",
-      "source": "Anthropic",
-      "reason": "含 pricing 和 agentic search 评估口径更正，适合后续对比 OpenAI。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Anthropic post",
-          "url": "https://www.anthropic.com/news/claude-sonnet-5"
-        }
-      ]
-    },
-    {
-      "title": "Research Scientist - Generative Audio at Spotify",
-      "source": "Gmail private fallback / LinkedIn Jobs",
-      "reason": "岗位高度贴近 generative audio/speech 主线，已作为行动项。",
-      "priority": 0,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/research-scientist-generative-audio-at-spotify-4439310429"
-        }
-      ]
-    },
-    {
-      "title": "Netrolynx AI data scientist / ML engineer alerts",
-      "source": "Gmail private fallback / LinkedIn Jobs",
-      "reason": "重复职位提醒较多，且岗位描述和公司主体不稳定，先不进入主块。",
-      "priority": 2,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "LinkedIn jobs search",
-          "url": "https://www.linkedin.com/jobs/search/?keywords=Netrolynx%20AI"
-        }
-      ]
-    },
-    {
-      "title": "AYY/Maventa invoice email",
-      "source": "Gmail private fallback / Maventa",
-      "reason": "P0 个人行动项，主块只保留官方说明页，不保存邮件安全链接或发票细节。",
-      "priority": 0,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "AYY invoicing information",
-          "url": "https://www.ayy.fi/en/contact-information/invoicing-information"
-        }
-      ]
-    },
-    {
-      "title": "NVIDIA Cosmos-H-Dreams surgical robotics simulation",
+      "title": "LFM2.5-Encoders for Fast Long-Context Inference on CPU",
       "source": "Hugging Face Blog",
-      "reason": "real-time generative simulation 有系统价值，但领域离 speech/audio 较远。",
+      "reason": "进入主流；同时作为 CPU 长上下文推理后续回看入口。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-encoders"
+        }
+      ]
+    },
+    {
+      "title": "GPU Management: Why Idle GPUs Are the New Grounded Aircraft",
+      "source": "Hugging Face Blog",
+      "reason": "进入主流；与 Slurm/GPU 利用率和研究算力治理直接相关。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
+        }
+      ]
+    },
+    {
+      "title": "The OlmoEarth Platform: Geospatial inference at planetary scale",
+      "source": "Hugging Face Blog",
+      "reason": "高质量系统案例，保留作大型推理平台设计参考。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/allenai/olmoearth-infrastructure"
+        }
+      ]
+    },
+    {
+      "title": "NVIDIA Cosmos-H-Dreams: real-time generative simulation for surgical robotics",
+      "source": "Hugging Face Blog",
+      "reason": "有技术参考价值，但和当前 speech/agent 主线距离稍远。",
       "priority": 3,
       "status": "watch",
       "links": [
         {
-          "label": "Hugging Face Blog",
+          "label": "HF Blog",
           "url": "https://huggingface.co/blog/nvidia/cosmos-h-dreams"
+        }
+      ]
+    },
+    {
+      "title": "Ontologies Are So Back: Why AI Agents Are Reviving the Semantic Web",
+      "source": "Latent.Space / AINews",
+      "reason": "进入主流 theme；值得和 agent memory/工具语义层一起读。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ontologies-agentic-systems"
+        }
+      ]
+    },
+    {
+      "title": "[AINews] GPT 5.6 price cut by 20%-80%",
+      "source": "Latent.Space / AINews",
+      "reason": "保留为市场/成本信号，但本轮未做官方核验，不放主流事实块。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-gpt-56-price-cut-by-20-80"
+        }
+      ]
+    },
+    {
+      "title": "Opus Outshines Even Fable, Inside the Hugging Face Hack, AI Companies Spend Big for Compute",
+      "source": "DeepLearning.AI The Batch",
+      "reason": "周报信息密度高，但今天主流已有推理/算力主题。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-364"
+        }
+      ]
+    },
+    {
+      "title": "How to Build Judgement about a New Technology or Business",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "适合作为 concept/theme 辅助阅读，不单独占主块。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "AISimple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-build-judgement-about-a-new"
+        }
+      ]
+    },
+    {
+      "title": "What Is Inference Engineering? The Layer Doing 80% of Your LLM Bill",
+      "source": "Medium / Data Science Collective",
+      "reason": "概念解释适合轻读，但来源质量低于官方/论文，放候选。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/data-science-collective/what-is-inference-engineering-the-layer-doing-80-of-your-llm-bill-9bb536ecc31d"
+        }
+      ]
+    },
+    {
+      "title": "Should You Self-Host Inference?",
+      "source": "Medium / Data Science Collective",
+      "reason": "可与 inference engineering 一起读，暂不进入主流。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/data-science-collective/should-you-self-host-inference-f94c8aca2a2d"
+        }
+      ]
+    },
+    {
+      "title": "Engineering Reliable Coding Agent Loops",
+      "source": "Medium / Level Up Coding",
+      "reason": "与 Codex 自动化有关，但今天公开源里质量证据一般，候选保留。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
+        }
+      ]
+    },
+    {
+      "title": "EMBL AI Librarian: Life-Sciences Knowledge Layer for AI Agents",
+      "source": "Hugging Face Daily Papers",
+      "reason": "agent 知识层相关，但与当前 speech/runtime 优先级相比稍低。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "HF Paper",
+          "url": "https://huggingface.co/papers/2607.28229"
+        }
+      ]
+    },
+    {
+      "title": "SAF-OPD: Stable Advantage Fusion for On-Policy Distillation",
+      "source": "Hugging Face Daily Papers",
+      "reason": "RL/distillation 候选，今日不作为研究主线阅读。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "HF Paper",
+          "url": "https://huggingface.co/papers/2607.29209"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: AI/LLM Engineer at AgileGrid Solutions",
+      "source": "LinkedIn Job Alert",
+      "reason": "职位线索，保留 canonical job URL，和学习主流分开。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4447895086"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: Machine Learning Engineer at Netrolynx AI",
+      "source": "LinkedIn Job Alert",
+      "reason": "职位线索，保留 canonical job URL，和学习主流分开。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4447877350"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "ayy-maventa-invoice-20260803",
+      "id": "ayy-maventa-invoice-2026-08-03",
       "kind": "action",
-      "title": "AYY/Maventa 发票：今天先确认付款",
-      "source": "Gmail private fallback / AYY/Maventa, 2026-08-03",
+      "title": "AYY/Maventa 发票：8 月 7 日前确认付款",
+      "source": "Gmail private fallback / AYY",
       "sourceStatus": "行动项",
-      "summary": "Gmail 里有一封来自 Maventa Transactions、发送方为 Aalto-yliopiston ylioppilaskunta 的发票通知。本页不保存发票号、安全下载链接、PIN 或私人地址，只提醒你回 Gmail/银行侧确认。",
-      "why": "这是明确的个人待处理事项，优先级高于今天的技术阅读。",
-      "thought": "先打开邮件或银行账单核对收款方与金额；不要从公开 feed 里追踪私人安全链接。",
+      "summary": "Maventa 发来 AYY 相关发票，邮件显示截止日是 2026-08-07。不要把邮件里的查看链接、口令或编号复制到 feed；只用 Domo/AYY 官方入口核对。",
+      "why": "这是会过期的个人付款事项，优先级高于今晚的技术阅读。",
+      "thought": "先在 Domo 或 AYY 官方渠道确认账单来源，再决定付款；feed 里只保留无敏感信息的官方入口。",
       "priority": 0,
       "links": [
         {
-          "label": "AYY invoicing information",
-          "url": "https://www.ayy.fi/en/contact-information/invoicing-information"
+          "label": "Domo AYY",
+          "url": "https://domo.ayy.fi/en"
+        },
+        {
+          "label": "AYY 联系方式",
+          "url": "https://www.ayy.fi/fi/yhteystiedot"
         }
       ]
     },
     {
-      "id": "openai-gpt56-cache-cost-20260803",
+      "id": "lfm25-cpu-long-context",
       "kind": "signal",
-      "title": "GPT-5.6 成本要按 cache write/read 重新算",
-      "source": "OpenAI / OpenAI Developer Community, 2026-07",
-      "sourceStatus": "官方/高质量源",
-      "summary": "OpenAI 官方模型页显示 GPT-5.6 Sol/Terra/Luna、1.05M context、cache breakpoints、30 分钟最小 cache life，以及 cache write 按 uncached input 的 1.25x 计费；开发者讨论里也在提醒不能只看 usage.input_tokens。",
-      "why": "这会直接改变长上下文 agent、Codex、批量工具调用和本地/云推理的成本估算方式。",
-      "thought": "之后评估 API 成本时，把 cache write、cache hit、hosted tool usage 分开记录，不要只拿总 token 乘单价。",
+      "title": "CPU 长上下文编码器：别只盯 GPU 推理",
+      "source": "Hugging Face Blog",
+      "sourceStatus": "公开源",
+      "summary": "Liquid AI 发布 LFM2.5-Encoders，重点是 CPU 上的长上下文快速推理。它提示一个现实问题：很多 embedding/rerank/轻量上下文任务未必需要进 GPU 队列。",
+      "why": "这会影响你做本地研究工具、论文索引和低成本 agent memory 时的部署判断。",
+      "thought": "先把它当作“CPU-friendly retrieval/embedding 层”的候选路线，而不是和大模型生成服务混在一起评估。",
       "priority": 1,
       "links": [
         {
-          "label": "OpenAI launch",
-          "url": "https://openai.com/index/gpt-5-6/"
-        },
-        {
-          "label": "OpenAI API models",
-          "url": "https://developers.openai.com/api/docs/models"
-        },
-        {
-          "label": "Developer discussion",
-          "url": "https://community.openai.com/t/introducing-gpt-5-6-series-sol-terra-and-luna-coming-july-9-10am-pt/1384931/56"
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-encoders"
         }
       ]
     },
     {
-      "id": "paper-streamfm-warp-divergence-20260803",
+      "id": "gpu-management-idle-gpus",
+      "kind": "signal",
+      "title": "Idle GPU 是成本信号，不只是排队问题",
+      "source": "Hugging Face Blog",
+      "sourceStatus": "公开源",
+      "summary": "HF Blog 讨论 GPU 管理，把闲置 GPU 类比成停飞飞机：硬件已经买了，但调度、配额、观察性和使用策略决定真实产出。",
+      "why": "这和你在 Triton/Slurm 上看作业心跳、GPU 证据和 checkpoint 产出是同一个运营问题。",
+      "thought": "后续看训练日志时，把“GPU 被分配”与“GPU 有效工作”分开记录，别把排队成功当实验成功。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
+        }
+      ]
+    },
+    {
+      "id": "agent-ontology-knowledge-layer",
+      "kind": "theme",
+      "title": "Agent 又开始需要语义层：ontology 不是复古，是约束接口",
+      "source": "Latent.Space / HF Daily Papers / AISimple",
+      "sourceStatus": "综合判断",
+      "summary": "Latent.Space 的 ontology 文章、HF 的 EMBL AI Librarian 和 AISimple 的技术判断文章指向同一件事：agent 需要可维护的概念、权限、对象和关系层，而不仅是更多 prompt。",
+      "why": "这对你的 Codex/Obsidian 工作流很相关：长期记忆如果没有对象边界和来源层级，会很快变成不可验证文本。",
+      "thought": "把它读成 agent memory 的工程问题：先定义对象和证据层，再让模型写总结。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "Latent.Space ontology",
+          "url": "https://www.latent.space/p/ontologies-agentic-systems"
+        },
+        {
+          "label": "HF Paper: EMBL AI Librarian",
+          "url": "https://huggingface.co/papers/2607.28229"
+        },
+        {
+          "label": "AISimple judgement",
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-build-judgement-about-a-new"
+        }
+      ]
+    },
+    {
+      "id": "olmoearth-platform-inference",
+      "kind": "deep-read",
+      "title": "OlmoEarth：把 planetary-scale inference 当系统案例看",
+      "source": "Hugging Face Blog",
+      "sourceStatus": "公开源",
+      "summary": "AllenAI 的 OlmoEarth 平台文章不是单个模型发布，而是地理空间推理平台的工程说明：数据、模型、服务和大尺度任务被组织成可复用层。",
+      "why": "它适合作为“研究模型如何变成平台”的案例，尤其对你理解 inference service、数据产品和评估闭环有帮助。",
+      "thought": "不要细读地理任务本身，先看它如何把模型能力包装成稳定推理接口。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/allenai/olmoearth-infrastructure"
+        }
+      ]
+    },
+    {
+      "id": "inference-engineering-concept",
+      "kind": "concept",
+      "title": "概念：Inference engineering 是成本层，不是模型层",
+      "source": "Medium / Data Science Collective",
+      "sourceStatus": "公开源",
+      "summary": "公开候选里多篇文章都在讲 self-host inference、LLM bill 和 RAG 延迟。今天只需要先抓一个概念：推理工程关注 batch、cache、latency、吞吐、部署边界和账单，而不是换一个模型名字。",
+      "why": "这能帮你把本地 embedding、远端 GPU、API 调用和 portfolio/agent 自动化的成本判断放在同一张表里。",
+      "thought": "先把它作为阅读概念，不写词典；之后真正需要时再沉淀到 Obsidian。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "Inference engineering",
+          "url": "https://medium.com/data-science-collective/what-is-inference-engineering-the-layer-doing-80-of-your-llm-bill-9bb536ecc31d"
+        },
+        {
+          "label": "Self-host inference",
+          "url": "https://medium.com/data-science-collective/should-you-self-host-inference-f94c8aca2a2d"
+        },
+        {
+          "label": "RAG latency",
+          "url": "https://medium.com/@neelamkoshiya/from-5-seconds-to-sub-100ms-redesigning-a-rag-pipeline-for-production-performance-6483e823adef"
+        }
+      ]
+    },
+    {
+      "id": "paper-speech-enhancement-runtime-array",
       "kind": "paper",
-      "title": "论文提醒：streaming SE 和 GPU divergence 成本",
-      "source": "Hugging Face Daily Papers / local paper pool, 2026-08-03",
+      "title": "论文更新：流式 SE runtime 和阵列无关增强",
+      "source": "arXiv / 本地推荐池入口",
       "sourceStatus": "本地推荐池",
-      "summary": "优先读 Real-Time Streamable Generative Speech Restoration with Flow Matching：它把 streaming speech enhancement、buffered inference、learned few-step solvers、weight compression 和 24 ms latency 放在同一部署问题里。第二篇看 Characterizing Warp Divergence from Pascal to Blackwell：它把 NVIDIA divergence 的线性序列化成本和 Blackwell reconvergence 变化讲清楚。",
-      "why": "前者直接贴近 Hybrid-UniSE/streaming-SE 部署判断，后者能帮你判断 Triton kernel 分支和 occupancy 解释是否站得住。",
-      "thought": "Tags: speech-enhancement, streaming-se, generative-se, flow-matching, deployment; 另记 gpu-kernel, warp-divergence。去 Obsidian 推荐池只打开入口，不在本轮写日报。",
+      "summary": "推荐 2 篇：1) faster-enhancer.c，把流式 speech enhancement 做成 dependency-free int8 C runtime，直接对应低延迟/端侧部署；2) Geometry-Aware Dynamic Convolution，用麦克风坐标把固定阵列 SE 模型推向 array-invariant。",
+      "why": "一篇回答实时部署成本，一篇回答多麦克风泛化；都比泛 audio 分类更贴近 USE/Hybrid-UniSE 主线。",
+      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, beamforming, robustness；去 Obsidian 推荐池入口决定是否沉淀。",
       "priority": 1,
       "links": [
         {
@@ -289,94 +366,27 @@
       ]
     },
     {
-      "id": "agent-workbench-surface-20260803",
-      "kind": "theme",
-      "title": "Agent 工作面正在从聊天页变成可审计工作台",
-      "source": "OpenAI / Anthropic, 2026-07",
-      "sourceStatus": "综合判断",
-      "summary": "OpenAI 的 ChatGPT desktop update 把 Chat、Work、Projects、Codex 和跨设备 Work continuity 重新组织；Anthropic 新闻页同时强调 Claude Code、Claude Science、Claude for Teachers 和 reflect/usage 入口。",
-      "why": "这不是单个模型新闻，而是 agent 产品在向“任务、上下文、可恢复工作流”收敛。",
-      "thought": "对你自己的 Codex/Obsidian/portfolio 流水线，重点不是多一个聊天入口，而是哪些上下文能被恢复、审计、复制给下一轮。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "ChatGPT release notes",
-          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
-        },
-        {
-          "label": "Anthropic newsroom",
-          "url": "https://www.anthropic.com/news"
-        },
-        {
-          "label": "Claude Sonnet 5",
-          "url": "https://www.anthropic.com/news/claude-sonnet-5"
-        }
-      ]
-    },
-    {
-      "id": "inference-cost-hardware-20260803",
-      "kind": "theme",
-      "title": "推理成本主线：cache、GPU、分支和专用芯片要一起看",
-      "source": "OpenAI / HF Daily Papers / TechRadar",
-      "sourceStatus": "综合判断",
-      "summary": "OpenAI 的 cache write/read 计费、HF 的 GPU warp divergence paper、TechRadar 对 inference-first chip 的报道，以及 Sol-Attn 的 training-free sparse attention，都指向同一个问题：推理成本越来越由系统细节决定。",
-      "why": "研究模型效果时如果不同时记录延迟、cache、branching、CPU/GPU 占用和可量化部署成本，结论会很容易漂。",
-      "thought": "之后比较 speech enhancement 模型时，把质量指标和真实部署预算放在同一张表里，而不是只报 SI-SDR/PESQ。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "OpenAI API models",
-          "url": "https://developers.openai.com/api/docs/models"
-        },
-        {
-          "label": "Warp divergence paper",
-          "url": "https://huggingface.co/papers/2607.23402"
-        },
-        {
-          "label": "Sol-Attn paper",
-          "url": "https://huggingface.co/papers/2607.24027"
-        },
-        {
-          "label": "Inference chips article",
-          "url": "https://www.techradar.com/pro/those-two-jobs-need-different-physics-rebellions-ceo-says-training-and-inference-need-different-chips"
-        }
-      ]
-    },
-    {
-      "id": "spotify-generative-audio-job-20260803",
+      "id": "linkedin-ai-ml-jobs-2026-08-03",
       "kind": "action",
-      "title": "Spotify generative audio 岗位值得单独筛选",
-      "source": "Gmail private fallback / LinkedIn Jobs, 2026-08-03",
+      "title": "LinkedIn 职位：只看 AI/ML 相关，数据泛岗先丢候选",
+      "source": "Gmail private fallback / LinkedIn Job Alert",
       "sourceStatus": "行动项",
-      "summary": "LinkedIn job alert 里最贴近主线的是 Spotify Research Scientist - Generative Audio，方向覆盖 vocal/speech synthesis、post-training alignment、audio editing、diffusion/flow matching。",
-      "why": "它和 speech enhancement、generative audio、post-training 三条主线同时相关，值得单独判断是否投递或收藏。",
-      "thought": "先看 location/time zone、PhD/publication 要求和你现在 thesis 时间；其他 Netrolynx/KraviAnalytics alert 先放候选池。",
+      "summary": "最近 36 小时有多封 LinkedIn job alert；更相关的是 Netrolynx AI 的 ML Engineer、AgileGrid 的 AI/LLM Engineer 和 Hired 的 AI Research Scientist，泛 Data Specialist 不进主流。",
+      "why": "这是求职行动项，不该混进技术阅读；但 AI/ML 岗位可以快速扫一遍匹配度。",
+      "thought": "只打开 canonical job URL，避免邮件里的 LinkedIn comm/tracking 链接；如果不匹配就直接丢弃。",
       "priority": 1,
       "links": [
         {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/research-scientist-generative-audio-at-spotify-4439310429"
-        }
-      ]
-    },
-    {
-      "id": "concept-cache-breakpoints-20260803",
-      "kind": "concept",
-      "title": "先弄懂 cache breakpoints：它影响长上下文账单",
-      "source": "OpenAI",
-      "sourceStatus": "官方/高质量源",
-      "summary": "Cache breakpoint 不是普通 prompt 优化术语，而是告诉 API 哪些前缀值得稳定缓存；在 GPT-5.6 以后，cache write 可能比普通输入更贵，cache read 才有明显折扣。",
-      "why": "如果你把 Codex/agent harness 的长上下文当成一次性输入，账单和延迟判断都会偏。",
-      "thought": "今天只把它作为概念块理解；不要写词典，之后实际评估时再记录 hit/miss 和 write/read token。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "OpenAI launch",
-          "url": "https://openai.com/index/gpt-5-6/"
+          "label": "Netrolynx ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4447877350"
         },
         {
-          "label": "OpenAI API models",
-          "url": "https://developers.openai.com/api/docs/models"
+          "label": "AgileGrid AI/LLM Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4447895086"
+        },
+        {
+          "label": "Hired AI Research Scientist",
+          "url": "https://www.linkedin.com/jobs/view/4447867881"
         }
       ]
     }
