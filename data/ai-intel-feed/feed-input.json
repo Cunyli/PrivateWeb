@@ -1,91 +1,65 @@
 {
   "date": "2026-08-04",
-  "overview": "今天优先处理 AYY 发票，其次看 agent skill-use 与推理工程两条主线；论文提醒聚焦流式语音增强的端侧运行成本。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 共 10 个公开源、39 个候选；Gmail 仅查 LinkedIn/发票/个人行动项；LinkedIn 邮件追踪链已跳过或改用通用入口；S2 有 429 backoff 但 arXiv 论文搜索完成。",
+  "overview": "今天先处理 AYY 发票和 Revolut 证件更新；技术阅读优先推理工程、端侧语音增强和 agent 自改进评测。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 共 10 个公开源、39 个候选；Gmail 仅查 LinkedIn/发票/Revolut/已发送个人行动项；OpenAI News/ChatGPT Release Notes 为 Cloudflare 403，API changelog 可跳转；S2 有 429 backoff 但 arXiv 论文搜索完成；邮件追踪链和缺少安全 URL 的候选已跳过。",
   "overflow": {
-    "summary": "公开源里 agent、推理工程和泛 Medium AI 文章拥挤，主信息流只保留会影响当前工作判断的项。",
+    "summary": "公开源里 agent、推理工程、开源模型和泛 Medium AI 文章拥挤，主信息流只保留会改变今天判断或行动的项。",
     "counts": {
-      "candidates": 15,
-      "overflow": 12,
+      "candidates": 16,
+      "overflow": 13,
       "duplicates": 2,
-      "hidden": 5
+      "hidden": 6
     },
     "themes": [
       {
-        "title": "Agent skill 与 agent loop 内容过载",
-        "count": 8,
-        "note": "只把 skill-use training 与可靠 loop 判断放进主块，泛化工具榜和概念文留在候选池。"
+        "title": "Agent 与自改进文章过载",
+        "count": 7,
+        "note": "只保留 held-out test 这条可直接影响自动化质量门的阅读，其余进候选池。"
       },
       {
-        "title": "Medium 泛 AI/ML 教程过载",
-        "count": 7,
-        "note": "多数是入门或趋势复述，有原文但今天不改变行动。"
+        "title": "泛 AI/ML 教程过载",
+        "count": 8,
+        "note": "多数是入门、趋势或职业建议，有链接但今天不改变研究/工作行动。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Progressive Agent Skill Generation via Reinforcement Learning",
+      "title": "GradCuit: Credit-Assigned Gradient Flow for Test-Time Latent Reasoning",
       "source": "Hugging Face Papers",
-      "reason": "与 SKT 同属 agent skill 主线，但机制细节可放到后读。",
-      "priority": 1,
+      "reason": "测试时 latent reasoning 很有趣，但需要读论文判断是否只是推理优化包装。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2608.01678"
+          "url": "https://huggingface.co/papers/2608.02585"
         }
       ]
     },
     {
-      "title": "Agent Memory Frameworks Showdown: cognee vs Mem0 vs Zep vs Letta",
-      "source": "Medium Data Science Collective",
-      "reason": "可作为 agent memory 框架横向比较，质量需阅读后再判断。",
+      "title": "GPTQ-2D: Cubic-Time Two-Sided Adaptive Rounding",
+      "source": "Hugging Face Papers",
+      "reason": "量化 rounding 机制相关，适合后续和 int8 speech runtime 一起看。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Paper",
+          "url": "https://huggingface.co/papers/2607.27042"
+        }
+      ]
+    },
+    {
+      "title": "RecHarness: A Bandit-Routed Agentic Harness for Self-Evolving Recommender Systems",
+      "source": "Hugging Face Papers",
+      "reason": "agentic harness 与自演化推荐系统相关，但离当前 speech 主线稍远。",
       "priority": 2,
       "status": "watch",
       "links": [
         {
-          "label": "Article",
-          "url": "https://medium.com/data-science-collective/agent-memory-frameworks-showdown-cognee-vs-mem0-vs-zep-vs-letta-0f439b56f282"
-        }
-      ]
-    },
-    {
-      "title": "The Log Is the Judge: Why Self-Improving Agents Need a Held-Out Test to Trust",
-      "source": "Medium Data Science Collective",
-      "reason": "和自动化评测/stop condition 有关，但不是公开官方源。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://medium.com/data-science-collective/the-log-is-the-judge-why-self-improving-agents-need-a-held-out-test-to-trust-bd378c3b5521"
-        }
-      ]
-    },
-    {
-      "title": "Engineering Reliable Coding Agent Loops",
-      "source": "Level Up Coding",
-      "reason": "贴近 Codex 长任务流程，可之后对照 automation prompt。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
-        }
-      ]
-    },
-    {
-      "title": "GPU Management: Why Idle GPUs Are the New Grounded Aircraft",
-      "source": "Hugging Face Blog",
-      "reason": "算力管理主题有价值，但今天优先级低于 inference engineering。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
+          "label": "HF Paper",
+          "url": "https://huggingface.co/papers/2607.29241"
         }
       ]
     },
@@ -103,9 +77,22 @@
       ]
     },
     {
+      "title": "GPU Management: Why Idle GPUs Are the New Grounded Aircraft",
+      "source": "Hugging Face Blog",
+      "reason": "GPU 利用率主题有价值，但今天优先级低于 inference engineering masterclass。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
+        }
+      ]
+    },
+    {
       "title": "NVIDIA Cosmos-H-Dreams: Real-Time Generative Simulation for Surgical Robotics",
       "source": "Hugging Face Blog",
-      "reason": "垂直医疗机器人仿真案例，和主线关联弱，暂留候选。",
+      "reason": "医疗机器人仿真案例可留意，但和今天主线关联间接。",
       "priority": 3,
       "status": "candidate",
       "links": [
@@ -129,35 +116,35 @@
       ]
     },
     {
-      "title": "Kimi K3 redraws the open frontier",
-      "source": "The Batch",
-      "reason": "开放模型竞争信号，和当前研究/工作行动关系间接。",
+      "title": "DeepSeek V4-Flash 0731 quiet-day digest",
+      "source": "Latent.Space / AINews",
+      "reason": "可能有模型/推理信号，但原文价值低于今天的系统工程阅读。",
       "priority": 3,
-      "status": "candidate",
+      "status": "overflow",
       "links": [
         {
-          "label": "The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-363"
+          "label": "AINews",
+          "url": "https://www.latent.space/p/ainews-not-much-happened-today-038"
         }
       ]
     },
     {
-      "title": "AI Overviews, GPT-Live, and manipulative models",
+      "title": "Opus, Hugging Face hack, and AI compute spend",
       "source": "The Batch",
-      "reason": "值得扫标题，但今天不需要进入 10-15 分钟阅读面。",
+      "reason": "行业信号可扫读，但缺少今天立即行动价值。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
           "label": "The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-362"
+          "url": "https://www.deeplearning.ai/the-batch/issue-364"
         }
       ]
     },
     {
       "title": "The Cheapest Way to Make Open Weight AI Models Better",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "可能涉及无训练提升，但需验证实验设置。",
+      "reason": "可能涉及无需训练的提升方法，但需要检查实验设置。",
       "priority": 2,
       "status": "watch",
       "links": [
@@ -170,7 +157,7 @@
     {
       "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "RL/rubric 主题相关，先放候选避免挤占主块。",
+      "reason": "rubric/RL 主题相关，先放候选避免挤占主块。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -181,28 +168,54 @@
       ]
     },
     {
-      "title": "AI Agents Have Attack Surfaces",
-      "source": "Medium AI Agents",
-      "reason": "安全视角有用，但来源质量需后续筛选。",
+      "title": "Agent Memory Frameworks Showdown: cognee vs Mem0 vs Zep vs Letta",
+      "source": "Medium Data Science Collective",
+      "reason": "可作为 agent memory 横向比较，质量需阅读后再判断。",
       "priority": 2,
       "status": "watch",
       "links": [
         {
           "label": "Article",
-          "url": "https://medium.com/@tarunvoff/ai-agents-dont-have-vulnerabilities-they-have-attack-surfaces-162ee238e492"
+          "url": "https://medium.com/data-science-collective/agent-memory-frameworks-showdown-cognee-vs-mem0-vs-zep-vs-letta-0f439b56f282"
         }
       ]
     },
     {
-      "title": "Building AI Agents That Can Use GitHub Without Seeing Your Token",
-      "source": "Medium AI Agents",
-      "reason": "token 隔离主题和 coding agent 相关，暂不进主块。",
+      "title": "Engineering Reliable Coding Agent Loops",
+      "source": "Level Up Coding",
+      "reason": "贴近 Codex 长任务流程，可之后对照 automation prompt。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "Article",
-          "url": "https://medium.com/coding-nexus/building-ai-agents-that-can-use-github-without-ever-seeing-your-github-token-e8b0525e74d1"
+          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
+        }
+      ]
+    },
+    {
+      "title": "Data Engineer at Bokadirekt",
+      "source": "LinkedIn job alert",
+      "reason": "Stockholm hybrid 且有 KTH alumni 信号，但不如 Spotify Generative Audio 贴近主线。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4439342339"
+        }
+      ]
+    },
+    {
+      "title": "ML Ops Engineer at Neko Health",
+      "source": "LinkedIn job alert",
+      "reason": "Stockholm hybrid 且和 health/ML ops 有关，留作求职候选。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4430731132"
         }
       ]
     },
@@ -222,14 +235,14 @@
   ],
   "blocks": [
     {
-      "id": "ayy-invoice-2026-08-07",
+      "id": "ayy-invoice-due-2026-08-07",
       "kind": "action",
-      "title": "AYY 发票 8 月 7 日到期：今天先确认是否支付",
+      "title": "AYY 发票 8 月 7 日到期：今天先核验付款",
       "source": "Gmail private fallback / Maventa 2026-08-03",
       "sourceStatus": "行动项",
       "summary": "Maventa 邮件显示 Aalto-yliopiston ylioppilaskunta 发来一张发票，due date 是 2026-08-07。Feed 只保留付款提醒，不保存发票号、密码或安全发票链接。",
-      "why": "这是有明确截止日的个人事项，过期风险高于今天的技术阅读。",
-      "thought": "打开官方 Maventa 或 AYY 入口核验后再决定支付；不要从 feed 里存私人 invoice 链接。",
+      "why": "这是明确截止日前的个人事项，过期风险高于今天的技术阅读。",
+      "thought": "打开 Maventa 或 AYY 官方入口核验后再决定支付；不要从 feed 保存私人 invoice 链接。",
       "priority": 0,
       "links": [
         {
@@ -239,43 +252,48 @@
       ]
     },
     {
-      "id": "agent-skill-use-training",
-      "kind": "theme",
-      "title": "Agent skill-use 正从“有工具”走向“会训练使用工具”",
-      "source": "Hugging Face Papers / Medium / Level Up Coding",
-      "sourceStatus": "综合判断",
-      "summary": "HF Daily Papers 里 SKT 和 Progressive Agent Skill Generation 都在讲如何让 agent 学会选择、调用、沉淀 skill；同一批公开文章也在强调可靠 loop、held-out tests 与控制流边界。",
-      "why": "这直接影响 Codex/agent 自动化的设计：能力不是只靠更多工具，而是靠可验证的 skill-use 数据、训练目标和停止条件。",
-      "thought": "优先看 SKT；把它和当前 ai-feed 自动化的 checklist/stop condition 对照，找哪些规则可以变成可测样例。",
+      "id": "revolut-document-update",
+      "kind": "action",
+      "title": "Revolut 证件已过期：在 app 内补交",
+      "source": "Gmail private fallback / Revolut 2026-08-01",
+      "sourceStatus": "行动项",
+      "summary": "Revolut 邮件提示原身份文件已过期，需要在 app 内提交有效文件以避免账户限制。Feed 不保存邮件里的私有跳转链接。",
+      "why": "这类账号限制会影响支付和日常使用，适合保留为短期待处理。",
+      "thought": "只从 Revolut app 或官网登录入口进入 KYC 流程，不点 feed 内私有邮件跳转。",
+      "priority": 0,
+      "links": [
+        {
+          "label": "Revolut official",
+          "url": "https://www.revolut.com"
+        }
+      ]
+    },
+    {
+      "id": "spotify-generative-audio-job",
+      "kind": "action",
+      "title": "Spotify Generative Audio 研究岗：值得单独看 JD",
+      "source": "LinkedIn job alert 2026-08-03",
+      "sourceStatus": "行动项",
+      "summary": "LinkedIn job alert 出现 Spotify Stockholm 的 Research Scientist - Generative Audio，和 speech/audio 研究主线高度相关。其他泛 data job 只保留在候选池。",
+      "why": "这是少数直接贴合生成式音频、语音和研究经历的职位信号。",
+      "thought": "先打开 canonical LinkedIn job 页面判断签证、地点、研究要求，再决定是否投递或找内推。",
       "priority": 1,
       "links": [
         {
-          "label": "SKT paper",
-          "url": "https://huggingface.co/papers/2608.02287"
-        },
-        {
-          "label": "Progressive Agent Skill Generation",
-          "url": "https://huggingface.co/papers/2608.01678"
-        },
-        {
-          "label": "The Log Is the Judge",
-          "url": "https://medium.com/data-science-collective/the-log-is-the-judge-why-self-improving-agents-need-a-held-out-test-to-trust-bd378c3b5521"
-        },
-        {
-          "label": "Reliable coding agent loops",
-          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4439314226"
         }
       ]
     },
     {
       "id": "inference-engineering-masterclass",
       "kind": "deep-read",
-      "title": "推理工程今天值得深读：autoregressive 与 diffusion serving 的真实成本",
+      "title": "推理工程：今天最值得看的系统文章",
       "source": "Latent.Space 2026-08-04",
       "sourceStatus": "公开源",
-      "summary": "Latent.Space 的 Baseten 访谈集中讨论 inference engineering，包括自回归与 diffusion workload 的工程权衡。它比单条模型新闻更适合补 Serving/KV cache/批处理/成本直觉。",
-      "why": "这条和你近期 AI infra/inference 学习线最贴近，能帮助把“模型能力”转成“运行时成本和服务约束”。",
-      "thought": "按概念读，不必一次听完；重点记 prefill/decode、batching、latency/cost tradeoff。",
+      "summary": "Latent.Space 的 Baseten inference engineering 文章集中讨论 autoregressive 与 diffusion serving 的工程现实：延迟、吞吐、调度、成本和平台化。",
+      "why": "它直接连接你近期的 agent/runtime、GPU 成本和服务化判断，比泛模型新闻更能改变工程决策。",
+      "thought": "阅读时抓三件事：prefill/decode 成本拆分、batching/调度策略、哪些指标能变成你自己的部署 checklist。",
       "priority": 1,
       "links": [
         {
@@ -285,14 +303,14 @@
       ]
     },
     {
-      "id": "lfm25-cpu-encoders",
+      "id": "lfm25-cpu-long-context",
       "kind": "signal",
-      "title": "LiquidAI LFM2.5-Encoders：长上下文 CPU 推理继续变成产品能力",
+      "title": "LFM2.5-Encoders：CPU 长上下文推理值得留意",
       "source": "Hugging Face Blog 2026-08-04",
       "sourceStatus": "公开源",
-      "summary": "LiquidAI 在 HF Blog 发布 LFM2.5-Encoders，定位是 fast long-context inference on CPU。它是“低成本/本地/端侧推理”路线的一个具体信号。",
-      "why": "和 speech enhancement 的 edge/runtime 论文形成呼应：模型部署价值越来越取决于目标硬件上的实时与能耗表现。",
-      "thought": "后续可对比它的吞吐、内存和上下文长度指标，别只看 benchmark headline。",
+      "summary": "Liquid AI 在 HF Blog 发布 LFM2.5-Encoders，主打 fast long-context inference on CPU。它不是 speech 论文，但和低成本本地/边缘推理的系统路线有关。",
+      "why": "如果 encoder 可以在 CPU 上处理长上下文，很多检索、rerank、agent memory 前处理会从 GPU 成本里移出来。",
+      "thought": "先看模型尺寸、上下文长度、CPU benchmark 与许可；不要只看标题就当作可部署结论。",
       "priority": 1,
       "links": [
         {
@@ -302,31 +320,35 @@
       ]
     },
     {
-      "id": "hf-model-defense-compute-spend",
-      "kind": "signal",
-      "title": "The Batch：模型安全叙事和算力开销正在互相牵制",
-      "source": "DeepLearning.AI The Batch 2026-08-04",
+      "id": "held-out-test-agent-loop",
+      "kind": "concept",
+      "title": "概念：自改进 agent 必须有 held-out test",
+      "source": "Medium Data Science Collective / Level Up Coding",
       "sourceStatus": "公开源",
-      "summary": "The Batch 本期把 closed/open model 防御、Hugging Face hack、AI 公司 compute spend 放在一起。它不是单点发布，而是产业风险与成本压力的组合信号。",
-      "why": "如果开放模型和推理成本同时成为焦点，研究 demo 到可用系统之间的安全、部署和预算边界会更重要。",
-      "thought": "扫读即可；把它作为判断产业背景的信号，不当成具体技术行动。",
-      "priority": 2,
+      "summary": "今天的 agent 文章里最值得先弄懂的是 held-out test：agent 自己改提示、工具或流程时，不能只靠自评，必须有未见过的测试集守住回归。",
+      "why": "这和 Codex 长任务、自动化刷新、PR 评论处理都相关；没有 held-out gate，自改进只是更会迎合当前样例。",
+      "thought": "把它当作工程约束：每条自动化规则最好能对应一个不会被当前 run 直接污染的验证样例。",
+      "priority": 1,
       "links": [
         {
-          "label": "The Batch issue 364",
-          "url": "https://www.deeplearning.ai/the-batch/issue-364"
+          "label": "The Log Is the Judge",
+          "url": "https://medium.com/data-science-collective/the-log-is-the-judge-why-self-improving-agents-need-a-held-out-test-to-trust-bd378c3b5521"
+        },
+        {
+          "label": "Reliable Coding Agent Loops",
+          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
         }
       ]
     },
     {
-      "id": "paper-2026-08-04-speech-runtime",
+      "id": "paper-speech-enhancement-runtime-2026-08-04",
       "kind": "paper",
-      "title": "论文提醒：流式语音增强的端侧运行成本比模型分数更值得看",
-      "source": "本地推荐池 / arXiv 2026-08-04",
+      "title": "论文提醒：端侧流式语音增强先看 runtime 成本",
+      "source": "arXiv / local recommendation search 2026-08-04",
       "sourceStatus": "本地推荐池",
-      "summary": "推荐 2 篇：`faster-enhancer.c` 把 FastEnhancer-Medium 移到 dependency-free int8 C runtime，并报告 CPU real-time factor、deadline 与能耗；`DRONEAUDIONET` 把 drone-dominant mixture 作为特殊噪声抑制问题，关注跨无人机硬件/飞行模式泛化。",
-      "why": "前者直接服务 streaming-SE/edge-inference，后者提醒“真实噪声源主导”时标准增强假设会失效。",
-      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness。去 Obsidian 推荐池索引里决定是否沉淀。",
+      "summary": "推荐 2 篇：faster-enhancer.c 把 FastEnhancer-Medium 做成 dependency-free int8 C runtime，直接回答流式语音增强在 CPU/手机上的实时与能耗成本；DRONEAUDIONET 面向无人机 audition 的极低 SNR 噪声抑制，适合作为 robust SE 的真实场景压力测试。",
+      "why": "这两篇分别覆盖部署成本和极端噪声泛化，比单纯刷新指标更贴近 Hybrid-UniSE/USE 的下一步判断。",
+      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness。去 Obsidian 推荐池入口查看，不在本轮写新论文笔记。",
       "priority": 1,
       "links": [
         {
@@ -336,44 +358,23 @@
       ]
     },
     {
-      "id": "linkedin-private-actions-2026-08-04",
-      "kind": "action",
-      "title": "LinkedIn 有 5 条消息和 3 个邀请：只作为个人待处理入口",
-      "source": "Gmail private fallback / LinkedIn 2026-08-03",
-      "sourceStatus": "行动项",
-      "summary": "Gmail 的 LinkedIn 通知显示有新消息和邀请，但邮件只提供带追踪参数的 comm 链接；feed 不保存这些链接。",
-      "why": "这可能包含 recruiter、项目或学习沟通，但需要你在 LinkedIn 里直接判断，不应混入学习主信息流。",
-      "thought": "打开 LinkedIn 消息和邀请页扫一遍；普通社交提醒可以丢弃。",
+      "id": "latent-reasoning-quantization-watch",
+      "kind": "theme",
+      "title": "HF papers 今日技术信号：latent reasoning 与量化 rounding",
+      "source": "Hugging Face Papers",
+      "sourceStatus": "综合判断",
+      "summary": "GradCuit 把 test-time latent reasoning 做成 credit-assigned gradient flow；GPTQ-2D 继续推进 adaptive rounding 的数学/算法路线。两者都不是马上可用工具，但都指向“推理时优化”和“低比特部署”的底层问题。",
+      "why": "它们和当前 inference/runtime 主线相连：一个问如何在推理时多花计算换质量，一个问如何在量化时少损质量。",
+      "thought": "先不深读，保留为 watch；如果后续和 speech runtime 或本地模型部署碰上，再单独拆。",
       "priority": 2,
       "links": [
         {
-          "label": "LinkedIn messages",
-          "url": "https://www.linkedin.com/messaging/"
+          "label": "GradCuit",
+          "url": "https://huggingface.co/papers/2608.02585"
         },
         {
-          "label": "LinkedIn invitations",
-          "url": "https://www.linkedin.com/mynetwork/"
-        }
-      ]
-    },
-    {
-      "id": "concept-held-out-agent-eval",
-      "kind": "concept",
-      "title": "概念：held-out test 是自改进 agent 的最低可信门槛",
-      "source": "Medium Data Science Collective / Level Up Coding",
-      "sourceStatus": "精选",
-      "summary": "今天多条 agent 内容都绕不开一个概念：agent 不能只评价自己的输出，至少要有未参与生成的 held-out test、日志审计或外部验证门。",
-      "why": "这正好对应 Codex 自动化里的“采集成功不等于发布成功”：必须分阶段验证 JSON、HTML、同步、构建和推送。",
-      "thought": "先把它当作 workflow 概念理解，不写词典；后续可沉淀成自动化评估 checklist。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "The Log Is the Judge",
-          "url": "https://medium.com/data-science-collective/the-log-is-the-judge-why-self-improving-agents-need-a-held-out-test-to-trust-bd378c3b5521"
-        },
-        {
-          "label": "Reliable coding agent loops",
-          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
+          "label": "GPTQ-2D",
+          "url": "https://huggingface.co/papers/2607.27042"
         }
       ]
     }
