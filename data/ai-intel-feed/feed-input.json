@@ -1,111 +1,38 @@
 {
   "date": "2026-08-04",
-  "overview": "今天先处理 AYY 发票和 Revolut 证件更新；技术阅读优先推理工程、端侧语音增强和 agent 自改进评测。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 共 10 个公开源、39 个候选；Gmail 仅查 LinkedIn/发票/Revolut/已发送个人行动项；OpenAI News/ChatGPT Release Notes 为 Cloudflare 403，API changelog 可跳转；S2 有 429 backoff 但 arXiv 论文搜索完成；邮件追踪链和缺少安全 URL 的候选已跳过。",
+  "overview": "今天优先处理 AYY/Revolut/公寓回复三个行动项；技术阅读聚焦推理工程、agent memory、local agents 与 coding-agent 质量闭环。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源、40 个候选；Gmail 仅查 LinkedIn/发票/Revolut/公寓回复/已发送个人行动项；OpenAI News 与 ChatGPT Release Notes 为 Cloudflare 403，API changelog 跳转后 404；arXiv/S2 完成 200 recent、51 unique；已跳过邮件追踪链、退订链和缺安全 URL 候选。",
   "overflow": {
-    "summary": "公开源里 agent、推理工程、开源模型和泛 Medium AI 文章拥挤，主信息流只保留会改变今天判断或行动的项。",
+    "summary": "公开源与 LinkedIn 候选较多，本轮压下模型新闻、泛 agent 文章、GPU 管理、应用仿真和低优先级职位线索。",
     "counts": {
-      "candidates": 16,
-      "overflow": 13,
-      "duplicates": 2,
-      "hidden": 6
+      "candidates": 17,
+      "overflow": 3,
+      "duplicates": 1,
+      "hidden": 0
     },
     "themes": [
       {
-        "title": "Agent 与自改进文章过载",
-        "count": 7,
-        "note": "只保留 held-out test 这条可直接影响自动化质量门的阅读，其余进候选池。"
+        "title": "coding agent / eval 文章拥挤",
+        "count": 5,
+        "note": "保留一个 theme block，其余进入候选池。"
       },
       {
-        "title": "泛 AI/ML 教程过载",
+        "title": "LinkedIn job alert 候选多",
+        "count": 9,
+        "note": "只保留 canonical job URL，职位不混入学习主信息流。"
+      },
+      {
+        "title": "newsletter 综合新闻较泛",
         "count": 8,
-        "note": "多数是入门、趋势或职业建议，有链接但今天不改变研究/工作行动。"
+        "note": "The Batch/AINews 多数作为候选，不占主阅读时间。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "GradCuit: Credit-Assigned Gradient Flow for Test-Time Latent Reasoning",
-      "source": "Hugging Face Papers",
-      "reason": "测试时 latent reasoning 很有趣，但需要读论文判断是否只是推理优化包装。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2608.02585"
-        }
-      ]
-    },
-    {
-      "title": "GPTQ-2D: Cubic-Time Two-Sided Adaptive Rounding",
-      "source": "Hugging Face Papers",
-      "reason": "量化 rounding 机制相关，适合后续和 int8 speech runtime 一起看。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2607.27042"
-        }
-      ]
-    },
-    {
-      "title": "RecHarness: A Bandit-Routed Agentic Harness for Self-Evolving Recommender Systems",
-      "source": "Hugging Face Papers",
-      "reason": "agentic harness 与自演化推荐系统相关，但离当前 speech 主线稍远。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2607.29241"
-        }
-      ]
-    },
-    {
-      "title": "The OlmoEarth Platform: Geospatial inference at planetary scale",
-      "source": "Hugging Face Blog",
-      "reason": "大规模推理平台案例，可作为 systems 侧后读材料。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/allenai/olmoearth-infrastructure"
-        }
-      ]
-    },
-    {
-      "title": "GPU Management: Why Idle GPUs Are the New Grounded Aircraft",
-      "source": "Hugging Face Blog",
-      "reason": "GPU 利用率主题有价值，但今天优先级低于 inference engineering masterclass。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
-        }
-      ]
-    },
-    {
-      "title": "NVIDIA Cosmos-H-Dreams: Real-Time Generative Simulation for Surgical Robotics",
-      "source": "Hugging Face Blog",
-      "reason": "医疗机器人仿真案例可留意，但和今天主线关联间接。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/nvidia/cosmos-h-dreams"
-        }
-      ]
-    },
-    {
       "title": "Qwen 3.8 Max and 27B open weights for coding and cowork",
       "source": "Latent.Space / AINews",
-      "reason": "模型发布热度高，但需官方页核验后再提升优先级。",
+      "reason": "编码模型新闻值得保留，但本轮没有官方原始发布核验，先观察。",
       "priority": 2,
       "status": "watch",
       "links": [
@@ -116,35 +43,95 @@
       ]
     },
     {
-      "title": "DeepSeek V4-Flash 0731 quiet-day digest",
-      "source": "Latent.Space / AINews",
-      "reason": "可能有模型/推理信号，但原文价值低于今天的系统工程阅读。",
-      "priority": 3,
-      "status": "overflow",
+      "title": "To Add Is Machine, To Delete Is Human",
+      "source": "Hugging Face Daily Papers",
+      "reason": "已进入 theme 支撑链接；单独论文暂不占主块。",
+      "priority": 2,
+      "status": "candidate",
       "links": [
         {
-          "label": "AINews",
-          "url": "https://www.latent.space/p/ainews-not-much-happened-today-038"
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.28887"
         }
       ]
     },
     {
-      "title": "Opus, Hugging Face hack, and AI compute spend",
-      "source": "The Batch",
-      "reason": "行业信号可扫读，但缺少今天立即行动价值。",
-      "priority": 3,
+      "title": "Loud or Silent? Per-Modality Failure Analysis in Multimodal Clinical AI",
+      "source": "Hugging Face Daily Papers",
+      "reason": "临床多模态 failure attribution 有方法价值，但和今天 speech/runtime 主线略远。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-364"
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.01462"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/criticaldata/PRIMED-AI"
+        }
+      ]
+    },
+    {
+      "title": "SG-WAM: Self-Guided World Modeling in Geometry-Aware Policy Space",
+      "source": "Hugging Face Daily Papers",
+      "reason": "世界模型/策略空间有研究信号，但与当前主线距离较大。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.01397"
+        },
+        {
+          "label": "Project",
+          "url": "https://sg-wam.github.io/"
+        }
+      ]
+    },
+    {
+      "title": "GPU Management: Why Idle GPUs Are the New Grounded Aircraft",
+      "source": "Hugging Face Blog",
+      "reason": "GPU 利用率与成本文章可回看，但本轮推理工程长文优先级更高。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
+        }
+      ]
+    },
+    {
+      "title": "The OlmoEarth Platform: Geospatial inference at planetary scale",
+      "source": "Hugging Face Blog",
+      "reason": "大规模 geospatial inference 有系统参考价值，但不是今天主要工作流。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/allenai/olmoearth-infrastructure"
+        }
+      ]
+    },
+    {
+      "title": "NVIDIA Cosmos-H-Dreams: Real-Time Generative Simulation for Surgical Robotics",
+      "source": "Hugging Face Blog",
+      "reason": "实时生成式仿真偏应用新闻，暂不进入 10-15 分钟主阅读。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/nvidia/cosmos-h-dreams"
         }
       ]
     },
     {
       "title": "The Cheapest Way to Make Open Weight AI Models Better",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "可能涉及无需训练的提升方法，但需要检查实验设置。",
+      "reason": "可能有 RL/reward 方向判断价值，但本轮公开源主线已拥挤。",
       "priority": 2,
       "status": "watch",
       "links": [
@@ -157,7 +144,7 @@
     {
       "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "rubric/RL 主题相关，先放候选避免挤占主块。",
+      "reason": "reward/eval 候选，保留为后续 agent-eval 阅读。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -168,61 +155,100 @@
       ]
     },
     {
-      "title": "Agent Memory Frameworks Showdown: cognee vs Mem0 vs Zep vs Letta",
+      "title": "Opus, Hugging Face hack, and AI compute spend",
+      "source": "DeepLearning.AI The Batch",
+      "reason": "综合 newsletter 信息量大，但单条事实对今天行动影响有限。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-364"
+        }
+      ]
+    },
+    {
+      "title": "Kimi K3, Muse Spark, and Cloudflare crawler controls",
+      "source": "DeepLearning.AI The Batch",
+      "reason": "模型/平台混合新闻，先进入候选池避免挤占主线。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-363"
+        }
+      ]
+    },
+    {
+      "title": "From Model to Inference Endpoint with NVIDIA Triton and Triton Control",
       "source": "Medium Data Science Collective",
-      "reason": "可作为 agent memory 横向比较，质量需阅读后再判断。",
+      "reason": "Triton 相关但来源质量需要人工判断，暂留候选。",
       "priority": 2,
       "status": "watch",
       "links": [
         {
           "label": "Article",
-          "url": "https://medium.com/data-science-collective/agent-memory-frameworks-showdown-cognee-vs-mem0-vs-zep-vs-letta-0f439b56f282"
+          "url": "https://medium.com/data-science-collective/from-model-to-inference-endpoint-with-nvidia-triton-and-triton-control-7636439a8f28"
         }
       ]
     },
     {
-      "title": "Engineering Reliable Coding Agent Loops",
-      "source": "Level Up Coding",
-      "reason": "贴近 Codex 长任务流程，可之后对照 automation prompt。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Article",
-          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
-        }
-      ]
-    },
-    {
-      "title": "Data Engineer at Bokadirekt",
-      "source": "LinkedIn job alert",
-      "reason": "Stockholm hybrid 且有 KTH alumni 信号，但不如 Spotify Generative Audio 贴近主线。",
+      "title": "AI/ML Engineer at AgileGrid Solutions",
+      "source": "Gmail private fallback / LinkedIn job alert",
+      "reason": "职位线索来自 LinkedIn 邮件，已规范化为 canonical job URL；不混入学习主信息流。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4439342339"
+          "url": "https://www.linkedin.com/jobs/view/4448158068"
         }
       ]
     },
     {
-      "title": "ML Ops Engineer at Neko Health",
-      "source": "LinkedIn job alert",
-      "reason": "Stockholm hybrid 且和 health/ML ops 有关，留作求职候选。",
+      "title": "Agentic AI ML Engineer at Netrolynx AI",
+      "source": "Gmail private fallback / LinkedIn job alert",
+      "reason": "远程 agent/ML 职位可回看，但可信度和匹配度需要手动筛。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4430731132"
+          "url": "https://www.linkedin.com/jobs/view/4448129983"
+        }
+      ]
+    },
+    {
+      "title": "SVT ML/AI Engineer - Applied AI",
+      "source": "Gmail private fallback / LinkedIn career insights",
+      "reason": "瑞典本地岗位相关但不是当前最高优先级，放候选池。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4442978899"
+        }
+      ]
+    },
+    {
+      "title": "Kaggriculture agent simulation competition",
+      "source": "Gmail private fallback / Kaggle",
+      "reason": "有明确 2026-09-23 deadline，但偏练习赛，暂不占行动栏。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Kaggle competitions",
+          "url": "https://www.kaggle.com/competitions"
         }
       ]
     },
     {
       "title": "DRONEAUDIONET: Noise Suppression for Drone Audition-based Search and Rescue",
       "source": "arXiv",
-      "reason": "语音增强方向新论文，已进入 paper block 备选但主块只轻量提醒。",
+      "reason": "已在 paper block 作为第二篇提及；保留 arXiv 入口但不额外增加主块。",
       "priority": 1,
       "status": "candidate",
       "links": [
@@ -235,14 +261,14 @@
   ],
   "blocks": [
     {
-      "id": "ayy-invoice-due-2026-08-07",
+      "id": "action-ayy-invoice-2026-08-07",
       "kind": "action",
       "title": "AYY 发票 8 月 7 日到期：今天先核验付款",
-      "source": "Gmail private fallback / Maventa 2026-08-03",
+      "source": "Gmail private fallback / Maventa, 2026-08-03",
       "sourceStatus": "行动项",
-      "summary": "Maventa 邮件显示 Aalto-yliopiston ylioppilaskunta 发来一张发票，due date 是 2026-08-07。Feed 只保留付款提醒，不保存发票号、密码或安全发票链接。",
-      "why": "这是明确截止日前的个人事项，过期风险高于今天的技术阅读。",
-      "thought": "打开 Maventa 或 AYY 官方入口核验后再决定支付；不要从 feed 保存私人 invoice 链接。",
+      "summary": "AYY/Maventa 发票仍在近期邮件中，截止日是 2026-08-07。feed 只保留事项和官方入口，不保存发票号、密码或安全查看链接。",
+      "why": "这是会过期的个人财务事项，优先级高于普通技术阅读。",
+      "thought": "在 Maventa 或 AYY 官方渠道核验后再付款；不要从公开 feed 打开邮件里的安全链接。",
       "priority": 0,
       "links": [
         {
@@ -252,14 +278,14 @@
       ]
     },
     {
-      "id": "revolut-document-update",
+      "id": "action-revolut-documents-expired",
       "kind": "action",
       "title": "Revolut 证件已过期：在 app 内补交",
-      "source": "Gmail private fallback / Revolut 2026-08-01",
+      "source": "Gmail private fallback / Revolut, 2026-08-01",
       "sourceStatus": "行动项",
-      "summary": "Revolut 邮件提示原身份文件已过期，需要在 app 内提交有效文件以避免账户限制。Feed 不保存邮件里的私有跳转链接。",
-      "why": "这类账号限制会影响支付和日常使用，适合保留为短期待处理。",
-      "thought": "只从 Revolut app 或官网登录入口进入 KYC 流程，不点 feed 内私有邮件跳转。",
+      "summary": "Revolut 近期邮件提醒原身份文件已过期，需要在 app 内提交新证件以避免账号限制。feed 不保存邮件里的 KYC workflow 或 tracking 链接。",
+      "why": "账号限制类事项如果拖延，后续支付和账户访问会被动。",
+      "thought": "只从手机 Revolut app 的 We need more info 入口处理，不从邮件追踪链接进入。",
       "priority": 0,
       "links": [
         {
@@ -269,31 +295,31 @@
       ]
     },
     {
-      "id": "spotify-generative-audio-job",
+      "id": "action-apartment-furniture-reply",
       "kind": "action",
-      "title": "Spotify Generative Audio 研究岗：值得单独看 JD",
-      "source": "LinkedIn job alert 2026-08-03",
+      "title": "公寓家具买家追问：回复出售时间和床垫建议",
+      "source": "Gmail private fallback / personal thread, 2026-08-04",
       "sourceStatus": "行动项",
-      "summary": "LinkedIn job alert 出现 Spotify Stockholm 的 Research Scientist - Generative Audio，和 speech/audio 研究主线高度相关。其他泛 data job 只保留在候选池。",
-      "why": "这是少数直接贴合生成式音频、语音和研究经历的职位信号。",
-      "thought": "先打开 canonical LinkedIn job 页面判断签证、地点、研究要求，再决定是否投递或找内推。",
-      "priority": 1,
+      "summary": "对方 2026-08-04 回复询问桌椅可卖到什么时候，并希望你给一个床垫购买建议；私人联系方式和附件没有写入 feed。",
+      "why": "这是需要你明确回复的个人沟通，且和搬家/家具处理有关。",
+      "thought": "回复时给出最晚取货窗口和一个低成本床垫购买渠道即可，不需要展开长说明。",
+      "priority": 0,
       "links": [
         {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4439314226"
+          "label": "Gmail search",
+          "url": "https://mail.google.com/mail/u/0/#search/%22The+apartment%22"
         }
       ]
     },
     {
-      "id": "inference-engineering-masterclass",
+      "id": "deep-read-inference-engineering-masterclass",
       "kind": "deep-read",
       "title": "推理工程：今天最值得看的系统文章",
-      "source": "Latent.Space 2026-08-04",
+      "source": "Latent.Space / AINews, 2026-08-04",
       "sourceStatus": "公开源",
-      "summary": "Latent.Space 的 Baseten inference engineering 文章集中讨论 autoregressive 与 diffusion serving 的工程现实：延迟、吞吐、调度、成本和平台化。",
-      "why": "它直接连接你近期的 agent/runtime、GPU 成本和服务化判断，比泛模型新闻更能改变工程决策。",
-      "thought": "阅读时抓三件事：prefill/decode 成本拆分、batching/调度策略、哪些指标能变成你自己的部署 checklist。",
+      "summary": "Latent.Space 的推理工程长文把成本、延迟、batching、KV cache、服务端约束放在同一个工程框架里，比普通模型新闻更接近你现在的 runtime/部署主线。",
+      "why": "它能直接帮助你把 speech enhancement 的端侧/服务端部署问题转成可测的系统指标。",
+      "thought": "先读目录和 benchmark 口径，摘出能迁移到 Triton/USE runtime 的指标。",
       "priority": 1,
       "links": [
         {
@@ -303,52 +329,48 @@
       ]
     },
     {
-      "id": "lfm25-cpu-long-context",
+      "id": "signal-zero-token-agent-memory",
       "kind": "signal",
-      "title": "LFM2.5-Encoders：CPU 长上下文推理值得留意",
-      "source": "Hugging Face Blog 2026-08-04",
+      "title": "Zero-Mem：agent memory 的成本开始被当成一等问题",
+      "source": "Hugging Face Daily Papers, 2026-08-04",
       "sourceStatus": "公开源",
-      "summary": "Liquid AI 在 HF Blog 发布 LFM2.5-Encoders，主打 fast long-context inference on CPU。它不是 speech 论文，但和低成本本地/边缘推理的系统路线有关。",
-      "why": "如果 encoder 可以在 CPU 上处理长上下文，很多检索、rerank、agent memory 前处理会从 GPU 成本里移出来。",
-      "thought": "先看模型尺寸、上下文长度、CPU benchmark 与许可；不要只看标题就当作可部署结论。",
+      "summary": "Zero-Mem 关注不用额外 token 操作 agent memory，问题不是“有没有记忆”，而是记忆写入、检索、合并本身带来的成本和证据损耗。",
+      "why": "这和你 Codex/自动化长任务里的 context compression、audit trail、记忆边界高度相关。",
+      "thought": "把它作为 agent memory 设计候选阅读，不急着实现，先看它如何保留原始证据。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2607.29377"
+        }
+      ]
+    },
+    {
+      "id": "signal-lfm-local-agents",
+      "kind": "signal",
+      "title": "LFM2.5-2.6B：本地 agent 部署的轻量模型路线",
+      "source": "Hugging Face Blog, 2026-08-04",
+      "sourceStatus": "公开源",
+      "summary": "Hugging Face/LiquidAI 文章把 LFM2.5-2.6B 放在“local agents everywhere”的部署语境里，重点是小模型、低成本、本地运行，而不是只追大模型榜单。",
+      "why": "本地 agent 和轻量 runtime 会影响你之后 Codex/Obsidian/个人工具链能否离线或低成本运行。",
+      "thought": "先看它支持的部署栈和硬件假设，再决定是否值得进本地 agent 实验池。",
       "priority": 1,
       "links": [
         {
           "label": "HF Blog",
-          "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-encoders"
+          "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-2-6b"
         }
       ]
     },
     {
-      "id": "held-out-test-agent-loop",
-      "kind": "concept",
-      "title": "概念：自改进 agent 必须有 held-out test",
-      "source": "Medium Data Science Collective / Level Up Coding",
-      "sourceStatus": "公开源",
-      "summary": "今天的 agent 文章里最值得先弄懂的是 held-out test：agent 自己改提示、工具或流程时，不能只靠自评，必须有未见过的测试集守住回归。",
-      "why": "这和 Codex 长任务、自动化刷新、PR 评论处理都相关；没有 held-out gate，自改进只是更会迎合当前样例。",
-      "thought": "把它当作工程约束：每条自动化规则最好能对应一个不会被当前 run 直接污染的验证样例。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "The Log Is the Judge",
-          "url": "https://medium.com/data-science-collective/the-log-is-the-judge-why-self-improving-agents-need-a-held-out-test-to-trust-bd378c3b5521"
-        },
-        {
-          "label": "Reliable Coding Agent Loops",
-          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
-        }
-      ]
-    },
-    {
-      "id": "paper-speech-enhancement-runtime-2026-08-04",
+      "id": "paper-edge-streaming-se-runtime",
       "kind": "paper",
       "title": "论文提醒：端侧流式语音增强先看 runtime 成本",
-      "source": "arXiv / local recommendation search 2026-08-04",
+      "source": "arXiv / local recommendation pool, 2026-08-04",
       "sourceStatus": "本地推荐池",
-      "summary": "推荐 2 篇：faster-enhancer.c 把 FastEnhancer-Medium 做成 dependency-free int8 C runtime，直接回答流式语音增强在 CPU/手机上的实时与能耗成本；DRONEAUDIONET 面向无人机 audition 的极低 SNR 噪声抑制，适合作为 robust SE 的真实场景压力测试。",
-      "why": "这两篇分别覆盖部署成本和极端噪声泛化，比单纯刷新指标更贴近 Hybrid-UniSE/USE 的下一步判断。",
-      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness。去 Obsidian 推荐池入口查看，不在本轮写新论文笔记。",
+      "summary": "faster-enhancer.c: A Dependency-Free int8 Runtime for Streaming Speech Enhancement on Commodity CPUs 推荐理由：它把 48 kHz 流式增强压到 dependency-free int8 C runtime，并报告 RTF、能耗和 deadline，直接贴近端侧部署成本。DRONEAUDIONET: Noise Suppression for Drone Audition-based Search and Rescue 推荐理由：它处理无人机极低 SNR 下的人声/环境声恢复，适合作为鲁棒噪声场景补充阅读。",
+      "why": "两篇都比泛泛 SE 指标更接近“真实设备上能不能持续跑”的问题。",
+      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness；去 Obsidian 推荐池索引查看。",
       "priority": 1,
       "links": [
         {
@@ -358,23 +380,27 @@
       ]
     },
     {
-      "id": "latent-reasoning-quantization-watch",
+      "id": "theme-coding-agent-edit-quality",
       "kind": "theme",
-      "title": "HF papers 今日技术信号：latent reasoning 与量化 rounding",
-      "source": "Hugging Face Papers",
+      "title": "coding agent 质量：别只看能加代码，也要看会不会删错债务",
+      "source": "Hugging Face Daily Papers / Medium AI agents tag / Level Up Coding, 2026-08-04",
       "sourceStatus": "综合判断",
-      "summary": "GradCuit 把 test-time latent reasoning 做成 credit-assigned gradient flow；GPTQ-2D 继续推进 adaptive rounding 的数学/算法路线。两者都不是马上可用工具，但都指向“推理时优化”和“低比特部署”的底层问题。",
-      "why": "它们和当前 inference/runtime 主线相连：一个问如何在推理时多花计算换质量，一个问如何在量化时少损质量。",
-      "thought": "先不深读，保留为 watch；如果后续和 speech runtime 或本地模型部署碰上，再单独拆。",
+      "summary": "今天几个公开源都在围绕 coding agent 的质量闭环：删除回避、评估飞轮、可靠控制流。共同信号是 agent 的能力评估要覆盖负向编辑、回滚、测试和停止条件。",
+      "why": "这直接影响你之后让 Codex 自动改 repo、跑 automation、处理 PR 评论时的验收标准。",
+      "thought": "把“会删除无用代码”和“有 held-out/eval gate”作为 agent workflow 的检查项。",
       "priority": 2,
       "links": [
         {
-          "label": "GradCuit",
-          "url": "https://huggingface.co/papers/2608.02585"
+          "label": "Deletion Avoidance",
+          "url": "https://huggingface.co/papers/2607.28887"
         },
         {
-          "label": "GPTQ-2D",
-          "url": "https://huggingface.co/papers/2607.27042"
+          "label": "Evaluation Flywheel",
+          "url": "https://medium.com/@hcnewofficial/the-evaluation-flywheel-why-one-ai-metric-is-never-enough-577d2fc8acb6"
+        },
+        {
+          "label": "Reliable Coding Agent Loops",
+          "url": "https://levelup.gitconnected.com/engineering-reliable-coding-agent-loops-control-flow-verification-retries-and-stop-conditions-f002d2dc168c"
         }
       ]
     }
