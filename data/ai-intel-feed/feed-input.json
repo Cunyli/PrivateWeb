@@ -1,103 +1,63 @@
 {
   "date": "2026-08-06",
-  "overview": "今天优先处理 8 月 7 日前的个人截止事项；技术阅读重点是 agent persistence/验证语义、端侧语音增强 runtime 成本，以及本地 agent/megakernel 工程路线。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源、38 个候选；Gmail 仅查 LinkedIn/住房/账单/Revolut/已发送个人动作；OpenAI News 与 ChatGPT Release Notes 为 Cloudflare 403，API changelog 跳转后 200；已跳过 LinkedIn comm、HOAS tracking、退订和缺安全 URL 候选。",
+  "overview": "今天的主线是：先处理搬出检查与职位线索，再看 agent/推理基础设施、健康数据接入和端侧语音增强论文。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源、38 个候选；Gmail 仅查 LinkedIn/账单/住房/账号/已发送个人行动项；OpenAI/Anthropic/AYY 官方页通过公开网页核验；arXiv 完成 200 recent、49 unique，Semantic Scholar 有 429 退避但最终完成；已跳过邮件追踪链、退订链、0 美元账单和缺少可公开安全 URL 的候选。",
   "overflow": {
-    "summary": "Medium 泛 AI/商业文章、低相关 LinkedIn job alerts、DeepMind 人事讨论和多篇轻量 SE 论文被压到候选池，避免主页面过载。",
+    "summary": "Medium 通用教程、营销类 AI 文章、低相关 job alert 和无需行动通知被压到候选池或跳过。",
     "counts": {
-      "candidates": 19,
-      "overflow": 8,
-      "duplicates": 2,
-      "hidden": 0
+      "candidates": 38,
+      "overflow": 19,
+      "duplicates": 3,
+      "hidden": 5
     },
     "themes": [
       {
-        "title": "agent/工作流可靠性",
+        "title": "Agent memory 与本地状态管理",
         "count": 5,
-        "note": "保留一个综合 theme，其他相近文章进入 candidatePool。"
+        "note": "今天有多条相关信号，但多数是工具/讨论层，主块只保留和长期工作流最相关的综合判断。"
       },
       {
-        "title": "轻量语音增强论文",
-        "count": 6,
-        "note": "只把两篇最贴近设备部署和鲁棒场景的论文放入 paper block。"
-      },
-      {
-        "title": "LinkedIn 职位提醒",
-        "count": 12,
-        "note": "只保留贴近 AI/Stockholm/remote 的 canonical job 链接，低相关职位不进入主块。"
+        "title": "轻量模型与端侧部署",
+        "count": 4,
+        "note": "LFM2.5、微控制器 LLM、端侧论文互相呼应，但阅读路径不同，保留两个主块，其余进候选。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Applied AI Engineer - AI Finance Agent / BJAK",
-      "source": "LinkedIn private fallback, 2026-08-06",
-      "reason": "Sweden remote 且与 AI agent 相关，值得单独看但不混进学习主信息流。",
-      "priority": 0,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4448918940"
-        }
-      ]
-    },
-    {
-      "title": "GenAI Developer / Redeploy",
-      "source": "LinkedIn private fallback, 2026-08-06",
-      "reason": "Stockholm/Hybrid 且有 KTH alumni 信号，适合求职回看。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4428926862"
-        }
-      ]
-    },
-    {
-      "title": "Junior AI & Data Engineer / Overt Minds",
-      "source": "LinkedIn private fallback, 2026-08-06",
-      "reason": "AI/Data entry-level 线索，保留 canonical URL 后再判断含金量。",
+      "title": "Resume Means Resume: checkpoint / interrupt / resume 合约",
+      "source": "Hugging Face Daily Papers",
+      "reason": "很贴近 Codex/自动化可靠性，但今天只作为 agent memory 主题支撑。",
       "priority": 1,
       "status": "candidate",
       "links": [
         {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4447362081"
-        }
-      ]
-    },
-    {
-      "title": "Revolut Trading T&C changes start Aug 5 / Oct 6",
-      "source": "Gmail private fallback / Revolut, 2026-08-05",
-      "reason": "邮件说明如果接受无需操作；若不接受，需要在 2026-10-06 前处理。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Revolut legal",
-          "url": "https://www.revolut.com/en-AT/legal/investment-services-terms/"
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.03836"
         }
       ]
     },
     {
       "title": "Lossless Tensor Compression as Program Synthesis",
       "source": "Hugging Face Daily Papers",
-      "reason": "checkpoint/模型归档成本相关，但今天不如 workflow persistence 与语音增强优先。",
+      "reason": "checkpoint 存储成本相关，但和今天 speech/agent 主线相比优先级略低。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "HF paper",
           "url": "https://huggingface.co/papers/2608.02162"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/jiekeshi/Brevis"
         }
       ]
     },
     {
-      "title": "SIGNPOST-Bench: Text-Vision Conflict Resolution",
+      "title": "SIGNPOST-Bench: multimodal conflict resolution",
       "source": "Hugging Face Daily Papers",
-      "reason": "多模态冲突仲裁 benchmark，可作为 MLLM 评估候选。",
+      "reason": "评测方向有价值，但今天不直接影响语音增强或 agent runtime 决策。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -108,11 +68,11 @@
       ]
     },
     {
-      "title": "DRIFT: adversarial patches for flow-matching VLAs",
+      "title": "DRIFT: adversarial patch attack on flow-matching VLAs",
       "source": "Hugging Face Daily Papers",
-      "reason": "机器人/VLA 鲁棒性信号强，但不直接影响今天 speech/agent 主线。",
-      "priority": 2,
-      "status": "candidate",
+      "reason": "安全主题可信，但和当前研究主线距离较远。",
+      "priority": 3,
+      "status": "watch",
       "links": [
         {
           "label": "HF paper",
@@ -121,9 +81,26 @@
       ]
     },
     {
+      "title": "DeepMind 组织变化与 Qwen open weights 更新",
+      "source": "Latent.Space / AINews",
+      "reason": "行业面值得知道，但不是今天的主要行动或技术阅读。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "AINews DeepMind",
+          "url": "https://www.latent.space/p/ainews-jeff-sanjay-oriol-and-quoc"
+        },
+        {
+          "label": "AINews Qwen",
+          "url": "https://www.latent.space/p/ainews-qwen-38-max24t-and-27b-new"
+        }
+      ]
+    },
+    {
       "title": "Baseten on Hugging Face Inference Providers",
       "source": "Hugging Face Blog",
-      "reason": "部署供应商生态变化，适合之后比较 HF Inference Providers。",
+      "reason": "部署生态信号可信，但今天不如 LFM2.5 和 runtime 成本直接。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -134,11 +111,24 @@
       ]
     },
     {
-      "title": "OlmoEarth: geospatial inference at planetary scale",
+      "title": "GPU Management: idle GPUs are grounded aircraft",
       "source": "Hugging Face Blog",
-      "reason": "大规模 inference 平台案例，领域偏 geospatial，暂不进主块。",
+      "reason": "对集群成本意识有用，但不是今天最短路径阅读。",
       "priority": 2,
       "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
+        }
+      ]
+    },
+    {
+      "title": "OlmoEarth planetary-scale geospatial inference",
+      "source": "Hugging Face Blog",
+      "reason": "基础设施案例扎实，但领域离 speech/audio 较远。",
+      "priority": 3,
+      "status": "overflow",
       "links": [
         {
           "label": "HF Blog",
@@ -147,244 +137,179 @@
       ]
     },
     {
-      "title": "Jeff Dean/Sanjay/Oriol/Quoc depart DeepMind",
-      "source": "Latent.Space / AINews",
-      "reason": "组织层信号强，但事实判断需要更多官方后续，不作为技术主阅读。",
-      "priority": 2,
+      "title": "Kimi K3 report 解读",
+      "source": "Medium Data Science Collective",
+      "reason": "模型训练报告解读可看，但 Medium 二手解读不优先于官方/高质量源。",
+      "priority": 3,
       "status": "watch",
       "links": [
         {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-jeff-sanjay-oriol-and-quoc"
-        }
-      ]
-    },
-    {
-      "title": "Qwen 3.8 Max and 27B open weights",
-      "source": "Latent.Space / AINews",
-      "reason": "open weights/coding 模型动态值得观察，但今天缺少官方核验链。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-qwen-38-max24t-and-27b-new"
-        }
-      ]
-    },
-    {
-      "title": "Opus Outshines Even Fable / HF hack / compute spend",
-      "source": "DeepLearning.AI The Batch",
-      "reason": "新闻综述密度高，适合作为周末回看而非今天主线。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-364"
-        }
-      ]
-    },
-    {
-      "title": "Kimi K3 redraws the open frontier",
-      "source": "DeepLearning.AI The Batch",
-      "reason": "open frontier 模型综述，可与 Kimi report 阅读互证。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-363"
-        }
-      ]
-    },
-    {
-      "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code",
-      "source": "Artificial Intelligence Made Simple",
-      "reason": "rubric reward 适合 RLHF/RLAIF 视角，但和今天工程主线间接相关。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "AISimple",
-          "url": "https://www.artificialintelligencemadesimple.com/p/how-rubric-based-rewards-could-push"
-        }
-      ]
-    },
-    {
-      "title": "The Cheapest Way to Make Open Weight AI Models Better",
-      "source": "Artificial Intelligence Made Simple",
-      "reason": "开放模型后训练/提示路线的轻阅读，保留但不占主块。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "AISimple",
-          "url": "https://www.artificialintelligencemadesimple.com/p/the-cheapest-way-to-make-open-weight"
-        }
-      ]
-    },
-    {
-      "title": "A language model on a $10 microcontroller",
-      "source": "Medium Data Science Collective",
-      "reason": "边缘部署趣味案例，但文章质量需读后再判断。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Medium",
-          "url": "https://medium.com/data-science-collective/a-language-model-on-a-10-microcontroller-312k-parameters-driving-real-gpio-pins-fully-offline-f06ad803805f"
-        }
-      ]
-    },
-    {
-      "title": "How a frontier model gets built, read from the Kimi K3 report",
-      "source": "Medium Data Science Collective",
-      "reason": "可能是 Kimi 技术报告的可读导览，Medium 噪声较高所以候选。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Medium",
+          "label": "Article",
           "url": "https://medium.com/data-science-collective/how-a-frontier-model-gets-built-read-from-the-kimi-k3-report-cdccc04aaaee"
         }
       ]
     },
     {
-      "title": "Efficient Audio Enhancement with a Differentiable Psychoacoustic Loss",
-      "source": "arXiv / local recommendation pool",
-      "reason": "AEROMamba + PAQM loss 与感知质量相关，但 speech enhancement 主线今天先看 runtime 和鲁棒极端噪声。",
-      "priority": 2,
+      "title": "Agentic QA Testing as a Perception-Action Loop",
+      "source": "Medium Data Science Collective",
+      "reason": "agent 测试角度可参考，但来源质量和主线相关度不足以进主块。",
+      "priority": 3,
       "status": "candidate",
       "links": [
         {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2608.02918"
+          "label": "Article",
+          "url": "https://medium.com/data-science-collective/agentic-qa-testing-as-a-perception-action-loop-6926cd40a48c"
         }
       ]
     },
     {
-      "title": "CoFi-Lite: Ultra-Lightweight Speech Enhancement",
-      "source": "arXiv / local recommendation pool",
-      "reason": "极轻量 SE 候选，和 faster-enhancer.c 有重叠，先放候选。",
+      "title": "Architecture documentation fails the build when it lies",
+      "source": "Medium Level Up Coding",
+      "reason": "适合作为工程质量小读物，但今天主信息流空间有限。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://levelup.gitconnected.com/i-made-architecture-documentation-fail-the-build-when-it-lies-ee92ff8287be"
+        }
+      ]
+    },
+    {
+      "title": "Revolut Trading T&C update",
+      "source": "Gmail private fallback / Revolut official terms",
+      "reason": "邮件显示若接受条款无需操作；仅保留官方条款入口，未存 click tracking 链。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Revolut investment terms",
+          "url": "https://www.revolut.com/en-AT/legal/investment-services-terms/"
+        }
+      ]
+    },
+    {
+      "title": "DRONEAUDIONET",
+      "source": "arXiv",
+      "reason": "今天 paper block 已选入；候选池保留 arXiv 入口便于回看。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2608.00875"
+        }
+      ]
+    },
+    {
+      "title": "Towards Array-Invariant Speech Enhancement via Geometry-Aware Dynamic Convolution",
+      "source": "arXiv",
+      "reason": "多麦阵列泛化值得之后读，但今天 paper block 先聚焦 drone 与 CPU runtime。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.10142"
+          "url": "https://arxiv.org/abs/2607.18658"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "action-ayy-invoice-2026-08-07",
+      "id": "ayy-move-out-inspection-2026-08-06",
       "kind": "action",
-      "title": "AYY 发票 8 月 7 日到期：今天先核验付款",
-      "source": "Gmail private fallback / Maventa, retained until 2026-08-07",
+      "title": "AYY 搬出检查提醒：先按最终清洁清单准备",
+      "source": "Gmail private fallback / AYY official",
       "sourceStatus": "行动项",
-      "summary": "AYY/Maventa 发票截止日是 2026-08-07。feed 只保留事项和官方入口，不保存发票号、密码或安全查看链接。",
-      "why": "这是明天会过期的个人财务事项，优先级高于普通技术阅读。",
-      "thought": "在 Maventa 或 AYY 官方渠道核验后再付款；不要从公开 feed 打开邮件里的安全链接。",
+      "summary": "AYY 通知可能会在最后一个租住月进行搬出检查；如果安排检查，会另行通知具体时间。你不需要在场，但如果有宠物需要提前告知 AYY。",
+      "why": "这是住处/搬家相关事项，比普通信息流更容易过期或遗漏。",
+      "thought": "今天先按 AYY departing residents 清单核对清洁、钥匙和储物间，不在 feed 里保存地址或私人邮箱细节。",
       "priority": 0,
       "links": [
         {
-          "label": "Maventa official",
-          "url": "https://maventa.com"
+          "label": "AYY departing residents",
+          "url": "https://ayyasunnot.fi/en/for-residents/departing-residents/"
         }
       ]
     },
     {
-      "id": "action-hoas-housing-application-update",
+      "id": "linkedin-ai-ml-jobs-2026-08-06",
       "kind": "action",
-      "title": "HOAS 住房申请：本月更新并检查区域",
-      "source": "Gmail private fallback / HOAS, 2026-08-06",
+      "title": "LinkedIn 职位线索：只看 AI/ML 相关远程岗",
+      "source": "Gmail private fallback / LinkedIn",
       "sourceStatus": "行动项",
-      "summary": "HOAS 提醒你更新住房申请、确认申请区域，并说明即使不增加区域也要每月延长有效期。邮件里的 APSIS tracking 和退订链接未写入 feed。",
-      "why": "住房申请有效期会影响后续 offer 池，属于需要记住的个人动作。",
-      "thought": "从 HOAS 官方申请页请求一次性链接，更新区域和有效期即可。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "HOAS housing application",
-          "url": "https://hoas.fi/en/applicants/applying/"
-        }
-      ]
-    },
-    {
-      "id": "action-revolut-documents-expired",
-      "kind": "action",
-      "title": "Revolut 证件已过期：在 app 内补交",
-      "source": "Gmail private fallback / Revolut, retained from recent action mail",
-      "sourceStatus": "行动项",
-      "summary": "Revolut 近期提醒原身份文件已过期，需要在 app 内提交新证件以避免账号限制。今天另有 Trading T&C 变更邮件，若接受则无需额外操作。",
-      "why": "账号限制类事项如果拖延，后续支付和账户访问会被动。",
-      "thought": "只从手机 Revolut app 的 We need more info 入口处理，不从邮件追踪链接进入。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "Revolut official",
-          "url": "https://www.revolut.com"
-        }
-      ]
-    },
-    {
-      "id": "theme-agent-persistence-contracts",
-      "kind": "theme",
-      "title": "Agent 可靠性：resume 语义和验证边界正在变成产品合同",
-      "source": "Hugging Face Daily Papers / Latent.Space / Medium AI Agents",
-      "sourceStatus": "综合判断",
-      "summary": "今天多条公开源都指向同一个问题：agent/workflow 系统不能只声明“可恢复、可自动化”，还需要清楚定义 checkpoint、interrupt、resume、工具副作用和证据边界。",
-      "why": "这直接影响你用 Codex/agent 做长任务和自动化时，怎样区分真正完成、部分执行和重复副作用。",
-      "thought": "先读 Resume Means Resume；之后把“resume 后哪些 effect 可重放”作为 agent harness 设计检查项。",
+      "summary": "最近 job alert 里有 AI/ML Engineer、Software / Machine Learning Engineer、Data Scientist 等岗位；已转换为 canonical LinkedIn jobs/view URL，丢弃邮件 comm/追踪链接。",
+      "why": "这些不属于学习主信息流，但适合作为今天 10 分钟筛选的求职行动项。",
+      "thought": "只打开最贴近 speech/ML 系统或 remote 条件的 2-3 个，弱相关 Data Technician 类岗位直接略过。",
       "priority": 1,
       "links": [
         {
-          "label": "Resume Means Resume",
-          "url": "https://huggingface.co/papers/2608.03836"
+          "label": "AI/ML Engineer - Hire Feed",
+          "url": "https://www.linkedin.com/jobs/view/4448944795/"
         },
         {
-          "label": "Unpacking ChatGPT Work",
-          "url": "https://www.latent.space/p/unpacking-chatgpt-work"
+          "label": "Software / Machine Learning Engineer - Prima",
+          "url": "https://www.linkedin.com/jobs/view/4431742271/"
         },
         {
-          "label": "When Agentic Confidence Exceeds Evidence",
-          "url": "https://medium.com/@dkkazusam/when-agentic-confidence-exceeds-evidence-555a7f617a1b"
-        },
-        {
-          "label": "Building Secure AI Agents",
-          "url": "https://medium.com/@timstittus/building-secure-ai-agents-a-practical-guide-for-2026-5cb36921fd5d"
+          "label": "Data Scientist - Corporate Travel AI Network",
+          "url": "https://www.linkedin.com/jobs/view/4449461511/"
         }
       ]
     },
     {
-      "id": "signal-megakernels-engineering-debate",
+      "id": "openai-health-chatgpt-2026-08-06",
       "kind": "signal",
-      "title": "Megakernels 又被拿出来讨论：推理系统的边界还在移动",
-      "source": "Latent.Space / AINews, 2026-08-06",
-      "sourceStatus": "公开源",
-      "summary": "Latent.Space 把 megakernel 工程争论和 Cursor 发布放在同一天讨论，说明 LLM runtime 的性能路线仍在 kernel fusion、调度和产品工程之间摆动。",
-      "why": "这和你关注的 inference systems、低延迟服务、端侧 runtime 成本属于同一组工程判断。",
-      "thought": "把它当作 inference reading queue 的信号，不急着沉淀；重点看作者如何定义 kernel 边界和可维护性。",
+      "title": "ChatGPT Health：健康数据接入从问答变成产品边界",
+      "source": "OpenAI News / Release Notes / WSJ",
+      "sourceStatus": "官方/高质量源",
+      "summary": "OpenAI 官方页和 ChatGPT release notes 显示 Health 已面向美国成人用户连接 Apple Health 与支持的医疗记录；同期媒体讨论集中在患者用 AI 解读检查结果的风险与隐私边界。",
+      "why": "这直接碰到 speech-health/biomarker 方向最敏感的产品问题：个人健康上下文、医疗免责声明、数据控制和临床责任。",
+      "thought": "把它当作“健康 AI 产品化边界”案例读，而不是单纯功能发布；关注隐私承诺、医生参与和诊断替代风险。",
       "priority": 1,
       "links": [
         {
-          "label": "Latent.Space",
+          "label": "OpenAI Health in ChatGPT",
+          "url": "https://openai.com/index/health-in-chatgpt/"
+        },
+        {
+          "label": "ChatGPT release notes",
+          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
+        },
+        {
+          "label": "WSJ discussion",
+          "url": "https://www.wsj.com/tech/ai/doctors-dont-want-patients-to-read-test-results-with-ai-theyre-doing-it-anyway-e9197a52"
+        }
+      ]
+    },
+    {
+      "id": "latent-megakernels-2026-08-06",
+      "kind": "deep-read",
+      "title": "Megakernels 回潮：推理优化正在回到 kernel 边界",
+      "source": "Latent.Space / AINews",
+      "sourceStatus": "公开源",
+      "summary": "Latent.Space 今天的 megakernels 文章把推理优化重新拉回到 kernel fusion、调度和硬件利用率层面，而不是只谈模型或 API 层抽象。",
+      "why": "这和你最近关注的 streaming SE runtime、int8 CPU 路线、GPU 资源利用是同一种工程判断：真实性能常在边界层损失。",
+      "thought": "读时只抓一个问题：哪些优化属于模型结构，哪些其实是 runtime/内存/调度债务。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "Latent.Space article",
           "url": "https://www.latent.space/p/ainews-megakernels-are-so-dead-and"
         }
       ]
     },
     {
-      "id": "signal-lfm25-local-agents",
+      "id": "lfm25-local-agents-2026-08-06",
       "kind": "signal",
-      "title": "LFM2.5-2.6B：本地 agent 部署继续向小模型压缩",
-      "source": "Hugging Face Blog, 2026-08-06",
+      "title": "LFM2.5-2.6B：本地 agent 的小模型路线继续变实",
+      "source": "Hugging Face Blog",
       "sourceStatus": "公开源",
-      "summary": "Liquid AI 在 HF Blog 上介绍 LFM2.5-2.6B 的本地 agent 部署路线，重点是让 agent 能在更多本地/边缘环境里运行，而不是只依赖云端大模型。",
-      "why": "这会影响你之后评估本地 agent、隐私、低延迟和工具调用成本的基线。",
-      "thought": "后续如果要做本地 agent demo，可以把它和 Qwen、小型 coding model、Ollama/Transformers.js 放在同一比较表。",
-      "priority": 1,
+      "summary": "Hugging Face Blog 的 LFM2.5-2.6B 文章主打“deploy local agents everywhere”，强调小模型、本地部署和 agent 工作负载的结合。",
+      "why": "如果 agent memory、日志压缩、工具路由这些维护任务能由本地小模型承担，大模型就可以只处理少数高价值推理步骤。",
+      "thought": "把它和本地 memory/自动化维护一起看：小模型不是替代 frontier model，而是降低持续状态维护成本。",
+      "priority": 2,
       "links": [
         {
           "label": "HF Blog",
@@ -393,44 +318,61 @@
       ]
     },
     {
-      "id": "paper-edge-streaming-se-runtime-2026-08-06",
+      "id": "hf-security-compute-batch-364",
+      "kind": "signal",
+      "title": "The Batch：Hugging Face hack 与 compute 预算同日出现",
+      "source": "DeepLearning.AI The Batch",
+      "sourceStatus": "公开源",
+      "summary": "The Batch issue 364 同时覆盖 Hugging Face hack、模型能力对比和 AI 公司 compute 支出，适合作为“agent/模型能力越强，安全与算力治理越靠前”的行业信号。",
+      "why": "这不是单条新闻，而是提醒：agent 能力、供应链安全和 compute 成本已经开始同时约束 AI 产品。",
+      "thought": "只读 issue 摘要即可，重点标记安全事件里哪些是官方确认，哪些只是 newsletter 汇总。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "The Batch issue 364",
+          "url": "https://www.deeplearning.ai/the-batch/issue-364"
+        }
+      ]
+    },
+    {
+      "id": "agent-memory-conformance-2026-08-06",
+      "kind": "theme",
+      "title": "Agent memory 不只是上下文：它需要可验证的恢复合约",
+      "source": "Hugging Face Daily Papers / HN / Latent.Space",
+      "sourceStatus": "综合判断",
+      "summary": "今天的 Resume Means Resume、HN 上的 hmem/persistent memory 讨论，以及 ChatGPT Work 这类长任务产品信号都指向同一个问题：agent 状态需要可检查、可删除、可恢复，而不是无限塞上下文。",
+      "why": "这直接影响 Codex 自动化、长任务监看和研究日志压缩：恢复是否可信，比记得更多内容更重要。",
+      "thought": "下一步可以把自己的自动化 memory 看成 SLO surface：记录候选、决策、验证和失败，不追求复杂 topicKey。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "Resume Means Resume",
+          "url": "https://huggingface.co/papers/2608.03836"
+        },
+        {
+          "label": "Hmem on HN",
+          "url": "https://news.ycombinator.com/item?id=47103237"
+        },
+        {
+          "label": "ChatGPT Work unpacking",
+          "url": "https://www.latent.space/p/unpacking-chatgpt-work"
+        }
+      ]
+    },
+    {
+      "id": "paper-use-runtime-2026-08-06",
       "kind": "paper",
-      "title": "论文提醒：端侧语音增强先看鲁棒噪声和 runtime 成本",
-      "source": "arXiv / local recommendation pool, 2026-08-06",
+      "title": "论文提醒：端侧/真实场景语音增强先看两个成本问题",
+      "source": "arXiv / 本地推荐池索引",
       "sourceStatus": "本地推荐池",
-      "summary": "DRONEAUDIONET 推荐理由：无人机极低 SNR 下做人声/环境声恢复，适合作为鲁棒噪声场景补充。faster-enhancer.c 推荐理由：把 48 kHz 流式增强压到 dependency-free int8 C runtime，并报告 RTF、能耗和 deadline，贴近端侧部署成本。",
-      "why": "两篇都比泛泛 SE 指标更接近“真实设备上能不能持续跑、在极端噪声下有没有用”的问题。",
-      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness；去 Obsidian 推荐池索引查看。",
+      "summary": "今天最值得看的 1-2 篇是 DRONEAUDIONET 和 faster-enhancer.c。前者把 drone-dominant mixture 下的人声/环境声恢复当成真实搜救感知问题；后者用 dependency-free int8 C runtime 衡量 streaming speech enhancer 在 CPU/手机上的实时因子、能耗和 deadline 成本。",
+      "why": "两篇都比普通模型指标更贴近部署现实：一个问低 SNR 场景是否可用，一个问麦克风常开时 runtime 成本是否可信。",
+      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness；去 Obsidian 推荐池索引里打开阅读入口，不在本轮写新论文笔记。",
       "priority": 1,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
           "url": "obsidian://open?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
-        }
-      ]
-    },
-    {
-      "id": "deep-read-kimi-frontier-model-report",
-      "kind": "deep-read",
-      "title": "Frontier model 工程：Kimi K3 报告值得作系统读法",
-      "source": "Medium Data Science Collective / The Batch, 2026-08-06",
-      "sourceStatus": "精选",
-      "summary": "公开候选里同时出现 Kimi K3 技术报告导读和 The Batch 对 open frontier 的综述。它们适合用来拆 frontier model 不只由模型参数决定，还由数据、训练、系统卡、评估和部署流程共同决定。",
-      "why": "这能帮你把大模型发布看成工程系统，而不是只比较参数量和榜单。",
-      "thought": "读的时候只抽“训练/评估/服务边界”三个维度，避免陷入发布新闻细节。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "Medium guide",
-          "url": "https://medium.com/data-science-collective/how-a-frontier-model-gets-built-read-from-the-kimi-k3-report-cdccc04aaaee"
-        },
-        {
-          "label": "The Batch issue 363",
-          "url": "https://www.deeplearning.ai/the-batch/issue-363"
-        },
-        {
-          "label": "Latent.Space Qwen/open weights",
-          "url": "https://www.latent.space/p/ainews-qwen-38-max24t-and-27b-new"
         }
       ]
     }
