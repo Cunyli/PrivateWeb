@@ -1,9 +1,9 @@
 {
   "date": "2026-08-07",
-  "overview": "今天最值得先处理 Revolut 身份验证；技术阅读聚焦 agent 工作入口、推理基础设施和端侧/实时音频部署。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源，40 条公开候选；Gmail 仅查 Revolut/LinkedIn/个人行动项；OpenAI News/Release Notes 403，API changelog 200；S2 部分查询 429。",
+  "overview": "今天最值得先处理 Revolut 身份验证；公开 collector 与 arXiv/S2 本轮受沙盒 DNS 限制，主阅读面保留同日已验证的公开候选并补充本轮 Gmail 个人行动项。",
+  "sourceStatusLine": "公开 collector 在沙盒内 10 源全为 DNS 错误且真实网络审批超时；Gmail 仅查 Revolut/LinkedIn/个人行动项；OpenAI News/Release Notes 403，API changelog 200；arXiv/S2 本轮 DNS 降级。",
   "overflow": {
-    "summary": "公开候选较多，语言小模型、泛 AI 自动化、泛教程和重复 agent 工具清单压入候选池/overflow。",
+    "summary": "本轮公开源脚本和论文联网搜索受限，未新增可信公开候选；保留同日公开候选池，并把新出现的 LinkedIn 职位线索规范为行动/候选。",
     "counts": {
       "candidates": 18,
       "overflow": 9,
@@ -213,7 +213,7 @@
     {
       "title": "OpenAI News / ChatGPT Release Notes",
       "source": "OpenAI official",
-      "reason": "本轮 HTTP 403 challenge，未官方核验，不作为事实块",
+      "reason": "本轮 HEAD 检查仍为 HTTP 403 challenge；API changelog 为 200。News/Release Notes 未官方核验，不作事实块。",
       "priority": 2,
       "status": "watch",
       "links": [
@@ -260,13 +260,39 @@
     {
       "title": "Spotify Multilingual AI Quality Specialist",
       "source": "LinkedIn private fallback",
-      "reason": "个人求职线索，已规范化为职位页，放候选供单独行动",
+      "reason": "本轮 Gmail private fallback 再次出现；已规范化为职位页，放候选供单独求职筛选。",
       "priority": 1,
       "status": "watch",
       "links": [
         {
           "label": "LinkedIn job",
           "url": "https://www.linkedin.com/jobs/view/4440910007"
+        }
+      ]
+    },
+    {
+      "title": "Stratsys AI Engineer",
+      "source": "LinkedIn private fallback",
+      "reason": "本轮 Sweden job alert 出现，和 AI engineer 方向相关；先放候选，不混入技术阅读流。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4422889355"
+        }
+      ]
+    },
+    {
+      "title": "Spotify Research Scientist - Generative Audio",
+      "source": "LinkedIn private fallback",
+      "reason": "本轮 LinkedIn 推荐里与音频研究最贴近的岗位；值得单独判断，但不作为学习事实来源。",
+      "priority": 1,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4439307529"
         }
       ]
     }
@@ -386,11 +412,11 @@
       "id": "paper-drone-faster-enhancer",
       "kind": "paper",
       "title": "论文提醒：Drone audition 与 int8 streaming SE 值得进推荐池看",
-      "source": "start-my-day arXiv 2026-08-07",
-      "sourceStatus": "本地推荐池",
-      "summary": "推荐两篇：`DRONEAUDIONET` 把 drone-dominant mixture 下的人声/环境声恢复建模成无人机噪声估计，贴近低 SNR 鲁棒增强；`faster-enhancer.c` 给出 dependency-free int8 streaming SE runtime，在 Apple M2 与 Snapdragon 上报告实时因子和能耗/deadline 权衡。",
-      "why": "一个补齐复杂噪声场景，一个补齐真实端侧部署成本，正好对应 USE 的泛化和 streaming deployment 两条线。",
-      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness。去 Obsidian 推荐池索引里看候选，不在本轮写新论文笔记。",
+      "source": "start-my-day local index / arXiv degraded 2026-08-07",
+      "sourceStatus": "本地推荐池（联网降级）",
+      "summary": "本轮 start-my-day 已刷新本地 existing-notes index，但 arXiv API/RSS 与 Semantic Scholar 都因 DNS 失败中断；先保留同日已筛过的两篇候选：`DRONEAUDIONET` 关注 drone-dominant mixture 下的人声/环境声恢复，`faster-enhancer.c` 关注 dependency-free int8 streaming SE runtime。",
+      "why": "这两篇仍对应 USE 的两个核心问题：复杂噪声泛化与端侧/流式部署成本；但本轮没有新的 arXiv/S2 排名证据。",
+      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness。去 Obsidian 推荐池索引查看；本轮不写新论文笔记。",
       "priority": 1,
       "links": [
         {
@@ -402,17 +428,25 @@
     {
       "id": "linkedin-ai-jobs-2026-08-07",
       "kind": "action",
-      "title": "LinkedIn 求职线索：优先看 Spotify 与高相关远程 ML 岗",
-      "source": "Gmail private fallback / LinkedIn 2026-08-07",
+      "title": "LinkedIn 求职线索：先筛 Spotify 音频/AI 与北欧 AI Engineer 岗",
+      "source": "Gmail private fallback / LinkedIn 2026-08-07 evening",
       "sourceStatus": "行动项",
-      "summary": "LinkedIn 最近 36 小时有 AI/ML job alerts。保留 Spotify Multilingual AI Quality Specialist、Hire Feed AI/ML Engineer、Haystack ML Engineer 等可点击职位页；不保存邮件 redirect 或 tracking 参数。",
+      "summary": "LinkedIn 最近 36 小时出现 Spotify Multilingual AI Quality Specialist、Spotify Research Scientist - Generative Audio、Stratsys AI Engineer、Hire Feed AI/ML Engineer、Haystack ML Engineer 等职位线索；只保留 canonical `linkedin.com/jobs/view/{id}` URL。",
       "why": "这是独立行动项，不混入技术学习主信息流；只在与你 speech/ML/AI 方向相关时值得花时间。",
-      "thought": "先筛 Spotify 是否和多语言/音频质量评价相关，再看远程 ML 岗是否真实可信；夸张薪资或泛招聘公司谨慎处理。",
+      "thought": "优先看 Spotify 音频/多语言质量与 Stratsys/Telia 这类北欧 AI Engineer；对夸张薪资、泛 remote 和 staffing 公司保持怀疑。",
       "priority": 2,
       "links": [
         {
-          "label": "Spotify job",
+          "label": "Spotify Multilingual AI Quality Specialist",
           "url": "https://www.linkedin.com/jobs/view/4440910007"
+        },
+        {
+          "label": "Spotify Generative Audio",
+          "url": "https://www.linkedin.com/jobs/view/4439307529"
+        },
+        {
+          "label": "Stratsys AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4422889355"
         },
         {
           "label": "Hire Feed AI/ML Engineer",
@@ -423,8 +457,8 @@
           "url": "https://www.linkedin.com/jobs/view/4448402249"
         },
         {
-          "label": "Signify AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4448018319"
+          "label": "Telia AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4449643608"
         }
       ]
     }
