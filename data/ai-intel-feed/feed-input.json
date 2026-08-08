@@ -1,99 +1,173 @@
 {
   "date": "2026-08-08",
-  "overview": "今天公开源恢复正常，最值得看的是 multi-agent/skill 化工作流与端侧/托管推理成本线；个人行动只保留 Revolut 验证与 LinkedIn 求职筛选。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 等 10 个公开源共 40 候选；Gmail 仅查 LinkedIn/个人行动项且 sent 为空；OpenAI News/Release Notes 403，API changelog 200；未因缺少 URL 入主块。",
+  "overview": "今天公开源直连恢复，主线是本地/托管推理、agent 可控性和 speech enhancement 端侧部署；Revolut 身份验证已完成，个人行动只保留 LinkedIn 岗位筛选。",
+  "sourceStatusLine": "已直连 10 个公开源、40 条候选；Gmail 仅查 Revolut/LinkedIn/个人行动项且 sent 近 36h 为空；OpenAI News/Release Notes 403，API changelog 200；无候选因缺少 URL 入主块。",
   "overflow": {
-    "summary": "公开候选主要拥挤在 agent/skills、端侧推理、Medium 工具清单和语音增强论文；主页面只保留 8 个块，其余进入候选池。",
+    "summary": "agent、Kimi、本地推理和轻量 speech enhancement 内容拥挤，主页面压到 8 块，其余可信可点击候选留在 candidatePool。",
     "counts": {
-      "candidates": 18,
-      "overflow": 10,
+      "candidates": 24,
+      "overflow": 11,
       "duplicates": 4,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "agent 与 skill 化工作流",
-        "count": 6,
-        "note": "只保留 multi-agent 判断和 robot skills survey 两条主线，其余 RAG/agent 教程进候选。"
+        "title": "agent 与本地工作流教程过多",
+        "count": 7,
+        "note": "只保留 multi-agent 风险和 executable context 两个能改变工作流判断的角度。"
       },
       {
-        "title": "端侧/托管推理成本",
-        "count": 7,
-        "note": "主块合并 LFM2.5、Baseten、AMD/Taalas 与本地 Kimi 线索，避免重复成本叙事。"
+        "title": "轻量模型和推理部署连续出现",
+        "count": 9,
+        "note": "主块保留 LFM2.5、Baseten、GPU 管理和 Kimi runtime 四条互补线索。"
       },
       {
-        "title": "语音增强论文连续出现",
+        "title": "speech enhancement 论文候选稳定",
         "count": 7,
-        "note": "paper block 只放 2 篇最贴 USE 的论文，其他 SE/beamforming/audio enhancement 留候选。"
+        "note": "paper block 只放 top 2，其他 CoFi-Lite/array-invariant/beamforming 候选留在搜索 JSON。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "FactorJEPA: crowded urban world models",
+      "title": "KVAE: Family of Tokenizers for Multimodal Generative Models",
       "source": "Hugging Face Daily Papers",
-      "reason": "world model/interaction channel 很新，但和今天 speech/runtime 主线弱一些。",
+      "reason": "多模态 tokenizer 候选，有代码但今天不直接影响 speech/runtime 主线。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "HF paper",
+          "label": "Hugging Face Daily Papers",
+          "url": "https://huggingface.co/papers/2608.05798"
+        }
+      ]
+    },
+    {
+      "title": "FactorJEPA: Factorizing Monolithic Futures into Layout-Agent-Interaction Channels for Crowded and Chaotic Global South Urban Worlds",
+      "source": "Hugging Face Daily Papers",
+      "reason": "crowded urban world 建模思路有趣，偏 agent/world-model 候选。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Hugging Face Daily Papers",
           "url": "https://huggingface.co/papers/2608.01049"
         }
       ]
     },
     {
-      "title": "GaussianSelector for 3D Gaussian Splatting",
+      "title": "Weights or Skills? A Survey of Robot-Learning Techniques: from Action-Predicting Weights to Robots that Write their Own Skills",
       "source": "Hugging Face Daily Papers",
-      "reason": "3D scene editing 技术完整，有项目页；暂不影响当前研究行动。",
-      "priority": 3,
+      "reason": "机器人 skill learning survey 值得周末扫读，但不是今天最紧迫。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.01492"
-        },
-        {
-          "label": "Project",
-          "url": "https://lllab.org/blog/GaussianSelector-Implementation-Notes-What-Didn-t-Fit-in-the-Paper"
+          "label": "Hugging Face Daily Papers",
+          "url": "https://huggingface.co/papers/2608.01851"
         }
       ]
     },
     {
-      "title": "TutorMoments: AI tutors know when to help",
-      "source": "Hugging Face Blog",
-      "reason": "教育/交互评价值得看，但今天优先级低于 agent/runtime 主线。",
-      "priority": 3,
+      "title": "[AINews] AMD buys Taalas",
+      "source": "Latent.Space / AINews",
+      "reason": "AMD/Taalas 属于芯片战略信号，保留观察但不进入主块。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "HF Blog",
+          "label": "Latent.Space / AINews",
+          "url": "https://www.latent.space/p/ainews-amd-buys-taalas"
+        }
+      ]
+    },
+    {
+      "title": "[AINews] Jeff, Sanjay, Oriol, and Quoc depart DeepMind; Demis to Chair; Koray to SVP — what is going on at GDM???",
+      "source": "Latent.Space / AINews",
+      "reason": "DeepMind 人事变化热度高，行动价值较弱。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Latent.Space / AINews",
+          "url": "https://www.latent.space/p/ainews-jeff-sanjay-oriol-and-quoc"
+        }
+      ]
+    },
+    {
+      "title": "[AINews] Megakernels are so dead and so back",
+      "source": "Latent.Space / AINews",
+      "reason": "megakernel 讨论贴近推理系统，但今天主块已覆盖 runtime/GPU 角度。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Latent.Space / AINews",
+          "url": "https://www.latent.space/p/ainews-megakernels-are-so-dead-and"
+        }
+      ]
+    },
+    {
+      "title": "TutorMoments: Do AI tutors know when to help and when to hold back?",
+      "source": "Hugging Face Blog",
+      "reason": "AI tutor timing 问题有教育产品价值，暂留候选。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Hugging Face Blog",
           "url": "https://huggingface.co/blog/allenai/tutormoments"
         }
       ]
     },
     {
-      "title": "DeepSeek-V4-Flash / GitHub crawl / safer code prompts",
+      "title": "DeepSeek-V4-Flash Outshines Pro, The Biggest GitHub Crawl Yet, Engineering System Prompts for Safer Code",
       "source": "DeepLearning.AI The Batch",
-      "reason": "digest 信息密度不错，但需要再回官方源逐条核验。",
-      "priority": 3,
-      "status": "watch",
+      "reason": "The Batch 汇总 DeepSeek/GitHub crawl/system prompt，信息密度高但不单独展开。",
+      "priority": 2,
+      "status": "candidate",
       "links": [
         {
-          "label": "The Batch",
+          "label": "DeepLearning.AI The Batch",
           "url": "https://www.deeplearning.ai/the-batch/issue-365"
+        }
+      ]
+    },
+    {
+      "title": "Opus Outshines Even Fable, Inside the Hugging Face Hack, AI Companies Spend Big for Compute",
+      "source": "DeepLearning.AI The Batch",
+      "reason": "compute spending 与 HF hack 属背景噪声，留作宏观候选。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "DeepLearning.AI The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-364"
+        }
+      ]
+    },
+    {
+      "title": "AI Overviews Land Google In Hot Water, GPT-Live Puts Reasoning in the Background, How to Tell If Your Model is Manipulative",
+      "source": "DeepLearning.AI The Batch",
+      "reason": "AI Overviews/GPT-Live/manipulation 主题较泛，暂不占主阅读位。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "DeepLearning.AI The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-362"
         }
       ]
     },
     {
       "title": "How to Build Judgement about a New Technology or Business",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "适合周末读的判断框架，但不是今天的核心行动。",
+      "reason": "判断新技术/业务的文章适合做方法论候选，不是今天 AI 技术核心。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "AISimple",
+          "label": "Artificial Intelligence Made Simple",
           "url": "https://www.artificialintelligencemadesimple.com/p/how-to-build-judgement-about-a-new"
         }
       ]
@@ -101,85 +175,163 @@
     {
       "title": "The Cheapest Way to Make Open Weight AI Models Better",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "open-weight 改进方向可回看；与成本主题重叠，未进主块。",
+      "reason": "open weight model improvement 方向相关，留作轻阅读。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "AISimple",
+          "label": "Artificial Intelligence Made Simple",
           "url": "https://www.artificialintelligencemadesimple.com/p/the-cheapest-way-to-make-open-weight"
         }
       ]
     },
     {
-      "title": "Which Embedding Model Should You Use?",
-      "source": "Medium AI Agents",
-      "reason": "embedding 选型清单适合以后 RAG 工作流选型，不占主阅读位。",
-      "priority": 3,
+      "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code [Guest]",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "rubric-based rewards 对评估有启发，但今天不展开。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "Medium",
+          "label": "Artificial Intelligence Made Simple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-rubric-based-rewards-could-push"
+        }
+      ]
+    },
+    {
+      "title": "The Hidden Geometry Behind AI Reasoning",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "reasoning geometry 偏概念型，后续可作为 concept 候选。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Artificial Intelligence Made Simple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/the-hidden-geometry-behind-ai-reasoning"
+        }
+      ]
+    },
+    {
+      "title": "Which Embedding Model Should You Use? A Scenario-Based Guide",
+      "source": "Medium AI agents tag",
+      "reason": "embedding model guide 可用但偏教程，留候选。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Medium AI agents tag",
           "url": "https://deepakjais.medium.com/which-embedding-model-should-you-use-a-scenario-based-guide-f3493869f305"
         }
       ]
     },
     {
-      "title": "CTI AI Agent Update: n8n workflow for production",
-      "source": "Medium AI Agents",
-      "reason": "生产化 agent 工作流案例，可作为工具实践候选。",
-      "priority": 2,
-      "status": "candidate",
+      "title": "LLM → RAG → AI Agents → Agentic AI: The Evolution Every Developer Should Understand",
+      "source": "Medium AI agents tag",
+      "reason": "RAG/agentic AI 演化是泛化教程，不进主块。",
+      "priority": 3,
+      "status": "overflow",
       "links": [
         {
-          "label": "Medium",
-          "url": "https://aloulouomarr.medium.com/cti-ai-agent-update-the-before-after-of-improving-an-n8n-workflow-for-production-d076e5cc399c"
+          "label": "Medium AI agents tag",
+          "url": "https://medium.com/skillstuff/llm-rag-ai-agents-agentic-ai-the-evolution-every-developer-should-understand-e6b2258d754c"
         }
       ]
     },
     {
-      "title": "How to Run Kimi K3 Locally Without Terabytes of RAM",
-      "source": "Level Up Coding",
-      "reason": "本地大模型运行方法和成本主题相关，但来源较轻，作为候选保留。",
-      "priority": 2,
-      "status": "candidate",
+      "title": "[Part 2] Small Language Models on the ESP32: Why 4.9× More Parameters Made Mine Worse",
+      "source": "Medium Data Science Collective",
+      "reason": "ESP32 小模型实验有边缘部署味道，但证据深度需再看。",
+      "priority": 3,
+      "status": "overflow",
       "links": [
         {
-          "label": "Medium",
-          "url": "https://levelup.gitconnected.com/how-to-run-kimi-k3-locally-without-terabytes-of-ram-ddad7803e6a5"
+          "label": "Medium Data Science Collective",
+          "url": "https://medium.com/data-science-collective/part-2-when-more-parameters-are-the-wrong-answer-measuring-a-312k-model-50dafb0a10c5"
         }
       ]
     },
     {
-      "title": "Documentation Is Becoming Executable Context",
-      "source": "Medium AI",
-      "reason": "和 Codex/Obsidian 工作流相关，但当前证据源较轻。",
+      "title": "Top LLM Observability Platforms in 2026",
+      "source": "Medium Data Science Collective",
+      "reason": "LLM observability 平台列表可作为工具调研入口。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "Medium",
-          "url": "https://medium.com/@suyog19/documentation-is-becoming-executable-context-211a6538d94e"
+          "label": "Medium Data Science Collective",
+          "url": "https://medium.com/data-science-collective/top-llm-observability-platforms-in-2026-2c1c37619766"
+        }
+      ]
+    },
+    {
+      "title": "OpenAI’s Agents Hacked Their Own Infrastructure. Nobody Told Them To.",
+      "source": "Medium Level Up Coding",
+      "reason": "agent 自主攻击基础设施标题较强，先作为风险候选，不当作事实主线。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Medium Level Up Coding",
+          "url": "https://levelup.gitconnected.com/openais-agents-hacked-their-own-infrastructure-nobody-told-them-to-9fd5ffdf86e5"
         }
       ]
     },
     {
       "title": "Why Serving 100 Users Is Cheaper Than Serving 1",
-      "source": "Medium Machine Learning",
-      "reason": "continuous batching/dynamic batching 对推理基础有用，先放候选。",
-      "priority": 2,
-      "status": "candidate",
+      "source": "Medium ML tag",
+      "reason": "serving cost 角度相关，但文章来源质量需再筛。",
+      "priority": 3,
+      "status": "overflow",
       "links": [
         {
-          "label": "Medium",
+          "label": "Medium ML tag",
           "url": "https://medium.com/@harshdaga18/why-serving-100-users-is-cheaper-than-serving-1-37b51b1dbbdb"
         }
       ]
     },
     {
-      "title": "OpenAI News / ChatGPT Release Notes",
-      "source": "OpenAI official",
-      "reason": "本轮 HEAD 仍为 HTTP 403 cf-mitigated challenge；API changelog 为 200。News/Release Notes 未官方核验，不作事实块。",
+      "title": "Why AI Needs GPUs and How Models Use Memory",
+      "source": "Medium ML tag",
+      "reason": "GPU/memory 基础解释可作为补课材料，主块已有 GPU 管理文章。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Medium ML tag",
+          "url": "https://medium.com/@vignarajj/why-ai-needs-gpus-and-how-models-use-memory-5a62ab01e4b9"
+        }
+      ]
+    },
+    {
+      "title": "Revolut 身份信息已验证完成",
+      "source": "Gmail private fallback / Revolut 2026-08-08 13:45 UTC",
+      "reason": "昨晚的 P0 已转为无须操作；保留状态变化，避免继续当待处理。",
+      "priority": 0,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Revolut",
+          "url": "https://www.revolut.com/"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn invitations 与 AaltoAI post",
+      "source": "Gmail private fallback / LinkedIn",
+      "reason": "有社交/研究曝光线索，但没有必须今天处理的明确截止动作。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "LinkedIn",
+          "url": "https://www.linkedin.com/"
+        }
+      ]
+    },
+    {
+      "title": "OpenAI News / ChatGPT Release Notes 仍受 Cloudflare challenge",
+      "source": "OpenAI official checks",
+      "reason": "News 与 Release Notes HEAD 为 403 cf-mitigated；API changelog 可访问，先保留访问状态。",
       "priority": 2,
       "status": "watch",
       "links": [
@@ -196,196 +348,34 @@
           "url": "https://developers.openai.com/api/docs/changelog"
         }
       ]
-    },
-    {
-      "title": "Towards Array-Invariant Speech Enhancement",
-      "source": "arXiv / start-my-day",
-      "reason": "排名第 3，麦克风几何和阵列泛化贴近 USE，但 paper block 已满。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.18658"
-        }
-      ]
-    },
-    {
-      "title": "Efficient Audio Enhancement with Differentiable Psychoacoustic Loss",
-      "source": "arXiv / start-my-day",
-      "reason": "AEROMamba 与感知损失对 audio enhancement 有参考价值，作为第二梯队。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2608.02918"
-        }
-      ]
-    },
-    {
-      "title": "CoFi-Lite: Ultra-Lightweight Speech Enhancement",
-      "source": "arXiv / start-my-day",
-      "reason": "超轻量 SE 可和 faster-enhancer.c 对照读。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.10142"
-        }
-      ]
-    },
-    {
-      "title": "AaltoAI European AI Summer Research Program post",
-      "source": "LinkedIn private fallback",
-      "reason": "AaltoAI 活动帖可能值得单独看；作为个人机会线索，不混入公开学习事实。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn post",
-          "url": "https://www.linkedin.com/feed/update/urn:li:activity:7490064283712733184"
-        }
-      ]
-    },
-    {
-      "title": "Lovable Data Scientist, Agent",
-      "source": "LinkedIn private fallback",
-      "reason": "Stockholm agent/data scientist 岗与 AI workflow 方向相关，保留为求职候选。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4449396404"
-        }
-      ]
-    },
-    {
-      "title": "Tieto AI Engineer - Banktech",
-      "source": "LinkedIn private fallback",
-      "reason": "Solna AI Engineer 岗位与北欧求职相关，先保留但不进学习流。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4430463635"
-        }
-      ]
     }
   ],
   "blocks": [
     {
-      "id": "revolut-identity-2026-08-08",
-      "kind": "action",
-      "title": "Revolut 身份验证仍需处理：从 app 重新提交清晰证件照",
-      "source": "Gmail private fallback / Revolut 2026-08-06 retained",
-      "sourceStatus": "行动项",
-      "summary": "前一轮已出现 Revolut 身份验证失败，原因是证件照片不够清楚；本轮最近 36 小时未发现新的 Revolut 邮件，但这个账号动作适合继续保留到处理完成。不要使用邮件深链，直接打开 Revolut app。",
-      "why": "金融账户验证会影响后续账户使用，优先级高于普通阅读。",
-      "thought": "用好光线、无反光、完整四角的证件照重新提交；若 app 内仍失败，再走 Revolut help。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "Revolut",
-          "url": "https://www.revolut.com/"
-        }
-      ]
-    },
-    {
-      "id": "multiagents-zawinski-law",
-      "kind": "deep-read",
-      "title": "Zawinski's Law of MultiAgents：多 agent 系统会自然长出协作层",
-      "source": "Latent.Space / AINews 2026-08-08",
-      "sourceStatus": "公开源",
-      "summary": "AINews 把近期 multi-agent、tool use、agent workflow 的线索串成一个判断：当 agent 不再是单次调用，而是多个角色/工具/状态共同运行时，系统会自然需要调度、通信和边界管理。",
-      "why": "这正好对应 Codex 自动化、Obsidian 工作流和研究实验监控里的长期问题：哪些状态应交给系统，哪些必须保持人工确认。",
-      "thought": "把它当作 agent workflow 设计读物，不当作官方发布；重点看它如何识别协作层、记忆层和失败模式。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "AINews",
-          "url": "https://www.latent.space/p/ainews-zawinskis-law-of-multiagents"
-        }
-      ]
-    },
-    {
-      "id": "robot-learning-weights-or-skills",
+      "id": "lfm25-local-agents-2026-08-08",
       "kind": "signal",
-      "title": "Weights or Skills：机器人学习也在从权重能力转向可执行技能",
-      "source": "Hugging Face Daily Papers 2026-08-08",
+      "title": "LFM2.5-2.6B：今天最值得看的是“本地 agent 可部署性”",
+      "source": "Hugging Face Blog 2026-08-08",
       "sourceStatus": "公开源",
-      "summary": "这篇 survey 把 robot learning 分成两条路线：把能力烘进模型权重，或让机器人生成、修正、复用可执行技能。虽然主题是机器人，但它和 agent tools/skills 的抽象非常接近。",
-      "why": "这能帮助你判断 Codex skill、研究脚本和 agent memory 的边界：可复用能力未必应该只存在模型权重里。",
-      "thought": "先读框架和分类，不必深追机器人实验；把 skills-as-code 的部分映射到自己的自动化设计。",
+      "summary": "LiquidAI 在 HF Blog 上强调 LFM2.5-2.6B 可以面向本地 agent 部署，这比单纯参数量更值得看：小模型是否能稳定跑工具、RAG 和长上下文工作流。",
+      "why": "它贴近你现在的本地 Codex/Obsidian/研究工具链：真正有价值的是可控延迟、内存占用和离线工作，而不是又一个泛泛小模型发布。",
+      "thought": "先看部署路径和限制，再判断它能不能作为本地 agent/检索助手的候选后端。",
       "priority": 1,
       "links": [
         {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.01851"
-        }
-      ]
-    },
-    {
-      "id": "inference-cost-line-2026-08-08",
-      "kind": "theme",
-      "title": "端侧 agent、托管推理和硬件收购正在合成同一条成本线",
-      "source": "Hugging Face Blog / Latent.Space / The Batch",
-      "sourceStatus": "综合判断",
-      "summary": "LFM2.5-2.6B 强调本地 agent 部署，HF Inference Providers 接入 Baseten，AINews 继续追 AMD/Taalas 推理硬件，The Batch 也在跟 open model 成本竞争。它们不是同一条新闻，但都指向推理成本从模型参数扩展到硬件、托管层和部署入口。",
-      "why": "这会影响你评估实时语音增强、端侧 runtime、远程 demo 和生产化服务时的真实成本。",
-      "thought": "后续看模型发布时同步问：运行在哪、谁托管、延迟/能耗/价格怎么量化。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "LFM2.5 HF Blog",
+          "label": "HF Blog",
           "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-2-6b"
-        },
-        {
-          "label": "Baseten HF Blog",
-          "url": "https://huggingface.co/blog/baseten"
-        },
-        {
-          "label": "AMD buys Taalas",
-          "url": "https://www.latent.space/p/ainews-amd-buys-taalas"
-        },
-        {
-          "label": "The Batch issue 363",
-          "url": "https://www.deeplearning.ai/the-batch/issue-363"
         }
       ]
     },
     {
-      "id": "kvae-tokenizers-multimodal",
-      "kind": "signal",
-      "title": "KVAE：多模态生成的 tokenizer 正变成模型能力本身",
-      "source": "Hugging Face Daily Papers 2026-08-08",
-      "sourceStatus": "公开源",
-      "summary": "KVAE 把 tokenizer 当作 latent diffusion 生成质量和学习效率的核心部件，而不只是预处理压缩器。它强调输入信号如何被映射到 latent representation，会直接影响后续生成模型。",
-      "why": "这对 audio codec、neural audio representation 和多模态生成都有关：前端表示层可能决定下游模型的可学性。",
-      "thought": "先看 tokenizer family 的设计目标和 GitHub 实现；不用把它当成今天必须复现实验的论文。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.05798"
-        },
-        {
-          "label": "GitHub",
-          "url": "https://github.com/kandinskylab/kvae"
-        }
-      ]
-    },
-    {
-      "id": "paper-drone-faster-2026-08-08",
+      "id": "paper-use-runtime-2026-08-08",
       "kind": "paper",
-      "title": "论文提醒：DRONEAUDIONET 与 faster-enhancer.c 继续最贴 USE 主线",
-      "source": "start-my-day / arXiv + Semantic Scholar 2026-08-08",
+      "title": "论文提醒：Drone audition 与 int8 streaming SE 继续排在最前",
+      "source": "start-my-day arXiv/Semantic Scholar 2026-08-08",
       "sourceStatus": "本地推荐池",
-      "summary": "本轮 paper 搜索拿到 200 篇 recent arXiv、21 个 S2 hot、46 个 unique。推荐先看 `DRONEAUDIONET`：drone-dominant mixture 下做人声/环境声恢复，贴近复杂噪声泛化；再看 `faster-enhancer.c`：dependency-free int8 streaming SE runtime，直接讨论端侧实时成本。",
-      "why": "两篇分别对应 USE 的两个核心问题：真实噪声泛化与端侧/流式部署成本。",
+      "summary": "今天 paper search 取回 200 条 recent arXiv、21 条 S2 hot，46 条去重后 top 2 是 DRONEAUDIONET: Noise Suppression for Drone Audition-based Search and Rescue（score 7.08）；faster-enhancer.c: A Dependency-Free int8 Runtime for Streaming Speech Enhancement on Commodity CPUs（score 6.79）。DRONEAUDIONET 直接打 drone-dominant 极低 SNR 场景，faster-enhancer.c 则把 streaming speech enhancement 的 CPU/int8 部署成本讲得很具体。",
+      "why": "这两篇正好对应 USE 的两个硬问题：复杂噪声泛化，以及流式/端侧增强的真实运行成本。",
       "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness。去 Obsidian 推荐池索引查看；本轮不写新论文笔记。",
       "priority": 1,
       "links": [
@@ -396,31 +386,107 @@
       ]
     },
     {
-      "id": "llm-observability-platforms-2026",
-      "kind": "concept",
-      "title": "LLM observability：agent 失败不一定出现在测试里，而会出现在日志里",
-      "source": "Medium Data Science Collective 2026-08-08",
+      "id": "multiagents-zawinski-2026-08-08",
+      "kind": "deep-read",
+      "title": "Multi-agent 长任务：不要只看“能跑”，要看失控边界",
+      "source": "Latent.Space / AINews 2026-08-08",
       "sourceStatus": "公开源",
-      "summary": "这篇工具清单质量不等，但它提醒了一个值得先弄懂的概念：LLM/agent observability 关注的是线上行为、工具调用、漂移、成本和失败链路，而不只是离线 benchmark。",
-      "why": "你自己的 Codex 自动化和远程训练监控都需要类似思想：提交、日志、checkpoint、指标和用户动作必须能被追踪。",
-      "thought": "把它当概念入口；真正选工具前再看官方文档和开源实现。",
+      "summary": "AINews 的 Zawinski's Law of MultiAgents 把多 agent 系统的膨胀、协作和失控风险放在一起看。它适合作为你评估 Codex 子任务、agent harness 和自动化拆分的反面清单。",
+      "why": "你现在有多个自动化和长期研究线程，真正的风险不是 agent 数量少，而是状态、权限、证据链和停止条件变松。",
+      "thought": "读的时候重点抓：什么时候该拆 agent，什么时候该保持单一 pipeline。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "Latent.Space / AINews",
+          "url": "https://www.latent.space/p/ainews-zawinskis-law-of-multiagents"
+        }
+      ]
+    },
+    {
+      "id": "baseten-hf-inference-2026-08-08",
+      "kind": "signal",
+      "title": "Baseten 进入 HF Inference Providers：托管推理入口继续集中",
+      "source": "Hugging Face Blog 2026-08-08",
+      "sourceStatus": "公开源",
+      "summary": "Hugging Face Blog 推出 Baseten on HF Inference Providers，信号不是“又多一个 provider”，而是模型发现、调用、托管推理和计费入口继续被整合。",
+      "why": "对你做 demo、paper artifact 或轻量服务时，provider 选择会越来越像工程/成本决策，而不是单纯模型下载问题。",
+      "thought": "保留为之后部署语音 demo 或 embedding/reranker 服务时的候选入口。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/baseten"
+        }
+      ]
+    },
+    {
+      "id": "gpu-management-idle-2026-08-08",
+      "kind": "signal",
+      "title": "GPU 管理文章提醒：空闲 GPU 也是系统问题",
+      "source": "Hugging Face Blog 2026-08-08",
+      "sourceStatus": "公开源",
+      "summary": "HF Blog 的 GPU management 文章把 idle GPU 当作资源调度和可观测性问题，而不是单机脚本问题。虽然偏平台文章，但它适合对照 Triton/Slurm 训练与推理资源使用。",
+      "why": "你的研究工作经常卡在 GPU、日志、checkpoint 和作业证据上；这类文章能提醒哪些指标该被系统化记录。",
+      "thought": "后续如果整理 Triton 训练监控，可以抽取“idle/queue/utilization/failed-run evidence”四类指标。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
+        }
+      ]
+    },
+    {
+      "id": "kimi-local-runtime-theme-2026-08-08",
+      "kind": "theme",
+      "title": "Kimi/K3 本地运行热度上升，但先看内存与工具链现实",
+      "source": "DeepLearning.AI The Batch / Medium Level Up Coding 2026-08-08",
+      "sourceStatus": "综合判断",
+      "summary": "The Batch 把 Kimi K3 放进 open frontier 脉络，Medium 同时出现本地运行 Kimi K3 与 Claude Code 联动教程。综合看，主题价值在于“开源/开放模型能否进入个人开发工作流”，不是追模型名。",
+      "why": "你会真正花时间的地方是：本地显存/内存门槛、量化、工具调用稳定性，以及能不能接入现有 Codex/Obsidian 流程。",
+      "thought": "只保留可复现实验路径；没有硬件成本和延迟数据的教程先不投入。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "The Batch issue 363",
+          "url": "https://www.deeplearning.ai/the-batch/issue-363"
+        },
+        {
+          "label": "Run Kimi K3 locally",
+          "url": "https://levelup.gitconnected.com/how-to-run-kimi-k3-locally-without-terabytes-of-ram-ddad7803e6a5"
+        },
+        {
+          "label": "Kimi K3 with Claude Code",
+          "url": "https://levelup.gitconnected.com/how-to-use-kimi-k3-with-claude-code-b1899fb44da5"
+        }
+      ]
+    },
+    {
+      "id": "executable-context-2026-08-08",
+      "kind": "concept",
+      "title": "概念候选：Documentation as executable context",
+      "source": "Medium AI tag 2026-08-08",
+      "sourceStatus": "公开源",
+      "summary": "“文档正在变成可执行上下文”这个说法值得留意：对 agent 工具链来说，README、AGENTS.md、skill、schema 和测试命令正在从说明材料变成运行时约束。",
+      "why": "这正好解释为什么你的自动化需要明确禁止范围、证据口径和同步步骤；这些文本会直接影响 agent 行为。",
+      "thought": "暂时只当概念块，不写词典；以后整理 Codex workspace 规范时再沉淀。",
       "priority": 2,
       "links": [
         {
           "label": "Medium",
-          "url": "https://medium.com/data-science-collective/top-llm-observability-platforms-in-2026-2c1c37619766"
+          "url": "https://medium.com/@suyog19/documentation-is-becoming-executable-context-211a6538d94e"
         }
       ]
     },
     {
       "id": "linkedin-ai-jobs-2026-08-08",
       "kind": "action",
-      "title": "LinkedIn 求职线索：优先筛 Lovable Agent 与北欧 AI/Audio 岗",
-      "source": "Gmail private fallback / LinkedIn 2026-08-07-08",
+      "title": "LinkedIn 求职线索：先筛 Lovable Agent 与北欧 AI Engineer",
+      "source": "Gmail private fallback / LinkedIn 2026-08-08",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时 LinkedIn 出现 Lovable Data Scientist, Agent、Spotify Multilingual AI Quality Specialist、Stratsys AI Engineer、Tieto AI Engineer、Telia AI Engineer、Hire Feed/Haystack remote ML 等线索；只保留 canonical `linkedin.com/jobs/view/{id}`。另有 AaltoAI 活动帖进候选池。",
-      "why": "这是独立行动项，不混入技术学习主信息流；只有与 agent、speech/audio 或北欧 AI engineer 明显相关的岗位值得先筛。",
-      "thought": "优先看 Lovable Agent、Spotify、Stratsys/Tieto/Telia；对泛 remote staffing 和夸张薪资保持怀疑。",
+      "summary": "最近 36 小时的 LinkedIn job alert 里，Lovable Data Scientist Agent/Product、Tieto AI Engineer、Hire Feed AI/ML Engineer、Haystack ML Engineer 和 Signify AI Engineer 相对贴近 AI/agent/ML；泛数据岗和夸张薪资 staffing 岗先降权。",
+      "why": "求职线索仍应单独当行动项，不混进学习主信息流；只保留 canonical linkedin.com/jobs/view URL。",
+      "thought": "优先看 Lovable agent/product 与 Tieto/Solna AI Engineer；远程高薪 staffing 岗先快速排雷。",
       "priority": 2,
       "links": [
         {
@@ -428,20 +494,12 @@
           "url": "https://www.linkedin.com/jobs/view/4449396404"
         },
         {
-          "label": "Spotify Multilingual AI Quality Specialist",
-          "url": "https://www.linkedin.com/jobs/view/4440910007"
-        },
-        {
-          "label": "Stratsys AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4422889355"
+          "label": "Lovable Data Scientist, Product",
+          "url": "https://www.linkedin.com/jobs/view/4449392433"
         },
         {
           "label": "Tieto AI Engineer",
           "url": "https://www.linkedin.com/jobs/view/4430463635"
-        },
-        {
-          "label": "Telia AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4449643608"
         },
         {
           "label": "Hire Feed AI/ML Engineer",
@@ -450,6 +508,10 @@
         {
           "label": "Haystack ML Engineer",
           "url": "https://www.linkedin.com/jobs/view/4448402249"
+        },
+        {
+          "label": "Signify AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4448018319"
         }
       ]
     }
