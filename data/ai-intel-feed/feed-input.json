@@ -1,30 +1,30 @@
 {
-  "date": "2026-08-08",
-  "overview": "今晚公开源直连正常，重点转向 multi-agent 可控性、本地/托管推理部署和端侧 speech enhancement；Gmail 只保留 LinkedIn 职位与个人待处理线索。",
-  "sourceStatusLine": "已直连 10 个公开源、40 条候选；Gmail 仅查 LinkedIn/个人行动与 sent 近 36h；OpenAI News/Release Notes 403，API changelog 200；无可信候选因缺少 URL 入主块。",
+  "date": "2026-08-09",
+  "overview": "今天公开源直连正常，但论文 recent 检索遇到 arXiv 503/429；主线集中在 agent harness 可控性、本地/托管推理部署、KV cache serving，以及少量职位和住房沟通行动。",
+  "sourceStatusLine": "已直连 10 个公开源、39 条候选；Gmail 仅查 LinkedIn/个人行动与 sent 近 36h；OpenAI News/Release Notes 403，API changelog 200；arXiv recent 503/429，S2 热门候选降级可用；无可信主块因缺少 URL 被跳过。",
   "overflow": {
-    "summary": "agent、本地推理、Kimi/open 模型和轻量 speech enhancement 内容拥挤，主页面压到 8 块，其余可信可点击候选留在 candidatePool。",
+    "summary": "agent/harness、LLM serving/KV cache、本地模型部署和 Medium 泛化文章过载，主页面压到 8 块，其余可信可点击候选留在 candidatePool。",
     "counts": {
       "candidates": 23,
-      "overflow": 10,
-      "duplicates": 5,
+      "overflow": 12,
+      "duplicates": 4,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "multi-agent 与 agent workflow 讨论过载",
+        "title": "agent harness 与 multi-agent 讨论过载",
         "count": 8,
-        "note": "主块只保留 Zawinski multi-agent 风险与 executable/local agent 部署两个能改变工作流判断的角度。"
+        "note": "主块只保留 harness 产品边界和本地 agent 部署两个会影响工作流的角度。"
       },
       {
-        "title": "推理部署与 GPU 利用率持续出现",
-        "count": 9,
-        "note": "主块保留 HF Baseten/LFM 与 GPU 管理，Kimi/compute spending 留作候选。"
+        "title": "KV cache 与 LLM serving 持续升温",
+        "count": 7,
+        "note": "主块用 concept/paper 合并 PagedAttention、LMCache、Continuum 和 GPU pooling。"
       },
       {
-        "title": "speech enhancement 近期候选稳定",
-        "count": 8,
-        "note": "paper block 只放 top 2；Geo-DConv、CoFi-Lite、AEROMamba 和 beamforming 候选保留在检索 JSON。"
+        "title": "Medium AI/ML 泛化内容很多",
+        "count": 11,
+        "note": "只保留与 harness、chunking、PagedAttention 直接相关的候选，其余不进入主阅读。"
       }
     ]
   },
@@ -32,7 +32,7 @@
     {
       "title": "KVAE: Family of Tokenizers for Multimodal Generative Models",
       "source": "Hugging Face Daily Papers",
-      "reason": "多模态 tokenizer 有代码，适合周末扫读；今天不直接改变 speech/runtime 主线。",
+      "reason": "多模态 tokenizer 有项目代码，值得稍后扫读，但不如 serving/agent 主线紧。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -47,35 +47,9 @@
       ]
     },
     {
-      "title": "GaussianSelector: Lightweight Human-Guided Object Selection in 3D Gaussian Splatting",
-      "source": "Hugging Face Daily Papers",
-      "reason": "3DGS 交互编辑方向有项目页，但与当前 USE/agent 主线弱相关。",
-      "priority": 3,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.01492"
-        }
-      ]
-    },
-    {
-      "title": "FactorJEPA: Layout-Agent-Interaction world model",
-      "source": "Hugging Face Daily Papers",
-      "reason": "world model/JEPAs 值得关注，但不是今天最紧迫。",
-      "priority": 3,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.01049"
-        }
-      ]
-    },
-    {
       "title": "Weights or Skills? Robot-learning survey",
       "source": "Hugging Face Daily Papers",
-      "reason": "和 executable skills 主块相关，作为延伸阅读保留。",
+      "reason": "与 executable skills 方向相关，作为 agent harness 延伸阅读保留。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -86,9 +60,26 @@
       ]
     },
     {
+      "title": "GaussianSelector: 3DGS object selection",
+      "source": "Hugging Face Daily Papers",
+      "reason": "3DGS 交互编辑有项目页，但与当前 speech/runtime 主线弱相关。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.01492"
+        },
+        {
+          "label": "Project",
+          "url": "https://lllab.org/blog/GaussianSelector-Implementation-Notes-What-Didn-t-Fit-in-the-Paper"
+        }
+      ]
+    },
+    {
       "title": "[AINews] AMD buys Taalas",
       "source": "Latent.Space / AINews",
-      "reason": "芯片/推理战略信号强，但行动价值低于 agent 可控性。",
+      "reason": "芯片/推理战略信号强，但今天不直接改变操作。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -101,7 +92,7 @@
     {
       "title": "[AINews] DeepMind senior departures",
       "source": "Latent.Space / AINews",
-      "reason": "高热度组织变化，暂时不改变技术路线。",
+      "reason": "高热度组织变化，暂时只观察，不占主阅读位。",
       "priority": 3,
       "status": "overflow",
       "links": [
@@ -114,7 +105,7 @@
     {
       "title": "[AINews] Megakernels are so dead and so back",
       "source": "Latent.Space / AINews",
-      "reason": "推理系统讨论相关，但今天 runtime/GPU 角度已在主块覆盖。",
+      "reason": "推理系统讨论相关，但今天 KV cache/serving 角度已覆盖。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -125,9 +116,9 @@
       ]
     },
     {
-      "title": "TutorMoments: AI tutors when to help",
+      "title": "TutorMoments: AI tutors know when to help",
       "source": "Hugging Face Blog",
-      "reason": "AI tutor timing 有产品启发，暂不占主阅读位。",
+      "reason": "AI tutor timing 对学习产品有启发，但不改变今天主线。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -140,7 +131,7 @@
     {
       "title": "GPU Management: Why Idle GPUs Are the New Grounded Aircraft",
       "source": "Hugging Face Blog",
-      "reason": "GPU 利用率文章可作为自查集群/成本意识材料，主块已有 Baseten/LFM。",
+      "reason": "适合补集群成本意识，主块用 Baseten/LFM/KV cache 覆盖部署问题。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -151,9 +142,9 @@
       ]
     },
     {
-      "title": "DeepSeek-V4-Flash / GitHub crawl / safer code prompts",
+      "title": "The Batch: DeepSeek-V4-Flash / GitHub crawl / safer code prompts",
       "source": "DeepLearning.AI The Batch",
-      "reason": "信息密度高但偏汇总，保留为轻阅读。",
+      "reason": "信息密度高但偏汇总，保留轻读。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -164,9 +155,9 @@
       ]
     },
     {
-      "title": "Kimi K3 / Cloudflare crawler policy",
+      "title": "The Batch: Kimi K3 / Cloudflare crawler policy",
       "source": "DeepLearning.AI The Batch",
-      "reason": "open frontier 与 crawler policy 值得观察，但不是今天核心块。",
+      "reason": "open frontier 与 crawler policy 值得观察，未进入主块。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -205,7 +196,7 @@
     {
       "title": "Rubric-Based Rewards beyond Math and Code",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "评估/奖励设计有启发，暂不展开。",
+      "reason": "奖励设计有启发，暂不展开。",
       "priority": 2,
       "status": "candidate",
       "links": [
@@ -216,168 +207,224 @@
       ]
     },
     {
-      "title": "Quora / VivoSense Data Scientist remote roles",
-      "source": "LinkedIn Job Alerts",
-      "reason": "可点职位但不如 Lovable/Tieto/Haystack 与当前 agent/speech 背景贴合。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Quora Ireland",
-          "url": "https://www.linkedin.com/jobs/view/4448704266"
-        },
-        {
-          "label": "VivoSense",
-          "url": "https://www.linkedin.com/jobs/view/4450782014"
-        }
-      ]
-    },
-    {
-      "title": "Clario / Flatiron clinical data roles",
-      "source": "LinkedIn Job Alerts",
-      "reason": "health-data 相关但偏 data programming/clinical ops，留作备选。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Clario",
-          "url": "https://www.linkedin.com/jobs/view/4437801187"
-        },
-        {
-          "label": "Flatiron Health",
-          "url": "https://www.linkedin.com/jobs/view/4441492587"
-        }
-      ]
-    },
-    {
-      "title": "apartment/furniture thread: 已回复，等待确认",
-      "source": "Gmail private fallback",
-      "reason": "个人事项只作轻提醒；未保存联系人、附件、地址或私人号码。",
-      "priority": 0,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Gmail search",
-          "url": "https://mail.google.com/mail/u/0/#search/subject%3A%22The%20apartment%22"
-        }
-      ]
-    },
-    {
-      "title": "AaltoAI recently posted",
-      "source": "LinkedIn private fallback",
-      "reason": "AI research/post 可能值得看，但邮件线索不直接进入公开学习主流。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "LinkedIn feed",
-          "url": "https://www.linkedin.com/feed/"
-        }
-      ]
-    },
-    {
-      "title": "OpenAI News / ChatGPT Release Notes access watch",
-      "source": "OpenAI official pages",
-      "reason": "News 与 Release Notes 当前 HEAD 为 403 challenge；不把未核验内容写成事实。",
-      "priority": 2,
-      "status": "watch",
-      "links": [
-        {
-          "label": "API changelog",
-          "url": "https://developers.openai.com/api/docs/changelog"
-        }
-      ]
-    },
-    {
-      "title": "CoFi-Lite and Geo-DConv speech enhancement candidates",
-      "source": "arXiv search JSON",
-      "reason": "和 USE 强相关但 paper block 已满 2 篇；保留在本轮检索 JSON。",
+      "title": "What is Chunking?",
+      "source": "Medium Data Science Collective",
+      "reason": "RAG ingest 基础概念可补，但今天 concept 位留给 KV cache/PagedAttention。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "CoFi-Lite",
-          "url": "https://arxiv.org/abs/2607.10142"
+          "label": "Medium",
+          "url": "https://medium.com/data-science-collective/what-is-chunking-3ac8c761c4bc"
+        }
+      ]
+    },
+    {
+      "title": "Small Language Models on ESP32: more parameters made it worse",
+      "source": "Medium Data Science Collective",
+      "reason": "端侧小模型测量反例有趣，但证据质量不如 HF/论文源。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/data-science-collective/part-2-when-more-parameters-are-the-wrong-answer-measuring-a-312k-model-50dafb0a10c5"
+        }
+      ]
+    },
+    {
+      "title": "How to Run Kimi K3 Locally Without Terabytes of RAM",
+      "source": "Medium Level Up Coding",
+      "reason": "本地大模型运行相关，作为 LFM/local agents 的候选补充。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://levelup.gitconnected.com/how-to-run-kimi-k3-locally-without-terabytes-of-ram-ddad7803e6a5"
+        }
+      ]
+    },
+    {
+      "title": "How to Use Kimi K3 with Claude Code",
+      "source": "Medium Level Up Coding",
+      "reason": "agent 成本路由相关，但需谨慎核验，暂作候选。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://levelup.gitconnected.com/how-to-use-kimi-k3-with-claude-code-b1899fb44da5"
+        }
+      ]
+    },
+    {
+      "title": "Plan Mode and Teams Mode in Cortex Code CLI",
+      "source": "Medium AI tag",
+      "reason": "与 agent harness/control surface 相关，但来源质量一般，保留不入主块。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/@srivathsan.v91/plan-mode-and-teams-mode-in-cortex-code-cli-part-1-3e3ca0bacb0b"
+        }
+      ]
+    },
+    {
+      "title": "Designing Errors People Can Actually Act On",
+      "source": "Medium ML tag",
+      "reason": "对工具 UI/错误信息有启发，暂不占主线。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/@emmanuelowusuadu10/designing-errors-people-can-actually-act-on-91821a495237"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn 远程/欧洲 ML 角色候选",
+      "source": "LinkedIn Job Alerts",
+      "reason": "职位线索单独保留，只有最贴近的进入 action block。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Prima ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4278525494"
         },
         {
-          "label": "Geo-DConv",
-          "url": "https://arxiv.org/abs/2607.18658"
+          "label": "StackAdapt Applied ML Scientist",
+          "url": "https://www.linkedin.com/jobs/view/4414213480"
+        },
+        {
+          "label": "GitHub ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4451033929"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "multiagent-zawinski-law",
+      "id": "agent-harness-product-boundary-2026-08-09",
       "kind": "theme",
-      "title": "Multi-agent 不是免费扩展，先看可控性边界",
-      "source": "Latent.Space / AINews + Hugging Face Blog",
+      "title": "Agent harness 已经是产品边界，不只是脚本包装",
+      "source": "Latent.Space / AINews + Hugging Face Blog + Medium",
       "sourceStatus": "综合判断",
-      "summary": "Latent.Space 今天用 Zawinski's Law 讨论 multi-agent 的组织复杂度；同时 HF 的 robot skill survey 和 LFM2.5 本地 agent 部署提示：agent 的关键不只是多开模型，而是技能边界、执行环境和失败恢复。",
-      "why": "这直接影响你之后用 Codex/agent 管实验、读论文、改工作流时要不要拆子任务。",
-      "thought": "把 multi-agent 当作“可验证工序分解”，不要当作泛化智能加速器；先定义输入、退出条件和人工复核点。",
+      "summary": "Latent.Space 继续讨论 multi-agent 失控和复杂性，HF/LiquidAI 则把本地 agent 部署推到更轻的模型路线；Medium 里也开始把 plan/team/harness 当成用户可见控制面。今天最值得看的是：agent 的价值不在多几个子代理，而在 harness 是否可审计、可中断、可回放。",
+      "why": "这直接影响你用 Codex/agent 做研究自动化时，该投资提示词堆叠，还是投资状态、边界和验证面。",
+      "thought": "先把自己的自动化当成 agent harness 产品来审视：输入、权限、证据、回滚和用户可见状态要比“多 agent”更重要。",
       "priority": 0,
       "links": [
         {
-          "label": "Zawinski multi-agent discussion",
+          "label": "Zawinski's Law of MultiAgents",
           "url": "https://www.latent.space/p/ainews-zawinskis-law-of-multiagents"
         },
         {
-          "label": "Robot skills survey",
-          "url": "https://huggingface.co/papers/2608.01851"
+          "label": "Deploy local agents with LFM2.5",
+          "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-2-6b"
         },
         {
-          "label": "LFM2.5 local agents",
+          "label": "Plan Mode and Teams Mode",
+          "url": "https://medium.com/@srivathsan.v91/plan-mode-and-teams-mode-in-cortex-code-cli-part-1-3e3ca0bacb0b"
+        },
+        {
+          "label": "Medium AI agents feed item",
+          "url": "https://medium.com/@7tcoffee/harness-%EC%9E%90%EC%B2%B4%EA%B0%80-%EC%84%A4%EA%B3%84-%EB%8C%80%EC%83%81-%EC%9D%B4-%EC%95%84%EB%8B%88%EB%9D%BC-%EC%A0%9C%ED%92%88%EC%9D%98-%EC%9D%BC%EB%B6%80-%EA%B0%80-%EB%90%98%EB%8B%A4-3e2fc03ecb4e"
+        }
+      ]
+    },
+    {
+      "id": "lfm-local-agents-2026-08-09",
+      "kind": "signal",
+      "title": "LFM2.5-2.6B 把本地 agent 重新拉回可部署问题",
+      "source": "Hugging Face Blog, 2026-08-04",
+      "sourceStatus": "公开源",
+      "summary": "LiquidAI 的 HF 文章把 LFM2.5-2.6B 包装成可以到处部署的 local-agent 模型信号。它不只是小模型新闻，而是在提醒：agent runtime 要能在本地、边缘或低成本环境里稳定跑。",
+      "why": "对你的研究工作流来说，本地可部署性意味着隐私、成本、延迟和离线可控性可以重新纳入设计。",
+      "thought": "把它当作 local agent/runtime 的观察点，不急着替换主模型，但可以记录哪些任务真的需要云端 frontier。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "Hugging Face Blog",
           "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-2-6b"
         }
       ]
     },
     {
-      "id": "linkedin-ai-jobs-2026-08-08-evening",
-      "kind": "action",
-      "title": "LinkedIn：筛 Lovable/Tieto/Haystack 等 AI 岗位",
-      "source": "Gmail private fallback / LinkedIn Job Alerts",
-      "sourceStatus": "行动项",
-      "summary": "最近 36 小时 LinkedIn 出现 Lovable Data Scientist Agent/Product、Tieto AI Engineer、Hire Feed AI/ML Engineer、Haystack ML Engineer、Signify AI Engineer 等相对贴合 agent/ML/speech 背景的岗位。",
-      "why": "这是个人行动线索，不应混进技术学习主流；但如果你正在找实习/全职，需要尽快筛掉噪声岗位。",
-      "thought": "优先看 Lovable Agent、Tieto AI Engineer 和 Haystack ML Engineer；低相关 data technician/clinical programmer 只留候选。",
-      "priority": 0,
+      "id": "baseten-hf-inference-providers-2026-08-09",
+      "kind": "signal",
+      "title": "Baseten 进入 HF Inference Providers：托管推理接口继续聚合",
+      "source": "Hugging Face Blog, 2026-08-06",
+      "sourceStatus": "公开源",
+      "summary": "Baseten 加入 Hugging Face Inference Providers，说明模型托管正在从单点 API 变成可替换的 provider 层。对用户端来说，模型选择、部署后端、成本和延迟会越来越像一个路由问题。",
+      "why": "这和你的 AI feed、embedding service、agent runtime 都相关：不要把 provider 绑定写死成架构假设。",
+      "thought": "后续做小工具或服务时，优先设计 provider abstraction 和成本/延迟记录，而不是只接一个默认端点。",
+      "priority": 1,
       "links": [
         {
-          "label": "Lovable Data Scientist Agent",
-          "url": "https://www.linkedin.com/jobs/view/4449396404"
-        },
-        {
-          "label": "Lovable Data Scientist Product",
-          "url": "https://www.linkedin.com/jobs/view/4449392433"
-        },
-        {
-          "label": "Tieto AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4430463635"
-        },
-        {
-          "label": "Hire Feed AI/ML Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4450211262"
-        },
-        {
-          "label": "Haystack ML Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4448402249"
-        },
-        {
-          "label": "Signify AI Engineer",
-          "url": "https://www.linkedin.com/jobs/view/4448018319"
+          "label": "Hugging Face Blog",
+          "url": "https://huggingface.co/blog/baseten"
         }
       ]
     },
     {
-      "id": "paper-use-2026-08-08-evening",
+      "id": "kv-cache-serving-concept-2026-08-09",
+      "kind": "concept",
+      "title": "先补 KV cache/PagedAttention：它是 LLM serving 的真实瓶颈语言",
+      "source": "Medium ML + Semantic Scholar",
+      "sourceStatus": "公开源",
+      "summary": "今天的 Medium PagedAttention 文章和 S2 hot papers 都指向同一个概念：长上下文、多轮 agent 和高并发服务的关键不是“模型会不会答”，而是 KV cache 如何存、迁移、复用和淘汰。",
+      "why": "理解 KV cache/PagedAttention 后，才能看懂 vLLM、SGLang、prefill/decode 分离、agent multi-turn scheduling 的系统论文。",
+      "thought": "今天只需要掌握一个判断：上下文越长、agent turn 越多，cache policy 越接近产品体验和成本控制。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "PagedAttention Explained",
+          "url": "https://medium.com/@jatinwadhwa_27327/pagedattention-explained-the-gpu-memory-innovation-that-made-large-scale-llm-serving-possible-6113081dc57e"
+        },
+        {
+          "label": "LMCache",
+          "url": "https://arxiv.org/abs/2510.09665"
+        },
+        {
+          "label": "Continuum",
+          "url": "https://arxiv.org/abs/2511.02230"
+        }
+      ]
+    },
+    {
+      "id": "the-batch-open-frontier-crawlers-2026-08-09",
+      "kind": "deep-read",
+      "title": "The Batch 本周值得扫：open 模型、爬虫政策和安全提示词",
+      "source": "DeepLearning.AI The Batch",
+      "sourceStatus": "公开源",
+      "summary": "The Batch 最近几期把 DeepSeek/Kimi、GitHub crawl、Cloudflare crawler policy 和 safer code prompts 放在一起，虽然是汇总，但能快速看到 open frontier、数据获取和代码安全之间的张力。",
+      "why": "这些主题会影响你后续选择模型、抓取公开源、设计 Codex 自动化边界时的风险判断。",
+      "thought": "作为 10 分钟扫读即可，不要把 newsletter 当最终事实；重要点再回到官方页或项目页核验。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "Issue 365",
+          "url": "https://www.deeplearning.ai/the-batch/issue-365"
+        },
+        {
+          "label": "Issue 363",
+          "url": "https://www.deeplearning.ai/the-batch/issue-363"
+        }
+      ]
+    },
+    {
+      "id": "paper-meanflowse-lmcache-2026-08-09",
       "kind": "paper",
-      "title": "论文提醒：强噪声 drone audition 与 int8 streaming SE",
-      "source": "arXiv / 本地推荐池索引",
-      "sourceStatus": "本地推荐池",
-      "summary": "DRONEAUDIONET: Noise Suppression for Drone Audition-based Search and Rescue：drone-specific 低 SNR 噪声建模，贴近真实强噪声鲁棒性；faster-enhancer.c: A Dependency-Free int8 Runtime for Streaming Speech Enhancement on Commodity CPUs：dependency-free int8 streaming runtime，把 speech enhancement 拉到 CPU/端侧部署成本问题",
-      "why": "这两篇都贴近你的 USE 主线：一个考验极低 SNR/域外硬件鲁棒性，一个把增强模型落到 CPU 实时运行和能耗约束。",
-      "thought": "Tag: speech-enhancement, streaming-se, edge-inference, int8, drone-audio, robustness；去 Obsidian 推荐池索引查看，不在本轮写新论文日报。",
+      "title": "论文提醒：一篇实时 generative SE，一篇 KV cache serving",
+      "source": "Semantic Scholar 热门候选 / 本地推荐池索引",
+      "sourceStatus": "本地推荐池（arXiv recent 降级）",
+      "summary": "MeanFlowSE: one-step generative speech enhancement via conditional mean flow：把 flow/diffusion 式语音增强压成 single-step inference，直接贴近实时 generative SE；LMCache: An Efficient KV Cache Layer for Enterprise-Scale LLM Inference：面向 vLLM/SGLang 的 KV cache offload/reuse，是理解 agent 长上下文 serving 的基础论文。",
+      "why": "前者贴近 USE 的实时/生成式增强主线，后者贴近你今天需要补的 LLM serving 基础概念。",
+      "thought": "Tag: speech-enhancement, generative-se, streaming-se, llm-serving, kv-cache；去 Obsidian 推荐池索引查看，本轮不写新论文日报。",
       "priority": 1,
       "links": [
         {
@@ -387,87 +434,52 @@
       ]
     },
     {
-      "id": "hf-baseten-inference-providers",
-      "kind": "signal",
-      "title": "Baseten 接入 HF Inference Providers：托管推理入口继续收敛",
-      "source": "Hugging Face Blog",
-      "sourceStatus": "公开源",
-      "summary": "HF Blog 新增 Baseten provider，说明模型部署入口正在向“Hub 上选模型、provider 承担服务”收敛。",
-      "why": "对小项目 demo、论文模型验证和临时服务很实用，可以少维护一层自建推理栈。",
-      "thought": "把它当作 deployment shortcut，而不是长期实验记录系统；关键实验仍要保留本地/Slurm 可复现脚本。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "Baseten on HF Inference Providers",
-          "url": "https://huggingface.co/blog/baseten"
-        }
-      ]
-    },
-    {
-      "id": "lfm-local-agent-deploy",
-      "kind": "deep-read",
-      "title": "LFM2.5-2.6B：本地 agent 可部署性比参数规模更值得看",
-      "source": "Hugging Face Blog",
-      "sourceStatus": "公开源",
-      "summary": "Liquid AI 在 HF Blog 推 LFM2.5-2.6B 的本地 agent 部署路线，重点不是榜单，而是小模型在本地/边缘环境承担工具调用和工作流执行的可能性。",
-      "why": "这贴近你的 Codex、Triton 和 Obsidian 工作流：模型能否稳定跑在受限环境，比单次聊天能力更关键。",
-      "thought": "如果后续评估本地 agent，优先测工具调用准确性、上下文恢复、失败重试，而不是只看通用 benchmark。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "Deploy local agents everywhere with LFM2.5-2.6B",
-          "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-2-6b"
-        }
-      ]
-    },
-    {
-      "id": "thebatch-safer-code-prompts",
-      "kind": "signal",
-      "title": "系统提示安全：代码 agent 的“护栏”正在变成工程输入",
-      "source": "DeepLearning.AI The Batch",
-      "sourceStatus": "公开源",
-      "summary": "The Batch issue 365 把 engineering system prompts for safer code 和大规模 GitHub crawl 放在一起，说明 coding agent 的安全边界正在从产品话术变成工程配置。",
-      "why": "你经常让 Codex 改仓库，最该关注的是权限、测试、提交范围和私密数据扫描。",
-      "thought": "把自己的 AGENTS/skill 规则继续当成可审计配置：禁止范围、验证命令和提交粒度比“更聪明模型”更稳定。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "The Batch issue 365",
-          "url": "https://www.deeplearning.ai/the-batch/issue-365"
-        }
-      ]
-    },
-    {
-      "id": "gpu-management-utilization",
-      "kind": "concept",
-      "title": "概念：GPU 利用率不是占满显存，而是减少 idle duty cycle",
-      "source": "Hugging Face Blog",
-      "sourceStatus": "公开源",
-      "summary": "HF 的 GPU management 文章把 idle GPU 类比为 grounded aircraft；对训练/推理来说，真正的问题是队列、批处理、冷热启动和监控，而不是简单看显存占用。",
-      "why": "这会影响你判断 Triton/Slurm 实验是否真的在用资源，以及本地推理 demo 是否值得长期跑。",
-      "thought": "今天只把它当概念提醒，不写词典：后续看日志时同时关注 GPU util、等待队列、吞吐和失败重试。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "GPU Management",
-          "url": "https://huggingface.co/blog/Dharma-AI/gpu-management"
-        }
-      ]
-    },
-    {
-      "id": "apartment-furniture-followup",
+      "id": "linkedin-ml-roles-2026-08-09",
       "kind": "action",
-      "title": "Apartment/furniture：等对方确认要哪些物品",
-      "source": "Gmail private fallback / sent mail",
+      "title": "LinkedIn 职位：今天只看 5 个 ML/AI 角色",
+      "source": "LinkedIn Job Alerts, last 36h",
       "sourceStatus": "行动项",
-      "summary": "你已在 2026-08-08 下午回复对方可买图片里的东西，并给了后续联系渠道；当前更像等待确认，不需要公开信息源介入。",
-      "why": "这是搬家/住房相关的个人待处理，若对方回复，可能需要尽快确定物品保留和交接方式。",
-      "thought": "只在 Gmail 搜索里回到线程；不要在 feed 中保存联系人、附件、地址或号码。",
+      "summary": "Gmail fallback 里出现两批 LinkedIn job alerts。值得优先打开的是 SEB AI Engineer、Aira ML Engineer、Prima ML Engineer、StackAdapt Applied ML Scientist 和 GitHub ML Engineer；其余 Data Engineer/泛化 staffing 角色先不占主线。",
+      "why": "这些是可过期或需要你决定是否投递的私人行动项，必须和学习信息流分开处理。",
+      "thought": "先按地点/remote、speech/ML 相关性和申请成本筛掉 70%，只保留 1-2 个真正要投的。",
+      "priority": 0,
+      "links": [
+        {
+          "label": "SEB AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4441977427"
+        },
+        {
+          "label": "Aira ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4450373324"
+        },
+        {
+          "label": "Prima ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4278525494"
+        },
+        {
+          "label": "StackAdapt Applied ML Scientist",
+          "url": "https://www.linkedin.com/jobs/view/4414213480"
+        },
+        {
+          "label": "GitHub ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4451033929"
+        }
+      ]
+    },
+    {
+      "id": "apartment-furniture-followup-2026-08-09",
+      "kind": "action",
+      "title": "住房沟通：家具出售线程等对方确认",
+      "source": "Gmail sent/inbox, last 36h",
+      "sourceStatus": "行动项",
+      "summary": "sent 近 36 小时显示你已回复 apartment/furniture 线程，对方也问了具体保留哪些东西和是否转到 Telegram。这个事项不进入公开学习流，但适合作为低优先级待处理。",
+      "why": "它和搬家/住房交接相关，可能需要你后续确认物品或沟通渠道。",
+      "thought": "不要在 feed 里保存电话、私址或附件细节；只保留一个泛化 Gmail 搜索入口，等用户自己处理。",
       "priority": 2,
       "links": [
         {
-          "label": "Gmail thread search",
-          "url": "https://mail.google.com/mail/u/0/#search/subject%3A%22The%20apartment%22"
+          "label": "Gmail 搜索该线程",
+          "url": "https://mail.google.com/mail/u/0/#search/%22Re%3A+The+apartment%22"
         }
       ]
     }
