@@ -1,92 +1,79 @@
 {
   "date": "2026-08-12",
-  "overview": "今天先处理 Supabase RLS 风险；技术主线集中在低延迟语音 agent、agent harness 评测边界和 edge/multichannel speech enhancement。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/The Batch/AISimple/Medium 等 10 个公开源，共 39 条候选；Gmail 仅查 Supabase、Google、HOAS、LinkedIn 等个人行动项；S2 部分 query 429，未用 Gmail newsletter 代替公开事实。",
+  "overview": "今天先处理 Supabase RLS；阅读重点放在语音 agent 部署、reasoning trace 安全、agent 成本和 USE 多通道/AVSE 论文。",
+  "sourceStatusLine": "已直连 HF/Latent/HF Blog/The Batch/AISimple/Medium 等 10 个公开源，共 40 条候选；Gmail 仅查 Supabase、Google、LinkedIn 等个人行动项；OpenAI News/Release Notes 为 Cloudflare 403，API changelog 可达；arXiv 200 篇、S2 21 篇，S2 一次 429 后恢复。",
   "overflow": {
-    "summary": "公开源候选主要拥挤在 agent harness、open-weight multimodal、Medium 入门/观点文和 LinkedIn 岗位；主页面只保留会影响今天行动或判断的块。",
+    "summary": "公开源候选偏 agent/open-weight/Medium 泛技术，LinkedIn 岗位较多；主页面压到 8 个块。",
     "counts": {
-      "candidates": 39,
-      "overflow": 21,
-      "duplicates": 2,
+      "candidates": 40,
+      "overflow": 17,
+      "duplicates": 0,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "Agent/Deep Research 验证边界",
-        "count": 5,
-        "note": "多篇都在讲 agent orchestration、报告核验和 trust boundary，合并为一个主题块，其余放候选池。"
+        "title": "open-weight / multimodal / agentic 叙事拥挤",
+        "count": 6,
+        "note": "合并成一个 theme，保留 HF/Latent/The Batch 支撑链接。"
       },
       {
-        "title": "Open-weight 模型叙事",
-        "count": 4,
-        "note": "Muse、Kimi、DeepSeek、Motif 等同属开权重竞争信号，主页面只保留最有本地部署含义的项。"
+        "title": "LinkedIn 岗位提醒拥挤",
+        "count": 12,
+        "note": "只保留 canonical job URL 在 candidatePool，不混进学习主信息流。"
       },
       {
-        "title": "LinkedIn 岗位邮件",
+        "title": "Medium 泛 AI 文章较多",
         "count": 8,
-        "note": "岗位单独作为行动/候选，不混进学习信息流；只保存 canonical job URL。"
+        "note": "多数仅保留为候选或 overflow，不占主阅读时间。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Not Worth Another Token: Marginal Value Estimation for Efficient Deep Research Agents",
+      "title": "InSight-doc: Agentic Visual Perception for Long-Document Understanding",
       "source": "Hugging Face Daily Papers",
-      "reason": "和 agent 成本/停止准则相关，但今天主块已用 agent harness 主题承载。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.08389"
-        }
-      ]
-    },
-    {
-      "title": "ComBodied Agents: a New Paradigm of Human-Centric Agentic AI",
-      "source": "Hugging Face Daily Papers",
-      "reason": "概念性强，适合后续看，但今天不直接改变 USE/部署行动。",
+      "reason": "文档 agent 方向相关，但离当前 speech 主线稍远。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.10915"
+          "url": "https://huggingface.co/papers/2608.10628"
         }
       ]
     },
     {
-      "title": "iFAN: Inference-Aware Learning for Plain Mask Transformers",
+      "title": "360CityArena: embodied navigation benchmark",
       "source": "Hugging Face Daily Papers",
-      "reason": "偏模型训练/推理协同，保留为 AI systems 候选。",
+      "reason": "embodied agent benchmark 可观察，但不是今天主读。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.03216"
+          "url": "https://huggingface.co/papers/2608.08814"
         }
       ]
     },
     {
-      "title": "Reference-Free Post-Training of Open Large Language Models for Multilingual Machine Translation",
+      "title": "Power law graph attention",
       "source": "Hugging Face Daily Papers",
-      "reason": "对多语后训练有参考价值，但与今天 speech/agent 主线较远。",
+      "reason": "attention/inference 理论信号，先保留为 watch。",
       "priority": 3,
-      "status": "candidate",
+      "status": "watch",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.10812"
+          "url": "https://huggingface.co/papers/2608.10288"
         }
       ]
     },
     {
       "title": "The BioAI Phase Shift",
       "source": "Latent.Space",
-      "reason": "BioAI 方向值得观察，但今天不作为主信息流判断依据。",
+      "reason": "BioAI 很热但和本轮主线不直接相连。",
       "priority": 3,
-      "status": "watch",
+      "status": "candidate",
       "links": [
         {
           "label": "Latent.Space",
@@ -95,37 +82,37 @@
       ]
     },
     {
-      "title": "AINews: AMD buys Taalas",
+      "title": "Zawinski's Law of MultiAgents",
       "source": "Latent.Space",
-      "reason": "AI 芯片/编译栈并购信号，保留但不挤占主阅读。",
-      "priority": 3,
+      "reason": "multi-agent 警示进入主题块支撑，不单独主读。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-amd-buys-taalas"
+          "url": "https://www.latent.space/p/ainews-zawinskis-law-of-multiagents"
         }
       ]
     },
     {
-      "title": "Making Knowledge Distillation Cheap Enough to Run at Scale",
-      "source": "Hugging Face Blog",
-      "reason": "和低成本模型改进相关，但今天主块更偏语音 agent/ACE token 节省。",
+      "title": "How to Build Judgement about a New Technology or Business",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "判断框架有用，但更偏方法论。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/MultiverseComputingCAI/efficient-knowledge-distillation"
+          "label": "AISimple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-to-build-judgement-about-a-new"
         }
       ]
     },
     {
       "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "评测和奖励设计相关，但来源是评论型文章，降为候选。",
+      "reason": "reward/rubric 信号可观察，暂不占主块。",
       "priority": 3,
-      "status": "candidate",
+      "status": "watch",
       "links": [
         {
           "label": "AISimple",
@@ -136,7 +123,7 @@
     {
       "title": "The Hidden Geometry Behind AI Reasoning",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "适合作为概念阅读，不是今天的行动/研究主线。",
+      "reason": "reasoning 解释类文章，质量待读后确认。",
       "priority": 3,
       "status": "candidate",
       "links": [
@@ -149,7 +136,7 @@
     {
       "title": "What is Chunking?",
       "source": "Medium Data Science Collective",
-      "reason": "基础概念可读，但对今天判断增量有限。",
+      "reason": "概念基础文，低优先级。",
       "priority": 3,
       "status": "overflow",
       "links": [
@@ -162,9 +149,9 @@
     {
       "title": "Small Language Models on the ESP32",
       "source": "Medium Data Science Collective",
-      "reason": "边缘小模型经验有趣，但证据层偏个人实验，暂不入主块。",
+      "reason": "边缘小模型主题相关，但单篇质量需复查。",
       "priority": 3,
-      "status": "watch",
+      "status": "candidate",
       "links": [
         {
           "label": "Medium",
@@ -175,7 +162,7 @@
     {
       "title": "Building OpenAI's Exploit Harness That Escaped into Hugging Face",
       "source": "Level Up Coding",
-      "reason": "安全/供应链叙事值得留意，但需额外核验，先放候选。",
+      "reason": "harness 安全叙事相关，但非官方源，先观察。",
       "priority": 3,
       "status": "watch",
       "links": [
@@ -186,36 +173,49 @@
       ]
     },
     {
-      "title": "Motif-3: South Korea's 314B MoE Model with 256K Context",
-      "source": "Medium Machine Learning",
-      "reason": "大模型发布型信号，未见官方源支撑，保留观察。",
-      "priority": 3,
-      "status": "watch",
-      "links": [
-        {
-          "label": "Medium",
-          "url": "https://medium.com/@gsaidheeraj/motif-3-south-koreas-314b-moe-model-with-256k-context-bcb7e9c573e9"
-        }
-      ]
-    },
-    {
-      "title": "LinkedIn: Revolut Data Scientist / NLP Deep Learning Engineer",
-      "source": "LinkedIn Job Alert",
-      "reason": "岗位与 NLP/deep learning 相关，但位置/匹配度需人工筛。",
+      "title": "DAVE: A Decoupled Audio-Visual Enhancement Framework",
+      "source": "arXiv",
+      "reason": "已进入 paper block 摘要，保留可回看 arXiv URL。",
       "priority": 1,
       "status": "candidate",
       "links": [
         {
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2608.09288"
+        }
+      ]
+    },
+    {
+      "title": "Mitigating Over-Suppression in Speech Enhancement",
+      "source": "arXiv",
+      "reason": "过抑制修正直接贴近 SE waveform/identity 风险，可后续精读。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2608.07781"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: Airbnb Data Scientist - Inference",
+      "source": "LinkedIn Job Alert",
+      "reason": "岗位名称相关但地域/匹配度需人工筛。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4372583967/"
+          "url": "https://www.linkedin.com/jobs/view/4441408508/"
         }
       ]
     },
     {
       "title": "LinkedIn: Anthropic Research Engineer, Pretraining",
       "source": "LinkedIn Job Alert",
-      "reason": "高价值岗位线索，但竞争和地点要求需单独判断，不混入学习流。",
-      "priority": 1,
+      "reason": "高价值岗位线索，保留 canonical job URL，不进学习主信息流。",
+      "priority": 2,
       "status": "candidate",
       "links": [
         {
@@ -225,37 +225,50 @@
       ]
     },
     {
-      "title": "LinkedIn: AgileGrid / Quik Hire / Lexroom 等 AI/ML 岗位",
+      "title": "LinkedIn: Quik Hire / AgileGrid / Lexroom 等 AI/ML 岗位",
       "source": "LinkedIn Job Alert",
-      "reason": "岗位较多且质量不均，今天只保留为候选池，不作为主行动。",
+      "reason": "同类岗位较多，放候选池避免挤占主阅读。",
       "priority": 2,
-      "status": "overflow",
+      "status": "candidate",
       "links": [
-        {
-          "label": "AgileGrid job",
-          "url": "https://www.linkedin.com/jobs/view/4451501334/"
-        },
         {
           "label": "AI Research Scientist",
           "url": "https://www.linkedin.com/jobs/view/4451395064/"
+        },
+        {
+          "label": "AgileGrid job",
+          "url": "https://www.linkedin.com/jobs/view/4451501334/"
         },
         {
           "label": "Lexroom job",
           "url": "https://www.linkedin.com/jobs/view/4421154073/"
         }
       ]
+    },
+    {
+      "title": "LinkedIn: Emma Tonteri connection reminder",
+      "source": "LinkedIn Notification",
+      "reason": "可能需要人工决定是否接受，但没有使用邮件 comm/action 链接。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn my network",
+          "url": "https://www.linkedin.com/mynetwork/"
+        }
+      ]
     }
   ],
   "blocks": [
     {
-      "id": "supabase-rls-2026-08-12",
+      "id": "supabase-rls-20260812",
       "kind": "action",
       "title": "Supabase：先处理公开表 RLS 风险",
       "source": "Supabase Email / Docs，2026-08-11",
       "sourceStatus": "行动项",
-      "summary": "Supabase 安全邮件再次提示有 public table 未启用 Row-Level Security，风险是持有项目 URL 的人可能读写数据。邮件里的项目专属 advisor 链接不写入 feed，只保留通用 dashboard/docs。",
-      "why": "这是本轮唯一明确 P0：它可能直接影响线上数据安全，且不是普通 newsletter。",
-      "thought": "先登录 Supabase dashboard 检查 Advisor，再决定启用 RLS、补 policy，或确认该表确实应公开。",
+      "summary": "Supabase 安全邮件提示某项目存在 public table 未启用 RLS 的 critical issue；邮件中的具体项目链接和退订链接都不进入 feed。",
+      "why": "这是本轮唯一会直接导致数据被未授权读写的 P0 风险，优先级高于普通阅读。",
+      "thought": "从 Supabase dashboard 登录后进项目 Advisors/Security 检查，必要时启用 RLS 或确认这是刻意公开表。",
       "priority": 0,
       "links": [
         {
@@ -273,14 +286,14 @@
       ]
     },
     {
-      "id": "datacrunch-google-signin-2026-08-12",
+      "id": "google-datacrunch-signin-20260812",
       "kind": "action",
       "title": "Google：确认 DataCrunch 账号新登录",
       "source": "Google Security Email，2026-08-11",
       "sourceStatus": "行动项",
-      "summary": "Google 发来 DataCrunch 账号的新 Mac 登录安全提醒。它可能只是你自己的设备，但仍应在 Google 安全页确认最近活动。",
-      "why": "云/GPU 账号一旦被误用会产生费用或权限风险，确认成本低。",
-      "thought": "打开 Google Security Checkup，只确认设备和时间；不要从邮件追踪链接进入。",
+      "summary": "Google 安全提醒显示 DataCrunch 账号在 Mac 上有新登录；如果是你本人操作则无需处理，否则应进入安全检查。",
+      "why": "它不是 AI 阅读内容，但属于账号安全确认，适合保留在待处理而不是混进技术信号。",
+      "thought": "只用 Google 官方安全页核对活动；不要打开邮件里的带 token 操作链接。",
       "priority": 1,
       "links": [
         {
@@ -288,21 +301,25 @@
           "url": "https://myaccount.google.com/security-checkup"
         },
         {
-          "label": "DataCrunch console",
+          "label": "Google security activity",
+          "url": "https://myaccount.google.com/notifications"
+        },
+        {
+          "label": "DataCrunch",
           "url": "https://datacrunch.io/"
         }
       ]
     },
     {
-      "id": "magpie-tts-voice-agents",
+      "id": "magpie-tts-voice-agent-20260812",
       "kind": "deep-read",
-      "title": "Magpie TTS：低延迟语音 agent 的开源部署栈",
+      "title": "Magpie TTS：语音 agent 的低延迟开源栈值得看",
       "source": "Hugging Face Blog",
       "sourceStatus": "公开源",
-      "summary": "NVIDIA/HF 的 Magpie TTS 文章把 multilingual TTS、低延迟、开权重和完整部署控制放在同一个 voice-agent 叙事里。对你现在的 speech/audio agent 判断，重点不是 TTS 本身，而是端到端语音系统如何被包装成可部署栈。",
-      "why": "它和 USE 的实时性、部署成本、模型链路边界有直接交集。",
-      "thought": "阅读时重点看 latency budget、部署组件和模型开放边界，而不是只记模型名。",
-      "priority": 2,
+      "summary": "NVIDIA/HF 文章把低延迟 multilingual TTS、开放权重和完整部署控制放在一个 voice-agent 叙事里，适合从系统侧看语音交互栈。",
+      "why": "它贴近你当前 speech/audio 与本地部署兴趣，比泛泛 agent 新闻更可迁移。",
+      "thought": "重点看延迟预算、部署链路和模型边界，暂时不用把它当作 USE 训练方向。",
+      "priority": 1,
       "links": [
         {
           "label": "HF Blog",
@@ -311,14 +328,35 @@
       ]
     },
     {
-      "id": "ibm-ace-fewer-tokens",
+      "id": "reasoning-trace-security-20260812",
       "kind": "signal",
-      "title": "IBM ACE：agent 推理成本开始被当成一等目标",
-      "source": "Hugging Face Blog",
+      "title": "Reasoning trace 开始变成安全边界问题",
+      "source": "Latent.Space / Hugging Face Daily Papers",
       "sourceStatus": "公开源",
-      "summary": "IBM Research 的 HF Blog 文章强调用更少 token 做 ACE/agent 类任务。它和今天的 HF paper `Not Worth Another Token` 形成同一方向：deep research/agent 不只是做对，还要知道什么时候停。",
-      "why": "这会影响你评估 Codex/agent workflow 时的指标：中途判断、边际收益和预算控制应进入质量标准。",
-      "thought": "把它作为 agent 自动化评估的候选概念：每轮不是越长越好，而是边际收益要可见。",
+      "summary": "AINews 把 reasoning trace 泄露/窃取作为主题，HF Daily Papers 同时出现 Decoding-Level Taboo 这类解码层鲁棒性压力测试。",
+      "why": "这说明 agent/runtime 安全不只在 prompt 层，推理中间态和解码策略也会进入评估面。",
+      "thought": "读的时候把它和本地 harness、日志暴露、调试 trace 的权限边界放在一起想。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "Latent.Space AINews",
+          "url": "https://www.latent.space/p/ainews-how-to-steal-a-reasoning-trace"
+        },
+        {
+          "label": "HF Paper",
+          "url": "https://huggingface.co/papers/2608.09900"
+        }
+      ]
+    },
+    {
+      "id": "ibm-ace-token-cost-20260812",
+      "kind": "signal",
+      "title": "IBM ACE：agent 推理成本被当成一等优化目标",
+      "source": "Hugging Face Blog / HF Papers",
+      "sourceStatus": "公开源",
+      "summary": "IBM Research 的 ACE/ALTK 方向强调用更少 token 做 agent reasoning，和长任务 agent 的成本、可控性、评估节奏直接相关。",
+      "why": "这类工作比单纯堆上下文更接近可部署 agent 的工程瓶颈。",
+      "thought": "可放入 candidate 观察：看它是否给出可复现评测，而不是只给 prompt/agent 叙事。",
       "priority": 2,
       "links": [
         {
@@ -332,45 +370,24 @@
       ]
     },
     {
-      "id": "agent-harness-boundary-2026-08-12",
+      "id": "open-weights-local-agentic-20260812",
       "kind": "theme",
-      "title": "Agent harness：多 agent 不等于更稳，报告前验证才是边界",
-      "source": "Latent.Space / Medium",
+      "title": "开权重 multimodal/agentic 叙事升温，但先看可部署性",
+      "source": "Hugging Face Blog / Latent.Space / DeepLearning.AI The Batch",
       "sourceStatus": "综合判断",
-      "summary": "Latent.Space 的多 agent 讨论、Medium 的 multi-agent team 经验、verification/report-check 文章和 trust-boundary 文章都指向同一件事：agent 系统的瓶颈正在从“能编排”转向“能约束、能验收、能在交付前发现错”。",
-      "why": "这直接影响你自己的 Codex 自动化、论文筛选和代码代理使用方式。",
-      "thought": "不要把 agent 数量当能力指标；优先记录 harness、review gate、evidence trace 和中途失败暴露方式。",
+      "summary": "Muse Glimmer、AINews 与 The Batch 都在推开权重、多模态、agentic 和 compute 叙事；这些内容值得看，但主线应放在能否本地部署、评测和安全边界。",
+      "why": "同一主题候选很多，硬塞进主信息流会稀释阅读重点；合成一个主题块更合适。",
+      "thought": "先读 HF Muse 和 AINews，再把 The Batch 当作横向新闻索引；没有官方核验的 OpenAI News 不纳入事实。",
       "priority": 2,
       "links": [
         {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-zawinskis-law-of-multiagents"
+          "label": "HF Muse Glimmer",
+          "url": "https://huggingface.co/blog/muse-glimmer"
         },
         {
-          "label": "Medium multi-agent",
-          "url": "https://medium.com/@BigSteveLabs/buzz-ai-we-built-a-multi-agent-ai-team-then-learned-more-agents-can-make-things-worse-7a49f7fcb4c9"
+          "label": "Latent.Space Muse/Spark",
+          "url": "https://www.latent.space/p/ainews-muse-glimmer-and-spark-open"
         },
-        {
-          "label": "Medium verification",
-          "url": "https://medium.com/@agrawalayush730/verification-does-anyone-check-the-report-before-it-ships-3-28059c8f6a17"
-        },
-        {
-          "label": "Medium trust boundary",
-          "url": "https://medium.com/@agrawalayush730/the-trust-boundary-where-deep-research-meets-the-organization-4-f234b62087e0"
-        }
-      ]
-    },
-    {
-      "id": "the-batch-365-code-safety",
-      "kind": "signal",
-      "title": "The Batch：代码安全和系统提示开始进入主流 AI 新闻面",
-      "source": "DeepLearning.AI The Batch",
-      "sourceStatus": "公开源",
-      "summary": "The Batch 本期把 DeepSeek-V4-Flash、GitHub crawl、以及 safer code system prompts 放在一起。对今天的信息流来说，最有用的是“模型能力新闻”和“代码/数据供应链风险”已经同时出现。",
-      "why": "这和 Supabase P0 行动、agent harness 主题形成同一条安全/可控性线索。",
-      "thought": "快速浏览即可；真正要沉淀时再回到官方发布或技术报告核验。",
-      "priority": 2,
-      "links": [
         {
           "label": "The Batch issue 365",
           "url": "https://www.deeplearning.ai/the-batch/issue-365"
@@ -378,36 +395,36 @@
       ]
     },
     {
-      "id": "muse-glimmer-open-weights",
+      "id": "cheap-distillation-scale-20260812",
       "kind": "signal",
-      "title": "Muse Glimmer：本地 multimodal/agentic 开权重叙事升温",
-      "source": "Hugging Face Blog / Latent.Space",
+      "title": "廉价蒸馏：小模型改进仍然是实用路线",
+      "source": "Hugging Face Blog / AISimple",
       "sourceStatus": "公开源",
-      "summary": "HF Blog 和 Latent.Space 都把 Muse Glimmer/Spark 放进“本地、agentic、多模态、开源/开权重”的叙事里。它不是今天必须深读的主线，但说明 open-weight 产品化竞争继续向本地运行和个人超智能叙事靠拢。",
-      "why": "这会影响你判断本地 agent、视觉/语音多模态 demo 和部署控制权的方向。",
-      "thought": "先保留为 watch：有实际权重、license、benchmark 和本地运行成本再升级为深读。",
-      "priority": 3,
+      "summary": "HF Blog 的低成本知识蒸馏文章和 AISimple 的 open-weight 改进讨论都指向同一个实用问题：在预算内让小模型变好。",
+      "why": "这对本地 agent、语音前后处理和轻量部署都比大模型发布新闻更可操作。",
+      "thought": "先看训练/评估成本定义，再判断它是否能迁移到 audio 或 runtime 侧。",
+      "priority": 2,
       "links": [
         {
           "label": "HF Blog",
-          "url": "https://huggingface.co/blog/muse-glimmer"
+          "url": "https://huggingface.co/blog/MultiverseComputingCAI/efficient-knowledge-distillation"
         },
         {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-muse-glimmer-and-spark-open"
+          "label": "AISimple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/the-cheapest-way-to-make-open-weight"
         }
       ]
     },
     {
-      "id": "papers-edge-multichannel-se-2026-08-12",
+      "id": "paper-use-multichannel-avse-20260812",
       "kind": "paper",
-      "title": "论文提醒：edge/multichannel speech enhancement 部署线",
-      "source": "arXiv / Semantic Scholar（S2 部分 429）",
+      "title": "论文提醒：multichannel / AVSE 的部署线继续值得跟",
+      "source": "arXiv / Semantic Scholar，2026-08-12",
       "sourceStatus": "本地推荐池",
-      "summary": "今天最值得先看的仍是 `Cloud-Boosted Low-Compute Multi-Channel Speech Enhancement` 和 `faster-enhancer.c`：前者把 server/edge 协同、多通道 Wiener filtering 和低计算开销连起来；后者把 streaming SE 的 int8 CPU runtime、回调 deadline 和能耗问题讲清楚。",
-      "why": "它们都贴近 USE 的真实部署约束：不是只追指标，而是要考虑低延迟、edge compute、beamforming 和实时 duty cycle。",
-      "thought": "Tags: speech-enhancement, multichannel-se, beamforming, edge-inference, streaming-se, int8。去 Obsidian 推荐池索引打开，不在本轮写新日报或论文池卡片。",
-      "priority": 2,
+      "summary": "推荐 2 篇：Cloud-Boosted Low-Compute Multi-Channel Speech Enhancement，把 edge/server 协作、feature boosting 和 multichannel Wiener filtering 放进低延迟 SE；DAVE 则面向真实 AVSE，强调视觉退化、语音保真和选择性增强链。",
+      "why": "两篇都贴近 USE 的部署、鲁棒性和多通道/音视频边界，不是泛泛 speech 论文。",
+      "thought": "Tag: speech-enhancement, multichannel-se, beamforming, audio-visual-se, robustness；去 Obsidian 推荐池索引查看，不在本流程写新论文笔记。",
+      "priority": 1,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
