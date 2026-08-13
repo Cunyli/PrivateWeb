@@ -1,77 +1,68 @@
 {
   "date": "2026-08-13",
-  "overview": "今天最值得看的是 agent 安全评测从提示词走向可演化环境；其次关注本地/语音 agent 部署、reasoning trace 泄露和 USE 新论文。",
-  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 等 10 个公开源，共 38 条候选；Gmail 仅查 LinkedIn/job/个人行动兜底；OpenAI News 与 ChatGPT Release Notes 为 Cloudflare 403，API changelog 200；arXiv 200 篇、S2 16 篇，S2 语音健康查询 429 失败；无 URL 候选未入池。",
+  "overview": "今天最值得看的是 agent 从“会调用工具”走向“会自己发现机制和进化技能”；其次关注语音 agent 部署、GPU 控制边界和 USE 新论文。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent/The Batch/AISimple/Medium 等 10 个公开源，共 39 条候选；Gmail 仅查 LinkedIn/job/AYY/HOAS 等个人行动兜底；OpenAI News 与 ChatGPT Release Notes 为 Cloudflare 403，API changelog 200；arXiv 200 篇、S2 11 篇，S2 部分查询 429；无 URL 候选未入池。",
   "overflow": {
-    "summary": "公开源候选集中在 agent 安全、open-weight/edge model、Medium 泛 AI 和 speech-enhancement 论文；主页面压到 8 个块。",
+    "summary": "公开候选集中在 agent mechanism/skill evolution、edge/voice deployment、reasoning trace、Medium 泛 AI 和 speech-enhancement 论文；主页面压到 8 个块。",
     "counts": {
-      "candidates": 38,
-      "overflow": 17,
+      "candidates": 39,
+      "overflow": 19,
       "duplicates": 0,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "agent 安全与评测拥挤",
-        "count": 5,
-        "note": "OpenART、reasoning trace、malicious agent detection 和 MCP 解释文只选最高价值项主读。"
+        "title": "agent 机制与技能演化拥挤",
+        "count": 4,
+        "note": "Mechanist、SHAPER、Ready Cohorts 和 reasoning trace 只选最能改变判断的进入主读。"
       },
       {
         "title": "speech-enhancement 新论文拥挤",
         "count": 10,
-        "note": "只用一个 paper block 提醒，具体阅读仍回 Obsidian 推荐池。"
+        "note": "只用一个 paper block 提醒，具体阅读仍回 Obsidian 推荐池入口。"
       },
       {
-        "title": "LinkedIn 岗位提醒",
-        "count": 4,
-        "note": "只保留 canonical job URL 在 candidatePool，不进入学习主信息流。"
+        "title": "LinkedIn 与住房/搬家提醒",
+        "count": 8,
+        "note": "只保留需要行动或可能有时间后果的项目，促销和曝光通知忽略。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "Self-Geometry: GT-Free and Plug-and-Play Test-Time Adaptation for Geometrically Consistent 3D Vision Foundation Models",
+      "title": "Parameter Exploration for RLVR via Variational Learning",
       "source": "Hugging Face Daily Papers",
-      "reason": "3D foundation model TTA 有方法参考价值，但离当前 speech 主线较远。",
+      "reason": "RLVR 参数空间探索有训练稳定性参考价值，但低于 agent mechanism 与 speech 主线。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.10708"
+          "url": "https://huggingface.co/papers/2608.09805"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/insait-institute/C3PO"
         }
       ]
     },
     {
-      "title": "Persistent Recursive Worlds Enable Autonomous Software Evolution",
-      "source": "Hugging Face Daily Papers",
-      "reason": "软件自演化方向值得观察，今天主块已由 OpenART 覆盖 agent 安全。",
-      "priority": 3,
+      "title": "[AINews] How to steal a Reasoning Trace",
+      "source": "Latent.Space / AINews",
+      "reason": "trace 泄露是安全信号；今天主块已用 broader agent theme 覆盖。",
+      "priority": 2,
       "status": "watch",
       "links": [
         {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.10450"
-        }
-      ]
-    },
-    {
-      "title": "AtlasVLA: Persistent World-Ego State Modeling for Vision-Language-Action Models",
-      "source": "Hugging Face Daily Papers",
-      "reason": "VLA 记忆/世界状态信号保留，但不直接改变今天行动。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.06729"
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-how-to-steal-a-reasoning-trace"
         }
       ]
     },
     {
       "title": "[AINews] SpaceXAI Grok 4.6 and Grok @Bot",
       "source": "Latent.Space / AINews",
-      "reason": "模型传闻和产品动态热度高，但缺少直接研究/工程动作。",
+      "reason": "产品热度高，但缺少直接研究/工程动作。",
       "priority": 3,
       "status": "overflow",
       "links": [
@@ -84,13 +75,26 @@
     {
       "title": "The BioAI Phase Shift",
       "source": "Latent.Space / AINews",
-      "reason": "BioAI 商业信号强，和今天的 agent/runtime 主线不同。",
+      "reason": "BioAI 商业信号强，和今天 agent/runtime/speech 主线不同。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
           "label": "Latent.Space",
           "url": "https://www.latent.space/p/chai-discovery"
+        }
+      ]
+    },
+    {
+      "title": "Muse Glimmer and Spark: Open Weights return Personal Superintelligence promise",
+      "source": "Latent.Space / AINews",
+      "reason": "open-weight 小模型动向可观察，但需要官方/技术细节再核验。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-muse-glimmer-and-spark-open"
         }
       ]
     },
@@ -110,7 +114,7 @@
     {
       "title": "Thinking of ACE? We Can Do It with Fewer Tokens",
       "source": "Hugging Face Blog",
-      "reason": "token-efficient reasoning 相关，但今天已有 trace/security 和 edge voice 更优先。",
+      "reason": "token-efficient reasoning 相关，但今天优先 agent mechanism 和 voice deployment。",
       "priority": 3,
       "status": "watch",
       "links": [
@@ -136,7 +140,7 @@
     {
       "title": "How to Build Judgement about a New Technology or Business",
       "source": "Artificial Intelligence Made Simple",
-      "reason": "判断框架可作为方法论候选，但不是今天最高价值内容。",
+      "reason": "判断框架可作方法论候选，但不是今天最高价值内容。",
       "priority": 3,
       "status": "candidate",
       "links": [
@@ -147,15 +151,41 @@
       ]
     },
     {
-      "title": "The USB-C of AI: How the Model Context Protocol (MCP) is Unifying Autonomous Agents",
-      "source": "Medium AI agents tag",
-      "reason": "MCP 解释文可作概念补充，Medium 来源先降级为候选。",
+      "title": "The Cheapest Way to Make Open Weight AI Models Better",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "open-weight 改进话题和 LFM/edge 主线相邻，暂放候选。",
       "priority": 3,
       "status": "candidate",
       "links": [
         {
+          "label": "AISimple",
+          "url": "https://www.artificialintelligencemadesimple.com/p/the-cheapest-way-to-make-open-weight"
+        }
+      ]
+    },
+    {
+      "title": "The Great Agent Escape - Lessons from the OpenAI/Hugging Face Hack",
+      "source": "Medium AI agents tag",
+      "reason": "agent 安全话题相关，但 Medium 来源需人工判断质量。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
           "label": "Medium",
-          "url": "https://agenticbrain.medium.com/the-usb-c-of-ai-how-the-model-context-protocol-mcp-is-unifying-autonomous-agents-242dd99b1c3a"
+          "url": "https://medium.com/@ericbroda/the-great-agent-escape-lessons-from-the-openai-hugging-face-hack-3a3b5dea7291"
+        }
+      ]
+    },
+    {
+      "title": "The Agent Gap: Why Almost Every Company Has AI Agents",
+      "source": "Medium AI agents tag",
+      "reason": "行业判断类文章，保留为轻阅读，不进入主块。",
+      "priority": 3,
+      "status": "overflow",
+      "links": [
+        {
+          "label": "Medium",
+          "url": "https://medium.com/@A.Rehman_/the-agent-gap-why-almost-every-company-has-ai-agents-and-almost-none-of-them-actually-work-1075e6910962"
         }
       ]
     },
@@ -173,22 +203,9 @@
       ]
     },
     {
-      "title": "Rethinking Language Model-Based Generative Speech Enhancement in the Latent Space of a Neural Audio Codec",
-      "source": "arXiv",
-      "reason": "已进入 paper block；保留 arXiv URL 方便后续精读。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2608.12082"
-        }
-      ]
-    },
-    {
       "title": "RT-SEMamba: Real-Time Speech Enhancement Mamba via Progressive Knowledge Distillation",
       "source": "arXiv",
-      "reason": "贴近 SE-Mamba++/实时 SE 主线，但今天 paper block 只放 1-2 篇。",
+      "reason": "贴近 SE-Mamba++/实时 SE 主线，但今天 paper block 只放 2 篇。",
       "priority": 1,
       "status": "candidate",
       "links": [
@@ -199,77 +216,136 @@
       ]
     },
     {
-      "title": "LinkedIn: Airbnb Data Scientist - Algorithms, Community Support",
+      "title": "DAVE: A Decoupled Audio-Visual Enhancement Framework for Real-World Speech Separation",
+      "source": "arXiv",
+      "reason": "AVSE 数据构造和非退化链路值得后续看；本轮低于 NAC generative-SE。",
+      "priority": 1,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "arXiv",
+          "url": "https://arxiv.org/abs/2608.09288"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: TensorOps Junior AI/ML Engineer",
       "source": "LinkedIn Job Alert",
       "reason": "私人职位线索，单独保留为行动候选，不混入学习主信息流。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4441416228"
-        }
-      ]
-    },
-    {
-      "title": "LinkedIn: Deepgram Research Staff, Data Science",
-      "source": "LinkedIn Job Alert",
-      "reason": "语音公司研究岗，值得单独回看；仅保存 canonical job URL。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4440646122"
-        }
-      ]
-    },
-    {
-      "title": "LinkedIn: Machine Learning Researcher at Kiddom",
-      "source": "LinkedIn Job Alert",
-      "reason": "远程 ML 研究岗位，低于 Deepgram/Airbnb 优先级。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4435264553"
+          "url": "https://www.linkedin.com/jobs/view/4453076856"
         }
       ]
     },
     {
-      "title": "LinkedIn: AI Research Scientist at Rex.zone",
+      "title": "LinkedIn: HappyRobot Machine Learning Engineer",
       "source": "LinkedIn Job Alert",
-      "reason": "远程 AI 研究岗位，保留但需自行判断质量。",
+      "reason": "西班牙 ML 岗位，保留 canonical job URL 供回看。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
           "label": "LinkedIn job",
-          "url": "https://www.linkedin.com/jobs/view/4388395390"
+          "url": "https://www.linkedin.com/jobs/view/4386619805"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: Hire Feed Data Scientist - Python",
+      "source": "LinkedIn Job Alert",
+      "reason": "德国远程数据岗，低于研究/speech 相关岗位优先级。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4453053639"
+        }
+      ]
+    },
+    {
+      "title": "LinkedIn: Quik Hire Machine Learning Engineer",
+      "source": "LinkedIn Job Alert",
+      "reason": "英国 ML 岗位候选，需人工判断真实性和质量。",
+      "priority": 3,
+      "status": "watch",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4453071302"
         }
       ]
     }
   ],
   "blocks": [
     {
-      "id": "openart-agent-red-teaming",
+      "id": "mechanist-agent-science",
       "kind": "deep-read",
-      "title": "OpenART：agent 安全评测开始走向“会演化的环境”",
-      "source": "Hugging Face Daily Papers / GitHub, 2026-08-13",
+      "title": "Mechanist：agent 开始自动发现和操控模型机制",
+      "source": "Hugging Face Daily Papers, 2026-08-13",
       "sourceStatus": "公开源",
-      "summary": "OpenART 把 red teaming 放进可演化、长时程、有状态的环境里，用不断扩展的任务复杂度暴露 agent 失败率上升。它比单轮 prompt jailbreak 更接近真实 agent 部署风险。",
-      "why": "如果你要评估 Codex/agent harness，关键不只是模型回答是否安全，而是环境复杂度、状态和工具链是否能系统性诱发失败。",
-      "thought": "先把它当成 agent 评测设计参考：看环境生成、攻击策略和失败定义，而不是只看 benchmark 分数。",
+      "summary": "Mechanist 把 AI agent 用作科学仪器：自动提出假设、做 causal intervention，并试图发现/控制模型智能背后的机制。它比普通 agent benchmark 更接近“让系统自己产生可检验机制解释”。",
+      "why": "如果你在评估 Codex/agent harness，这个方向提醒你：真正有价值的 agent 不只是执行任务，还要能产生可复核的机制证据。",
+      "thought": "先看它如何定义 hypothesis、intervention 和 safety/performance 改进；不要只看 agent 能否跑通。",
       "priority": 0,
       "links": [
         {
           "label": "HF paper",
-          "url": "https://huggingface.co/papers/2608.00677"
+          "url": "https://huggingface.co/papers/2608.12036"
+        },
+        {
+          "label": "Project",
+          "url": "http://mechanist.openkg.cn/"
         },
         {
           "label": "GitHub",
-          "url": "https://github.com/AI45Lab/OpenART"
+          "url": "https://github.com/zjunlp/Mechanist"
+        }
+      ]
+    },
+    {
+      "id": "shaper-skill-harness",
+      "kind": "signal",
+      "title": "SHAPER：skill harness 变成 agent 进化单位",
+      "source": "Hugging Face Daily Papers, 2026-08-13",
+      "sourceStatus": "公开源",
+      "summary": "SHAPER 用环境 rollouts 演化可复用 skill 和 context-code harness，在冻结 foundation model 外围提升 embodied agent。这里的关键不是训练新模型，而是把技能和执行上下文当成可演化资产。",
+      "why": "这和 Codex 工作流很近：prompt、脚本、权限和上下文组织本身就是 agent 能力的一部分。",
+      "thought": "把它当作“技能/脚手架是否值得版本化”的参考，而不是只当 embodied-agent 论文看。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.11350"
+        }
+      ]
+    },
+    {
+      "id": "ready-cohorts-gpu-agent-control",
+      "kind": "signal",
+      "title": "Ready Cohorts：LLM-agent 服务要把 GPU 控制边界量化",
+      "source": "Hugging Face Daily Papers, 2026-08-13",
+      "sourceStatus": "公开源",
+      "summary": "Ready Cohorts 讨论并发 cohort scheduling 与 device-side routing，目标是减少 host round trip，把 LLM-agent 控制延迟和 GPU 机会成本量化。",
+      "why": "agent runtime 的瓶颈不只在模型质量，也在调度、路由和控制平面是否把 GPU 等待时间浪费掉。",
+      "thought": "读的时候重点看它定义了哪些可测 gate；这比“更快推理”这个泛泛结论更有用。",
+      "priority": 1,
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.12123"
+        },
+        {
+          "label": "Project",
+          "url": "https://huggingface.co/spaces/josefchen/ready-cohorts"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/josefchen/ready-cohorts"
         }
       ]
     },
@@ -279,7 +355,7 @@
       "title": "语音 agent 的重点在低延迟和可控部署",
       "source": "Hugging Face Blog, 2026-08-10",
       "sourceStatus": "公开源",
-      "summary": "NVIDIA/HF 的 Magpie TTS 文章把 multilingual voice agent 讲成一套开权重、可部署、低延迟链路，而不是单个 TTS demo。对 speech 主线来说，这类工程约束会影响模型选择。",
+      "summary": "NVIDIA/HF 的 Magpie TTS 文章把 multilingual voice agent 讲成开权重、可部署、低延迟链路，而不是单个 TTS demo。对 speech 主线来说，这类工程约束会影响模型选择。",
       "why": "你的 USE/streaming SE 工作最后也会被 latency、runtime control、部署链路约束，而不仅是离线指标。",
       "thought": "阅读时重点看端到端延迟、部署控制和 voice-agent 组件边界，别只看音色质量。",
       "priority": 1,
@@ -291,65 +367,31 @@
       ]
     },
     {
-      "id": "reasoning-trace-leak",
-      "kind": "signal",
-      "title": "Reasoning trace 正在变成可被攻击的接口",
-      "source": "Latent.Space / AINews, 2026-08-12",
-      "sourceStatus": "公开源",
-      "summary": "Latent.Space 把“steal a reasoning trace”作为今天的安全信号：推理轨迹、蒸馏和 speculative decoding 之间的边界正在变得敏感。",
-      "why": "对 agent/runtime 来说，trace 不是纯调试日志；它可能泄露策略、偏好或中间推理结构。",
-      "thought": "后续做日志、评测和复制给 Codex 的上下文时，把 trace 当作敏感工程面处理。",
-      "priority": 1,
-      "links": [
-        {
-          "label": "Latent.Space",
-          "url": "https://www.latent.space/p/ainews-how-to-steal-a-reasoning-trace"
-        }
-      ]
-    },
-    {
-      "id": "lfm-edge-vision",
-      "kind": "signal",
-      "title": "LFM2.5-VL-3B：edge 模型继续压向“够小但可用”",
-      "source": "Hugging Face Blog, 2026-08-12",
-      "sourceStatus": "公开源",
-      "summary": "LiquidAI 在 HF 发布 LFM2.5-VL-3B，强调更小视觉语言模型的速度和 edge 可用性。它不是 speech 内容，但和本地 agent/端侧部署判断相关。",
-      "why": "端侧模型的价值越来越取决于可部署性、响应时间和任务覆盖，而不只是排行榜。",
-      "thought": "把它作为 edge-agent 市场信号；如果要读，关注 benchmark 之外的吞吐、内存和硬件假设。",
-      "priority": 2,
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/LiquidAI/lfm2-5-vl-3b"
-        }
-      ]
-    },
-    {
-      "id": "agent-trust-theme",
+      "id": "agent-control-theme",
       "kind": "theme",
-      "title": "Agent 主线今天的共同问题：能不能被信任地放进真实环境",
+      "title": "Agent 主线今天的共同问题：能力越来越在模型外面",
       "source": "HF Daily Papers / Latent.Space / Medium",
       "sourceStatus": "综合判断",
-      "summary": "OpenART、reasoning trace 泄露、MCP 统一接口和 malicious-agent detection 都在指向同一个判断：agent 不再只是“能调用工具”，而是需要环境、接口、日志和检测一起定义安全边界。",
-      "why": "这会影响你怎样设计本地 Codex 工作流：权限、日志、状态记忆和外部账号动作都应该被分层。",
-      "thought": "今天只主读 OpenART；MCP/检测类文章放候选池，避免主题过载。",
+      "summary": "Mechanist、SHAPER、Ready Cohorts 和 reasoning trace 安全信号共同说明：agent 的真实能力正在由机制发现、技能 harness、调度控制和日志边界共同决定。单看模型榜单会漏掉这些外部系统变量。",
+      "why": "这会影响你怎样设计本地 Codex 工作流：哪些脚本要版本化、哪些日志要敏感处理、哪些调度指标要记录。",
+      "thought": "今天主读 Mechanist；SHAPER/Ready Cohorts 作为工程设计参考，reasoning trace 暂放候选池。",
       "priority": 2,
       "links": [
         {
-          "label": "OpenART",
-          "url": "https://huggingface.co/papers/2608.00677"
+          "label": "Mechanist",
+          "url": "https://huggingface.co/papers/2608.12036"
+        },
+        {
+          "label": "SHAPER",
+          "url": "https://huggingface.co/papers/2608.11350"
+        },
+        {
+          "label": "Ready Cohorts",
+          "url": "https://huggingface.co/papers/2608.12123"
         },
         {
           "label": "Reasoning trace",
           "url": "https://www.latent.space/p/ainews-how-to-steal-a-reasoning-trace"
-        },
-        {
-          "label": "MCP explainer",
-          "url": "https://agenticbrain.medium.com/the-usb-c-of-ai-how-the-model-context-protocol-mcp-is-unifying-autonomous-agents-242dd99b1c3a"
-        },
-        {
-          "label": "Malicious agent detection",
-          "url": "https://levelup.gitconnected.com/catching-malicious-ai-agents-using-a-multi-layered-detection-system-f2b068443bd7"
         }
       ]
     },
@@ -371,56 +413,48 @@
       ]
     },
     {
-      "id": "job-digest-linkedin-2026-08-13",
+      "id": "ayy-moveout-checklist-2026-08-13",
       "kind": "action",
-      "title": "LinkedIn：今天有 4 个 AI/ML 职位线索可回看",
-      "source": "LinkedIn Job Alert, 2026-08-12",
+      "title": "AYY：搬出前清洁和储物钥匙要确认",
+      "source": "Gmail private fallback, 2026-08-13",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时只有一个低风险 job digest 值得保留：Airbnb、Deepgram、Kiddom、Rex.zone 四个 AI/ML/Research 岗位。",
-      "why": "Deepgram 与语音方向相关，Airbnb/Kiddom/Rex.zone 可作为远程/算法岗位观察；它们不进入学习主信息流。",
-      "thought": "只在今天想投递或更新求职池时打开；否则让它停留在候选池即可。",
-      "priority": 2,
+      "summary": "AYY Housing 最近 36 小时发了两封搬出相关提醒：公共区域清洁和储物间钥匙归还。邮件内容可能和搬家截止/费用责任相关，值得在实际搬出前核对。",
+      "why": "这类事项错过后通常不是信息损失，而是押金/费用/钥匙责任风险。",
+      "thought": "只打开 AYY 官方 housing 入口或你自己的合同/搬出邮件核对，不在 feed 存邮件跳转或私人细节。",
+      "priority": 1,
       "links": [
         {
-          "label": "Airbnb job",
-          "url": "https://www.linkedin.com/jobs/view/4441416228"
-        },
-        {
-          "label": "Deepgram job",
-          "url": "https://www.linkedin.com/jobs/view/4440646122"
-        },
-        {
-          "label": "Kiddom job",
-          "url": "https://www.linkedin.com/jobs/view/4435264553"
-        },
-        {
-          "label": "Rex.zone job",
-          "url": "https://www.linkedin.com/jobs/view/4388395390"
+          "label": "AYY Housing",
+          "url": "https://www.ayy.fi/en/housing"
         }
       ]
     },
     {
-      "id": "openai-official-access-watch",
-      "kind": "signal",
-      "title": "OpenAI 官方页本轮仍部分不可核验",
-      "source": "OpenAI official checks, 2026-08-13",
-      "sourceStatus": "未官方核验",
-      "summary": "OpenAI News 和 ChatGPT Release Notes 对本机 curl 返回 Cloudflare 403 challenge；API changelog 可访问并返回 200。今天没有把未访问到的 News/Release Notes 当事实来源。",
-      "why": "这避免用 newsletter 或二手摘要替代官方核验，尤其是 release/update 类信息。",
-      "thought": "需要 OpenAI 最新事实时，单独用浏览器或官方 changelog 再核验。",
-      "priority": 3,
+      "id": "job-digest-linkedin-2026-08-13",
+      "kind": "action",
+      "title": "LinkedIn：AI/ML 职位线索单独回看",
+      "source": "LinkedIn Job Alert, 2026-08-13",
+      "sourceStatus": "行动项",
+      "summary": "最近 36 小时有一组 AI/ML job digest：TensorOps、HappyRobot、Hire Feed、Quik Hire 等。它们只作为求职行动候选，不混进学习主信息流。",
+      "why": "职位提醒需要和研究阅读分开处理；只在今天想投递或更新求职池时打开。",
+      "thought": "优先看 TensorOps 和 HappyRobot；其他 staffing 类岗位先低优先级判断质量。",
+      "priority": 2,
       "links": [
         {
-          "label": "API changelog",
-          "url": "https://developers.openai.com/api/docs/changelog"
+          "label": "TensorOps job",
+          "url": "https://www.linkedin.com/jobs/view/4453076856"
         },
         {
-          "label": "OpenAI News",
-          "url": "https://openai.com/news/"
+          "label": "HappyRobot job",
+          "url": "https://www.linkedin.com/jobs/view/4386619805"
         },
         {
-          "label": "ChatGPT Release Notes",
-          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
+          "label": "Hire Feed job",
+          "url": "https://www.linkedin.com/jobs/view/4453053639"
+        },
+        {
+          "label": "Quik Hire job",
+          "url": "https://www.linkedin.com/jobs/view/4453071302"
         }
       ]
     }
