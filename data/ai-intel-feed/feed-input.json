@@ -1,87 +1,79 @@
 {
-  "date": "2026-08-14",
-  "overview": "今天主线是低算力/实时语音增强、open-model 生态成熟度、agent 数据闭环，以及两个需要记住的个人行动项。",
-  "sourceStatusLine": "已直连 HF Daily Papers/Blog、Latent.Space、The Batch、AISimple、Medium RSS 等 10 个公开源，38 个候选；Gmail 仅查 Finnair/HSL/HOAS/LinkedIn/个人行动项；OpenAI News 与 ChatGPT Release Notes 为 Cloudflare 403，API changelog 为 308；论文搜索 arXiv 成功、S2 初始 429 后恢复；未因缺少 URL 跳过候选。",
+  "date": "2026-08-15",
+  "overview": "今天优先处理 HSL 自动续订折扣，其次看 open models 生态、agent 数据闭环和语音增强论文更新。",
+  "sourceStatusLine": "已直连 HF Daily Papers/HF Blog/Latent.Space/Medium/The Batch/AISimple 等 10 个公开源；Gmail 仅查 LinkedIn 与个人行动项；OpenAI News/ChatGPT Release Notes 受 Cloudflare 403 限制，API changelog 返回 308；S2 曾 429 后恢复；缺 URL 跳过 0 条。",
   "overflow": {
-    "summary": "公开候选主要拥挤在 agent/coding autonomy、Medium 泛化教程和若干模型趋势，已压缩到候选池。",
+    "summary": "公开源和论文候选较多，Medium 泛趋势、重复 open-model 讨论和低优先级岗位被压到候选池或自然丢弃。",
     "counts": {
-      "candidates": 38,
-      "overflow": 12,
-      "duplicates": 2,
+      "candidates": 86,
+      "overflow": 29,
+      "duplicates": 4,
       "hidden": 0
     },
     "themes": [
       {
-        "title": "Agent 与 coding autonomy 文章过载",
-        "count": 9,
-        "note": "多数是中等质量解读或体验文，主信息流只保留能改变工程判断的入口。"
+        "title": "open models 与低成本推理",
+        "count": 7,
+        "note": "只保留 HF 生态判断和一条低成本技巧，其余放候选池。"
       },
       {
-        "title": "语音增强论文候选过载",
-        "count": 12,
-        "note": "今天只保留 2 篇最贴近 SE-Mamba++/低算力部署的论文，其余作为推荐池候选。"
+        "title": "agent 工程与上下文治理",
+        "count": 8,
+        "note": "只保留可改变本地工作流判断的 agent/data-loop/context 条目。"
+      },
+      {
+        "title": "语音增强论文拥挤",
+        "count": 10,
+        "note": "paper block 只提示 2 篇；其余保留在搜索 JSON 和推荐池入口。"
       }
     ]
   },
   "candidatePool": [
     {
-      "title": "From Inaudible Inputs to Model Failures: Low-Frequency Safety Risks in LALMs",
+      "title": "Thought-Level Beam Search for Reasoning",
       "source": "Hugging Face Daily Papers",
-      "reason": "音频语言模型安全和输入分布漂移值得回看，但今天主线先放在 SE 和工程闭环。",
-      "priority": 1,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2608.09158"
-        }
-      ]
-    },
-    {
-      "title": "State of Open Models: Summer 2026 Observations",
-      "source": "Hugging Face Blog",
-      "reason": "适合做 open-weight 生态扫描；主信息流已保留为阅读块。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/state-of-open-models-summer-2026"
-        }
-      ]
-    },
-    {
-      "title": "Record, train, and deploy from one place with Strands Agents, LeRobot, and Hugging Face Storage Buckets",
-      "source": "Hugging Face Blog",
-      "reason": "agent 到机器人数据闭环值得和本地 harness 思路对照。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/amazon/strands-lerobot-streaming-data-loop"
-        }
-      ]
-    },
-    {
-      "title": "What We Learned by Reproducing 2,200 papers from ICML",
-      "source": "Hugging Face Blog",
-      "reason": "复现摩擦点对研究代码质量有用，已进入主信息流。",
-      "priority": 1,
-      "status": "watch",
-      "links": [
-        {
-          "label": "HF Blog",
-          "url": "https://huggingface.co/blog/icml-2026-open-reproductions"
-        }
-      ]
-    },
-    {
-      "title": "How to steal a Reasoning Trace",
-      "source": "Latent.Space / AINews",
-      "reason": "reasoning trace 的泄露/蒸馏风险值得跟踪，但暂不作为今天最高优先级。",
+      "reason": "reasoning compute 分配相关，但今天不如 speech paper 和 open-model 生态紧急。",
       "priority": 2,
       "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.08020"
+        }
+      ]
+    },
+    {
+      "title": "Maglev: Sliding Recurrent Memory",
+      "source": "Hugging Face Daily Papers",
+      "reason": "长上下文固定记忆路线值得回看，暂时作为 agent-memory watch。",
+      "priority": 2,
+      "status": "watch",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.02870"
+        }
+      ]
+    },
+    {
+      "title": "Context-Matched Distillation",
+      "source": "Hugging Face Daily Papers",
+      "reason": "视频自回归蒸馏有方法价值，但离当前 speech 主线较远。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF paper",
+          "url": "https://huggingface.co/papers/2608.13391"
+        }
+      ]
+    },
+    {
+      "title": "AINews: How to steal a Reasoning Trace",
+      "source": "Latent.Space",
+      "reason": "reasoning trace / distillation 话题有安全和效率含义，但需官方或论文链接再深读。",
+      "priority": 2,
+      "status": "watch",
       "links": [
         {
           "label": "Latent.Space",
@@ -90,132 +82,145 @@
       ]
     },
     {
-      "title": "The AI Engineering Skills Map from Andrew Ng",
-      "source": "DeepLearning.AI The Batch",
-      "reason": "可作为技能地图参考，但对今天研究/部署决策影响较低。",
-      "priority": 2,
+      "title": "AINews: Gemini 3.7 Flash brings GDM back",
+      "source": "Latent.Space",
+      "reason": "模型市场信号，今天只作为趋势背景。",
+      "priority": 3,
       "status": "candidate",
       "links": [
         {
-          "label": "The Batch",
-          "url": "https://www.deeplearning.ai/the-batch/issue-366"
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/ainews-gemini-37-flash-brings-gdm"
         }
       ]
     },
     {
-      "title": "Memory Engineering for AI Agents",
+      "title": "The BioAI Phase Shift",
+      "source": "Latent.Space",
+      "reason": "BioAI 商业化信号强，但不直接改变今天 AI/speech 工作。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Latent.Space",
+          "url": "https://www.latent.space/p/chai-discovery"
+        }
+      ]
+    },
+    {
+      "title": "OlmoEarth embeddings",
+      "source": "Hugging Face Blog",
+      "reason": "embedding export 是工具面信号，暂不进入主阅读。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "HF Blog",
+          "url": "https://huggingface.co/blog/allenai/olmoearth-embeddings"
+        }
+      ]
+    },
+    {
+      "title": "The Cheapest Way to Make Open Weight AI Models Better",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "可能有低成本提升技巧，但需和 HF 官方生态文分开读。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://www.artificialintelligencemadesimple.com/p/the-cheapest-way-to-make-open-weight"
+        }
+      ]
+    },
+    {
+      "title": "How Rubric-Based Rewards Could Push AI Beyond Math and Code",
+      "source": "Artificial Intelligence Made Simple",
+      "reason": "rubric reward 是 RL 方向观察，今天不是主线。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://www.artificialintelligencemadesimple.com/p/how-rubric-based-rewards-could-push"
+        }
+      ]
+    },
+    {
+      "title": "Agent evals and drift detection",
       "source": "Medium AI Agents",
-      "reason": "主题贴近 agent memory，但来源质量需二次筛选。",
-      "priority": 3,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "Medium",
-          "url": "https://medium.com/@danushidk507/memory-engineering-for-ai-agents-82c0d211ba51"
-        }
-      ]
-    },
-    {
-      "title": "AI Coding Tools: What Changed in the Last 6 Months",
-      "source": "Medium Data Science Collective",
-      "reason": "可作为工具市场背景，但事实主张需要官方/高质量讨论交叉确认。",
-      "priority": 3,
-      "status": "overflow",
-      "links": [
-        {
-          "label": "Medium",
-          "url": "https://medium.com/data-science-collective/ai-coding-tools-what-changed-in-the-last-6-months-f2d7065812f9"
-        }
-      ]
-    },
-    {
-      "title": "Prompt Caching Makes Self-Consistency Cheap for Long-Context LLMs",
-      "source": "Medium AI Agents",
-      "reason": "有工程启发，但今天不需要扩大到 prompt-caching 专题。",
-      "priority": 3,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "Medium",
-          "url": "https://medium.com/@mohitsinghchauhan/prompt-caching-makes-self-consistency-cheap-for-long-context-llms-c611ba4f5237"
-        }
-      ]
-    },
-    {
-      "title": "Rethinking Language Model-Based Generative Speech Enhancement in the Latent Space of a Neural Audio Codec",
-      "source": "arXiv",
-      "reason": "generative SE/NAC 方向重要，但今天 paper block 优先保留低算力多通道和实时 Mamba。",
+      "reason": "coding-agent 评测盲点与本地 Codex 工作流相关，但来源质量低于官方/HF。",
       "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2608.12082"
-        }
-      ]
-    },
-    {
-      "title": "DAVE: A Decoupled Audio-Visual Enhancement Framework for Real-World Speech Separation",
-      "source": "arXiv",
-      "reason": "AVSE 和真实场景鲁棒性相关，适合进入后续论文池回看。",
-      "priority": 2,
-      "status": "candidate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2608.09288"
-        }
-      ]
-    },
-    {
-      "title": "faster-enhancer.c: A Dependency-Free int8 Runtime for Streaming Speech Enhancement on Commodity CPUs",
-      "source": "arXiv",
-      "reason": "edge runtime 很贴近部署，但已多轮出现，今天降为候选防重复。",
-      "priority": 2,
-      "status": "duplicate",
-      "links": [
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org/abs/2607.25350"
-        }
-      ]
-    },
-    {
-      "title": "HOAS housing application feedback survey",
-      "source": "Gmail private fallback / HOAS",
-      "reason": "只是反馈问卷，不是住房申请状态更新；只保留通用入口，不进主行动项。",
-      "priority": 3,
       "status": "watch",
       "links": [
         {
-          "label": "HOAS Applicants",
-          "url": "https://www.hoas.fi/en/applicants/"
+          "label": "Article",
+          "url": "https://medium.com/@wasowski.jarek/agent-evals-and-drift-detection-what-the-new-coding-agent-tooling-doesnt-measure-401fce7cb1e3"
         }
       ]
     },
     {
-      "title": "AYY 搬离清洁与储物钥匙提醒",
-      "source": "Gmail private fallback / AYY Housing",
-      "reason": "仍可能需要执行，但今天主行动项优先 HSL、Finnair 和岗位筛选。",
-      "priority": 1,
-      "status": "watch",
+      "title": "Your Agent Framework Should Be an Event Log",
+      "source": "Medium ML",
+      "reason": "agent harness 设计概念值得存为候选，暂不占主块。",
+      "priority": 2,
+      "status": "candidate",
       "links": [
         {
-          "label": "AYY Housing",
-          "url": "https://www.ayy.fi/en/housing"
+          "label": "Article",
+          "url": "https://medium.com/@sebuzdugan/your-agent-framework-should-be-an-event-log-not-a-message-list-56e07175b3ae"
         }
       ]
     },
     {
-      "title": "LinkedIn 新增 Data/AI 岗位提醒",
+      "title": "5 Cost Traps RAG Systems Silently Suffer From",
+      "source": "Level Up Coding",
+      "reason": "RAG 成本复盘可读，但今天优先级低。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://levelup.gitconnected.com/5-cost-traps-rag-systems-silently-suffer-from-ff096357b43c"
+        }
+      ]
+    },
+    {
+      "title": "Quik Hire Staffing: AI Research Scientist",
       "source": "Gmail private fallback / LinkedIn",
-      "reason": "IKEA/Nestle/TensorOps/BJAK 等只作为求职行动线索，不混入学习流。",
+      "reason": "LinkedIn job alert，单独作为求职候选，不混入学习流。",
       "priority": 2,
       "status": "candidate",
       "links": [
         {
-          "label": "LinkedIn Jobs",
-          "url": "https://www.linkedin.com/jobs/"
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4453521211"
+        }
+      ]
+    },
+    {
+      "title": "Hire Feed: Data Scientist - Python",
+      "source": "Gmail private fallback / LinkedIn",
+      "reason": "岗位候选，可批量筛，不进主信息流。",
+      "priority": 3,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4454361376"
+        }
+      ]
+    },
+    {
+      "title": "Revolut: Applied AI Engineer",
+      "source": "Gmail private fallback / LinkedIn",
+      "reason": "岗位候选，保留 canonical URL。",
+      "priority": 2,
+      "status": "candidate",
+      "links": [
+        {
+          "label": "LinkedIn job",
+          "url": "https://www.linkedin.com/jobs/view/4407457907"
         }
       ]
     }
@@ -227,9 +232,9 @@
       "title": "HSL：8 月 16 日前决定是否开自动续订季票",
       "source": "Gmail private fallback / HSL",
       "sourceStatus": "行动项",
-      "summary": "HSL 提醒自动续订季票首月折扣到 2026-08-16 截止；如果秋季通勤稳定，这个决定有明确时限。",
-      "why": "这是会过期的个人事项，比普通 newsletter 更需要今天处理或明确跳过。",
-      "thought": "打开 HSL 官方季票页面，按 9 月通勤频率判断是否启用自动续订。",
+      "summary": "HSL season ticket 自动续订折扣窗口仍接近截止；这是今天唯一真正会过期的个人事项。",
+      "why": "如果仍需要 Helsinki 区域通勤，明天前处理能避免错过折扣。",
+      "thought": "打开 HSL 账户核对通勤需求；不需要就让它自然退出行动区。",
       "priority": 0,
       "links": [
         {
@@ -239,35 +244,14 @@
       ]
     },
     {
-      "id": "finnair-hel-pvg-2026-09-04",
-      "kind": "action",
-      "title": "Finnair：9 月 4 日 HEL 到 PVG 行程已确认",
-      "source": "Gmail private fallback / Finnair",
-      "sourceStatus": "行动项",
-      "summary": "Finnair 确认 2026-09-04 从 Helsinki Vantaa 到 Shanghai Pudong 的行程；邮件里有订位和票号等私密信息，本页只保留通用管理入口。",
-      "why": "这不是学习内容，但需要提前记住值机、行李和同行人信息，避免临近出发时翻邮件。",
-      "thought": "临近出发前用 Finnair 官方 manage booking / check-in 页面处理座位、行李和值机。",
-      "priority": 0,
-      "links": [
-        {
-          "label": "Finnair manage booking",
-          "url": "https://www.finnair.com/en/manage"
-        },
-        {
-          "label": "Finnair check-in",
-          "url": "https://www.finnair.com/en/check-in"
-        }
-      ]
-    },
-    {
       "id": "hf-open-models-summer-2026",
       "kind": "deep-read",
       "title": "HF：先看 open models 生态，而不是只看单个榜单",
       "source": "Hugging Face Blog",
       "sourceStatus": "公开源",
-      "summary": "HF 的 summer 2026 open models 观察适合做一次生态层扫描：模型能力、开放权重、工具链和部署摩擦一起看，避免只盯一个 benchmark。",
-      "why": "你的本地/远端模型工作需要判断哪些模型值得接入、蒸馏或作为 baseline，而不是追逐一次性热度。",
-      "thought": "读的时候重点标出可本地复现、可微调、可部署和许可清晰的模型。",
+      "summary": "HF 的 Summer 2026 open-model 观察把模型发布、许可、部署和社区复现放在同一张图里，比单看某个 benchmark 更适合判断下一阶段本地模型路线。",
+      "why": "你最近同时关心本地 agent、推理成本和研究工具链，生态变化比单模型 hype 更能影响选择。",
+      "thought": "读的时候只记三件事：哪些模型可本地试、哪些需要云侧能力、哪些许可或部署约束会影响项目。",
       "priority": 1,
       "links": [
         {
@@ -277,14 +261,14 @@
       ]
     },
     {
-      "id": "hf-strands-lerobot-data-loop",
+      "id": "hf-strands-lerobot-loop",
       "kind": "deep-read",
       "title": "HF：Strands + LeRobot 把 agent 数据闭环做成流水线",
       "source": "Hugging Face Blog",
       "sourceStatus": "公开源",
-      "summary": "这篇把记录、训练、部署串到一个 workflow 里，重点不是机器人本身，而是 agent 行为数据如何进入可复用训练闭环。",
-      "why": "对你现在的 Codex/automation/harness 工作，真正有价值的是可审计数据流和可重复部署，而不是 demo 表面效果。",
-      "thought": "对照现有自动化，观察哪些日志、轨迹和失败样本应该被保存为训练/评估资产。",
+      "summary": "这篇展示从记录数据、训练到部署的机器人/agent loop，重点不是某个 demo，而是把数据采集和模型迭代连成可复用流程。",
+      "why": "它和你的本地 Codex/研究自动化方向相近：真正有价值的是可重复的数据闭环，而不是一次性 agent 输出。",
+      "thought": "关注 Storage Buckets 和训练记录如何组织；可作为之后设计实验/日志 surface 的参考。",
       "priority": 1,
       "links": [
         {
@@ -294,14 +278,14 @@
       ]
     },
     {
-      "id": "hf-icml-open-reproductions",
+      "id": "icml-open-reproductions-2200",
       "kind": "deep-read",
-      "title": "HF：复现 2,200 篇 ICML 论文后，先看研究摩擦点",
+      "title": "复现 2,200 篇 ICML 后，先看研究摩擦点",
       "source": "Hugging Face Blog",
       "sourceStatus": "公开源",
-      "summary": "HF 的 ICML 复现项目把大量论文的代码、数据、环境和复现失败点摊开，比单篇 paper claim 更能暴露研究工程质量问题。",
-      "why": "这直接影响你判断 speech enhancement 论文是否值得投入复现，以及自己的代码/实验应该留下哪些可复现证据。",
-      "thought": "读时只摘取会改变你项目规范的点：依赖锁定、数据声明、随机性、指标脚本和失败记录。",
+      "summary": "HF open reproduction 项目总结了大规模复现实验中的代码、环境、数据和评测摩擦。它适合用来反查自己的论文/实验交付是否可复现。",
+      "why": "你的 speech-enhancement 研究已经进入 evidence 和 gate 阶段，复现摩擦清单能直接提高论文可信度。",
+      "thought": "把它当 checklist：依赖、seed、数据权限、评测脚本和模型权重路径是否都能被别人重跑。",
       "priority": 1,
       "links": [
         {
@@ -311,53 +295,82 @@
       ]
     },
     {
-      "id": "hf-audio-lalm-low-frequency-safety",
+      "id": "ai-engineering-skills-map",
       "kind": "signal",
-      "title": "HF Papers：低频不可听输入会打穿 audio-language model",
-      "source": "Hugging Face Daily Papers",
+      "title": "The Batch：AI engineering skill map 可用来校准学习路线",
+      "source": "DeepLearning.AI The Batch",
       "sourceStatus": "公开源",
-      "summary": "这篇用黑盒 red-teaming 暴露 audio-language model 对低频不可听波形的脆弱性，并提出检测分布漂移后要求二次录音的防御思路。",
-      "why": "它把音频增强、ASR/音频大模型和安全评估连起来，提醒不要只用常规噪声和平均指标衡量鲁棒性。",
-      "thought": "如果以后做 audio foundation model 或前端增强，保留低频/不可听扰动作为评估切片。",
+      "summary": "Andrew Ng 的 AI Engineering Skills Map 把工程能力拆成可学习模块，适合对照你当前 data science、agent、serving 和 ML systems 的学习缺口。",
+      "why": "它不是新闻爆点，但能帮助把每天碎片信息收束成能力地图。",
+      "thought": "只挑和当前项目直接相关的三块：LLM app 工程、evaluation、deployment/observability。",
       "priority": 2,
       "links": [
         {
-          "label": "HF Paper",
-          "url": "https://huggingface.co/papers/2608.09158"
+          "label": "The Batch",
+          "url": "https://www.deeplearning.ai/the-batch/issue-366"
         }
       ]
     },
     {
-      "id": "paper-se-cloud-rtsemamba-2026-08-14-evening",
+      "id": "context-bloating-concept",
+      "kind": "concept",
+      "title": "概念：context bloating 先当作 agent 可靠性问题",
+      "source": "Medium AI",
+      "sourceStatus": "公开源",
+      "summary": "context bloating 指上下文不断堆积、噪声超过有效任务状态，最后让模型输出漂移或成本膨胀。这个概念适合放进今天的理解队列。",
+      "why": "你正在用长期自动化和 Codex 任务协作，过长上下文会直接影响任务判断和可复现性。",
+      "thought": "先不写词典；只在设计 handoff、memory 和 feed candidatePool 时避免把所有历史都塞回 prompt。",
+      "priority": 2,
+      "links": [
+        {
+          "label": "Article",
+          "url": "https://medium.com/codetodeploy/understanding-context-bloating-a-practical-guide-to-avoiding-ai-slop-aeab060d4c81"
+        }
+      ]
+    },
+    {
+      "id": "paper-se-cloud-boosted-semamba",
       "kind": "paper",
-      "title": "论文提醒：cloud-boosted 多通道 SE 与实时 SEMamba",
+      "title": "论文提醒：cloud-boosted 多通道 SE 与 generative SE 统一评测",
       "source": "本地推荐池",
       "sourceStatus": "本地推荐池",
-      "summary": "今天推荐 2 篇：Cloud-Boosted Low-Compute Multi-Channel Speech Enhancement 贴近低算力多通道 SE/beamforming；RT-SEMamba 用 causal TF-Mamba 和 progressive KD 做 25 ms latency 的实时 SE。",
-      "why": "第一篇影响 edge/server 协同增强设计，第二篇直接贴近 SE-Mamba++ 的实时化与蒸馏路线。",
-      "thought": "Tag: speech-enhancement, multichannel-se, beamforming, streaming-se, mamba, knowledge-distillation；去 Obsidian 推荐池索引继续看。",
+      "summary": "今天 paper stage 最值得先看 2 篇：`Cloud-Boosted Low-Compute Multi-Channel Speech Enhancement` 把 server/edge 协作、多通道 Wiener filtering 和低延迟约束放在一起；`Rethinking Language Model-Based Generative Speech Enhancement in the Latent Space of a Neural Audio Codec` 用统一框架比较 NAC latent 上的多种 generative SE paradigm。",
+      "why": "前者直接贴近实时/低算力/多通道 SE，后者能校准 generative SE 在 codec latent space 里的评测边界。",
+      "thought": "Tag: speech-enhancement, multichannel-se, beamforming, generative-se, neural-audio-codec；去 Obsidian 推荐池入口再决定是否沉淀。",
       "priority": 1,
       "links": [
         {
           "label": "推荐池索引（Obsidian）",
-          "url": "obsidian://open/?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
+          "url": "obsidian://open?vault=LearningProject&file=Papers%2F%E8%AE%BA%E6%96%87%E6%8E%A8%E8%8D%90%E6%B1%A0.base"
         }
       ]
     },
     {
-      "id": "linkedin-jobs-2026-08-14-evening",
+      "id": "linkedin-ai-jobs-2026-08-15",
       "kind": "action",
       "title": "LinkedIn：只筛新增 AI/数据岗位，不进入学习流",
       "source": "Gmail private fallback / LinkedIn",
       "sourceStatus": "行动项",
-      "summary": "最近 36 小时有 IKEA/Nestle/TensorOps/BJAK 等岗位提醒；这类内容只作为求职行动项，不和 AI 学习主信息流混合。",
-      "why": "岗位提醒会过期，但邮件里的跳转 URL 常带 tracking，今天只保留通用 LinkedIn Jobs 入口。",
-      "thought": "只花 10 分钟筛是否有 AI/ML/data 研究或工程贴合项；没有就丢弃。",
+      "summary": "近 36 小时 job alert 有 AI Research Scientist、Data Scientist、Applied AI Engineer、ML Engineer 等岗位，已转换为 canonical LinkedIn job URL。",
+      "why": "求职线索应该单独批量筛选，避免污染今天的技术阅读主线。",
+      "thought": "只打开 2-3 个最像 speech/ML systems 的岗位；其余让候选池自然过期。",
       "priority": 2,
       "links": [
         {
-          "label": "LinkedIn Jobs",
-          "url": "https://www.linkedin.com/jobs/"
+          "label": "Quik Hire AI Research Scientist",
+          "url": "https://www.linkedin.com/jobs/view/4453521211"
+        },
+        {
+          "label": "Hire Feed Data Scientist",
+          "url": "https://www.linkedin.com/jobs/view/4454361376"
+        },
+        {
+          "label": "Revolut Applied AI Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4407457907"
+        },
+        {
+          "label": "Jobs Ai ML Engineer",
+          "url": "https://www.linkedin.com/jobs/view/4454507317"
         }
       ]
     }
