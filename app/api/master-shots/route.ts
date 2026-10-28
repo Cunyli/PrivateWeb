@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { supabasePublic } from "@/utils/supabase-public.server"
 
 export const runtime = "nodejs"
 
@@ -61,9 +62,11 @@ const loadMasterShots = async (limit: number) => {
     return []
   }
 
-  const { data: pictureRows, error: picturesError } = await supabaseAdmin
+  const { data: pictureRows, error: picturesError } = await supabasePublic
     .from("pictures")
-    .select("id, picture_set_id, image_url, created_at, is_published")
+    .select("id, picture_set_id, image_url, created_at, is_published, picture_sets!inner(is_published)")
+    .eq("is_published",true)
+    .eq("picture_sets.is_published",true)
     .in("id", pictureIds)
 
   if (picturesError) {
@@ -98,7 +101,7 @@ const isRetryableError = (error: any) => {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const limit = Math.min(Number(searchParams.get("limit")) || 11, 48)
+  const limit = Math.max(1, Math.min(Math.floor(Number(searchParams.get("limit"))) || 11, 48))
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {

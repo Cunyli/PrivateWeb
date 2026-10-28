@@ -1,5 +1,7 @@
 import { ResumePage } from "@/components/resume-page"
 
+export const metadata = { title: "Resume · Lijie Li" }
+
 export const revalidate = 3600
 
 export default function Resume() {

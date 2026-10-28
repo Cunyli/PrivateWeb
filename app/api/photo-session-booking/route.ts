@@ -1,3 +1,4 @@
+import { enforcePublicRequestBudget } from "@/utils/public-request-budget.server"
 import { mkdir, appendFile, readFile } from "node:fs/promises"
 import path from "node:path"
 import { NextRequest, NextResponse } from "next/server"
@@ -199,6 +200,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Name, contact and date are required" }, { status: 400 })
   }
 
+  const budgetError = await enforcePublicRequestBudget("booking")
+  if (budgetError) return budgetError
+
   const apiKey = process.env.RESEND_API_KEY
   let emailSent = false
   let emailError: string | undefined
@@ -240,7 +244,7 @@ export async function POST(request: Request) {
 
   if (!emailSent && !logResult.persisted) {
     return NextResponse.json(
-      { error: emailError || "Booking could not be sent or logged", logErrors: logResult.errors },
+      { error: "Booking could not be sent or logged. Please try again later." },
       { status: apiKey ? 502 : 503 },
     )
   }

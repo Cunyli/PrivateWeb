@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-28",
+  "resume": "http://127.0.0.1:3000/resume",
+  "method": "Six-second foreground RAF callback samples, production build, UI input, settled assets. Capture freezes before reading browser accessibility. Not GPU presentation or physical-panel FPS.",
+  "threshold": "Frame interval greater than 1.5 times the observed browser refresh budget",
+  "samples": [
+    {
+      "browser": "Safari",
+      "viewport": "1512x773",
+      "interaction": "Home scroll and depth",
+      "pageHz": 59.5,
+      "activeHz": 60,
+      "activeP95ms": 18,
+      "activeMaxMs": 20,
+      "activeOverBudgetPct": 0,
+      "activeFrames": 52,
+      "proof": "safari-home-frozen-20261028.txt"
+    },
+    {
+      "browser": "Safari",
+      "viewport": "1512x773",
+      "interaction": "Six next-photo key inputs, photo 1 to 7",
+      "pageHz": 59.8,
+      "activeHz": 59.8,
+      "activeP95ms": 19,
+      "activeMaxMs": 25,
+      "activeOverBudgetPct": 0,
+      "activeFrames": 95,
+      "proof": "safari-viewer-frozen-20261028.txt"
+    },
+    {
+      "browser": "Safari",
+      "viewport": "1512x773",
+      "interaction": "Resume scroll and reveal",
+      "pageHz": 59.7,
+      "activeHz": 58,
+      "activeP95ms": 24,
+      "activeMaxMs": 54,
+      "activeOverBudgetPct": 2.1,
+      "activeFrames": 47,
+      "proof": "safari-resume-frozen-20261028.txt"
+    },
+    {
+      "browser": "Safari",
+      "viewport": "1512x773",
+      "interaction": "Booking story scroll",
+      "pageHz": 59.8,
+      "activeHz": 59.3,
+      "activeP95ms": 18,
+      "activeMaxMs": 33,
+      "activeOverBudgetPct": 1.1,
+      "activeFrames": 87,
+      "proof": "safari-booking-frozen-20261028.txt"
+    },
+    {
+      "browser": "In-app browser",
+      "viewport": "1440x900",
+      "interaction": "Three alternating page turns",
+      "pageHz": 118.7,
+      "activeHz": 118.1,
+      "activeP95ms": 9.5,
+      "activeMaxMs": 16.3,
+      "activeOverBudgetPct": 0.7,
+      "activeFrames": 451,
+      "proof": "iab-book-frozen-20261028.json"
+    },
+    {
+      "browser": "In-app browser",
+      "viewport": "1440x900",
+      "interaction": "Both ribbon rows dragged, portfolio scrolled",
+      "pageHz": 119.7,
+      "activeHz": 119.1,
+      "activeP95ms": 8.8,
+      "activeMaxMs": 16.6,
+      "activeOverBudgetPct": 0.8,
+      "activeFrames": 263,
+      "proof": "iab-ribbon-scroll-frozen-20261028.json"
+    }
+  ],
+  "scopeLimits": [
+    "One local computer; viewport sizing is not physical phone testing.",
+    "Short samples do not establish cold-load or all-device guarantees.",
+    "Safari Long Tasks API unavailable; no task count is not proof of no blocking.",
+    "Resume and booking still have occasional 33-54ms active intervals."
+  ],
+  "checks": [
+    "Main-project TypeScript check passed",
+    "Isolated production build passed",
+    "git diff --check passed",
+    "Frame task queue ordering, cancellation and thrown-error behavior passed",
+    "Pointer convergence matched at 60/120/144Hz in a time-step check",
+    "Book next/previous identity and natural proportions visually checked",
+    "844x390 book and 390x844 resume checked without horizontal overflow",
+    "Portfolio still has no resume link"
+  ]
+}

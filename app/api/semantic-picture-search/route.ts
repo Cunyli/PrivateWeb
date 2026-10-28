@@ -1,3 +1,4 @@
+import { enforcePublicRequestBudget } from "@/utils/public-request-budget.server"
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 
@@ -217,6 +218,9 @@ export async function GET(request: Request) {
   }
 
   try {
+    const budgetError = await enforcePublicRequestBudget("semantic-search")
+    if (budgetError) return budgetError
+
     const embeddingPayload = await embedQuery(query)
     const { data, error } = await supabaseAdmin.rpc("match_pictures_by_embedding", {
       query_embedding: embeddingPayload.embedding,
@@ -240,7 +244,7 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error("[api/semantic-picture-search]", error)
     return NextResponse.json(
-      { error: error?.message || "Semantic search failed" },
+      { error: "Semantic search is temporarily unavailable" },
       { status: 500 },
     )
   }

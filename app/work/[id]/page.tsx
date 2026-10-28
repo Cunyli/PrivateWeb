@@ -2,7 +2,11 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { supabasePublic } from "@/utils/supabase-public.server"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
+import { photoSource } from "@/lib/portfolio-photo-source"
+import { collectionEditorial } from "@/lib/portfolio-editorial"
+import { photoEditorial } from "@/lib/portfolio-photo-editorial.server"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
 
@@ -82,11 +86,14 @@ export default async function WorkPage({
     origin?: string
     originStyle?: string
     originIndex?: string
+    returnTo?: string
     returnSet?: string
     pictureId?: string
+    index?: string
   }>
 }) {
   const { id: setId } = await params
+  if (!/^\d+$/.test(setId) || !Number.isSafeInteger(Number(setId)) || Number(setId) < 1) notFound()
   const resolvedSearchParams = await searchParams
   console.log(`Fetching pictures for set ID: ${setId}`)
   const requestedStyle = typeof resolvedSearchParams?.style === "string" ? resolvedSearchParams.style : null
@@ -98,14 +105,19 @@ export default async function WorkPage({
     ? PHOTOGRAPHY_STYLE_BY_ID[requestedStyle as keyof typeof PHOTOGRAPHY_STYLE_BY_ID]
     : undefined
 
-  // Fetch pictures based on picture_set_id
-  const { data: pictures, error: pictureError } = await supabaseAdmin
-    .from("pictures")
-    .select("*")
-    .eq("picture_set_id", setId)
-    .order("order_index", { ascending: true })
+  // Metadata is independent of the image list. Avoid a database waterfall on entry.
+  const [pictureResult, setResult, setTranslationResult, setLocationResult] = await Promise.all([
+    supabasePublic.from("pictures").select("*").eq("picture_set_id",setId).eq("is_published",true).order("order_index",{ascending:true}),
+    supabasePublic.from("picture_sets").select("title, subtitle, description").eq("id",setId).eq("is_published",true).single(),
+    supabasePublic.from("picture_set_translations").select("locale, title, subtitle, description").eq("picture_set_id",setId),
+    supabasePublic.from("picture_set_locations").select("location_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)").eq("picture_set_id",setId),
+  ])
+  const {data:pictures,error:pictureError}=pictureResult
+  const {data:pictureSet}=setResult
+  const {data:setTranslations}=setTranslationResult
+  const {data:setLocationRows,error:setLocationError}=setLocationResult
 
-  if (pictureError) {
+  if (pictureError || !pictureSet) {
     console.error("Error fetching pictures:", pictureError)
     notFound()
   }
@@ -144,7 +156,7 @@ export default async function WorkPage({
   const pictureIds = filteredPictures.map((p) => p.id)
 
   const { data: pictureTranslations } = pictureIds.length
-    ? await supabaseAdmin
+    ? await supabasePublic
         .from('picture_translations')
         .select('picture_id, locale, title, subtitle, description')
         .in('picture_id', pictureIds)
@@ -193,7 +205,7 @@ export default async function WorkPage({
   }
 
   const images = filteredPictures.map((pic) => {
-    const translationEntry = pictureTranslationsMap.get(pic.id) || { en: {}, zh: {} }
+    const translationEntry = photoEditorial(pic.id) || pictureTranslationsMap.get(pic.id) || { en: {}, zh: {} }
     return {
       id: pic.id,
       url: pic.image_url || "/placeholder.svg",
@@ -212,17 +224,6 @@ export default async function WorkPage({
       },
     }
   })
-
-  const { data: pictureSet } = await supabaseAdmin
-    .from('picture_sets')
-    .select('title, subtitle, description, primary_location_name, primary_location_latitude, primary_location_longitude')
-    .eq('id', setId)
-    .single()
-
-  const { data: setTranslations } = await supabaseAdmin
-    .from('picture_set_translations')
-    .select('locale, title, subtitle, description')
-    .eq('picture_set_id', setId)
 
   const setEntry = {
     en: {
@@ -248,10 +249,6 @@ export default async function WorkPage({
   if (!setEntry.zh.subtitle && looksZh(pictureSet?.subtitle)) setEntry.zh.subtitle = pictureSet?.subtitle ?? ''
   if (!setEntry.zh.description && looksZh(pictureSet?.description)) setEntry.zh.description = pictureSet?.description ?? ''
 
-  const { data: setLocationRows, error: setLocationError } = await supabaseAdmin
-    .from('picture_set_locations')
-    .select('location_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
-    .eq('picture_set_id', setId)
 
   if (setLocationError) {
     console.warn('Failed to fetch set locations:', setLocationError)
@@ -275,38 +272,34 @@ export default async function WorkPage({
       .filter(Boolean) ?? []
 
   const resolvedLocations = [...locations]
-  if (resolvedLocations.length === 0 && pictureSet?.primary_location_name) {
-    resolvedLocations.push({
-      id: `primary-${setId}`,
-      isPrimary: true,
-      name: pictureSet.primary_location_name,
-      name_en: pictureSet.primary_location_name,
-      name_zh: pictureSet.primary_location_name,
-      latitude: pictureSet.primary_location_latitude ?? null,
-      longitude: pictureSet.primary_location_longitude ?? null,
-    })
-  }
+  const pictureIndex = resolvedSearchParams?.pictureId ? images.findIndex(image => String(image.id) === resolvedSearchParams.pictureId) : -1
+  const requestedIndex = Number.parseInt(resolvedSearchParams?.index || "0",10)
+  const initialIndex = pictureIndex >= 0 ? pictureIndex : Math.max(0,Math.min(Number.isFinite(requestedIndex)?requestedIndex:0,images.length-1))
+  const firstPreview = photoSource(images[initialIndex].url,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280)
 
-  return (
+  return <>
+    <link rel="preload" as="image" href={firstPreview} />
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <PortfolioDetail
         id={setId}
         images={images}
-        translations={setEntry}
+        translations={collectionEditorial(setId) || setEntry}
         locations={resolvedLocations}
         returnContext={
           origin === "style" && originStyle
             ? {
                 type: "style",
+                homePath: resolvedSearchParams?.returnTo === "home" ? "/" : "/portfolio",
                 styleKey: originStyle,
                 styleIndex: Number.isFinite(originIndex as number) ? originIndex : 0,
               }
             : {
                 type: "portfolio",
+                homePath: origin === "home" ? "/" : "/portfolio",
                 returnSetId: returnSet || setId,
               }
         }
       />
     </Suspense>
-  )
+  </>
 }

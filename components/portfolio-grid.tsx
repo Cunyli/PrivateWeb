@@ -7,32 +7,47 @@ import { useI18n } from "@/lib/i18n"
 import Image from "next/image"
 import Link from "next/link"
 import clsx from "clsx"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { supabase } from "@/utils/supabase"
-import { ArrowLeft, ArrowUp } from "lucide-react"
+import { ArrowLeft, ArrowUp, Search, X } from "lucide-react"
+import * as Dialog from "@radix-ui/react-dialog"
 import type { PictureSet, Picture } from "@/lib/pictureSet.types"
 import { PortfolioLocationMap } from "@/components/portfolio-location-map"
 import { LangSwitcher } from "@/components/lang-switcher"
-import { PhotographyStyleShowcase, preloadPhotographyStyles } from "@/components/photography-style-showcase"
+import { PhotographyStyleShowcase } from "@/components/photography-style-showcase"
 import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
 import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 import portfolioImageLoader from "@/lib/portfolio-image-loader"
+import entryStyles from "./portfolio-entry.module.css"
+import chrome from "./portfolio-chrome.module.css"
+import { PortfolioFooter } from "./portfolio-footer"
+import { PortfolioPhotoSessions } from "./portfolio-photo-sessions"
+import { capturePortfolioPosition, settlePortfolioAnchor } from "@/lib/portfolio-return"
+import { balancedGalleryColumns, galleryCoverRatio } from "@/lib/portfolio-gallery-layout"
+import { usePortfolioRibbon } from "./use-portfolio-ribbon"
+import { portfolioLocationLabel } from "@/lib/portfolio-location-label"
+import { collectionEditorial, editorialMatches, matchingEditorialCollections, loadPhotoEditorial } from "@/lib/portfolio-editorial"
 
-const DEFAULT_DOWN_TILE_ASPECT_RATIO = 3 / 4
-const INITIAL_DOWN_LIMIT = 8
-const DOWN_PREFETCH_LIMIT = 24
-const UP_ROW_PREFETCH_LIMIT = 12
-const DOWN_THUMB_QUALITY = 45
 const DOWN_THUMB_PREFETCH_WIDTH = 640
-const DOWN_DIMENSION_PREFETCH_WIDTH = 64
 const THUMB_MAX_RESPONSIVE_WIDTH = 640
-const INTRO_MEDIA_WARMUP_FALLBACK_MS = 1600
 const DOWN_IMAGE_SIZES =
   "(min-width: 2200px) 14rem, (min-width: 1800px) 16rem, (min-width: 1536px) 18rem, (min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw"
-const ROW_SCROLL_SPEED_PX_PER_SECOND = 64
+const ROW_SCROLL_SPEED_PX_PER_SECOND = 32
 const MIN_LOOPED_ROW_ITEMS = 12
-const widthPattern = ["w-[15%]", "w-[25%]", "w-[20%]", "w-[25%]", "w-[15%]"]
-const getTileWidthClass = (index: number) => widthPattern[index % widthPattern.length]
+const ribbonRatios = [1.4, 1.7, 1.5, 1.75, 1.3]
+const ribbonCardStyle = (index: number, count: number, row: number): CSSProperties => {
+  const position=index % count
+  const phase=position/count*Math.PI*2*Math.max(1,Math.round(count/6))+row*Math.PI*.7
+  return {
+    ["--ribbon-ratio" as string]:ribbonRatios[position % ribbonRatios.length],
+    ["--ribbon-y" as string]:`${(Math.sin(phase)*24).toFixed(2)}px`,
+    ["--ribbon-tilt" as string]:`${(Math.cos(phase)*5).toFixed(2)}deg`,
+    ["--ribbon-layer" as string]:Math.sin(phase)>.1?4-row:2+row,
+    ["--ribbon-yaw" as string]:`${(Math.sin(phase)*7).toFixed(2)}deg`,
+    ["--ribbon-pitch" as string]:`${row===0?-4:4}deg`,
+    ["--ribbon-depth" as string]:`${(Math.cos(phase)*8).toFixed(2)}px`,
+  }
+}
 const createLoopedRow = (row: PictureSet[]): PictureSet[] => {
   if (!row.length) return []
   const minCopies = Math.max(2, Math.ceil(MIN_LOOPED_ROW_ITEMS / row.length))
@@ -47,14 +62,6 @@ const capResponsiveImageWidth = (src: string, maxWidth = THUMB_MAX_RESPONSIVE_WI
   if (!src.includes("/picture/responsive/")) return src
   const separator = src.includes("?") ? "&" : "?"
   return `${src}${separator}maxWidth=${maxWidth}`
-}
-
-const canWarmMediaConnection = () => {
-  if (typeof navigator === "undefined") return true
-  const conn = (navigator as any).connection
-  if (conn?.saveData) return false
-  if (conn?.effectiveType && ["slow-2g", "2g"].includes(conn.effectiveType)) return false
-  return true
 }
 
 const normalizeSearchInput = (value: string) =>
@@ -164,14 +171,13 @@ const normalizePictureSets = (
 
 interface PortfolioGridProps {
   initialData?: InitialPortfolioPayload
+  embedded?: boolean
 }
 
-export function PortfolioGrid({ initialData }: PortfolioGridProps) {
+export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridProps) {
   const { locale, t } = useI18n()
   const searchParams = useSearchParams()
-  const router = useRouter()
   const entryReturnHref = searchParams.get("from") === "photo-session" ? "/helsinki-photo-session" : "/"
-  const [portfolioEntering, setPortfolioEntering] = useState(true)
   const [pictureSets, setPictureSets] = useState<PictureSet[]>(initialData?.pictureSets || [])
   const [loading, setLoading] = useState(!initialData)
   const [showScrollToTop, setShowScrollToTop] = useState(false)
@@ -181,17 +187,25 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const [transMap, setTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>(initialData?.transMap || {})
   const [searchQuery, setSearchQuery] = useState("")
   const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState(false)
+  const [searchRetry, setSearchRetry] = useState(0)
   const [setResults, setSetResults] = useState<PictureSet[] | null>(null)
   const [pictureResults, setPictureResults] = useState<Picture[] | null>(null)
   const [pictureTransMap, setPictureTransMap] = useState<Record<number, { en?: { title?: string; subtitle?: string; description?: string }, zh?: { title?: string; subtitle?: string; description?: string } }>>({})
   const [setLocations, setSetLocations] = useState<Record<number, { name?: string | null; name_en?: string | null; name_zh?: string | null; latitude: number; longitude: number }>>(initialData?.setLocations || {})
   const [searchOpen, setSearchOpen] = useState(false)
-  const [portfolioNavigating, setPortfolioNavigating] = useState(false)
+  const searchTriggerRef = useRef<HTMLButtonElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const searchResultsRef = useRef<HTMLDivElement>(null)
   const [pictureSearchDimensions, setPictureSearchDimensions] = useState<Record<number, { width: number; height: number }>>({})
   const topRowRef = useRef<HTMLDivElement>(null)
+  const ribbonWeaveRef = useRef<HTMLDivElement>(null)
+  const ribbonActiveRef = useRef(false)
   const bottomRowRef = useRef<HTMLDivElement>(null)
+  const [galleryColumnCount, setGalleryColumnCount] = useState(4)
+  const archiveRef = useRef<HTMLDivElement>(null)
+  const [archiveMetrics, setArchiveMetrics] = useState({width: 1040, gap: 24})
+  const [galleryCoverRatios, setGalleryCoverRatios] = useState<Record<string, number>>({})
   const [topRowPaused, setTopRowPaused] = useState(false)
   const [bottomRowPaused, setBottomRowPaused] = useState(false)
   const topRowMaxScrollRef = useRef(0)
@@ -203,23 +217,19 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const pageScrollRef = useRef<HTMLDivElement>(null)
   const restoreAppliedRef = useRef(false)
   const restoredSearchQueryRef = useRef<string | null>(null)
-  const belowFoldWarmupStartedRef = useRef(false)
   const baseUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
-  const [coverDimensions, setCoverDimensions] = useState<Record<number, { width: number; height: number }>>({})
-  const downPrefetchedRef = useRef<Set<string>>(new Set())
-  const downPrefetchQueueRef = useRef<string[]>([])
-  const downPrefetchingRef = useRef(false)
-  const downDimensionQueuedRef = useRef<Set<number>>(new Set())
-  const downDimensionQueueRef = useRef<Array<{ id: number; url: string }>>([])
-  const downDimensionPrefetchingRef = useRef(false)
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0)
-  const [introMediaReady, setIntroMediaReady] = useState(false)
   const resumeTopRow = useCallback(() => {
+    if (ribbonActiveRef.current) return
+    const row = topRowRef.current
+    if ((row?.contains(document.activeElement) && document.activeElement?.matches(":focus-visible")) || (window.matchMedia("(hover: hover)").matches && row?.matches(":hover"))) return
     const current = topRowRef.current?.scrollLeft
     if (Number.isFinite(current)) topRowScrollRef.current = current || 0
     setTopRowPaused(false)
   }, [])
   const resumeBottomRow = useCallback(() => {
+    if (ribbonActiveRef.current) return
+    const row = bottomRowRef.current
+    if ((row?.contains(document.activeElement) && document.activeElement?.matches(":focus-visible")) || (window.matchMedia("(hover: hover)").matches && row?.matches(":hover"))) return
     const current = bottomRowRef.current?.scrollLeft
     if (Number.isFinite(current)) bottomRowScrollRef.current = current || 0
     setBottomRowPaused(false)
@@ -263,12 +273,12 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const handleTopRowScroll = useCallback(() => {
     const current = topRowRef.current?.scrollLeft
     if (Number.isFinite(current)) topRowScrollRef.current = current || 0
-    if (topRowPaused) scheduleResumeTopRow()
+    if (topRowPaused && !ribbonActiveRef.current) scheduleResumeTopRow()
   }, [scheduleResumeTopRow, topRowPaused])
   const handleBottomRowScroll = useCallback(() => {
     const current = bottomRowRef.current?.scrollLeft
     if (Number.isFinite(current)) bottomRowScrollRef.current = current || 0
-    if (bottomRowPaused) scheduleResumeBottomRow()
+    if (bottomRowPaused && !ribbonActiveRef.current) scheduleResumeBottomRow()
   }, [bottomRowPaused, scheduleResumeBottomRow])
   const handleTopRowWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
     if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
@@ -283,6 +293,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   const measureRowOverflow = useCallback((row: HTMLDivElement | null) => {
     if (typeof window === 'undefined' || !row) return 0
     const nativeOverflow = row.scrollWidth - row.clientWidth
+    const count = Number(row.dataset.loopItems)
+    const first = row.children[0] as HTMLElement | undefined
+    const duplicate = row.children[count] as HTMLElement | undefined
+    if (count > 0 && first && duplicate) return Math.min(nativeOverflow, duplicate.offsetLeft - first.offsetLeft)
     if (nativeOverflow > 1) return nativeOverflow
     const styles = window.getComputedStyle(row)
     const gapRaw = styles.columnGap || styles.gap || "0"
@@ -424,6 +438,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     if (!normalizedQuery) {
       setSetResults(null)
       setPictureResults(null)
+      setSearchLoading(false)
+      setSearchError(false)
       return
     }
     if (restoredSearchQueryRef.current === normalizedQuery) {
@@ -432,6 +448,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       return
     }
     let alive = true
+    setSearchLoading(true)
+    setSearchError(false)
     const t = setTimeout(async () => {
       setSearchLoading(true)
       try {
@@ -449,6 +467,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           pictureTransEn,
           pictureTransZh,
           semanticPictures,
+          editorialPhotos,
         ] = await Promise.all([
           supabase
             .from("picture_sets")
@@ -512,6 +531,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
               console.warn("Semantic picture search error:", error)
               return { results: [] as Picture[] }
             }),
+          loadPhotoEditorial(),
         ])
 
         if (setFts.error) console.warn("Set FTS error:", setFts.error)
@@ -543,16 +563,20 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           ),
         )
 
+        const editorialSetMatches = new Set(matchingEditorialCollections(searchTerms))
+        const editorialPictureMatches = new Set(editorialMatches(editorialPhotos, searchTerms))
         const setIdsFromTranslations = Array.from(
           new Set([
             ...((setTransEn.data || []).map((row: any) => row.picture_set_id)),
             ...((setTransZh.data || []).map((row: any) => row.picture_set_id)),
+            ...editorialSetMatches,
           ].filter((id): id is number => Number.isFinite(id))),
         )
         const pictureIdsFromTranslations = Array.from(
           new Set([
             ...((pictureTransEn.data || []).map((row: any) => row.picture_id)),
             ...((pictureTransZh.data || []).map((row: any) => row.picture_id)),
+            ...editorialPictureMatches,
           ].filter((id): id is number => Number.isFinite(id))),
         )
 
@@ -604,7 +628,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           ...promotedSets,
           ...baseSets,
           ...normalizePictureSets((extraSetsRes.data || []) as Partial<PictureSet>[]),
-        ])
+        ]).sort((left, right) => Number(editorialSetMatches.has(right.id)) - Number(editorialSetMatches.has(left.id)))
         const publishedPortfolioSetIds = new Set(
           [...pictureSets, ...sets]
             .filter((set) => set.is_published !== false)
@@ -614,8 +638,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           ...basePictures,
           ...((extraPicturesRes.data || []) as Picture[]),
         ]).filter((picture) => publishedPortfolioSetIds.has(picture.picture_set_id))
+          .sort((left, right) => Number(editorialPictureMatches.has(right.id)) - Number(editorialPictureMatches.has(left.id)))
 
         if (!alive) return
+        const curatedPictureMap: Record<number, any> = {}
+        for (const picture of pics) {
+          if (editorialPhotos[picture.id]) curatedPictureMap[picture.id] = editorialPhotos[picture.id]
+        }
+        setPictureTransMap(curatedPictureMap)
         setSetResults(sets)
         setPictureResults(pics)
 
@@ -650,6 +680,9 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           const pmap: Record<number, any> = {}
           for (const t of pen || []) pmap[(t as any).picture_id] = { ...(pmap[(t as any).picture_id] || {}), en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
           for (const t of pzh || []) pmap[(t as any).picture_id] = { ...(pmap[(t as any).picture_id] || {}), zh: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
+          for (const id of picIds) {
+            if (editorialPhotos[id]) pmap[id] = editorialPhotos[id]
+          }
           if (alive) setPictureTransMap(pmap)
         } else {
           if (alive) setPictureTransMap({})
@@ -657,12 +690,13 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
       } catch (e) {
         console.error('Search error', e)
+        if (alive) setSearchError(true)
       } finally {
         if (alive) setSearchLoading(false)
       }
     }, 350)
     return () => { alive = false; clearTimeout(t) }
-  }, [pictureSets, searchQuery])
+  }, [pictureSets, searchQuery, searchRetry])
 
   useEffect(() => {
     if (initialData) return
@@ -674,12 +708,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     const node = pageScrollRef.current
     if (!node) return
     const handleScroll = () => {
-      setShowScrollToTop(node.scrollTop > 300)
+      setShowScrollToTop(embedded ? node.getBoundingClientRect().top < -300 : node.scrollTop > 300)
     }
 
-    node.addEventListener("scroll", handleScroll)
-    return () => node.removeEventListener("scroll", handleScroll)
-  }, [])
+    const scrollTarget = embedded ? window : node
+    scrollTarget.addEventListener("scroll", handleScroll, { passive: true })
+    handleScroll()
+    return () => scrollTarget.removeEventListener("scroll", handleScroll)
+  }, [embedded])
 
   const upPictureSets = derivedUpSets
   // 直接使用状态中的洗牌结果，不再进行额外洗牌
@@ -694,151 +730,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [upPictureSets])
   const loopedFirstRow = useMemo(() => createLoopedRow(firstRow), [firstRow])
   const loopedSecondRow = useMemo(() => createLoopedRow(secondRow), [secondRow])
-  const downEagerCount = useMemo(
-    () => Math.min(downPictureSets.length, INITIAL_DOWN_LIMIT),
-    [downPictureSets.length],
-  )
-
-  const processDownPrefetch = useCallback(() => {
-    if (typeof window === 'undefined') return
-    if (downPrefetchingRef.current) return
-    const url = downPrefetchQueueRef.current.shift()
-    if (!url) return
-    downPrefetchingRef.current = true
-    const img = new window.Image()
-    img.decoding = 'async'
-    img.onload = img.onerror = () => {
-      downPrefetchingRef.current = false
-      processDownPrefetch()
-    }
-    img.src = url
-  }, [])
-
-  const enqueueDownPrefetch = useCallback((url: string) => {
-    if (!url) return
-    if (downPrefetchedRef.current.has(url)) return
-    downPrefetchedRef.current.add(url)
-    downPrefetchQueueRef.current.push(url)
-    if (typeof window !== 'undefined') {
-      window.setTimeout(processDownPrefetch, 0)
-    }
-  }, [processDownPrefetch])
-
-  const warmBelowFoldMedia = useCallback(() => {
-    if (typeof window === "undefined") return
-    if (!canWarmMediaConnection()) return
-
-    preloadPhotographyStyles()?.catch((error) => {
-      console.warn("Preloading photography styles failed:", error)
-    })
-
-    const candidates = [
-      ...firstRow,
-      ...secondRow,
-      ...downPictureSets.slice(0, DOWN_PREFETCH_LIMIT),
-    ].slice(0, UP_ROW_PREFETCH_LIMIT + DOWN_PREFETCH_LIMIT)
-
-    const queued = new Set<string>()
-    for (const item of candidates) {
-      if (!item.cover_image_url) continue
-      const src = capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`)
-      const optimizedSrc = portfolioImageLoader({ src, width: DOWN_THUMB_PREFETCH_WIDTH })
-      if (queued.has(optimizedSrc)) continue
-      queued.add(optimizedSrc)
-      enqueueDownPrefetch(optimizedSrc)
-    }
-  }, [baseUrl, downPictureSets, enqueueDownPrefetch, firstRow, secondRow])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    if (introMediaReady) return
-    const timer = window.setTimeout(() => setIntroMediaReady(true), INTRO_MEDIA_WARMUP_FALLBACK_MS)
-    return () => window.clearTimeout(timer)
-  }, [introMediaReady])
-
-  useEffect(() => {
-    if (loading) return
-    if (!introMediaReady) return
-    if (belowFoldWarmupStartedRef.current) return
-    belowFoldWarmupStartedRef.current = true
-    warmBelowFoldMedia()
-  }, [introMediaReady, loading, warmBelowFoldMedia])
-
-  const processDownDimensionPrefetch = useCallback(() => {
-    if (typeof window === "undefined") return
-    if (downDimensionPrefetchingRef.current) return
-    const next = downDimensionQueueRef.current.shift()
-    if (!next) return
-
-    downDimensionPrefetchingRef.current = true
-    const img = new window.Image()
-    img.decoding = "async"
-    img.onload = img.onerror = () => {
-      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-        setCoverDimensions((prev) => {
-          if (prev[next.id]) return prev
-          return {
-            ...prev,
-            [next.id]: {
-              width: img.naturalWidth,
-              height: img.naturalHeight,
-            },
-          }
-        })
-      }
-      downDimensionPrefetchingRef.current = false
-      processDownDimensionPrefetch()
-    }
-    img.src = next.url
-  }, [])
-
-  const enqueueDownDimensionPrefetch = useCallback((id: number, url: string) => {
-    if (!url) return
-    if (downDimensionQueuedRef.current.has(id)) return
-    downDimensionQueuedRef.current.add(id)
-    downDimensionQueueRef.current.push({ id, url })
-    if (typeof window !== "undefined") {
-      const idle = (window as any).requestIdleCallback
-      if (typeof idle === "function") {
-        idle(() => processDownDimensionPrefetch())
-      } else {
-        window.setTimeout(processDownDimensionPrefetch, 16)
-      }
-    }
-  }, [processDownDimensionPrefetch])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const conn = (navigator as any).connection
-    if (conn?.saveData) return
-    if (conn?.effectiveType && ['slow-2g', '2g'].includes(conn.effectiveType)) return
-
-    const bufferCount = Math.min(DOWN_PREFETCH_LIMIT, downPictureSets.length)
-    const candidates = downPictureSets.slice(0, bufferCount)
-    for (const item of candidates) {
-      if (!item.cover_image_url) continue
-      const src = capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`)
-      enqueueDownPrefetch(portfolioImageLoader({ src, width: DOWN_THUMB_PREFETCH_WIDTH }))
-    }
-  }, [downPictureSets, baseUrl, enqueueDownPrefetch])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const conn = (navigator as any).connection
-    if (conn?.saveData) return
-    if (conn?.effectiveType && ["slow-2g", "2g"].includes(conn.effectiveType)) return
-
-    for (const item of downPictureSets) {
-      if (!item.cover_image_url) continue
-      if (coverDimensions[item.id]) continue
-      const src = capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`)
-      enqueueDownDimensionPrefetch(
-        item.id,
-        portfolioImageLoader({ src, width: DOWN_DIMENSION_PREFETCH_WIDTH }),
-      )
-    }
-  }, [downPictureSets, baseUrl, coverDimensions, enqueueDownDimensionPrefetch])
-
+  const pauseRibbon = useCallback(() => { forcePauseTopRow(); forcePauseBottomRow() }, [forcePauseTopRow, forcePauseBottomRow])
+  const resumeRibbon = useCallback(() => { resumeTopRow(); resumeBottomRow() }, [resumeTopRow, resumeBottomRow])
+  usePortfolioRibbon({root:ribbonWeaveRef, top:topRowRef, bottom:bottomRowRef,
+    topPosition:topRowScrollRef, bottomPosition:bottomRowScrollRef, topCycle:topRowMaxScrollRef, bottomCycle:bottomRowMaxScrollRef,
+    active:ribbonActiveRef, pause:pauseRibbon, resume:resumeRibbon, disabled:searchOpen, revision:upPictureSets})
   useEffect(() => {
     updateRowScrollBounds()
   }, [updateRowScrollBounds, loopedFirstRow.length, loopedSecondRow.length])
@@ -872,15 +768,6 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     return () => observer.disconnect()
   }, [updateRowScrollBounds])
 
-  const handleDownImageLoaded = useCallback((id: number, width?: number, height?: number) => {
-    if (width && height) {
-      setCoverDimensions((prev) => {
-        if (prev[id]) return prev
-        return { ...prev, [id]: { width, height } }
-      })
-    }
-  }, [])
-
   const handlePictureSearchImageLoaded = useCallback((id: number, width?: number, height?: number) => {
     if (width && height) {
       setPictureSearchDimensions((prev) => {
@@ -894,37 +781,53 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     if (!loopedFirstRow.length && !loopedSecondRow.length) return
     if (!topRowRef.current && !bottomRowRef.current) return
 
-    let animationFrameId = 0
-    let lastTime = performance.now()
+    let animationFrameId = 0, lastTime = 0, rowsVisible = false
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const gate = embedded ? document.getElementById("works") : null
+    const visibleRows = new Set<Element>()
+    const active = () => rowsVisible && (!topRowPaused || !bottomRowPaused) && !searchOpen && !document.hidden && !motion.matches && !gate?.hasAttribute("inert")
     const tick = (now: number) => {
-      const delta = Math.min(now - lastTime, 80)
+      animationFrameId = 0
+      if (!active()) return
+      const delta = lastTime ? Math.min(now - lastTime, 80) : 0
       lastTime = now
-      const distance = (delta * ROW_SCROLL_SPEED_PX_PER_SECOND) / 1000
-      const top = topRowRef.current
-      const bottom = bottomRowRef.current
-      const maxTop = topRowMaxScrollRef.current
-      const maxBottom = bottomRowMaxScrollRef.current
-      if (top && loopedFirstRow.length && maxTop > 0.5 && !topRowPaused) {
-        const current = topRowScrollRef.current
-        const next = current + distance
-        const wrapped = next >= maxTop ? 0 : next
-        topRowScrollRef.current = wrapped
-        top.scrollLeft = wrapped
+      const distance = delta * ROW_SCROLL_SPEED_PX_PER_SECOND / 1000
+      const top = topRowRef.current, bottom = bottomRowRef.current
+      const maxTop = topRowMaxScrollRef.current, maxBottom = bottomRowMaxScrollRef.current
+      if (top && loopedFirstRow.length && maxTop > .5 && !topRowPaused && !ribbonActiveRef.current) {
+        const next = topRowScrollRef.current + distance
+        topRowScrollRef.current = next % maxTop
+        top.scrollLeft = topRowScrollRef.current
       }
-      if (bottom && loopedSecondRow.length && maxBottom > 0.5 && !bottomRowPaused) {
-        const current = bottomRowScrollRef.current
-        const next = current - distance
-        const wrapped = next <= 0 ? maxBottom : next
-        bottomRowScrollRef.current = wrapped
-        bottom.scrollLeft = wrapped
+      if (bottom && loopedSecondRow.length && maxBottom > .5 && !bottomRowPaused && !ribbonActiveRef.current) {
+        const next = bottomRowScrollRef.current - distance
+        bottomRowScrollRef.current = ((next % maxBottom) + maxBottom) % maxBottom
+        bottom.scrollLeft = bottomRowScrollRef.current
       }
-
-      animationFrameId = window.requestAnimationFrame(tick)
+      animationFrameId = requestAnimationFrame(tick)
     }
-
-    animationFrameId = window.requestAnimationFrame(tick)
-    return () => window.cancelAnimationFrame(animationFrameId)
-  }, [loopedFirstRow.length, loopedSecondRow.length, topRowPaused, bottomRowPaused])
+    const sync = () => {
+      if (active() && !animationFrameId) { lastTime = 0; animationFrameId = requestAnimationFrame(tick) }
+      else if (!active() && animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = 0; lastTime = 0 }
+    }
+    const rowObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => { if (entry.isIntersecting) visibleRows.add(entry.target); else visibleRows.delete(entry.target) })
+      rowsVisible = visibleRows.size > 0
+      sync()
+    })
+    if (topRowRef.current) rowObserver.observe(topRowRef.current)
+    if (bottomRowRef.current) rowObserver.observe(bottomRowRef.current)
+    const gateObserver = new MutationObserver(sync)
+    if (gate) gateObserver.observe(gate, { attributes: true, attributeFilter: ["inert"] })
+    motion.addEventListener("change", sync)
+    document.addEventListener("visibilitychange", sync)
+    return () => {
+      cancelAnimationFrame(animationFrameId)
+      rowObserver.disconnect(); gateObserver.disconnect()
+      motion.removeEventListener("change", sync)
+      document.removeEventListener("visibilitychange", sync)
+    }
+  }, [embedded, loopedFirstRow.length, loopedSecondRow.length, topRowPaused, bottomRowPaused, searchOpen])
 
   useEffect(() => {
     if (!loopedFirstRow.length) return
@@ -946,20 +849,29 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   }, [loopedSecondRow.length, measureRowOverflow])
 
   const scrollToTop = () => {
-    pageScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    const scrollTarget = embedded ? window : pageScrollRef.current
+    const top = embedded ? document.getElementById("works")?.offsetTop || 0 : 0
+    scrollTarget?.scrollTo({ top, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
   }
 
-  const savePortfolioReturnState = useCallback(() => {
-    if (typeof window === "undefined") return
+  useEffect(() => {
+    const open = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      if (event.defaultPrevented || (embedded && document.getElementById("works")?.hasAttribute("inert"))) return
+      if (document.querySelector('[role="dialog"]') && !searchOpen) return
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(value => !value); return }
+      if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key === "/" && !target?.closest('input,textarea,select,[contenteditable="true"]')) { event.preventDefault(); setSearchOpen(true) }
+    }
+    window.addEventListener("keydown", open)
+    return () => window.removeEventListener("keydown", open)
+  }, [embedded, searchOpen])
+
+  const savePortfolioReturnState = useCallback((anchor?: HTMLElement) => {
     restoreAppliedRef.current = false
-    const scrollTop = pageScrollRef.current?.scrollTop ?? window.scrollY ?? 0
-    window.sessionStorage.setItem("portfolio:return-scroll", String(scrollTop))
-    window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRowRef.current?.scrollLeft ?? topRowScrollRef.current ?? 0))
-    window.sessionStorage.setItem("portfolio:return-bottom-row-scroll", String(bottomRowRef.current?.scrollLeft ?? bottomRowScrollRef.current ?? 0))
+    capturePortfolioPosition(anchor)
     window.sessionStorage.setItem("portfolio:return-search-open", searchOpen ? "1" : "0")
     window.sessionStorage.setItem("portfolio:return-search-query", searchQuery)
     window.sessionStorage.setItem("portfolio:return-search-scroll", String(searchResultsRef.current?.scrollTop ?? 0))
-    window.sessionStorage.setItem("portfolio:return-pending", "1")
     if (searchOpen && searchQuery.trim()) {
       const cache: SearchReturnCache = {
         query: searchQuery,
@@ -974,41 +886,16 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
         console.warn("Could not cache portfolio search results:", error)
       }
     }
-  }, [pictureResults, pictureTransMap, searchOpen, searchQuery, setResults, transMap])
+  }, [embedded, pictureResults, pictureTransMap, searchOpen, searchQuery, setResults, transMap])
 
   const handlePortfolioNavigation = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
-    savePortfolioReturnState()
-    if (
-      event.defaultPrevented
-      || event.button !== 0
-      || event.metaKey
-      || event.ctrlKey
-      || event.shiftKey
-      || event.altKey
-    ) {
-      return
-    }
-    event.preventDefault()
-    const href = event.currentTarget.getAttribute("href")
-    setPortfolioNavigating(true)
-    if (href) {
-      window.setTimeout(() => {
-        router.push(href)
-      }, 420)
-    }
-  }, [router, savePortfolioReturnState])
-
-  const handleReturnHome = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault()
-    setPortfolioNavigating(true)
-    window.setTimeout(() => {
-      router.push(entryReturnHref)
-    }, 420)
-  }, [entryReturnHref, router])
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    savePortfolioReturnState(event.currentTarget)
+  }, [savePortfolioReturnState])
 
   const buildWorkHref = useCallback((setId: number | string, opts?: { index?: number | null; pictureId?: number | null }) => {
     const params = new URLSearchParams()
-    params.set("origin", "portfolio")
+    params.set("origin", embedded ? "home" : "portfolio")
     params.set("returnSet", String(setId))
     if (typeof opts?.pictureId === "number" && Number.isFinite(opts.pictureId)) {
       params.set("pictureId", String(opts.pictureId))
@@ -1017,11 +904,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       params.set("index", String(opts.index))
     }
     return `/work/${setId}?${params.toString()}`
-  }, [])
+  }, [embedded])
 
   const buildSearchBrowseHref = useCallback((picture: Picture) => {
     const params = new URLSearchParams()
-    params.set("origin", "portfolio")
+    params.set("origin", embedded ? "home" : "portfolio")
     params.set("returnSet", String(picture.picture_set_id))
     params.set("pictureId", String(picture.id))
     const orderedPictureIds = (pictureResults || []).map((item) => item.id).filter(Number.isFinite)
@@ -1030,21 +917,18 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       params.set("q", searchQuery.trim())
     }
     return `/work/search?${params.toString()}`
-  }, [pictureResults, searchQuery])
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setPortfolioEntering(false), 80)
-    return () => window.clearTimeout(timer)
-  }, [])
+  }, [embedded, pictureResults, searchQuery])
 
   useEffect(() => {
     if (restoreAppliedRef.current || loading) return
+    const returnPath = window.sessionStorage.getItem("portfolio:return-path")
+    const matchingReturn = returnPath === (embedded ? "/" : "/portfolio") || (!returnPath && !embedded)
 
     const wantsRestore = searchParams.get("restore") === "1"
     const focusSet = searchParams.get("focusSet")
     const focusSection = searchParams.get("focusSection")
     const hasPendingReturn = typeof window !== "undefined"
-      ? window.sessionStorage.getItem("portfolio:return-pending") === "1"
+      ? matchingReturn && window.sessionStorage.getItem("portfolio:return-pending") === "1"
       : false
     if (!wantsRestore && !focusSet && !focusSection && !hasPendingReturn) return
 
@@ -1069,7 +953,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       if (typeof window !== "undefined") {
         window.sessionStorage.removeItem("portfolio:return-pending")
       }
-      const shouldRestoreReturnState = wantsRestore || hasPendingReturn
+      const shouldRestoreReturnState = matchingReturn && (wantsRestore || hasPendingReturn)
 
       if (shouldRestoreReturnState && storedSearchOpen) {
         const cachedSearch = (() => {
@@ -1101,14 +985,14 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           if (searchResultsRef.current && Number.isFinite(storedSearchScroll)) {
             searchResultsRef.current.scrollTop = storedSearchScroll
           }
-          searchInputRef.current?.focus()
+          searchInputRef.current?.focus({ preventScroll: true })
         }, 450)
       }
 
       if (shouldRestoreReturnState && storedScrollTop) {
         const value = Number(storedScrollTop)
         if (Number.isFinite(value)) {
-          node.scrollTo({ top: value, behavior: "auto" })
+          const scrollTarget = embedded ? window : node
           const topRowScroll = Number(window.sessionStorage.getItem("portfolio:return-top-row-scroll"))
           const bottomRowScroll = Number(window.sessionStorage.getItem("portfolio:return-bottom-row-scroll"))
           if (topRowRef.current && Number.isFinite(topRowScroll)) {
@@ -1119,26 +1003,63 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
             bottomRowRef.current.scrollLeft = bottomRowScroll
             bottomRowScrollRef.current = bottomRowScroll
           }
+          const width = Number(window.sessionStorage.getItem("portfolio:return-width"))
+          const height = Number(window.sessionStorage.getItem("portfolio:return-height"))
+          const resized = Math.abs(width - window.innerWidth) > 8 || Math.abs(height - window.innerHeight) > 80
+          const anchor = window.sessionStorage.getItem("portfolio:return-anchor")
+          const section = window.sessionStorage.getItem("portfolio:return-section")
+          const scope = section ? node.querySelector(`[data-return-section="${CSS.escape(section)}"]`) || node : node
+          const focusTarget = focusSet && (resized || anchor !== focusSet)
+            ? scope.querySelector<HTMLElement>(`[data-set-id="${CSS.escape(focusSet)}"]`) || (section === "coordinates" ? null : node.querySelector<HTMLElement>(`[data-set-id="${CSS.escape(focusSet)}"]`)) : null
+          node.dataset.returnMode = focusTarget ? "focus" : "position"
+          node.dataset.returnViewport = `${width}x${height}`
+          if (focusTarget) {
+            focusTarget.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" })
+            const minimum = embedded ? document.getElementById("works")?.offsetTop || 0 : 0
+            if (embedded && window.scrollY < minimum) window.scrollTo({ top: minimum, behavior: "auto" })
+            const row = focusTarget.closest<HTMLDivElement>("[data-portfolio-row]")
+            if (row) {
+              const left = row.scrollLeft + focusTarget.getBoundingClientRect().left - row.getBoundingClientRect().left - (row.clientWidth - focusTarget.clientWidth) / 2
+              row.scrollLeft = left
+              if (row.dataset.portfolioRow === "top") { topRowScrollRef.current = row.scrollLeft; forcePauseTopRow() }
+              else { bottomRowScrollRef.current = row.scrollLeft; forcePauseBottomRow() }
+            }
+            requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }))
+          } else if (resized && section === "coordinates") {
+            scope.scrollIntoView({ block: "start", behavior: "auto" })
+          } else if (resized && focusSection) {
+            node.querySelector(`[data-return-section="${CSS.escape(focusSection)}"]`)?.scrollIntoView({ block: "start", behavior: "auto" })
+          } else {
+            const minimum = embedded ? document.getElementById("works")?.offsetTop || 0 : 0
+            scrollTarget.scrollTo({ top: Math.max(minimum, value), behavior: "auto" })
+            const anchorTop=window.sessionStorage.getItem("portfolio:return-anchor-top")
+            const positionAnchor=!resized && anchor?scope.querySelector<HTMLElement>(`[data-set-id="${CSS.escape(anchor)}"]`):null
+            if (positionAnchor && anchorTop) settlePortfolioAnchor(node,positionAnchor,Number(anchorTop),embedded)
+          }
           return
         }
       }
 
       if (focusSet) {
-        const target = node.querySelector(`[data-set-id="${focusSet}"]`) as HTMLElement | null
+        const target = node.querySelector(`[data-set-id="${CSS.escape(focusSet)}"]`) as HTMLElement | null
         target?.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" })
+        const minimum = embedded ? document.getElementById("works")?.offsetTop || 0 : 0
+        if (embedded && window.scrollY < minimum) window.scrollTo({ top: minimum, behavior: "auto" })
         return
       }
 
       if (focusSection) {
-        const target = node.querySelector(`[data-portfolio-section="${focusSection}"]`) as HTMLElement | null
+        const target = node.querySelector(`[data-return-section="${CSS.escape(focusSection)}"]`) as HTMLElement | null
         target?.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" })
       }
     }
 
     requestAnimationFrame(() => requestAnimationFrame(run))
-  }, [loading, searchParams])
+  }, [embedded, loading, searchParams, forcePauseTopRow, forcePauseBottomRow])
 
   const getText = useCallback((s: PictureSet, key: 'title' | 'subtitle' | 'description') => {
+    const editorial = collectionEditorial(s.id)
+    if (editorial) return editorial[locale === 'zh' ? 'zh' : 'en'][key]
     const translations = transMap[s.id]
     if (locale === 'zh') return translations?.zh?.[key] || s[key]
     return translations?.en?.[key] || s[key]
@@ -1146,8 +1067,8 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
   const getPicText = useCallback((p: Picture, key: 'title' | 'subtitle' | 'description') => {
     const translations = pictureTransMap[p.id]
-    if (locale === 'zh') return translations?.zh?.[key] || (p as any)[key]
-    return translations?.en?.[key] || (p as any)[key]
+    if (locale === 'zh') return translations?.zh?.[key] ?? (p as any)[key]
+    return translations?.en?.[key] ?? (p as any)[key]
   }, [locale, pictureTransMap])
 
   const locationClusters = useMemo(() => {
@@ -1160,21 +1081,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue
       const bucketKey = `${lat.toFixed(3)}:${lng.toFixed(3)}`
 
-      // 根据当前语言选择地点名称
-      let locationName: string
-      if (locale === 'zh') {
-        locationName = (loc.name_zh && String(loc.name_zh).trim().length > 0)
-          ? String(loc.name_zh)
-          : (loc.name && String(loc.name).trim().length > 0)
-            ? String(loc.name)
-            : t('mapUnknownLocation')
-      } else {
-        locationName = (loc.name_en && String(loc.name_en).trim().length > 0)
-          ? String(loc.name_en)
-          : (loc.name && String(loc.name).trim().length > 0)
-            ? String(loc.name)
-            : t('mapUnknownLocation')
-      }
+      const locationName = portfolioLocationLabel(loc, locale, t("mapUnknownLocation"))
 
       const existing = buckets.get(bucketKey) || {
         key: bucketKey,
@@ -1200,79 +1107,78 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
     })).sort((a, b) => a.name.localeCompare(b.name))
   }, [pictureSets, setLocations, baseUrl, getText, t, locale])
 
-  const downGallerySubtitle = t('downGallerySubtitle')
-  const hasDownGallerySubtitle = downGallerySubtitle.trim().length > 0
+  useEffect(() => {
+    const wide = window.matchMedia("(min-width: 1280px)")
+    const medium = window.matchMedia("(min-width: 900px)")
+    const landscape = window.matchMedia("(max-height: 520px) and (min-width: 641px)")
+    const updateColumns = () => setGalleryColumnCount(landscape.matches ? 3 : wide.matches ? 4 : medium.matches ? 3 : 2)
+    const queries = [wide, medium, landscape]
+    updateColumns()
+    queries.forEach(query => query.addEventListener("change", updateColumns))
+    return () => queries.forEach(query => query.removeEventListener("change", updateColumns))
+  }, [])
+
+  useEffect(() => {
+    const node = archiveRef.current
+    if (!node) return
+    const observer = new ResizeObserver(([entry]) => {
+      const width = entry.contentRect.width
+      const gap = Number.parseFloat(getComputedStyle(node).columnGap) || 0
+      if (width > 0) setArchiveMetrics(previous => Math.abs(previous.width - width) < .5 && previous.gap === gap ? previous : {width, gap})
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [loading])
+
+  const galleryColumns = useMemo(() => balancedGalleryColumns(downPictureSets, galleryColumnCount, archiveMetrics.width, archiveMetrics.gap, galleryCoverRatios),
+    [downPictureSets, galleryColumnCount, archiveMetrics, galleryCoverRatios])
+
+  useEffect(() => {
+    const root=pageScrollRef.current
+    if (!root || loading) return
+    const groups=root.querySelectorAll<HTMLElement>("[data-gallery-float-group]")
+    if (!groups.length) return
+    const visible=() => {root.dataset.galleryAwake=String(!document.hidden)}
+    const observer=new IntersectionObserver(entries => {
+      entries.forEach(entry => { (entry.target as HTMLElement).dataset.inView=String(entry.isIntersecting) })
+    },{rootMargin:"80px"})
+    groups.forEach(group => {group.dataset.inView="false";observer.observe(group)})
+    visible();document.addEventListener("visibilitychange",visible)
+    return () => {observer.disconnect();document.removeEventListener("visibilitychange",visible);delete root.dataset.galleryAwake}
+  },[loading,galleryColumns])
 
   const downGallerySection = !loading && downPictureSets.length > 0 && (
-    <section className="mt-12 sm:mt-20">
-      <div className={clsx("text-center max-w-3xl mx-auto", hasDownGallerySubtitle ? "mb-2 sm:mb-4" : "mb-4 sm:mb-6")}>
-        <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
-          {t('downGalleryTitle')}
-        </h2>
-        {hasDownGallerySubtitle && (
-          <p className="mt-1 text-xs sm:text-sm text-slate-500/80">
-            {downGallerySubtitle}
-          </p>
-        )}
-      </div>
+    <section className={chrome.section} data-return-section="collections">
+      <h2 className="sr-only">{t("downGalleryTitle")}</h2>
       <div className="flex justify-center w-full">
-        <div className="w-full px-2 sm:px-4 mx-auto max-w-6xl xl:max-w-7xl 2xl:max-w-[100rem] min-[2200px]:max-w-[120rem]">
-          <div
-            className="columns-2 sm:columns-2 lg:columns-3 xl:columns-4 [column-fill:balance] [column-gap:0.5rem] sm:[column-gap:0.75rem] min-[900px]:[column-gap:0.9rem] 2xl:[column-count:auto] 2xl:[column-width:18rem] min-[1800px]:[column-width:16rem] min-[2200px]:[column-width:14rem]"
-          >
-            {downPictureSets.map((item, index) => {
-              const dims = coverDimensions[item.id]
-              const aspectRatio = dims ? dims.width / Math.max(dims.height, 1) : undefined
-              const coverSrc = item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : '/placeholder.svg'
-              const eager = index < downEagerCount
-
-              const columnAwareStyle: CSSProperties = {
-                opacity: 1,
-                animationDelay: `${index * 100}ms`,
-                breakInside: 'avoid-column',
-                ['WebkitColumnBreakInside' as any]: 'avoid',
-              }
-
-              return (
-                <div
-                  key={item.id}
-                  className="group relative inline-block w-full transition-opacity duration-500 ease-out mb-2 sm:mb-3"
-                  style={columnAwareStyle}
-                >
-                  <Link
-                    href={buildWorkHref(item.id)}
-                    data-set-id={item.id}
-                    onClick={handlePortfolioNavigation}
-                    className="block relative overflow-hidden gpu-accelerated rounded-lg"
-                    style={{ aspectRatio: aspectRatio || DEFAULT_DOWN_TILE_ASPECT_RATIO }}
-                  >
-                    <Image
-                      src={coverSrc}
-                      alt={getText(item, 'title') || item.title}
-                      fill
-                      quality={DOWN_THUMB_QUALITY}
-                      fetchPriority={eager ? 'high' : 'low'}
-                      decoding="async"
-                      sizes={DOWN_IMAGE_SIZES}
-                      className="object-cover"
-                      priority={eager}
-                      loading={eager ? 'eager' : 'lazy'}
-                      onLoad={(e) => {
-                        const img = e.target as HTMLImageElement
-                        handleDownImageLoaded(item.id, img.naturalWidth, img.naturalHeight)
+        <div className={chrome.archive}>
+          <div ref={archiveRef} className={chrome.archiveColumns} style={{gridTemplateColumns: `repeat(${galleryColumnCount}, minmax(0, 1fr))`}}>
+            {galleryColumns.map((column,columnIndex) => <div key={columnIndex} className={chrome.archiveColumn} data-gallery-column={columnIndex}
+              style={{"--archive-inner-gap":`${column.innerGap}px`, "--archive-group-gap":`${column.groupGap}px`, "--archive-offset":`${column.offset}px`} as CSSProperties}>
+            {Array.from({length:Math.ceil(column.items.length/2)},(_,pairIndex) => {
+              const pair=column.items.slice(pairIndex*2,pairIndex*2+2)
+              const groupIndex=pairIndex*galleryColumnCount+columnIndex
+              const direction=groupIndex%2===0?1:-1
+              return <div key={pair[0].id} className={chrome.archiveFloatGroup} data-gallery-float-group
+                style={{["--drift-from" as string]:`${-16*direction}px`,["--drift-to" as string]:`${16*direction}px`,["--drift-duration" as string]:`${11+groupIndex%5*1.7}s`,["--drift-delay" as string]:`${-(groupIndex%4)*2.1}s`}}>
+                {pair.map(item => {
+                  const coverSrc=item.cover_image_url?capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`):"/placeholder.svg"
+                  return <Link key={item.id} href={buildWorkHref(item.id)} prefetch={false} data-set-id={item.id}
+                    onClick={handlePortfolioNavigation} className={clsx(chrome.archiveTile,"group block relative overflow-hidden")}
+                    aria-label={[getText(item,"title"),getText(item,"subtitle")].filter(Boolean).join(" · ")}>
+                    <img src={portfolioImageLoader({src:coverSrc,width:DOWN_THUMB_PREFETCH_WIDTH})} alt="" width={640} height={Math.round(640/galleryCoverRatio(item,galleryCoverRatios))}
+                      onLoad={({currentTarget}) => {
+                        const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
+                        if (!Number.isFinite(ratio) || ratio <= 0) return
+                        setGalleryCoverRatios(previous => Math.abs(galleryCoverRatio(item,previous)-ratio) < .001 ? previous : {...previous,[item.cover_image_url]:ratio})
                       }}
-                    />
-
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20 p-4 text-white opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
-                      <div className="text-center">
-                        <h3 className="text-lg font-medium mb-1">{getText(item, 'title')}</h3>
-                        <p className="text-sm opacity-80">{getText(item, 'subtitle')}</p>
-                      </div>
-                    </div>
+                      loading="lazy" decoding="async" draggable={false} className="block h-auto w-full" />
+                    <div className={chrome.tileCaption}><h3>{getText(item,"title")}</h3><p>{getText(item,"subtitle")}</p></div>
                   </Link>
-                </div>
-              )
+                })}
+              </div>
             })}
+            </div>)}
           </div>
         </div>
       </div>
@@ -1281,160 +1187,63 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
   )
 
   return (
-    <div ref={pageScrollRef} data-portfolio-scroll-root className="w-full mx-auto h-[100svh] overflow-y-auto scroll-smooth snap-y snap-proximity md:snap-mandatory">
-      <div
-        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${
-          portfolioEntering || portfolioNavigating ? "opacity-100" : "opacity-0"
-        }`}
-        aria-hidden="true"
-      />
-      <a
-        href={entryReturnHref}
-        onClick={handleReturnHome}
-        className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white/88 px-3 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
-        style={{
-          position: "fixed",
-          left: 16,
-          top: 16,
-          zIndex: 9999,
-          height: 40,
-          pointerEvents: "auto",
-        }}
-        aria-label={locale === "zh" ? "返回入口" : "Back to entry"}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span>{locale === "zh" ? "返回" : "Back"}</span>
-      </a>
-      <section className="snap-start snap-always h-[100svh] flex items-center justify-center px-2 sm:px-4 py-8 sm:py-16">
-        <div className="w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[90rem] flex flex-col gap-4 sm:gap-6">
-          <div className="flex flex-col gap-4 md:grid md:grid-cols-[auto,minmax(0,1fr),auto] md:items-center md:gap-3">
-            <button
-              type="button"
-              aria-label="Previous video"
-              className="hidden md:inline-flex h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md items-center justify-center"
-              onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
-            >
-              ‹
-            </button>
-            <div className="relative mx-auto w-full max-w-[900px] overflow-hidden bg-transparent aspect-[3/2]">
-              {activeVideoIndex === 0 ? (
-                <iframe
-                  key="yt-0"
-                  src="https://www.youtube.com/embed/LLVJtDjDHrA?si=BdXz0Kl75BTRMoGm&rel=0&modestbranding=1&iv_load_policy=3"
-                  title="YouTube video player"
-                  className="absolute inset-0 h-full w-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                  onLoad={() => setIntroMediaReady(true)}
-                />
-              ) : (
-                <iframe
-                  key="yt-1"
-                  src="https://www.youtube.com/embed/GFKieTQabW4?si=OcQbh_KPwkcE1trL&rel=0&modestbranding=1&iv_load_policy=3"
-                  title="YouTube video player"
-                  className="absolute inset-0 h-full w-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                  onLoad={() => setIntroMediaReady(true)}
-                />
-              )}
-            </div>
-            <button
-              type="button"
-              aria-label="Next video"
-              className="hidden md:inline-flex h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md items-center justify-center"
-              onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
-            >
-              ›
-            </button>
-            <div className="flex items-center justify-center gap-3 md:hidden">
-              <button
-                type="button"
-                aria-label="Previous video"
-                className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                aria-label="Next video"
-                className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                onClick={() => setActiveVideoIndex((prev) => (prev + 1) % 2)}
-              >
-                ›
-              </button>
-            </div>
+    <div ref={pageScrollRef} data-portfolio-scroll-root data-embedded={embedded || undefined} data-gallery-paused={searchOpen || undefined} className={clsx(chrome.gallery, embedded ? entryStyles.gallery : chrome.standalone)}>
+      <section data-portfolio-content className={chrome.content}>
+        <header className={chrome.header}>
+          <div className={chrome.headingGroup}>
+            {!embedded && <Link href={entryReturnHref} className={chrome.control} aria-label={entryReturnHref === "/helsinki-photo-session" ? (locale === "zh" ? "返回约拍" : "Back to photo sessions") : (locale === "zh" ? "返回首页" : "Back to home")}><ArrowLeft size={18} strokeWidth={1.4} /></Link>}
+            {embedded ? <h2 className="sr-only">{t('galleriesTitle')}</h2> : <h1 className="sr-only">{t('galleriesTitle')}</h1>}
           </div>
-          <div className="scroll-hint">
-            <span className="scroll-glow" />
-            <span className="scroll-chevron" />
-            <span className="scroll-chevron" />
-            <span className="scroll-chevron" />
+          <div className={chrome.controls}>
+            <LangSwitcher />
+            <button ref={searchTriggerRef} type="button" onClick={() => setSearchOpen(true)} className={chrome.control} aria-label={t('openSearch')} title={t('search')}>
+              <Search size={18} strokeWidth={1.4} aria-hidden="true" />
+            </button>
           </div>
-        </div>
-      </section>
+        </header>
 
-      <section className="snap-start snap-always min-h-[100svh] px-2 sm:px-4 py-8 sm:py-16 flex flex-col">
-        <div className="relative mb-4 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-light tracking-wide text-center text-slate-900/90">
-            {t('galleriesTitle')}
-          </h1>
-          {/* Header controls (search) */}
-          <div className="absolute right-0 top-0 flex items-center gap-2">
-            <LangSwitcher className="bg-white text-gray-700" />
-            {/* Search panel trigger */}
-            <button
-              onClick={() => {
-                setSearchOpen(true)
-                setTimeout(() => searchInputRef.current?.focus(), 0)
-              }}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm bg-white text-gray-700 hover:shadow"
-              title={t('search')}
-              aria-label={t('openSearch')}
-            >
-              🔍
-            </button>
-          </div>
-        </div>
-
-        {/* Lightweight search panel (overlay) */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/35 backdrop-blur-md" onClick={() => setSearchOpen(false)}>
-          <div className="absolute inset-x-1 top-1 mx-auto max-w-[96rem] sm:inset-x-3 sm:top-3" onClick={(e) => e.stopPropagation()}>
-            <div className="overflow-hidden rounded-xl border border-white/70 bg-white/95 shadow-[0_28px_90px_rgba(15,23,42,0.24)] backdrop-blur-xl">
-              <div className="flex items-center gap-3 border-b border-slate-200/70 px-4 py-3.5 sm:px-6 sm:py-4">
+      <Dialog.Root open={searchOpen} onOpenChange={setSearchOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className={chrome.searchOverlay} />
+          <Dialog.Content className={chrome.searchPanel}
+            onOpenAutoFocus={event => { event.preventDefault(); searchInputRef.current?.focus({ preventScroll: true }) }}
+            onCloseAutoFocus={event => { event.preventDefault(); searchTriggerRef.current?.focus({ preventScroll: true }) }}>
+            <Dialog.Title className="sr-only">{t('search')}</Dialog.Title>
+            <Dialog.Description className="sr-only">{locale === "zh" ? "搜索地点、颜色或画面，选择照片开始浏览。" : "Search a place, colour or scene, then choose a photograph."}</Dialog.Description>
+            <div className={chrome.searchBar}>
+              <Search size={20} strokeWidth={1.4} aria-hidden="true" />
                 <input
                   ref={searchInputRef}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  type="search"
+                  autoComplete="off"
+                  aria-label={t('search')}
                   placeholder={t('homeSearchPlaceholder')}
-                  className="min-w-0 flex-1 bg-transparent text-lg text-slate-900 outline-none placeholder:text-slate-400 sm:text-xl"
+                  className={chrome.searchInput}
                 />
                 {searchQuery && (
-                  <button className="text-sm text-slate-500 transition-colors hover:text-slate-900" onClick={() => setSearchQuery("")}>{t('clear')}</button>
+                  <button type="button" className={chrome.searchClear} onClick={() => { setSearchQuery(""); searchInputRef.current?.focus({ preventScroll: true }) }}>{t('clear')}</button>
                 )}
-                {searchLoading && (
-                  <span className="hidden whitespace-nowrap text-xs font-medium text-slate-500 sm:inline">
-                    {locale === 'zh' ? '正在做向量数据库搜索' : 'Vector database search'}
-                  </span>
-                )}
-                  <button className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" onClick={() => setSearchOpen(false)} aria-label={t('close')}>×</button>
-                </div>
-              <div ref={searchResultsRef} className="max-h-[calc(100svh-4rem)] overflow-auto px-3 py-4 sm:px-6 sm:py-6">
+              <Dialog.Close asChild><button type="button" className={chrome.control} aria-label={t('close')}><X size={18} strokeWidth={1.4} /></button></Dialog.Close>
+            </div>
+            <div ref={searchResultsRef} className={chrome.searchResults}>
+              <div className={chrome.searchStatus} role="status" aria-live="polite">
+                {searchLoading ? t('searching') : searchQuery.trim() && !searchError ? `${setResults?.length || 0} ${locale === "zh" ? "本相册" : "collections"} · ${pictureResults?.length || 0} ${locale === "zh" ? "张照片" : "photographs"}` : t('search')}
+              </div>
+              {!searchQuery.trim() ? <div className={chrome.searchEmpty}>
+                <p>{locale === "zh" ? "地点、颜色、天气，都可以搜。" : "Search by place, colour, weather, or what you remember."}</p>
+                <div className={chrome.suggestions}>{(locale === "zh" ? ["巴黎", "雨天", "海边"] : ["Paris", "Rain", "By the sea"]).map(query => <button key={query} type="button" onClick={() => { setSearchQuery(query); searchInputRef.current?.focus({ preventScroll: true }) }}>{query}</button>)}</div>
+              </div> : searchError ? <div className={chrome.searchEmpty} role="alert"><p>{locale === "zh" ? "暂时没能完成搜索，请再试一次。" : "Search could not finish. Please try again."}</p><div className={chrome.suggestions}><button type="button" onClick={() => setSearchRetry(value => value + 1)}>{locale === "zh" ? "重新搜索" : "Try again"}</button></div></div> : <>
                 {/* Results list */}
                 <div className="flex flex-col gap-7">
                   <div>
                     <div className="mb-3 flex items-center justify-between">
                       <h2 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{t('setMatchesHdr')}</h2>
-                      {searchLoading && <span className="text-xs text-gray-500">{t('searching')}</span>}
+
                     </div>
                     {(setResults?.length || 0) === 0 ? (
-                      <p className="text-sm text-gray-500">{t('noMatchingSets')}</p>
+                      <p className="text-sm text-gray-500">{searchLoading ? '…' : t('noMatchingSets')}</p>
                     ) : (
                       <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar sm:gap-4">
                         {(setResults || []).map((item) => (
@@ -1447,7 +1256,7 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                           >
                             <Image
                               src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
-                              alt={getText(item, 'title')}
+                              alt=""
                               fill
                               quality={65}
                               sizes="(max-width: 640px) 78vw, (max-width: 768px) 46vw, (max-width: 1024px) 34vw, 22vw"
@@ -1466,10 +1275,10 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   <div>
                     <div className="mb-3 flex items-center justify-between">
                       <h2 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{t('pictureMatchesHdr')}</h2>
-                      {searchLoading && <span className="text-xs text-gray-500">{t('searching')}</span>}
+
                     </div>
                     {(pictureResults?.length || 0) === 0 ? (
-                      <p className="text-sm text-gray-500">{t('noMatchingPictures')}</p>
+                      <p className="text-sm text-gray-500">{searchLoading ? '…' : t('noMatchingPictures')}</p>
                     ) : (
                       <div className="columns-2 sm:columns-3 lg:columns-4 2xl:columns-5 [column-fill:balance] [column-gap:0.5rem] sm:[column-gap:0.75rem]">
                         {(pictureResults || []).map((p) => {
@@ -1507,11 +1316,11 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                     )}
                   </div>
                 </div>
-              </div>
+              </>}
             </div>
-          </div>
-        </div>
-      )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       <div className="flex flex-col gap-6 sm:gap-12 flex-1">
         {loading ? (
@@ -1530,54 +1339,46 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
           <>
             {/* 上部两行自动滚动 - 移动端优化 */}
             {firstRow.length > 0 && (
-              <div className="space-y-2 sm:space-y-3">
+              <div ref={ribbonWeaveRef} className={chrome.ribbonWeave} data-ribbon-surface role="region" aria-label={locale === "zh" ? "可拖动的摄影作品" : "Draggable photography collections"}>
                 <div
                   ref={topRowRef}
                   data-portfolio-row="top"
-                  className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
+                  data-loop-items={firstRow.length}
+                  className={clsx(chrome.ribbonRow,"flex overflow-x-auto hide-scrollbar w-full")}
                   onScroll={handleTopRowScroll}
                   onWheel={handleTopRowWheel}
-                  onPointerUp={scheduleResumeTopRow}
-                  onPointerCancel={scheduleResumeTopRow}
-                  onPointerLeave={scheduleResumeTopRow}
-                  onPointerDown={forcePauseTopRow}
                 >
                   {loopedFirstRow.map((item, i) => {
-                    const widthClass = getTileWidthClass(i)
+                    const tileStyle = ribbonCardStyle(i,firstRow.length,0)
                     const eager = i < Math.min(6, firstRow.length)
 
                     return (
                       <Link
                         key={`${item.id}-${i}`}
                         href={buildWorkHref(item.id)}
+                        draggable={false}
                         data-set-id={item.id}
+                        tabIndex={i >= firstRow.length ? -1 : 0} aria-hidden={i >= firstRow.length || undefined}
                         onClick={handlePortfolioNavigation}
-                        className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
+                        style={tileStyle}
+                        className={clsx(chrome.tile,"group relative flex-none overflow-hidden bg-gray-100")}
                       >
                       <Image
                         src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
-                        alt={item.title}
+                        alt=""
+                        draggable={false}
                         fill
                         quality={60}
                         fetchPriority={eager ? "high" : "auto"}
-                        sizes="(max-width: 640px) 33vw, 20vw"
-                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                        sizes="(max-width: 640px) 160px, 240px"
+                        className="object-cover"
                         priority={eager}
                         loading={eager ? "eager" : "lazy"}
-                        onLoadingComplete={updateRowScrollBounds}
                       />
 
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-4 text-center text-white opacity-100 transition-opacity duration-300 ease-out group-hover:opacity-0">
-                          <h2
-                            className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
-                          >
-                            {getText(item, 'title')}
-                          </h2>
-                          <p
-                            className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
-                          >
-                            {getText(item, 'subtitle')}
-                          </p>
+                        <div className={chrome.tileCaption}>
+                          <h3>{getText(item, 'title')}</h3>
+                          <p>{getText(item, 'subtitle')}</p>
                         </div>
                       </Link>
                     )
@@ -1589,51 +1390,43 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
                   <div
                     ref={bottomRowRef}
                     data-portfolio-row="bottom"
-                    className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-3 w-full"
+                    data-loop-items={secondRow.length}
+                    className={clsx(chrome.ribbonRow,"flex overflow-x-auto hide-scrollbar w-full")}
                     onScroll={handleBottomRowScroll}
                     onWheel={handleBottomRowWheel}
-                    onPointerUp={scheduleResumeBottomRow}
-                    onPointerCancel={scheduleResumeBottomRow}
-                    onPointerLeave={scheduleResumeBottomRow}
-                    onPointerDown={forcePauseBottomRow}
-                  >
+                              >
                     {loopedSecondRow.map((item, i) => {
-                      const widthClass = getTileWidthClass(i)
+                      const tileStyle = ribbonCardStyle(i,secondRow.length,1)
                       const eager = i < Math.min(6, secondRow.length)
 
                       return (
                         <Link
                           key={`${item.id}-${i}`}
                           href={buildWorkHref(item.id)}
+                        draggable={false}
                           data-set-id={item.id}
+                        tabIndex={i >= secondRow.length ? -1 : 0} aria-hidden={i >= secondRow.length || undefined}
                           onClick={handlePortfolioNavigation}
-                          className={`group relative aspect-[16/9] flex-none ${widthClass} min-w-[160px] sm:min-w-[200px] overflow-hidden bg-gray-100 gpu-accelerated rounded-md transition-transform duration-300 ease-out hover:scale-[1.02]`}
+                          style={tileStyle}
+                        className={clsx(chrome.tile,"group relative flex-none overflow-hidden bg-gray-100")}
                         >
                         <Image
                           src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
-                          alt={item.title}
+                          alt=""
+                          draggable={false}
                           fill
                           quality={60}
                           fetchPriority={eager ? "high" : "auto"}
-                          sizes="(max-width: 640px) 33vw, 20vw"
-                          className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                          sizes="(max-width: 640px) 160px, 240px"
+                          className="object-cover"
                           priority={eager}
                           loading={eager ? "eager" : "lazy"}
-                          onLoadingComplete={updateRowScrollBounds}
-                        />
+                          />
 
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-4 text-center text-white opacity-100 transition-opacity duration-300 ease-out group-hover:opacity-0">
-                            <h2
-                              className="text-xl sm:text-2xl font-light mb-2 hidden sm:block transition-transform duration-300 ease-out group-hover:-translate-y-1"
-                            >
-                              {getText(item, 'title')}
-                            </h2>
-                            <p
-                              className="text-sm opacity-80 hidden sm:block transition-transform duration-300 ease-out group-hover:translate-y-1"
-                            >
-                              {getText(item, 'subtitle')}
-                            </p>
-                          </div>
+                          <div className={chrome.tileCaption}>
+                          <h3>{getText(item, 'title')}</h3>
+                          <p>{getText(item, 'subtitle')}</p>
+                        </div>
                         </Link>
                       )
                     })}
@@ -1646,23 +1439,17 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
       </div>
 
       {!loading && (
-        <section data-portfolio-section="styles">
+        <section data-portfolio-section="styles" data-return-section="styles">
         <Suspense fallback={<div className="py-8 text-center text-gray-500">Loading...</div>}>
-          <PhotographyStyleShowcase />
+          <PhotographyStyleShowcase paused={searchOpen} />
         </Suspense>
         </section>
       )}
 
+      {!loading && <PortfolioPhotoSessions paused={searchOpen} />}
+
       {locationClusters.length > 0 && (
-        <section className="mt-16 sm:mt-24">
-          <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
-              {t('mapSectionTitle')}
-            </h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-500/80">
-              {t('mapSectionSubtitle')}
-            </p>
-          </div>
+        <section className={chrome.section} data-return-section="coordinates">
           <PortfolioLocationMap
             locations={locationClusters}
             heading={t('mapSectionTitle')}
@@ -1675,114 +1462,19 @@ export function PortfolioGrid({ initialData }: PortfolioGridProps) {
 
       {downGallerySection}
 
-      <footer className="mt-16 sm:mt-24 pb-6 sm:pb-8 border-t border-slate-200/70">
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-6 text-xs tracking-[0.24em] text-slate-500/80">
-          <a
-            href="https://www.instagram.com/cunyli_lijie/"
-            target="_blank"
-            rel="noreferrer"
-            className="transition-colors hover:text-slate-900"
-          >
-            {locale === "zh" ? "Instagram" : "Instagram"}
-          </a>
-          <span aria-hidden className="text-slate-300">
-            /
-          </span>
-          <a
-            href="https://www.xiaohongshu.com/user/profile/608e62a5000000000100bc40"
-            target="_blank"
-            rel="noreferrer"
-            className="transition-colors hover:text-slate-900"
-          >
-            {locale === "zh" ? "小红书" : "Xiaohongshu"}
-          </a>
-          <span aria-hidden className="text-slate-300">
-            /
-          </span>
-          <span className="text-slate-500/80 normal-case">
-            {locale === "zh" ? "微信" : "WeChat"} Llj773882712
-          </span>
-        </div>
-      </footer>
+      <PortfolioFooter />
       </section>
 
       {/* Scroll to top button */}
       {showScrollToTop && (
         <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 bg-black text-white p-3 rounded-full transition-all duration-300 ease-out hover:bg-gray-800 hover:scale-110 shadow-lg"
+          type="button" onClick={scrollToTop}
+          className={chrome.topButton}
+          aria-label={locale === "zh" ? "回到作品列表顶部" : "Back to the top of the gallery"}
         >
           <ArrowUp className="w-5 h-5" />
         </button>
       )}
-      <style jsx>{`
-        .scroll-hint {
-          position: relative;
-          display: inline-flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          color: rgba(100, 116, 139, 0.9);
-        }
-
-        .scroll-chevron {
-          width: 14px;
-          height: 14px;
-          border-right: 2px solid currentColor;
-          border-bottom: 2px solid currentColor;
-          transform: rotate(45deg);
-          opacity: 0.65;
-          animation: chevronPulse 1.6s ease-in-out infinite;
-        }
-
-        .scroll-chevron:nth-of-type(2) {
-          animation-delay: 0.2s;
-        }
-
-        .scroll-chevron:nth-of-type(3) {
-          animation-delay: 0.4s;
-        }
-
-        .scroll-glow {
-          position: absolute;
-          top: 0;
-          left: 50%;
-          width: 26px;
-          height: 40px;
-          transform: translateX(-50%);
-          background: linear-gradient(180deg, rgba(148, 163, 184, 0), rgba(148, 163, 184, 0.6), rgba(148, 163, 184, 0));
-          filter: blur(6px);
-          opacity: 0.6;
-          animation: glowSlide 1.6s ease-in-out infinite;
-        }
-
-        @keyframes chevronPulse {
-          0%,
-          100% {
-            opacity: 0.3;
-            transform: rotate(45deg) translateY(-2px);
-          }
-          50% {
-            opacity: 0.9;
-            transform: rotate(45deg) translateY(2px);
-          }
-        }
-
-        @keyframes glowSlide {
-          0% {
-            opacity: 0;
-            transform: translate(-50%, -6px);
-          }
-          40% {
-            opacity: 0.8;
-          }
-          100% {
-            opacity: 0;
-            transform: translate(-50%, 24px);
-          }
-        }
-      `}</style>
     </div>
   )
 }

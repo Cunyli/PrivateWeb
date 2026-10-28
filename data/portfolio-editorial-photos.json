@@ -1,0 +1,5050 @@
+{
+  "sourceSha256": "a74533aad92bc0099686c31ff8d4413945bbeb0377bb61be5a1530f19263d9e2",
+  "sourceExportedAt": "2026-10-28T01:05:35.465Z",
+  "version": 1,
+  "date": "2026-10-28",
+  "draftModel": "verda/kimi-k3",
+  "reviewedBy": "Codex",
+  "photographs": {
+    "2281": {
+      "en": {
+        "title": "Follow the Flower",
+        "subtitle": "",
+        "description": "A flower held overhead marks the way for the group."
+      },
+      "zh": {
+        "title": "队伍前面的一朵花",
+        "subtitle": "",
+        "description": "路口有人把一朵花举高，队伍跟在后面。"
+      }
+    },
+    "2282": {
+      "en": {
+        "title": "Between the Hedges",
+        "subtitle": "",
+        "description": "Tall clipped hedges flank a shaded walkway as visitors follow the path toward a bright opening."
+      },
+      "zh": {
+        "title": "树篱夹道",
+        "subtitle": "",
+        "description": "两排修剪整齐的高树篱夹出阴凉步道，游人沿路走向远处的亮处。"
+      }
+    },
+    "2283": {
+      "en": {
+        "title": "Red Tape, Green Slope",
+        "subtitle": "",
+        "description": "Red-and-white tape crosses the green slope below the hilltop pavilion."
+      },
+      "zh": {
+        "title": "草坡上的红白线",
+        "subtitle": "",
+        "description": "草坡上拉着红白警戒带，远处是美泉宫的观景楼。"
+      }
+    },
+    "2284": {
+      "en": {
+        "title": "An Opening in the Hedges",
+        "subtitle": "",
+        "description": "Small figures cross a patch of light between tall hedges."
+      },
+      "zh": {
+        "title": "树篱留的一道光",
+        "subtitle": "",
+        "description": "高大的树篱之间，几个人影走过亮处。"
+      }
+    },
+    "2285": {
+      "en": {
+        "title": "The Platform Opposite",
+        "subtitle": "",
+        "description": "A bright rectangle frames two people on the opposite platform."
+      },
+      "zh": {
+        "title": "对面站台",
+        "subtitle": "",
+        "description": "暗处的窗口里，框着对面站台上的两个人。"
+      }
+    },
+    "2286": {
+      "en": {
+        "title": "Path Across the Slope",
+        "subtitle": "",
+        "description": "A gravel path climbs the green slope past red-and-white barrier tape, with the hilltop pavilion just visible."
+      },
+      "zh": {
+        "title": "草坡小径",
+        "subtitle": "",
+        "description": "碎石小径贴着绿坡向上，红白警戒带拦在草丛里，坡顶露出观景楼的轮廓。"
+      }
+    },
+    "2287": {
+      "en": {
+        "title": "Waiting for Someone to Run Past",
+        "subtitle": "",
+        "description": "I waited by these cherry trees until someone ran across the petal-covered path."
+      },
+      "zh": {
+        "title": "等一个人跑过",
+        "subtitle": "",
+        "description": "为了这几株樱花等了很久，终于有人跑过花瓣铺着的小路。"
+      }
+    },
+    "2288": {
+      "en": {
+        "title": "Swans Past the Bridge Arch",
+        "subtitle": "",
+        "description": "The bridge's dark arch fills half the frame as people on the stone steps watch two swans drift past."
+      },
+      "zh": {
+        "title": "桥洞外的天鹅",
+        "subtitle": "",
+        "description": "桥洞的阴影占去半边画面，石阶上坐着几个人，看两只天鹅贴着水面游过。"
+      }
+    },
+    "2289": {
+      "en": {
+        "title": "Lawn by the Glasshouse",
+        "subtitle": "",
+        "description": "The long glasshouse front faces the sky while people stretch out across the broad lawn before it."
+      },
+      "zh": {
+        "title": "温室前的草坪",
+        "subtitle": "",
+        "description": "玻璃温室的长立面映着天光，门前大草坪上到处是躺着晒太阳的人。"
+      }
+    },
+    "2290": {
+      "en": {
+        "title": "The Bicycle Rests Too",
+        "subtitle": "",
+        "description": "Someone sits on the lawn beside a bicycle and a bed of flowers."
+      },
+      "zh": {
+        "title": "自行车也休息",
+        "subtitle": "",
+        "description": "一个人坐在草地上，自行车倒在身旁，花坛就在脚边。"
+      }
+    },
+    "2291": {
+      "en": {
+        "title": "The Statue Stays Standing",
+        "subtitle": "",
+        "description": "People stretch out on the grass in front of the equestrian statue."
+      },
+      "zh": {
+        "title": "铜像负责站着",
+        "subtitle": "",
+        "description": "骑马铜像前，人们已经在草地上躺下。"
+      }
+    },
+    "2292": {
+      "en": {
+        "title": "Room on the Lawn",
+        "subtitle": "",
+        "description": "Small groups spread across the lawn below a white statue."
+      },
+      "zh": {
+        "title": "树下各躺各的",
+        "subtitle": "",
+        "description": "树下的草坪上散着几组人，远处站着一座白色雕像。"
+      }
+    },
+    "2293": {
+      "en": {
+        "title": "Horseman on the Square",
+        "subtitle": "",
+        "description": "A green bronze horseman rears before a long pink palace facade, the people below reduced to specks."
+      },
+      "zh": {
+        "title": "广场上的骑马像",
+        "subtitle": "",
+        "description": "绿色骑马铜像扬起前蹄，背景是浅粉色的宫殿长楼，草地上的人小得只剩影子。"
+      }
+    },
+    "2294": {
+      "en": {
+        "title": "Riders Before the Dome",
+        "subtitle": "",
+        "description": "Under a streaked cloudy sky, the museum's green dome looms behind dark silhouetted equestrian statues."
+      },
+      "zh": {
+        "title": "穹顶前的骑像",
+        "subtitle": "",
+        "description": "多云天空下，博物馆的绿色穹顶压着广场，前景骑马铜像只剩深色剪影。"
+      }
+    },
+    "2295": {
+      "en": {
+        "title": "Behind the Flower Counter",
+        "subtitle": "",
+        "description": "The florist stands among bouquets, loose stems and a counter full of flowers."
+      },
+      "zh": {
+        "title": "花店柜台后",
+        "subtitle": "",
+        "description": "围裙、花束和铺满柜台的花材，店员站在它们中间。"
+      }
+    },
+    "2296": {
+      "en": {
+        "title": "Reflections on the Glass Grid",
+        "subtitle": "",
+        "description": "Steel mullions divide the glass facade into a grid, warping the reflection of the older facades across from it."
+      },
+      "zh": {
+        "title": "玻璃幕墙上的楼影",
+        "subtitle": "",
+        "description": "玻璃幕墙被钢架划成方格，对面老楼的影子折在格子里，随玻璃微微起伏。"
+      }
+    },
+    "2297": {
+      "en": {
+        "title": "Graffiti Underpass Entrance",
+        "subtitle": "",
+        "description": "The underpass walls are layered with graffiti while pedestrians cross the plaza above and around it."
+      },
+      "zh": {
+        "title": "涂鸦地道口",
+        "subtitle": "",
+        "description": "地道入口的矮墙涂满层层叠叠的涂鸦，广场上的人三三两两从它身边走过。"
+      }
+    },
+    "2298": {
+      "en": {
+        "title": "Waiting at the Crossing",
+        "subtitle": "",
+        "description": "Tram tracks angle through the intersection where a small knot of pedestrians waits beneath the signal poles."
+      },
+      "zh": {
+        "title": "等灯的路口",
+        "subtitle": "",
+        "description": "电车轨道斜过路口，信号灯杆下站着一小撮行人，背后墙上贴满海报。"
+      }
+    },
+    "2299": {
+      "en": {
+        "title": "Crossing, Eyes on Phone",
+        "subtitle": "",
+        "description": "Between tall old facades, a pedestrian strides across the street looking down at a phone."
+      },
+      "zh": {
+        "title": "低头过街",
+        "subtitle": "",
+        "description": "窄街被两旁老楼夹紧，一个行人边看手机边迈步穿过路口。"
+      }
+    },
+    "2300": {
+      "en": {
+        "title": "There Is Room on the Grass",
+        "subtitle": "",
+        "description": "People sit and lie across a broad lawn surrounded by trees."
+      },
+      "zh": {
+        "title": "草坪还有位置",
+        "subtitle": "",
+        "description": "大草坪上坐着、躺着许多人，树冠在四周围成一圈。"
+      }
+    },
+    "2301": {
+      "en": {
+        "title": "VR, on Location",
+        "subtitle": "",
+        "description": "The monument is right there; several visitors are looking through VR headsets."
+      },
+      "zh": {
+        "title": "来现场戴上VR",
+        "subtitle": "",
+        "description": "纪念柱就在面前，几位游客却戴着VR眼镜看它。"
+      }
+    },
+    "2302": {
+      "en": {
+        "title": "Where the Wave Breaks",
+        "subtitle": "",
+        "description": "White surf breaks around the ochre rocks."
+      },
+      "zh": {
+        "title": "浪到这里散开",
+        "subtitle": "",
+        "description": "白色浪花沿着黄褐色的礁石散开。"
+      }
+    },
+    "2303": {
+      "en": {
+        "title": "Pines on the Rocky Slope",
+        "subtitle": "",
+        "description": "Two pines lean seaward on a stony slope while small figures stand along the ridge line taking in the view."
+      },
+      "zh": {
+        "title": "岩坡上的松树",
+        "subtitle": "",
+        "description": "碎石坡上两棵松树歪向海的方向，坡顶站着几个小小的人影朝远处看。"
+      }
+    },
+    "2304": {
+      "en": {
+        "title": "Path Down to the Sea",
+        "subtitle": "",
+        "description": "A dirt path threads through flowering grass past a lone tree as two walkers head toward the hazy sea."
+      },
+      "zh": {
+        "title": "通往海边的土路",
+        "subtitle": "",
+        "description": "土路从花草丛里穿过去，绕过那棵孤零零的大树，两个行人走向雾蒙蒙的海。"
+      }
+    },
+    "2305": {
+      "en": {
+        "title": "Night Steps",
+        "subtitle": "",
+        "description": "One figure climbs a lamplit stone staircase between empty cafe tables."
+      },
+      "zh": {
+        "title": "夜巷石阶",
+        "subtitle": "",
+        "description": "路灯照亮一段上坡石阶，一人正拾级而上，两侧桌椅空着。"
+      }
+    },
+    "2306": {
+      "en": {
+        "title": "Court Above the Roofs",
+        "subtitle": "",
+        "description": "A small court sits among old-town rooftops, with one person crossing it alone."
+      },
+      "zh": {
+        "title": "红屋顶球场",
+        "subtitle": "",
+        "description": "小球场嵌在老城屋顶之间，一个人正从场中走过。"
+      }
+    },
+    "2307": {
+      "en": {
+        "title": "Hillside Overlook",
+        "subtitle": "",
+        "description": "Two people sit on a grassy, rocky slope above the rooftops and bay."
+      },
+      "zh": {
+        "title": "山坡上看海",
+        "subtitle": "",
+        "description": "两人坐在草坡岩石上，面朝山下红顶老城与海湾。"
+      }
+    },
+    "2308": {
+      "en": {
+        "title": "On the City Wall",
+        "subtitle": "",
+        "description": "Two people walk along a narrow stone rampart path that turns ahead."
+      },
+      "zh": {
+        "title": "城墙上的两个人",
+        "subtitle": "",
+        "description": "两个人沿着石砌城墙前行，狭窄的步道在前方转弯。"
+      }
+    },
+    "2384": {
+      "en": {
+        "title": "Car in the Grass",
+        "subtitle": "",
+        "description": "A dark sedan sits abandoned in tall grass against layered mountains."
+      },
+      "zh": {
+        "title": "草丛里的旧车",
+        "subtitle": "",
+        "description": "一辆深色轿车弃置在山谷草丛中，背后山峦层叠。"
+      }
+    },
+    "2385": {
+      "en": {
+        "title": "Orange Curtain",
+        "subtitle": "",
+        "description": "Orange curtains frame the window, partly hidden by the passengers in front."
+      },
+      "zh": {
+        "title": "橘色窗帘",
+        "subtitle": "",
+        "description": "橘色窗帘垂在车窗旁，乘客的背影挡住了窗外的一角。"
+      }
+    },
+    "2386": {
+      "en": {
+        "title": "Floodlight Tower",
+        "subtitle": "",
+        "description": "A floodlight array and its lattice support stand against the dark sky."
+      },
+      "zh": {
+        "title": "夜里的灯架",
+        "subtitle": "",
+        "description": "矩形投光灯阵列立在金属塔架上，四周是一整片黑色夜空。"
+      }
+    },
+    "2387": {
+      "en": {
+        "title": "Chasing a Pigeon",
+        "subtitle": "",
+        "description": "A child runs across the lawn toward a pigeon below a stone church wall."
+      },
+      "zh": {
+        "title": "草地追鸽",
+        "subtitle": "",
+        "description": "小孩在石墙前的草坪上跑向一只鸽子，大人远远站着。"
+      }
+    },
+    "2388": {
+      "en": {
+        "title": "End of the Pier",
+        "subtitle": "",
+        "description": "People sit scattered at the stone pier's end, a cruise ship offshore."
+      },
+      "zh": {
+        "title": "码头尽头",
+        "subtitle": "",
+        "description": "石质码头伸入蓝色海面，几人散坐尽头，远处有邮轮。"
+      }
+    },
+    "2330": {
+      "en": {
+        "title": "Bench Facing the Peaks",
+        "subtitle": "",
+        "description": "Two people on a white bench face the distant snow-lined ridge."
+      },
+      "zh": {
+        "title": "长椅与雪山",
+        "subtitle": "",
+        "description": "两人坐在白色长椅上背对镜头，望向远处积雪的山脊。"
+      }
+    },
+    "2331": {
+      "en": {
+        "title": "Frames in the Field",
+        "subtitle": "",
+        "description": "White frames stand in a field beneath layered green ridges."
+      },
+      "zh": {
+        "title": "田里的白色架子",
+        "subtitle": "",
+        "description": "白色架子立在田里，背后是层叠的绿色山脊。"
+      }
+    },
+    "2332": {
+      "en": {
+        "title": "Forty on the Balcony",
+        "subtitle": "",
+        "description": "An orange house bears a round 40 sign beside a decorated branch."
+      },
+      "zh": {
+        "title": "阳台上的40",
+        "subtitle": "",
+        "description": "橘色房子挂着一个40的圆牌，门边还有装饰过的树枝。"
+      }
+    },
+    "2333": {
+      "en": {
+        "title": "Doors Beneath the Arch",
+        "subtitle": "",
+        "description": "Light comes through the wooden doors at the end of a tiled hall."
+      },
+      "zh": {
+        "title": "拱顶下的木门",
+        "subtitle": "",
+        "description": "拱顶大厅尽头的木门透着光，地砖一路铺到门前。"
+      }
+    },
+    "2334": {
+      "en": {
+        "title": "Sketching by the Lake",
+        "subtitle": "",
+        "description": "A seated figure sketches at the lakeside, silhouetted against the water."
+      },
+      "zh": {
+        "title": "湖边画画的人",
+        "subtitle": "",
+        "description": "一个人坐在湖边低头作画，身影被湖面衬成深色剪影。"
+      }
+    },
+    "2335": {
+      "en": {
+        "title": "The Island Church",
+        "subtitle": "",
+        "description": "Two people sit on a dock facing a lake island crowned by a church."
+      },
+      "zh": {
+        "title": "湖心岛",
+        "subtitle": "",
+        "description": "两人坐在栈桥边，望向湖心岛上从树梢间露出的教堂。"
+      }
+    },
+    "2347": {
+      "en": {
+        "title": "Meadow and Village",
+        "subtitle": "",
+        "description": "Yellow flowers fill the meadow below a village at the foot of the hills."
+      },
+      "zh": {
+        "title": "黄花田与村庄",
+        "subtitle": "",
+        "description": "黄花开在大片绿地上，村庄贴着远处的山脚。"
+      }
+    },
+    "2348": {
+      "en": {
+        "title": "Valley Road",
+        "subtitle": "",
+        "description": "Road signs line a valley road between green fields and wooded slopes."
+      },
+      "zh": {
+        "title": "山谷公路",
+        "subtitle": "",
+        "description": "公路从山谷的草地间穿过，路旁立着标志牌，后面是层层山坡。"
+      }
+    },
+    "2349": {
+      "en": {
+        "title": "Peaks and Pylons",
+        "subtitle": "",
+        "description": "Bare trees front the meadow, pylons and snow peaks lined up beyond."
+      },
+      "zh": {
+        "title": "雪峰与电线塔",
+        "subtitle": "",
+        "description": "几棵落叶树立在草坡前，远处电线塔和雪峰一字排开。"
+      }
+    },
+    "2350": {
+      "en": {
+        "title": "Blossoms Beside the Roofs",
+        "subtitle": "",
+        "description": "Pink blossom trees stand near the roofs, with a village and layered mountains beyond."
+      },
+      "zh": {
+        "title": "屋檐旁的花树",
+        "subtitle": "",
+        "description": "粉色花树在近处开着，村庄和层叠的山留在后面。"
+      }
+    },
+    "2351": {
+      "en": {
+        "title": "Castle on the Hill",
+        "subtitle": "",
+        "description": "A castle sits on a wooded hill, with houses and fields below."
+      },
+      "zh": {
+        "title": "山上的古堡",
+        "subtitle": "",
+        "description": "古堡立在林木覆盖的山顶，房屋与田野散在山脚。"
+      }
+    },
+    "2352": {
+      "en": {
+        "title": "Church Beneath the Clouds",
+        "subtitle": "",
+        "description": "Dark clouds hang above a spired church, with a bright starburst of light below."
+      },
+      "zh": {
+        "title": "云层压低的教堂",
+        "subtitle": "",
+        "description": "深色云层压在教堂上方，一盏灯在草地边亮成星形。"
+      }
+    },
+    "2353": {
+      "en": {
+        "title": "Rainbow Over the Field",
+        "subtitle": "",
+        "description": "A rainbow crosses the sky above a house, trees and green fields."
+      },
+      "zh": {
+        "title": "田边的彩虹",
+        "subtitle": "",
+        "description": "彩虹斜穿天空，下方是小屋、树木和绿地。"
+      }
+    },
+    "2354": {
+      "en": {
+        "title": "Rainbow over the Lake",
+        "subtitle": "",
+        "description": "A rainbow appears above the lake, with yellow-green trees along the far shore."
+      },
+      "zh": {
+        "title": "湖上的彩虹",
+        "subtitle": "",
+        "description": "湖面上方露出一道彩虹，对岸树林带着一层黄绿。"
+      }
+    },
+    "2355": {
+      "en": {
+        "title": "Crowd at the Fountain",
+        "subtitle": "",
+        "description": "Visitors line the rim beneath white figures and horses on the fountain's stone base."
+      },
+      "zh": {
+        "title": "喷泉与游客",
+        "subtitle": "",
+        "description": "白色人物和马匹雕塑铺开在石台上，游客沿喷泉边站成一排。"
+      }
+    },
+    "2356": {
+      "en": {
+        "title": "Palace Behind the Meadow",
+        "subtitle": "",
+        "description": "A long pale palace sits beyond a wildflower meadow, with the city lining the horizon."
+      },
+      "zh": {
+        "title": "草坡后的宫殿",
+        "subtitle": "",
+        "description": "大片草坡开着零星的黄花，浅色长宫殿横在远处，城市沿天边铺开。"
+      }
+    },
+    "2357": {
+      "en": {
+        "title": "Night Rails",
+        "subtitle": "",
+        "description": "Several tracks converge through a lit rail yard, signals glowing against the dark."
+      },
+      "zh": {
+        "title": "夜里的铁轨",
+        "subtitle": "",
+        "description": "多条铁轨在夜色里向前并线，站场灯光照亮道岔和信号灯。"
+      }
+    },
+    "2378": {
+      "en": {
+        "title": "Roofs Above the Sea",
+        "subtitle": "",
+        "description": "Red tiled roofs crowd the old town around a bell tower, the blue sea beyond."
+      },
+      "zh": {
+        "title": "俯瞰红屋顶",
+        "subtitle": "",
+        "description": "密密麻麻的红瓦屋顶铺满老城，钟楼立在中间，后面是蓝色的海。"
+      }
+    },
+    "2379": {
+      "en": {
+        "title": "Harbor Lights",
+        "subtitle": "",
+        "description": "Small boats rest in the dark harbor while the hillside houses glow with light."
+      },
+      "zh": {
+        "title": "夜港灯火",
+        "subtitle": "",
+        "description": "天黑后的港湾停着一排小船，山坡上的房子亮起成片灯火。"
+      }
+    },
+    "2380": {
+      "en": {
+        "title": "Waves Below the Walls",
+        "subtitle": "",
+        "description": "Waves break on the rocks below the walls of the old town on the cliffs."
+      },
+      "zh": {
+        "title": "城墙下的海",
+        "subtitle": "",
+        "description": "海浪拍打礁石，老城的石墙和海边房屋沿着崖边排开。"
+      }
+    },
+    "2381": {
+      "en": {
+        "title": "Valley Floor",
+        "subtitle": "",
+        "description": "Utility poles run down the green valley past scattered houses, grey mountains behind."
+      },
+      "zh": {
+        "title": "山脚下的路",
+        "subtitle": "",
+        "description": "电线杆沿着山谷排开，房屋散在绿树间，背后是一排灰色的山。"
+      }
+    },
+    "2382": {
+      "en": {
+        "title": "Mountain at the End of the Street",
+        "subtitle": "",
+        "description": "A pedestrian passes parked cars, with mountains rising behind the buildings."
+      },
+      "zh": {
+        "title": "山留在街尾",
+        "subtitle": "",
+        "description": "行人经过停满汽车的街道，远山立在楼房后面。"
+      }
+    },
+    "2383": {
+      "en": {
+        "title": "Sky in a Stone Circle",
+        "subtitle": "",
+        "description": "The open top of a stone rotunda frames a circle of blue sky."
+      },
+      "zh": {
+        "title": "石墙上的天空",
+        "subtitle": "",
+        "description": "石砌圆厅敞着顶，抬头就是一圈蓝天。"
+      }
+    },
+    "2397": {
+      "en": {
+        "title": "Red Roofs, Snowy Peaks",
+        "subtitle": "",
+        "description": "Old-town red roofs fill the foreground while a line of snowy peaks closes the horizon."
+      },
+      "zh": {
+        "title": "红屋顶与雪山",
+        "subtitle": "",
+        "description": "近处是老城的红瓦屋顶，远处一排雪山压在城市的天线上。"
+      }
+    },
+    "2398": {
+      "en": {
+        "title": "Steps Underground",
+        "subtitle": "",
+        "description": "Walkway steps wind down through the cave while warm lamps pick out the rock overhead."
+      },
+      "zh": {
+        "title": "洞里的台阶",
+        "subtitle": "",
+        "description": "溶洞里的栈道台阶蜿蜒向下，暖色灯光照亮头顶的岩石。"
+      }
+    },
+    "2399": {
+      "en": {
+        "title": "Island in the Mist",
+        "subtitle": "",
+        "description": "A white church with a red roof stands on the island, the shore and hills in mist."
+      },
+      "zh": {
+        "title": "雾里的湖心岛",
+        "subtitle": "",
+        "description": "湖心小岛上立着白墙红顶的教堂，两岸树林和远山罩在雾气里。"
+      }
+    },
+    "2400": {
+      "en": {
+        "title": "Trees Across the Lake",
+        "subtitle": "",
+        "description": "Dark green water meets a wooded shore with one small house, snow-dusted peaks beyond."
+      },
+      "zh": {
+        "title": "对岸的绿林",
+        "subtitle": "",
+        "description": "湖水绿得发暗，对岸树林里藏着一座小屋，更远处是残雪的山。"
+      }
+    },
+    "2401": {
+      "en": {
+        "title": "Small Tower in the Lake",
+        "subtitle": "",
+        "description": "A narrow little tower rises from the green lake with dense trees packed behind it."
+      },
+      "zh": {
+        "title": "水中的小亭",
+        "subtitle": "",
+        "description": "一座窄小的尖顶亭立在靠近岸边的湖水里，四周被绿树围住。"
+      }
+    },
+    "2402": {
+      "en": {
+        "title": "Castle Above the Lake",
+        "subtitle": "",
+        "description": "The castle perches on a rocky bluff above the lake, its orange roofs bright among trees."
+      },
+      "zh": {
+        "title": "崖顶古堡",
+        "subtitle": "",
+        "description": "古堡蹲在湖边的岩壁上，橙红色屋顶在绿树里很显眼。"
+      }
+    },
+    "2403": {
+      "en": {
+        "title": "Both Sides of the Lake",
+        "subtitle": "",
+        "description": "The castle holds the cliff at left while a church spire marks the far shore."
+      },
+      "zh": {
+        "title": "一湖两岸",
+        "subtitle": "",
+        "description": "城堡占着左边的岩壁，教堂尖顶立在右岸，背后是连绵的青山。"
+      }
+    },
+    "2404": {
+      "en": {
+        "title": "Boat Below the Castle",
+        "subtitle": "",
+        "description": "A rower brings a wooden boat past the castle cliff, trailing a line on green water."
+      },
+      "zh": {
+        "title": "湖上的木船",
+        "subtitle": "",
+        "description": "一人摇着木船从岩壁下经过，船尾在绿水上拖出一道水痕。"
+      }
+    },
+    "2405": {
+      "en": {
+        "title": "Mountains in Cloud",
+        "subtitle": "",
+        "description": "A castle rises above green woods, with the mountains partly hidden in cloud."
+      },
+      "zh": {
+        "title": "山在云里",
+        "subtitle": "",
+        "description": "城堡立在绿树上方，背后的山峰半藏在云里。"
+      }
+    },
+    "2490": {
+      "en": {
+        "title": "Overexposed Sea",
+        "subtitle": "",
+        "description": "Blown out to near white, the sea leaves only faint outlines of sails and one boat."
+      },
+      "zh": {
+        "title": "过曝的海",
+        "subtitle": "",
+        "description": "画面亮得几乎发白，几只帆板和一艘小船只剩淡淡的轮廓。"
+      }
+    },
+    "2491": {
+      "en": {
+        "title": "Four by the Sea",
+        "subtitle": "",
+        "description": "Four people face the sea from a pale colonnade."
+      },
+      "zh": {
+        "title": "海边的四个人",
+        "subtitle": "",
+        "description": "四个人站在海边的浅色柱廊里，望向同一片海。"
+      }
+    },
+    "2492": {
+      "en": {
+        "title": "Bubble Overhead",
+        "subtitle": "",
+        "description": "A clear bubble hangs above a raised hand against the night."
+      },
+      "zh": {
+        "title": "泡泡停在头顶",
+        "subtitle": "",
+        "description": "黑白夜景里，一颗透明泡泡悬在举起的手上方。"
+      }
+    },
+    "2493": {
+      "en": {
+        "title": "Backpacks Above the Sea",
+        "subtitle": "",
+        "description": "Backpackers rest on a low wall above the water, the shoreline town spread out below."
+      },
+      "zh": {
+        "title": "海边的背包",
+        "subtitle": "",
+        "description": "背着大包的人坐在海边的矮墙上，面前是岸边的房子和蓝绿色的海。"
+      }
+    },
+    "2494": {
+      "en": {
+        "title": "Palms Through the Window",
+        "subtitle": "",
+        "description": "The window cuts the view into a frame: a row of palms and a distant yellow car."
+      },
+      "zh": {
+        "title": "车窗里的棕榈",
+        "subtitle": "",
+        "description": "车窗像画框一样裁出外面的景色：一排棕榈树和远处一辆黄色小车。"
+      }
+    },
+    "2495": {
+      "en": {
+        "title": "Sea Past the Window",
+        "subtitle": "",
+        "description": "Through the window pass a promenade, one palm tree, a walker and the flat grey sea."
+      },
+      "zh": {
+        "title": "车窗外的海",
+        "subtitle": "",
+        "description": "透过车窗看见海边的步道和一棵棕榈，一个行人挨着栏杆走过。"
+      }
+    },
+    "2496": {
+      "en": {
+        "title": "Polka-Dot Stage",
+        "subtitle": "",
+        "description": "In the dark room big dots cover the stage wall and the audience stays in silhouette."
+      },
+      "zh": {
+        "title": "波点舞台",
+        "subtitle": "",
+        "description": "黑漆漆的演出厅里，舞台背景布满大圆点，观众只剩剪影。"
+      }
+    },
+    "2497": {
+      "en": {
+        "title": "Barcelona, from the Statue",
+        "subtitle": "",
+        "description": "A stone figure faces the city spread out toward the sea."
+      },
+      "zh": {
+        "title": "石像看巴塞罗那",
+        "subtitle": "",
+        "description": "前景石像背对镜头，城市一直铺到远处的海。"
+      }
+    },
+    "2498": {
+      "en": {
+        "title": "A Star on the Tower",
+        "subtitle": "",
+        "description": "Above the night-time city grid, an unfinished tower wears a lit star on top beside a crane."
+      },
+      "zh": {
+        "title": "塔顶的星",
+        "subtitle": "",
+        "description": "俯瞰城区夜景，未完工的高塔顶端亮着一颗星形灯，旁边立着塔吊。"
+      }
+    },
+    "2521": {
+      "en": {
+        "title": "Looking Up at Gold",
+        "subtitle": "",
+        "description": "Gold carving surrounds a bright opening high in the dome."
+      },
+      "zh": {
+        "title": "抬头看金色",
+        "subtitle": "",
+        "description": "金色雕饰围住穹顶，高处的开口透出亮光。"
+      }
+    },
+    "2522": {
+      "en": {
+        "title": "Walking the Cloister",
+        "subtitle": "",
+        "description": "Figures and a small child move through a vaulted cloister toward blinding light at the far arch."
+      },
+      "zh": {
+        "title": "回廊下的行人",
+        "subtitle": "",
+        "description": "拱廊尽头泄进强光，几个行人和一个矮小的孩子穿行其间。"
+      }
+    },
+    "2523": {
+      "en": {
+        "title": "Toward the Bright Arcade",
+        "subtitle": "",
+        "description": "A dark stone corridor ends in a sunlit arcade, its columns standing in full daylight."
+      },
+      "zh": {
+        "title": "深色拱廊",
+        "subtitle": "",
+        "description": "暗色拱廊的台阶尽头，列柱间涌进白昼的光。"
+      }
+    },
+    "2524": {
+      "en": {
+        "title": "Red Bus, Cliff Road",
+        "subtitle": "",
+        "description": "A red bus follows the narrow road below a rocky hillside."
+      },
+      "zh": {
+        "title": "红巴士过山路",
+        "subtitle": "",
+        "description": "红色巴士经过岩壁下的窄路，楼房散在上方的山坡。"
+      }
+    },
+    "2525": {
+      "en": {
+        "title": "Two Figures on the Hill",
+        "subtitle": "",
+        "description": "Umbrella pines shade a grassy slope where two tiny figures stand on the hilltop."
+      },
+      "zh": {
+        "title": "坡顶的两个人",
+        "subtitle": "",
+        "description": "草坡上松树成荫，坡顶站着两个细小的人影。"
+      }
+    },
+    "2526": {
+      "en": {
+        "title": "Forest of Stone Columns",
+        "subtitle": "",
+        "description": "Branching stone columns hold up the vault, colored light spilling across them from stained glass."
+      },
+      "zh": {
+        "title": "彩光里的石柱林",
+        "subtitle": "",
+        "description": "分叉的石柱撑起高顶，彩窗把颜色投在柱身和顶棚上。"
+      }
+    },
+    "2527": {
+      "en": {
+        "title": "A Tangle of Wings",
+        "subtitle": "",
+        "description": "Gulls crowd the water, their outstretched wings overlapping."
+      },
+      "zh": {
+        "title": "翅膀挤在一起",
+        "subtitle": "",
+        "description": "海鸥贴着水面聚在一起，展开的翅膀互相交错。"
+      }
+    },
+    "2528": {
+      "en": {
+        "title": "The Kissing Wall",
+        "subtitle": "",
+        "description": "A couple kisses in front of a red mosaic wall made of many small tiles."
+      },
+      "zh": {
+        "title": "红墙前的吻",
+        "subtitle": "",
+        "description": "两人站在红色马赛克拼墙前接吻，墙面由细密的小块瓷砖组成。"
+      }
+    },
+    "2529": {
+      "en": {
+        "title": "Large Face, Small Screens",
+        "subtitle": "",
+        "description": "People check phones and take photographs beside a giant baby-head sculpture."
+      },
+      "zh": {
+        "title": "大脸与小屏幕",
+        "subtitle": "",
+        "description": "巨大的婴儿头像前，人们低头看手机或举起手机拍照。"
+      }
+    },
+    "2545": {
+      "en": {
+        "title": "Snow on the Jetty",
+        "subtitle": "",
+        "description": "A snow-covered jetty reaches out across the frozen water."
+      },
+      "zh": {
+        "title": "雪压住了栈桥",
+        "subtitle": "",
+        "description": "积雪沿着狭长的栈桥伸向冰面。"
+      }
+    },
+    "2546": {
+      "en": {
+        "title": "A Dot on the Frozen Bay",
+        "subtitle": "",
+        "description": "A single distant figure stands on the frozen sea while a plume of smoke rises at the horizon."
+      },
+      "zh": {
+        "title": "冰原远处的人",
+        "subtitle": "",
+        "description": "白茫茫的冰封海面上只有一个远处的人影，地平线上腾起一缕烟。"
+      }
+    },
+    "2547": {
+      "en": {
+        "title": "Five Walkers on Ice",
+        "subtitle": "",
+        "description": "Five people spread across the ice, with curved tracks behind them."
+      },
+      "zh": {
+        "title": "五个人走上冰面",
+        "subtitle": "",
+        "description": "五个人分散在冰面上，几道弯曲的脚印留在身后。"
+      }
+    },
+    "2548": {
+      "en": {
+        "title": "Orange on the Bridge",
+        "subtitle": "",
+        "description": "An orange figure crosses the bridge in front of dark trees."
+      },
+      "zh": {
+        "title": "桥上的一点橙色",
+        "subtitle": "",
+        "description": "深色树林前，一个橙色身影走过桥面。"
+      }
+    },
+    "2549": {
+      "en": {
+        "title": "A Small Shape on the Ice",
+        "subtitle": "",
+        "description": "Someone crouches on the pale ice, with tracks curving across the foreground."
+      },
+      "zh": {
+        "title": "冰面上的小黑点",
+        "subtitle": "",
+        "description": "淡色冰面上蹲着一个人，脚印从近处绕向远方。"
+      }
+    },
+    "1367": {
+      "en": {
+        "title": "Tree Lights in the Snow",
+        "subtitle": "",
+        "description": "A tree wrapped in string lights glows in a snowy yard beside a small building's lit doorway."
+      },
+      "zh": {
+        "title": "雪夜亮灯的树",
+        "subtitle": "",
+        "description": "积雪的小院里立着一棵缀满灯串的树，一旁小屋门口还亮着灯。"
+      }
+    },
+    "1368": {
+      "en": {
+        "title": "At the Winter Stall",
+        "subtitle": "",
+        "description": "Neon signs light the night as adults and a small hatted child pause at the stall."
+      },
+      "zh": {
+        "title": "夜市摊前",
+        "subtitle": "",
+        "description": "霓虹招牌照亮了摊位，几个大人的背影前站着一个戴浅色帽子的小孩。"
+      }
+    },
+    "1369": {
+      "en": {
+        "title": "Carousel in the Square",
+        "subtitle": "",
+        "description": "A crowd gathers around a bright carousel in front of a pale building."
+      },
+      "zh": {
+        "title": "广场上的旋转木马",
+        "subtitle": "",
+        "description": "明亮的旋转木马前围着人群，浅色建筑留在背后。"
+      }
+    },
+    "1370": {
+      "en": {
+        "title": "Children on the Carousel",
+        "subtitle": "",
+        "description": "Among strands of warm bulbs, children in heavy coats ride past on painted horses."
+      },
+      "zh": {
+        "title": "木马上的孩子们",
+        "subtitle": "",
+        "description": "暖黄的灯串之间，裹着厚外套的孩子们骑在木马背上经过。"
+      }
+    },
+    "1371": {
+      "en": {
+        "title": "Painted Horses, Close Up",
+        "subtitle": "",
+        "description": "Bridles and carved saddles of the carousel horses fill the frame, lamps dissolving behind."
+      },
+      "zh": {
+        "title": "彩绘木马",
+        "subtitle": "",
+        "description": "木马的缰绳和雕饰塞满画面，背景的圆灯虚成了光斑。"
+      }
+    },
+    "1372": {
+      "en": {
+        "title": "Cathedral in Blue",
+        "subtitle": "",
+        "description": "Blue-violet light covers the colonnade and the crowded steps."
+      },
+      "zh": {
+        "title": "大教堂亮成蓝色",
+        "subtitle": "",
+        "description": "蓝紫灯光铺过柱廊和台阶，夜色里站满人。"
+      }
+    },
+    "1373": {
+      "en": {
+        "title": "Statue Over the Light Field",
+        "subtitle": "",
+        "description": "The dark figure on its pedestal faces a square scattered with clusters of glowing light sculptures."
+      },
+      "zh": {
+        "title": "灯丛中的雕像",
+        "subtitle": "",
+        "description": "基座上的人像背对镜头，脚下的广场散布着成丛的发光装置。"
+      }
+    },
+    "1374": {
+      "en": {
+        "title": "Three on the Snow Slope",
+        "subtitle": "",
+        "description": "Three silhouettes stand below a blue-lit snow slope and round lights."
+      },
+      "zh": {
+        "title": "雪坡上的三个人",
+        "subtitle": "",
+        "description": "三个人影站在泛蓝的雪坡前，圆形灯光悬在上方。"
+      }
+    },
+    "1375": {
+      "en": {
+        "title": "Relief, Looking Up",
+        "subtitle": "",
+        "description": "Figures in relief emerge from shadow in this monochrome frame."
+      },
+      "zh": {
+        "title": "仰看浮雕",
+        "subtitle": "",
+        "description": "黑白画面里，人物浮雕的轮廓从暗处凸出来。"
+      }
+    },
+    "1376": {
+      "en": {
+        "title": "Backlit Yellow Leaves",
+        "subtitle": "",
+        "description": "Sunlight pours through the canopy, and the frame is filled almost entirely with glowing yellow leaves."
+      },
+      "zh": {
+        "title": "透光黄叶",
+        "subtitle": "",
+        "description": "阳光从树冠背后照进来，画面几乎被透亮的黄叶占满。"
+      }
+    },
+    "1377": {
+      "en": {
+        "title": "Red Ivy on the Corner",
+        "subtitle": "",
+        "description": "Red ivy covers the corner of a tall building, with yellow traffic signs standing against a deep blue sky."
+      },
+      "zh": {
+        "title": "红藤爬上转角",
+        "subtitle": "",
+        "description": "一栋转角高楼的墙面爬满变红的藤蔓，楼下立着几块黄色交通标志。"
+      }
+    },
+    "1378": {
+      "en": {
+        "title": "The Yellow Tree in the Park",
+        "subtitle": "",
+        "description": "A path runs through a leaf-strewn park toward one very yellow tree, with walkers small in the distance."
+      },
+      "zh": {
+        "title": "公园里那棵黄树",
+        "subtitle": "",
+        "description": "小径穿过落满叶子的公园，中间一棵大树黄得很显眼，远处有行人走过。"
+      }
+    },
+    "1379": {
+      "en": {
+        "title": "Shadows Across the Bend",
+        "subtitle": "",
+        "description": "Tree shadows stretch long across a curving road scattered with yellow leaves between green banks."
+      },
+      "zh": {
+        "title": "弯道上的树影",
+        "subtitle": "",
+        "description": "林荫下的弯道落着黄叶，低角度的树影横拉在路面上。"
+      }
+    },
+    "1380": {
+      "en": {
+        "title": "Red Moon Above the Roofs",
+        "subtitle": "",
+        "description": "A red moon hangs in a deep blue sky above the city."
+      },
+      "zh": {
+        "title": "楼顶上方一轮红月",
+        "subtitle": "",
+        "description": "红色月亮悬在深蓝天空里，下方是密集楼群。"
+      }
+    },
+    "2550": {
+      "en": {
+        "title": "Sitting on the Pier Edge",
+        "subtitle": "",
+        "description": "Most of the frame sits in deep shadow; only the pier edge is lit, where one person sits."
+      },
+      "zh": {
+        "title": "码头边坐着的人",
+        "subtitle": "",
+        "description": "大半画面浸在阴影里，只有水边码头被照亮，一人坐在岸沿。"
+      }
+    },
+    "2551": {
+      "en": {
+        "title": "Figure at the Tunnel's End",
+        "subtitle": "",
+        "description": "The arched tunnel is nearly black, and a figure stands in the warm light at its far end."
+      },
+      "zh": {
+        "title": "隧道尽头的人",
+        "subtitle": "",
+        "description": "拱形隧道里几乎全黑，尽头亮着暖光，一个人站在出口处。"
+      }
+    },
+    "2552": {
+      "en": {
+        "title": "Trees and Open Ground",
+        "subtitle": "",
+        "description": "Beyond a wide bare field stand trees and grass-topped mounds, with a few walkers far off."
+      },
+      "zh": {
+        "title": "树下空地",
+        "subtitle": "",
+        "description": "开阔的空场边立着几棵树，树后露出草顶的土坡，远处有人走过。"
+      }
+    },
+    "2553": {
+      "en": {
+        "title": "Bright Door in a Stone Wall",
+        "subtitle": "",
+        "description": "A dark stone wall is cut by one bright doorway where a person stands, grass sloping in front."
+      },
+      "zh": {
+        "title": "石门里的亮口",
+        "subtitle": "",
+        "description": "深色石墙中间开着一个门洞，内外明暗反差很大，一人站在亮处。"
+      }
+    },
+    "2554": {
+      "en": {
+        "title": "A Pause on the Rocks",
+        "subtitle": "",
+        "description": "Someone sits on the coastal rocks, facing the distant city skyline."
+      },
+      "zh": {
+        "title": "礁石上的停留",
+        "subtitle": "",
+        "description": "海边礁石上有人坐着，对岸是一线城市轮廓。"
+      }
+    },
+    "2555": {
+      "en": {
+        "title": "Two Figures on the Grass",
+        "subtitle": "",
+        "description": "Two people stand side by side on a grassy bank, looking down toward the long pink building."
+      },
+      "zh": {
+        "title": "坡上的两个人",
+        "subtitle": "",
+        "description": "草坡上一红一白两个人并肩站着，望向坡下那栋粉色的长楼。"
+      }
+    },
+    "2556": {
+      "en": {
+        "title": "Sitting Alone by the Water",
+        "subtitle": "",
+        "description": "One person sits with their back turned on waterside rocks; more figures walk the grassy rise behind."
+      },
+      "zh": {
+        "title": "水边独坐",
+        "subtitle": "",
+        "description": "一人背对镜头坐在水边礁石上，远处草坡上还有几个人在走。"
+      }
+    },
+    "2557": {
+      "en": {
+        "title": "Grass-Roofed Fortifications",
+        "subtitle": "",
+        "description": "Grass covers old earthworks and bunkers, dirt paths crossing between them, the sea faint behind."
+      },
+      "zh": {
+        "title": "草顶工事",
+        "subtitle": "",
+        "description": "土坡和掩体上长满草，小径在其间穿过，远处能看见海。"
+      }
+    },
+    "2558": {
+      "en": {
+        "title": "One Small Sail",
+        "subtitle": "",
+        "description": "A small white sail sits near the pale horizon of a broad sea."
+      },
+      "zh": {
+        "title": "海上留一小片帆",
+        "subtitle": "",
+        "description": "大片海面上，一片白帆靠近淡色的地平线。"
+      }
+    },
+    "2559": {
+      "en": {
+        "title": "Grass Slope by the Wall",
+        "subtitle": "",
+        "description": "A steep grass bank climbs beside a tall stone fortification, a narrow path threading its base."
+      },
+      "zh": {
+        "title": "石墙边的草坡",
+        "subtitle": "",
+        "description": "高大的石砌工事旁是陡直的草坡，一条窄路贴着坡面往上。"
+      }
+    },
+    "2560": {
+      "en": {
+        "title": "Above the Square",
+        "subtitle": "",
+        "description": "Someone sits above a square of yellow facades and a central statue."
+      },
+      "zh": {
+        "title": "坐在广场上方",
+        "subtitle": "",
+        "description": "一个人坐在高处台阶边，脚下是雕像与黄色楼房围着的广场。"
+      }
+    },
+    "2561": {
+      "en": {
+        "title": "Tram at the Corner",
+        "subtitle": "",
+        "description": "A tram crosses the cobbled intersection beneath a web of wires."
+      },
+      "zh": {
+        "title": "电车转过街角",
+        "subtitle": "",
+        "description": "电车经过石板路口，上方是交错的电线。"
+      }
+    },
+    "2562": {
+      "en": {
+        "title": "At the End of the Pier",
+        "subtitle": "",
+        "description": "In near-darkness, two figures stand at the far end of a wooden pier over still water."
+      },
+      "zh": {
+        "title": "栈桥尽头",
+        "subtitle": "",
+        "description": "天色已经暗透，两个人站在伸向水面的栈桥尽头，四下只有水。"
+      }
+    },
+    "2563": {
+      "en": {
+        "title": "A Path Through Shadow",
+        "subtitle": "",
+        "description": "A narrow passage holds a strip of light on the grass."
+      },
+      "zh": {
+        "title": "暗处的一条亮路",
+        "subtitle": "",
+        "description": "狭长通道里，一条亮光落在草地上。"
+      }
+    },
+    "1395": {
+      "en": {
+        "title": "The Little Red Car in Snow",
+        "subtitle": "",
+        "description": "A small red car sits by birches at a snowy junction, the road thinly blanketed in white."
+      },
+      "zh": {
+        "title": "雪天里的小红车",
+        "subtitle": "",
+        "description": "雪后的街口，一辆红色小车停在白桦树边，路上积着薄雪。"
+      }
+    },
+    "1396": {
+      "en": {
+        "title": "Walking into Falling Snow",
+        "subtitle": "",
+        "description": "In heavy falling snow a person in a dark coat walks away down the road, shoulders already white."
+      },
+      "zh": {
+        "title": "落雪里独行",
+        "subtitle": "",
+        "description": "雪正下得密，行人裹紧深色大衣沿公路往前走，肩上已经白了一层。"
+      }
+    },
+    "1397": {
+      "en": {
+        "title": "Warning Sign in the Snow",
+        "subtitle": "",
+        "description": "A yellow triangular warning sign stands beside the snowbound road, the trees along it loaded with snow."
+      },
+      "zh": {
+        "title": "雪中警示牌",
+        "subtitle": "",
+        "description": "积雪的路旁立着一块黄色三角警示牌，路边的树都挂满了雪。"
+      }
+    },
+    "1398": {
+      "en": {
+        "title": "Crossing a Snowy Junction",
+        "subtitle": "",
+        "description": "Pedestrians cross a snowy junction between a glass building on one side and red brick on the other."
+      },
+      "zh": {
+        "title": "雪中的路口",
+        "subtitle": "",
+        "description": "细雪中的路口，行人正横穿马路，一侧是玻璃楼，一侧是红砖房。"
+      }
+    },
+    "1399": {
+      "en": {
+        "title": "Snowy Sidewalk at Night",
+        "subtitle": "",
+        "description": "Streetlamps line a snow-covered sidewalk beside a long brick building with orange roadwork signs."
+      },
+      "zh": {
+        "title": "雪夜人行道",
+        "subtitle": "",
+        "description": "路灯沿积雪的人行道排开，橙色路牌立在红砖楼旁。"
+      }
+    },
+    "1400": {
+      "en": {
+        "title": "Street Sign in Snow",
+        "subtitle": "",
+        "description": "A bilingual street sign stands at a snowy junction, buildings fading beyond it."
+      },
+      "zh": {
+        "title": "路牌留在雪里",
+        "subtitle": "",
+        "description": "双语路牌立在积雪路口，楼房在白茫茫的远处淡去。"
+      }
+    },
+    "1401": {
+      "en": {
+        "title": "Green Signal, Piled Snow",
+        "subtitle": "",
+        "description": "A green light glows above snow piled along the road while a glass building fades into fog."
+      },
+      "zh": {
+        "title": "绿灯与雪堆",
+        "subtitle": "",
+        "description": "雪堆快没到杆底，绿灯亮着，玻璃楼在雾里只剩轮廓。"
+      }
+    },
+    "1402": {
+      "en": {
+        "title": "Snow Beside the Brick Building",
+        "subtitle": "",
+        "description": "Windows glow in the brick building beside figures on the snow-covered road."
+      },
+      "zh": {
+        "title": "砖楼边的雪",
+        "subtitle": "",
+        "description": "砖楼的窗还亮着，几个人影走在白茫茫的路上。"
+      }
+    },
+    "1403": {
+      "en": {
+        "title": "A Slant of Light",
+        "subtitle": "",
+        "description": "A pale shaft of light cuts diagonally through the dark frame."
+      },
+      "zh": {
+        "title": "一束斜光",
+        "subtitle": "",
+        "description": "暗色画面里，一束浅色的光斜着穿过。"
+      }
+    },
+    "2564": {
+      "en": {
+        "title": "Two Round Portraits",
+        "subtitle": "",
+        "description": "Two round portrait medallions hang on a stone wall while half of a visitor's face enters the frame."
+      },
+      "zh": {
+        "title": "墙上两枚头像",
+        "subtitle": "",
+        "description": "两枚圆形肖像嵌在石墙上，画框边露出一位参观者低着的半张脸。"
+      }
+    },
+    "2565": {
+      "en": {
+        "title": "Figures Through the Arch",
+        "subtitle": "",
+        "description": "Silhouetted walkers move through a dark masonry archway toward a patch of warm light."
+      },
+      "zh": {
+        "title": "走向光的人群",
+        "subtitle": "",
+        "description": "拱廊深处透出一团暖光，几个人的剪影正朝亮处走。"
+      }
+    },
+    "2566": {
+      "en": {
+        "title": "Tree on the Riverbank",
+        "subtitle": "",
+        "description": "A single yellowing tree stands on the green riverbank with faint traffic on the far shore."
+      },
+      "zh": {
+        "title": "河岸一棵树",
+        "subtitle": "",
+        "description": "阴天里，一棵泛黄的小树立在河岸草地上，对岸隐约有车辆。"
+      }
+    },
+    "2567": {
+      "en": {
+        "title": "Stone Wall, Grey Street",
+        "subtitle": "",
+        "description": "A monument's dark mass fills the left of this monochrome frame while a lone walker recedes down the street."
+      },
+      "zh": {
+        "title": "石墙与灰街",
+        "subtitle": "",
+        "description": "黑白画面里，石碑的阴影占住左侧，右侧小路上有个走远的人影。"
+      }
+    },
+    "2568": {
+      "en": {
+        "title": "Suitcase at Corridor's End",
+        "subtitle": "",
+        "description": "A person with a rolling suitcase stands at the lit end of a long green corridor."
+      },
+      "zh": {
+        "title": "走廊尽头的人",
+        "subtitle": "",
+        "description": "绿色走廊灯管通明，一个拖行李箱的人停在尽头的亮光里。"
+      }
+    },
+    "2569": {
+      "en": {
+        "title": "Warm Door, Blue Stairs",
+        "subtitle": "",
+        "description": "Someone passes a warm-lit doorway beside blue concrete stairs."
+      },
+      "zh": {
+        "title": "蓝色楼梯旁的门",
+        "subtitle": "",
+        "description": "蓝色楼梯旁的门洞透出暖光，一个人从亮处经过。"
+      }
+    },
+    "2570": {
+      "en": {
+        "title": "City Lights From Above",
+        "subtitle": "",
+        "description": "An elevated night view shows a lit spire rising over dense rooftops and bands of streetlight."
+      },
+      "zh": {
+        "title": "俯瞰夜景",
+        "subtitle": "",
+        "description": "从高处望下，尖塔和成片的屋顶亮起灯，光带延向远处。"
+      }
+    },
+    "2571": {
+      "en": {
+        "title": "Lamplight in the Alley",
+        "subtitle": "",
+        "description": "A single old streetlamp lights cobblestones between stone columns, a small dark shape resting near the wall."
+      },
+      "zh": {
+        "title": "夜巷孤灯",
+        "subtitle": "",
+        "description": "一盏旧路灯照亮石柱间的石板路，墙角边蜷着一团小黑影。"
+      }
+    },
+    "2572": {
+      "en": {
+        "title": "Tatooine Sunset",
+        "subtitle": "",
+        "description": "From the hotel window an iron bridge and spire sink into an orange sunset the photo only hints at."
+      },
+      "zh": {
+        "title": "塔图因日落",
+        "subtitle": "",
+        "description": "酒店窗外，铁桥与尖塔沉在橙色落日里，肉眼所见远强于照片。"
+      }
+    },
+    "2573": {
+      "en": {
+        "title": "Breakfast Room With a View",
+        "subtitle": "",
+        "description": "Potted plants line a breakfast room window while a church spire shows faintly through the haze outside."
+      },
+      "zh": {
+        "title": "窗边的早餐室",
+        "subtitle": "",
+        "description": "早餐室的桌边摆着盆栽，隔着玻璃能看见雾里浮出一座尖塔。"
+      }
+    },
+    "2574": {
+      "en": {
+        "title": "Red and White Above the Trees",
+        "subtitle": "",
+        "description": "A slender red-and-white tower rises behind the treetops."
+      },
+      "zh": {
+        "title": "树梢后的一条红白线",
+        "subtitle": "",
+        "description": "红白相间的细塔从树梢后方升起。"
+      }
+    },
+    "2575": {
+      "en": {
+        "title": "Under the Graffiti Wall",
+        "subtitle": "",
+        "description": "A pedestrian passes a brick gable and wall covered edge to edge in graffiti."
+      },
+      "zh": {
+        "title": "涂鸦墙下",
+        "subtitle": "",
+        "description": "整面砖墙和山墙涂满涂鸦，一个行人正从墙根走过。"
+      }
+    },
+    "2576": {
+      "en": {
+        "title": "White Ring on the Rail",
+        "subtitle": "",
+        "description": "A white life ring hangs against sunlit orange-red panelling."
+      },
+      "zh": {
+        "title": "船边的白色圆环",
+        "subtitle": "",
+        "description": "白色救生圈挂在栏杆上，橘红色船体照进一束光。"
+      }
+    },
+    "1417": {
+      "en": {
+        "title": "Rooftops Below the Snowpeak",
+        "subtitle": "",
+        "description": "A visitor leans on a railing above tiled roofs with snow peaks rising beyond the trees."
+      },
+      "zh": {
+        "title": "雪山下的屋顶",
+        "subtitle": "",
+        "description": "一个人倚着栏杆，眼前是瓦屋顶和树，再远处雪山浮在云上。"
+      }
+    },
+    "1418": {
+      "en": {
+        "title": "Ridges in the Clouds",
+        "subtitle": "",
+        "description": "Blue ridges recede in layers while a snow-covered summit breaks through the cloud line."
+      },
+      "zh": {
+        "title": "云上的山脊",
+        "subtitle": "",
+        "description": "青色山脊一层层向远处退去，积雪的峰顶从云缝里露出。"
+      }
+    },
+    "1419": {
+      "en": {
+        "title": "Looking Down the Gorge",
+        "subtitle": "",
+        "description": "From a high viewpoint the river narrows to a thread between steep scree slopes."
+      },
+      "zh": {
+        "title": "俯瞰深谷",
+        "subtitle": "",
+        "description": "从高处俯看，河谷夹在碎石坡之间，谷底的水细成一条线。"
+      }
+    },
+    "1420": {
+      "en": {
+        "title": "Bridge Below the Snowpeak",
+        "subtitle": "",
+        "description": "A small bridge crosses the water below a sunlit snowpeak."
+      },
+      "zh": {
+        "title": "小桥与雪峰",
+        "subtitle": "",
+        "description": "小桥跨过水面，背后的雪峰被阳光照亮。"
+      }
+    },
+    "1421": {
+      "en": {
+        "title": "A Photograph Below the Peak",
+        "subtitle": "",
+        "description": "Two people stand on a wooden walkway below clouds and snowy mountains."
+      },
+      "zh": {
+        "title": "雪山前合个影",
+        "subtitle": "",
+        "description": "两个人站在木栈道上，背后是云与雪山。"
+      }
+    },
+    "1422": {
+      "en": {
+        "title": "Mountains Upside Down",
+        "subtitle": "",
+        "description": "Someone sits beside green water reflecting mountains and clouds."
+      },
+      "zh": {
+        "title": "湖水把山倒过来",
+        "subtitle": "",
+        "description": "一个人坐在绿色湖水旁，山与云倒映在水面。"
+      }
+    },
+    "1423": {
+      "en": {
+        "title": "CITY LIFE SUCKS",
+        "subtitle": "",
+        "description": "Musicians play in a small venue below a disco ball and this sign."
+      },
+      "zh": {
+        "title": "CITY LIFE SUCKS",
+        "subtitle": "",
+        "description": "小小的演出空间里，乐手站在镜面球和这块招牌下。"
+      }
+    },
+    "1424": {
+      "en": {
+        "title": "Chalk Portrait at Night",
+        "subtitle": "",
+        "description": "At night a person crouches over a chalk portrait on the pavement, two handwritten Chinese characters beside it."
+      },
+      "zh": {
+        "title": "地上画脸的人",
+        "subtitle": "",
+        "description": "夜里一人蹲在路边画粉笔肖像，旁边地上还写着哑巴两个字。"
+      }
+    },
+    "1425": {
+      "en": {
+        "title": "Lakeside Gravel Path",
+        "subtitle": "",
+        "description": "A gravel path follows the wooded shoreline toward low hills across the bay."
+      },
+      "zh": {
+        "title": "湖边碎石小径",
+        "subtitle": "",
+        "description": "碎石小路沿湖岸延伸，树冠遮住画面上缘，远处是低矮的湖湾和山。"
+      }
+    },
+    "1465": {
+      "en": {
+        "title": "Palace Roofs in Haze",
+        "subtitle": "",
+        "description": "From above, rows of yellow glazed roofs stretch into the haze over a crowd filling the gate square."
+      },
+      "zh": {
+        "title": "雾中紫禁城",
+        "subtitle": "",
+        "description": "从高处俯瞰，黄色琉璃瓦屋顶连绵铺开，将两扇大门之间广场挤满游客。"
+      }
+    },
+    "1466": {
+      "en": {
+        "title": "Straight Avenue Through Hutongs",
+        "subtitle": "",
+        "description": "A straight tree-lined street runs between grey-tiled hutong roofs toward a distant hill."
+      },
+      "zh": {
+        "title": "胡同间的直街",
+        "subtitle": "",
+        "description": "树荫夹道的长街笔直伸向远处的山丘，两旁是灰瓦屋顶的平房院。"
+      }
+    },
+    "1467": {
+      "en": {
+        "title": "Terraced Garden Beds",
+        "subtitle": "",
+        "description": "Terraced stone planting beds climb the slope toward tall willows at the top."
+      },
+      "zh": {
+        "title": "石阶花坛",
+        "subtitle": "",
+        "description": "层层石砌花坛沿坡往上排，尽头立着高大的垂柳和浓密的绿树。"
+      }
+    },
+    "1468": {
+      "en": {
+        "title": "Rows of Trees on Grass",
+        "subtitle": "",
+        "description": "Two rows of tall trees stand on the lawn, a straight shaded corridor between them."
+      },
+      "zh": {
+        "title": "草地树列",
+        "subtitle": "",
+        "description": "两排高树立在草地上，中间留出一条浓荫覆着的笔直通道。"
+      }
+    },
+    "1469": {
+      "en": {
+        "title": "Moon Over the Dome",
+        "subtitle": "",
+        "description": "A curved glass dome edges into frame beneath a black sky holding one small moon."
+      },
+      "zh": {
+        "title": "巨蛋与月",
+        "subtitle": "",
+        "description": "弧形穹顶从画面底部探出一道边线，头顶漆黑的夜空里挂着一点月亮。"
+      }
+    },
+    "1470": {
+      "en": {
+        "title": "Hall of Prayer in Sun",
+        "subtitle": "",
+        "description": "Three tiers of blue tiled roofs narrow upward under clear sky, ringed by white marble balustrades."
+      },
+      "zh": {
+        "title": "祈年殿",
+        "subtitle": "",
+        "description": "三层蓝瓦攒尖顶在晴天里层层收窄，白色石栏杆沿台基绕殿一周。"
+      }
+    },
+    "1471": {
+      "en": {
+        "title": "Skyline Beyond Red Wall",
+        "subtitle": "",
+        "description": "Beyond a red wall and treetops, the glass towers of the business district rise into blue sky."
+      },
+      "zh": {
+        "title": "红墙外的天际线",
+        "subtitle": "",
+        "description": "红墙与绿树之外，远处玻璃高楼群顶着蓝天，最高一栋轮廓是中国尊。"
+      }
+    },
+    "1472": {
+      "en": {
+        "title": "Rows of Red",
+        "subtitle": "",
+        "description": "Rows of red seats curve toward the stage beneath a sweeping ceiling."
+      },
+      "zh": {
+        "title": "红色座椅的弧线",
+        "subtitle": "",
+        "description": "一圈圈红色座椅朝向舞台，顶棚沿着同样的弧线展开。"
+      }
+    },
+    "2602": {
+      "en": {
+        "title": "White Caps Crossing",
+        "subtitle": "",
+        "description": "People in white caps cross the street backlit by harsh sun between glass buildings."
+      },
+      "zh": {
+        "title": "白帽过街",
+        "subtitle": "",
+        "description": "戴白帽的人群逆着光穿过街口，身后玻璃楼群之间透出刺眼的太阳。"
+      }
+    },
+    "2603": {
+      "en": {
+        "title": "Sitting by the Fountain",
+        "subtitle": "",
+        "description": "A bronze figure tops the fountain column while someone sits on the basin edge, pale apartment blocks behind."
+      },
+      "zh": {
+        "title": "喷泉边坐着的人",
+        "subtitle": "",
+        "description": "铜像立在喷泉水池中央的立柱上，一人抱臂坐在池沿，背后是浅色多层楼。"
+      }
+    },
+    "2604": {
+      "en": {
+        "title": "Shoreline Upside Down",
+        "subtitle": "",
+        "description": "Colourful figures reflect in the water beside stones and reeds."
+      },
+      "zh": {
+        "title": "倒过来的岸边",
+        "subtitle": "",
+        "description": "水面映着岸边的彩色人影，石头和芦苇沿着画面边缘排开。"
+      }
+    },
+    "2696": {
+      "en": {
+        "title": "Toward San Giorgio",
+        "subtitle": "",
+        "description": "A gondola and a white motorboat rest on blue water facing San Giorgio Maggiore's church and campanile."
+      },
+      "zh": {
+        "title": "圣乔治岛方向",
+        "subtitle": "",
+        "description": "蓝水上泊着贡多拉和白色快艇，对岸是圣乔治马焦雷教堂与高高的钟楼。"
+      }
+    },
+    "2697": {
+      "en": {
+        "title": "Venice, Roof After Roof",
+        "subtitle": "",
+        "description": "Beyond a dome, terracotta roofs stretch toward the lagoon."
+      },
+      "zh": {
+        "title": "威尼斯的屋顶们",
+        "subtitle": "",
+        "description": "一座圆顶之后，红瓦屋顶一直铺向远处的泻湖。"
+      }
+    },
+    "2698": {
+      "en": {
+        "title": "Boats on the Grand Canal",
+        "subtitle": "",
+        "description": "A vaporetto and gondolas move between old palazzi, mooring posts lined along the canal edge."
+      },
+      "zh": {
+        "title": "大运河船流",
+        "subtitle": "",
+        "description": "水上巴士和贡多拉在两侧老楼之间穿行，木桩沿岸一排排插在水里。"
+      }
+    },
+    "2699": {
+      "en": {
+        "title": "Under the Rialto Arch",
+        "subtitle": "",
+        "description": "A gondolier poles beneath the Rialto arch while people lean along the balustrade above."
+      },
+      "zh": {
+        "title": "里亚托桥洞",
+        "subtitle": "",
+        "description": "船工撑长篙把贡多拉划过里亚托桥的拱洞，桥栏边站满了往下看的人。"
+      }
+    },
+    "2700": {
+      "en": {
+        "title": "Sun Setting on the Canal",
+        "subtitle": "",
+        "description": "The sun sinks behind rooflines, spreading gold across the water and leaving boats as silhouettes."
+      },
+      "zh": {
+        "title": "运河落日",
+        "subtitle": "",
+        "description": "太阳贴着屋檐往下沉，水面铺满金色反光，小船和建筑都只剩剪影。"
+      }
+    },
+    "2701": {
+      "en": {
+        "title": "Teal Hour for Gondolas",
+        "subtitle": "",
+        "description": "Under a deep teal sky a gondolier rows past mooring posts, the campanile faint across the lagoon."
+      },
+      "zh": {
+        "title": "青蓝色水面",
+        "subtitle": "",
+        "description": "天光转成青蓝色，船夫摇着贡多拉经过木桩，远处钟楼只剩一道淡影。"
+      }
+    },
+    "2702": {
+      "en": {
+        "title": "Lamps Along the Quay",
+        "subtitle": "",
+        "description": "Ornate lamps come on along the stone quay where people sit at the edge facing the water."
+      },
+      "zh": {
+        "title": "岸边路灯",
+        "subtitle": "",
+        "description": "复古多头路灯在石板岸边次第亮起，几个人坐在堤沿上对着水面。"
+      }
+    },
+    "2703": {
+      "en": {
+        "title": "Sitting by the Water",
+        "subtitle": "",
+        "description": "Two people sit facing gondolas and a distant dome across the water."
+      },
+      "zh": {
+        "title": "坐着等天黑",
+        "subtitle": "",
+        "description": "两个人背对镜头坐在岸边，贡多拉和远处的圆顶留在水面另一边。"
+      }
+    },
+    "2704": {
+      "en": {
+        "title": "The Dock in Blue",
+        "subtitle": "",
+        "description": "People gather on a wooden dock beside lamplight and deep blue water."
+      },
+      "zh": {
+        "title": "蓝色时刻的码头",
+        "subtitle": "",
+        "description": "灯柱旁的木码头上站着几个人，深蓝水面通向远处钟楼。"
+      }
+    },
+    "2705": {
+      "en": {
+        "title": "Night on the Promenade",
+        "subtitle": "",
+        "description": "Lamplight falls on one corner of the promenade where people sit, far shore lights strung in a line."
+      },
+      "zh": {
+        "title": "堤岸夜色",
+        "subtitle": "",
+        "description": "路灯照亮堤岸一角，几个人坐在石沿上，对岸的灯连成细细一条线。"
+      }
+    },
+    "2706": {
+      "en": {
+        "title": "Gondola Stand After Dark",
+        "subtitle": "",
+        "description": "Lamps glow over the blue gondola-service stand while boatmen wait on the quay."
+      },
+      "zh": {
+        "title": "夜里的贡多拉站",
+        "subtitle": "",
+        "description": "蓝色招牌下路灯亮着，几名船夫站在岸边候客。"
+      }
+    },
+    "2707": {
+      "en": {
+        "title": "Signs in the Alley",
+        "subtitle": "",
+        "description": "Pizzeria signs crowd the stone walls while daylight filters down to passersby below."
+      },
+      "zh": {
+        "title": "窄巷招牌",
+        "subtitle": "",
+        "description": "披萨店等小招牌挤满石墙，巷底透出亮光和人影。"
+      }
+    },
+    "2708": {
+      "en": {
+        "title": "A Stone Doorway",
+        "subtitle": "",
+        "description": "Pedestrians pass the dark stone portal while a man checks his phone by the gate."
+      },
+      "zh": {
+        "title": "石门入口",
+        "subtitle": "",
+        "description": "深色石楼门前人来人往，右侧一男子倚墙看手机。"
+      }
+    },
+    "2709": {
+      "en": {
+        "title": "An Umbrella for the Statue",
+        "subtitle": "",
+        "description": "Visitors rest below a bronze statue backed by an umbrella pine."
+      },
+      "zh": {
+        "title": "伞松替铜像打伞",
+        "subtitle": "",
+        "description": "铜像前坐着几位游客，身后的伞松撑开树冠。"
+      }
+    },
+    "2710": {
+      "en": {
+        "title": "Arch Framing a Monument",
+        "subtitle": "",
+        "description": "From inside a dark archway, a bright sculpted monument closes the view down the street."
+      },
+      "zh": {
+        "title": "暗拱门看街",
+        "subtitle": "",
+        "description": "从暗拱门内望去，饰浮雕的亮白建筑立在街道尽头。"
+      }
+    },
+    "2711": {
+      "en": {
+        "title": "Parade Figures Under Flags",
+        "subtitle": "",
+        "description": "Pennant strings cross the street where giant festival figures rise over the crowd and murals."
+      },
+      "zh": {
+        "title": "彩旗下的人偶",
+        "subtitle": "",
+        "description": "彩旗串挂满街口，巨型人偶高过人群，墙上是巨幅人像画。"
+      }
+    },
+    "2712": {
+      "en": {
+        "title": "Sea Through the Grille",
+        "subtitle": "",
+        "description": "Behind a wire grille the bay stretches wide, with a castle on the shore and a seated viewer."
+      },
+      "zh": {
+        "title": "网格外海景",
+        "subtitle": "",
+        "description": "铁丝网格后海面平阔，岸边城堡贴着水线，有人坐着看海。"
+      }
+    },
+    "2713": {
+      "en": {
+        "title": "A Figure in the Opening",
+        "subtitle": "",
+        "description": "A figure sits in the bright opening of a dark arch, overlooking the city."
+      },
+      "zh": {
+        "title": "窗里留一个人",
+        "subtitle": "",
+        "description": "黑色拱洞里，一个人影靠着亮处，远方是城市。"
+      }
+    },
+    "2714": {
+      "en": {
+        "title": "Bay Under the Volcano",
+        "subtitle": "",
+        "description": "Ships and harbor fill the bay while the volcano holds only a faint outline in the haze."
+      },
+      "zh": {
+        "title": "雾中维苏威",
+        "subtitle": "",
+        "description": "海湾铺满货船与码头，雾后火山只剩一道淡灰轮廓。"
+      }
+    },
+    "2715": {
+      "en": {
+        "title": "An Empty Courtyard",
+        "subtitle": "",
+        "description": "Brick pavement climbs between white walls toward one small figure at the far end."
+      },
+      "zh": {
+        "title": "空庭远人",
+        "subtitle": "",
+        "description": "白墙之间的砖石坡庭空荡，尽头立着一个身影。"
+      }
+    },
+    "2716": {
+      "en": {
+        "title": "Naples, All the Way Out",
+        "subtitle": "",
+        "description": "Trees border the terrace above rooftops stretching to the horizon."
+      },
+      "zh": {
+        "title": "那不勒斯铺到远处",
+        "subtitle": "",
+        "description": "近处是高台和树冠，远处的屋顶一直连到天边。"
+      }
+    },
+    "2717": {
+      "en": {
+        "title": "Hands Up in the Courtyard",
+        "subtitle": "",
+        "description": "Someone raises both hands in a wide courtyard enclosed by white walls."
+      },
+      "zh": {
+        "title": "空院子里举个手",
+        "subtitle": "",
+        "description": "一个人背对镜头举起双手，白墙围着宽阔的院子。"
+      }
+    },
+    "2718": {
+      "en": {
+        "title": "Escalator of Small Lights",
+        "subtitle": "",
+        "description": "Escalators descend into the metro station between dense ribbons of small white lights."
+      },
+      "zh": {
+        "title": "扶梯灯点",
+        "subtitle": "",
+        "description": "地铁扶梯向深处延伸，两侧灯点密集成带排下去。"
+      }
+    },
+    "2719": {
+      "en": {
+        "title": "Green Beside the Escalator",
+        "subtitle": "",
+        "description": "A person in green stands beside the escalator among glass and steel."
+      },
+      "zh": {
+        "title": "扶梯旁的绿衣人",
+        "subtitle": "",
+        "description": "玻璃与钢架之间，绿衣人站在扶梯旁。"
+      }
+    },
+    "2720": {
+      "en": {
+        "title": "The Window Seat",
+        "subtitle": "",
+        "description": "A passenger sits beside the window, with tracks and walls outside."
+      },
+      "zh": {
+        "title": "靠窗的座位",
+        "subtitle": "",
+        "description": "乘客坐在车窗边，外面是经过的轨道与墙面。"
+      }
+    },
+    "2721": {
+      "en": {
+        "title": "City Below the Green Slope",
+        "subtitle": "",
+        "description": "The foreground slope drops away to a gray-blue sprawl of the city held in thin haze."
+      },
+      "zh": {
+        "title": "草坡下的城",
+        "subtitle": "",
+        "description": "草坡从前景斜下去，远处城区在薄霭里摊成灰蓝一片。"
+      }
+    },
+    "2722": {
+      "en": {
+        "title": "A Bend in the Hill Road",
+        "subtitle": "",
+        "description": "A pale road bends twice down the green hill with the city spread along the hazy foot of the slope."
+      },
+      "zh": {
+        "title": "山道转弯处",
+        "subtitle": "",
+        "description": "浅色山道在绿坡上拐了两个弯，城市贴着山根铺开。"
+      }
+    },
+    "2723": {
+      "en": {
+        "title": "Pointing Toward the Haze",
+        "subtitle": "",
+        "description": "A backpacked visitor on the summit points toward the coastline dissolving in haze."
+      },
+      "zh": {
+        "title": "塔塔开",
+        "subtitle": "",
+        "description": "背背包的人站在山顶，伸臂指向雾里淡出的海岸与城。"
+      }
+    },
+    "2724": {
+      "en": {
+        "title": "Glass Shelter, Waiting Riders",
+        "subtitle": "",
+        "description": "People wait inside and around the glass shelter while the reversed station name runs along the beam."
+      },
+      "zh": {
+        "title": "玻璃候车亭",
+        "subtitle": "",
+        "description": "玻璃候车亭内外站着等车人，站名字样在顶梁上反着。"
+      }
+    },
+    "2725": {
+      "en": {
+        "title": "Stone Street Between Ruins",
+        "subtitle": "",
+        "description": "Flagstones run downhill between ruined walls toward a distant arch and mountains."
+      },
+      "zh": {
+        "title": "石巷残墙",
+        "subtitle": "",
+        "description": "石板路在残墙之间下坡延伸，尽头立着远山和一座拱门。"
+      }
+    },
+    "2726": {
+      "en": {
+        "title": "A Path Through Old Walls",
+        "subtitle": "",
+        "description": "A stone path threads between high ruined walls with a few visitors scattered along both sides."
+      },
+      "zh": {
+        "title": "石径游人",
+        "subtitle": "",
+        "description": "高起的残墙夹出石径，两侧墙下散着几名参观的人。"
+      }
+    },
+    "2727": {
+      "en": {
+        "title": "Arches and a Stone Pine",
+        "subtitle": "",
+        "description": "A row of stone arches lines the grounds while one umbrella pine rises above the walls under clear sky."
+      },
+      "zh": {
+        "title": "石拱与伞松",
+        "subtitle": "",
+        "description": "连排石拱沿场地排开，一棵伞松高出墙头立在晴空下。"
+      }
+    },
+    "2728": {
+      "en": {
+        "title": "Mountain Behind the Ruins",
+        "subtitle": "",
+        "description": "A mountain rises behind old walls and green trees."
+      },
+      "zh": {
+        "title": "废墟后面的山",
+        "subtitle": "",
+        "description": "残墙与绿树后方，一座山峰从浅色天空中显出来。"
+      }
+    },
+    "2729": {
+      "en": {
+        "title": "Waiting on the Platform",
+        "subtitle": "",
+        "description": "Passengers sit at the platform edge beside tracks and white columns."
+      },
+      "zh": {
+        "title": "站台边等一等",
+        "subtitle": "",
+        "description": "几位乘客坐在站台边，铁轨沿着白色柱廊经过。"
+      }
+    },
+    "2730": {
+      "en": {
+        "title": "Waiting Between Red Walls",
+        "subtitle": "",
+        "description": "Passengers wait between red walls and railings, with sunlight through the arch."
+      },
+      "zh": {
+        "title": "红墙里的候车处",
+        "subtitle": "",
+        "description": "乘客在红墙与栏杆之间等候，阳光从拱门照进来。"
+      }
+    },
+    "2731": {
+      "en": {
+        "title": "Into the Metro",
+        "subtitle": "",
+        "description": "Someone walks along the train on a narrow underground platform."
+      },
+      "zh": {
+        "title": "走进地铁深处",
+        "subtitle": "",
+        "description": "狭长地下站台上，一个人沿着列车向前走。"
+      }
+    },
+    "2732": {
+      "en": {
+        "title": "Baptistery, Dome, and Bell Tower",
+        "subtitle": "",
+        "description": "From the square below, the baptistery, bell tower, and brick dome rise together into a clear sky."
+      },
+      "zh": {
+        "title": "洗礼堂与穹顶并肩",
+        "subtitle": "",
+        "description": "仰拍视角里，八角洗礼堂、高耸钟楼与红砖穹顶在蓝天下排成一列。"
+      }
+    },
+    "2733": {
+      "en": {
+        "title": "Passing the Carousel",
+        "subtitle": "",
+        "description": "People pass a carousel in the square beside a tall stone column."
+      },
+      "zh": {
+        "title": "旋转木马旁边过",
+        "subtitle": "",
+        "description": "人们从广场的旋转木马旁经过，石柱立在画面中间。"
+      }
+    },
+    "2734": {
+      "en": {
+        "title": "Three Figures in One Spiral",
+        "subtitle": "",
+        "description": "Three marble figures twist upward in a single spiral, a small bronze warrior guarding the base."
+      },
+      "zh": {
+        "title": "纠缠上升的三人",
+        "subtitle": "",
+        "description": "三个人物在同一组螺旋中纠缠着向上攀升，左下角还有一尊持武器的小铜像。"
+      }
+    },
+    "2735": {
+      "en": {
+        "title": "Bronze Holding a Head Aloft",
+        "subtitle": "",
+        "description": "The bronze figure raises a severed head on high, thrown into silhouette against the warm stone wall."
+      },
+      "zh": {
+        "title": "举着头颅的铜像",
+        "subtitle": "",
+        "description": "铜像手上高举着一颗头颅，身形在暖黄色石墙前压成深色剪影。"
+      }
+    },
+    "2736": {
+      "en": {
+        "title": "A Struggle in Marble",
+        "subtitle": "",
+        "description": "Two marble figures grapple, their shadows falling on the wall behind."
+      },
+      "zh": {
+        "title": "石像也在较劲",
+        "subtitle": "",
+        "description": "一高一低的两个石雕人物靠在一起，身后留着深色影子。"
+      }
+    },
+    "2737": {
+      "en": {
+        "title": "A Gothic Spire, Hazy Hills",
+        "subtitle": "",
+        "description": "Under flat grey light the church's tall gable and spire rise above the rooftops, hills fading behind."
+      },
+      "zh": {
+        "title": "尖顶教堂与远山",
+        "subtitle": "",
+        "description": "阴天里教堂的尖顶与山墙高过屋顶线，背后的远山只剩一层灰色。"
+      }
+    },
+    "2738": {
+      "en": {
+        "title": "The Great Dome Above the Roofs",
+        "subtitle": "",
+        "description": "From a raised overlook the cathedral dome and bell tower clear the rooftops against pale ridges."
+      },
+      "zh": {
+        "title": "屋顶线上的大穹顶",
+        "subtitle": "",
+        "description": "从高处观景台俯瞰，大教堂穹顶与钟楼越过屋顶线，山脊在背后发灰。"
+      }
+    },
+    "2739": {
+      "en": {
+        "title": "One Dome Among the Roofs",
+        "subtitle": "",
+        "description": "A green dome rises among dense rooftops with hills beyond."
+      },
+      "zh": {
+        "title": "一片屋顶一个穹顶",
+        "subtitle": "",
+        "description": "密集屋顶之间露出绿色穹顶，远山在后面铺开。"
+      }
+    },
+    "2740": {
+      "en": {
+        "title": "Terrace Above the River",
+        "subtitle": "",
+        "description": "Visitors sit beneath terrace umbrellas above the river and city."
+      },
+      "zh": {
+        "title": "高处的露台",
+        "subtitle": "",
+        "description": "露台的遮阳伞下坐着人，河流与城市铺在下方。"
+      }
+    },
+    "2741": {
+      "en": {
+        "title": "A Seat Above Florence",
+        "subtitle": "",
+        "description": "People pause on stone steps overlooking the city and its great dome."
+      },
+      "zh": {
+        "title": "在高处坐一会儿",
+        "subtitle": "",
+        "description": "几个人停在高处的石台阶上，远处的大穹顶高过屋顶。"
+      }
+    },
+    "2742": {
+      "en": {
+        "title": "Drawing at the Parapet",
+        "subtitle": "",
+        "description": "A woman with pinned-up hair leans over the parapet, drawing the rooftops spread out below her."
+      },
+      "zh": {
+        "title": "伏栏速写的人",
+        "subtitle": "",
+        "description": "盘发女子背对镜头伏在石栏上动笔，面前铺开整片老城的屋顶。"
+      }
+    },
+    "2743": {
+      "en": {
+        "title": "Arms and Phones Aloft",
+        "subtitle": "",
+        "description": "In black and white the crowd turns away from the camera, dozens of phones lifted toward the same point."
+      },
+      "zh": {
+        "title": "一同举起的手机",
+        "subtitle": "",
+        "description": "黑白画面里人群背对镜头，几十部手机齐齐举过头顶对准同一个方向。"
+      }
+    },
+    "2744": {
+      "en": {
+        "title": "The Railing After Dark",
+        "subtitle": "",
+        "description": "After dark the crowd still packs the railing while lights string together along the foot of the hills."
+      },
+      "zh": {
+        "title": "亮灯后的看台",
+        "subtitle": "",
+        "description": "天黑之后人群仍靠着栏杆挤成一排，城区的灯沿山脚连成一片。"
+      }
+    },
+    "2745": {
+      "en": {
+        "title": "Lamplight and the Distant City",
+        "subtitle": "",
+        "description": "A nearby lamp glows before a line of illuminated buildings in the distance."
+      },
+      "zh": {
+        "title": "路灯与远处的城",
+        "subtitle": "",
+        "description": "近处路灯亮成一团，远处建筑的灯光沿着夜色排开。"
+      }
+    },
+    "2746": {
+      "en": {
+        "title": "Still Here After Dark",
+        "subtitle": "",
+        "description": "People linger on the terrace as city lights reflect in the river below."
+      },
+      "zh": {
+        "title": "天黑了还没走",
+        "subtitle": "",
+        "description": "人们留在观景台上，城市的灯映在远处河面。"
+      }
+    },
+    "2747": {
+      "en": {
+        "title": "Floodlit Brick Tower",
+        "subtitle": "",
+        "description": "Against a deep blue sky the brick tower is floodlit warm orange while the people below turn to silhouettes."
+      },
+      "zh": {
+        "title": "暖光点亮的砖塔",
+        "subtitle": "",
+        "description": "天光还剩一层深蓝，砖塔被暖色灯光从下往上打亮，塔下人群只剩剪影。"
+      }
+    },
+    "2748": {
+      "en": {
+        "title": "A Plane Past the Tower",
+        "subtitle": "",
+        "description": "From the tower's base the white arcades tilt through the frame as a small plane crosses the clear sky."
+      },
+      "zh": {
+        "title": "斜塔前的飞机",
+        "subtitle": "",
+        "description": "贴着塔基仰拍，斜塔的白色拱廊占去半个画面，一架小飞机正横过晴空。"
+      }
+    },
+    "2749": {
+      "en": {
+        "title": "Tower Beside the Cathedral",
+        "subtitle": "",
+        "description": "The Leaning Tower rises beside the cathedral, with visitors gathered below."
+      },
+      "zh": {
+        "title": "斜塔旁的石墙",
+        "subtitle": "",
+        "description": "斜塔从大教堂旁露出来，游客聚在白色建筑下面。"
+      }
+    },
+    "2670": {
+      "en": {
+        "title": "Statues Against Red Walls",
+        "subtitle": "",
+        "description": "Statues line the passage through a red-walled gallery beside tall windows."
+      },
+      "zh": {
+        "title": "红墙里的雕像",
+        "subtitle": "",
+        "description": "高窗旁的红墙展厅里，雕像沿着过道排列。"
+      }
+    },
+    "2671": {
+      "en": {
+        "title": "A Sunbeam Finds the Marbles",
+        "subtitle": "",
+        "description": "A slanting beam crosses the floor and lands on the marble group at center, the side statues left in shadow."
+      },
+      "zh": {
+        "title": "斜光照亮群雕",
+        "subtitle": "",
+        "description": "一道斜光扫过地面落在展厅中央的白色群雕上，两侧的立像留在暗处。"
+      }
+    },
+    "2672": {
+      "en": {
+        "title": "Horseman Before the Bright Door",
+        "subtitle": "",
+        "description": "An equestrian bronze stands in shadow before a bright doorway."
+      },
+      "zh": {
+        "title": "亮门前的骑马像",
+        "subtitle": "",
+        "description": "骑马铜像留在暗处，背后的门洞透进白光。"
+      }
+    },
+    "2673": {
+      "en": {
+        "title": "The Empty Vaulted Gallery",
+        "subtitle": "",
+        "description": "The barrel-vaulted gallery hangs its paintings on white walls above a wooden floor that mirrors the ceiling lights."
+      },
+      "zh": {
+        "title": "空荡的拱顶长廊",
+        "subtitle": "",
+        "description": "筒形拱顶的长廊空无一人，油画挂在白墙两侧，木地板上映出顶灯。"
+      }
+    },
+    "2674": {
+      "en": {
+        "title": "Spiral Down",
+        "subtitle": "",
+        "description": "The double spiral staircase winds downward, with visitors descending the stepped ramps."
+      },
+      "zh": {
+        "title": "旋梯向下",
+        "subtitle": "",
+        "description": "俯拍的双旋梯层层向下，游客正沿坡道走下。"
+      }
+    },
+    "2675": {
+      "en": {
+        "title": "Up the Stairwell",
+        "subtitle": "",
+        "description": "Seen from the stairwell's base, the spiral ends at a round skylight glowing blue."
+      },
+      "zh": {
+        "title": "井底望天",
+        "subtitle": "",
+        "description": "从井底仰望，旋梯尽头是一扇透着蓝光的玻璃天窗。"
+      }
+    },
+    "2676": {
+      "en": {
+        "title": "Night Terrace",
+        "subtitle": "",
+        "description": "Under tall pines at night, a group gathers on a terrace beside blue lamplight."
+      },
+      "zh": {
+        "title": "夜游松台",
+        "subtitle": "",
+        "description": "夜晚的高松下，露台上一群人围站在蓝色灯影旁。"
+      }
+    },
+    "2677": {
+      "en": {
+        "title": "Night Crowd",
+        "subtitle": "",
+        "description": "At night the square fills with a seated crowd, rows of red chairs facing the lit buildings."
+      },
+      "zh": {
+        "title": "夜里的人群",
+        "subtitle": "",
+        "description": "夜色里广场坐满人群，成片红色座椅朝向亮灯的建筑。"
+      }
+    },
+    "2678": {
+      "en": {
+        "title": "Water Beyond the Window",
+        "subtitle": "",
+        "description": "Silhouettes stand at a dark window framing rocks and water outside."
+      },
+      "zh": {
+        "title": "窗外的水声",
+        "subtitle": "",
+        "description": "暗室的窗格框住外面的石头与水，窗前站着人影。"
+      }
+    },
+    "2679": {
+      "en": {
+        "title": "Pine Beside the Ruins",
+        "subtitle": "",
+        "description": "A path passes broken brick walls and a pine beside the grass."
+      },
+      "zh": {
+        "title": "残墙边的伞松",
+        "subtitle": "",
+        "description": "土路绕过砖石残墙，伞松立在草地边。"
+      }
+    },
+    "2680": {
+      "en": {
+        "title": "Forum from Above",
+        "subtitle": "",
+        "description": "From above, a triumphal arch, ruined walls, a bell tower and domes share one crowded view."
+      },
+      "zh": {
+        "title": "俯瞰古墟",
+        "subtitle": "",
+        "description": "高处俯瞰，凯旋门、残墙与后方的钟楼和圆顶挤在同一视野。"
+      }
+    },
+    "2681": {
+      "en": {
+        "title": "Among the Broken Columns",
+        "subtitle": "",
+        "description": "Broken columns and foundations scatter across the grass while visitors thread the paths between them."
+      },
+      "zh": {
+        "title": "残柱之间",
+        "subtitle": "",
+        "description": "断柱与地基散布在草地上，游客沿小路穿行其间。"
+      }
+    },
+    "2682": {
+      "en": {
+        "title": "Square from the Dome",
+        "subtitle": "",
+        "description": "From the basilica's dome, the obelisk stands centered in the elliptical colonnaded square."
+      },
+      "zh": {
+        "title": "穹顶看广场",
+        "subtitle": "",
+        "description": "从教堂穹顶俯瞰，方尖碑立在椭圆形柱廊广场的中央。"
+      }
+    },
+    "2683": {
+      "en": {
+        "title": "Figures in Relief",
+        "subtitle": "",
+        "description": "Raking light crosses a stone relief, lifting tangled figures out of the darkness."
+      },
+      "zh": {
+        "title": "石面群像",
+        "subtitle": "",
+        "description": "侧面光线扫过石质浮雕，纠缠的人像浮出暗底。"
+      }
+    },
+    "2684": {
+      "en": {
+        "title": "Statues Below the Gold",
+        "subtitle": "",
+        "description": "Side light falls on a dark statue surrounded by pale sculpted figures."
+      },
+      "zh": {
+        "title": "金顶下的雕像",
+        "subtitle": "",
+        "description": "光从侧面照进来，深色雕像与浅色人物雕刻围在一起。"
+      }
+    },
+    "2685": {
+      "en": {
+        "title": "Gold at the Far End",
+        "subtitle": "",
+        "description": "Gold ornament surrounds a bright centre at the far end of the dark interior."
+      },
+      "zh": {
+        "title": "大殿尽头的金色",
+        "subtitle": "",
+        "description": "暗色大殿的尽头，金色装饰围着一团亮光。"
+      }
+    },
+    "2686": {
+      "en": {
+        "title": "Seated Stone Figures",
+        "subtitle": "",
+        "description": "On the honey-colored marble monument, allegorical figures sit and stand in niches."
+      },
+      "zh": {
+        "title": "石座上的群像",
+        "subtitle": "",
+        "description": "蜜色大理石纪念碑上，几尊寓意人物或坐或立。"
+      }
+    },
+    "2687": {
+      "en": {
+        "title": "Dove in the Golden Glow",
+        "subtitle": "",
+        "description": "Golden rays encircle the dove window above the altar, an angel figure to one side."
+      },
+      "zh": {
+        "title": "金辉鸽窗",
+        "subtitle": "",
+        "description": "金色光芒环绕着祭坛上方的鸽形圆窗，一旁立着天使。"
+      }
+    },
+    "2688": {
+      "en": {
+        "title": "Guards at the Gate",
+        "subtitle": "",
+        "description": "Two guards in striped red, yellow and blue uniforms stand by the arch and sentry box."
+      },
+      "zh": {
+        "title": "门前的卫兵",
+        "subtitle": "",
+        "description": "两名穿红黄蓝条纹制服的卫兵站在拱门与岗亭旁。"
+      }
+    },
+    "2689": {
+      "en": {
+        "title": "Bronze by the Colonnade",
+        "subtitle": "",
+        "description": "A dark bronze monument crowded with figures stands against the white colonnade."
+      },
+      "zh": {
+        "title": "柱廊前的铜像",
+        "subtitle": "",
+        "description": "深色青铜纪念碑挤满人形，背景是白色柱廊。"
+      }
+    },
+    "2690": {
+      "en": {
+        "title": "The Ceiling in a Mirror",
+        "subtitle": "",
+        "description": "A tilted mirror reflects a painted ceiling inside the dark church."
+      },
+      "zh": {
+        "title": "镜子里看穹顶",
+        "subtitle": "",
+        "description": "斜放的镜面映出满是壁画的顶棚，远处的大殿留在暗处。"
+      }
+    },
+    "2691": {
+      "en": {
+        "title": "Crowded at the Trevi",
+        "subtitle": "",
+        "description": "Visitors crowd the turquoise water below the Trevi Fountain’s white sculptures."
+      },
+      "zh": {
+        "title": "许愿池前都是人",
+        "subtitle": "",
+        "description": "游客围着碧绿池水，白色雕像铺满背后的立面。"
+      }
+    },
+    "2692": {
+      "en": {
+        "title": "Road Between Pines",
+        "subtitle": "",
+        "description": "A narrow road runs through dry grass toward the horizon, tall umbrella pines on either side."
+      },
+      "zh": {
+        "title": "松间土路",
+        "subtitle": "",
+        "description": "一条窄路穿过干草地向远处延伸，两旁立着高大的伞松。"
+      }
+    },
+    "2693": {
+      "en": {
+        "title": "Field After Harvest",
+        "subtitle": "",
+        "description": "Round hay bales sit scattered across a golden stubble field under a pale sky."
+      },
+      "zh": {
+        "title": "收割后的田野",
+        "subtitle": "",
+        "description": "收割后的金色田野上散落着圆形干草垛，天光灰白。"
+      }
+    },
+    "2694": {
+      "en": {
+        "title": "Spanish Steps",
+        "subtitle": "",
+        "description": "The wide stone steps climb to the twin-towered church, visitors resting on the treads."
+      },
+      "zh": {
+        "title": "西班牙台阶",
+        "subtitle": "",
+        "description": "宽阔的石阶通向双塔教堂，游客坐在台阶上休息。"
+      }
+    },
+    "2695": {
+      "en": {
+        "title": "Light from the Oculus",
+        "subtitle": "",
+        "description": "The coffered concrete dome opens to a round eye of sky, its light pooling on the wall."
+      },
+      "zh": {
+        "title": "天窗之光",
+        "subtitle": "",
+        "description": "网格状混凝土穹顶中央开着一个圆洞，光斑落在墙上。"
+      }
+    },
+    "2626": {
+      "en": {
+        "title": "Beach at Low Tide",
+        "subtitle": "",
+        "description": "At low tide a sand path emerges, leading across the beach to the fort on its rock."
+      },
+      "zh": {
+        "title": "退潮后的滩涂",
+        "subtitle": "",
+        "description": "退潮后沙路露出水面，一直通向礁石上的古堡。"
+      }
+    },
+    "2627": {
+      "en": {
+        "title": "Diving Platform in the Sea",
+        "subtitle": "",
+        "description": "A diving platform stands in the seawater pool, with people in and beside it."
+      },
+      "zh": {
+        "title": "海里的跳水台",
+        "subtitle": "",
+        "description": "跳水台立在海水泳池里，岸边与水中都有人。"
+      }
+    },
+    "2628": {
+      "en": {
+        "title": "Red Below the Diving Platform",
+        "subtitle": "",
+        "description": "A red-clad figure stands on the shore below the diving platform."
+      },
+      "zh": {
+        "title": "跳台前的红色身影",
+        "subtitle": "",
+        "description": "跳水台立在海中，红色身影留在近处岸边。"
+      }
+    },
+    "2629": {
+      "en": {
+        "title": "Beyond the Tall Grass",
+        "subtitle": "",
+        "description": "Tall reeds fill the foreground, the island town rising behind them."
+      },
+      "zh": {
+        "title": "长草尽头的山",
+        "subtitle": "",
+        "description": "高高的草秆后面，海那边的山岛上叠着房屋和塔尖。"
+      }
+    },
+    "2630": {
+      "en": {
+        "title": "One Sheep in the Grass",
+        "subtitle": "",
+        "description": "A pale sheep stands alone in a monochrome field."
+      },
+      "zh": {
+        "title": "草地里只剩一只羊",
+        "subtitle": "",
+        "description": "黑白草地里，一只浅色的羊站在画面中间。"
+      }
+    },
+    "2631": {
+      "en": {
+        "title": "Walking Toward the Mount",
+        "subtitle": "",
+        "description": "A figure in dark clothing crosses the grass toward the distant island town."
+      },
+      "zh": {
+        "title": "走向山城的人",
+        "subtitle": "",
+        "description": "穿深色外套的人穿过草场，朝地平线上的山城走去。"
+      }
+    },
+    "2632": {
+      "en": {
+        "title": "A Pause Before Mont-Saint-Michel",
+        "subtitle": "",
+        "description": "A person in white trousers pauses in the grass before Mont-Saint-Michel."
+      },
+      "zh": {
+        "title": "停在圣米歇尔山前",
+        "subtitle": "",
+        "description": "穿白裤子的人站在草地边，远处山城的塔尖指向天空。"
+      }
+    },
+    "2633": {
+      "en": {
+        "title": "Bridge Across the Channels",
+        "subtitle": "",
+        "description": "Walkers form a fine line on the bridge across winding tidal channels."
+      },
+      "zh": {
+        "title": "桥走过水道",
+        "subtitle": "",
+        "description": "弯曲水道分开滩涂，行人沿长桥排成一条细线。"
+      }
+    },
+    "2634": {
+      "en": {
+        "title": "A Moon in the Nave",
+        "subtitle": "",
+        "description": "A model moon hangs in the nave, coloured light falling on the columns."
+      },
+      "zh": {
+        "title": "殿中悬月",
+        "subtitle": "",
+        "description": "一颗大月亮模型吊在教堂中殿，柱子上落着彩色的光。"
+      }
+    },
+    "2635": {
+      "en": {
+        "title": "The Cloister Green",
+        "subtitle": "",
+        "description": "Paired stone columns ring the arcade around a small green courtyard."
+      },
+      "zh": {
+        "title": "回廊与草庭",
+        "subtitle": "",
+        "description": "成对的石柱撑起一圈拱廊，中间的庭院铺满青草。"
+      }
+    },
+    "2636": {
+      "en": {
+        "title": "Blue in the Stone Hall",
+        "subtitle": "",
+        "description": "A blue installation sits behind wooden barriers in the tall stone hall."
+      },
+      "zh": {
+        "title": "石厅里的蓝色",
+        "subtitle": "",
+        "description": "石柱围着长厅，高窗下的蓝色装置被木栏围住。"
+      }
+    },
+    "2637": {
+      "en": {
+        "title": "Yellow Robe, Stained Glass",
+        "subtitle": "",
+        "description": "A yellow-robed statue stands before a narrow stained-glass window."
+      },
+      "zh": {
+        "title": "黄袍像与彩窗",
+        "subtitle": "",
+        "description": "一尊黄袍雕像站在窄高的彩窗前，四周很暗。"
+      }
+    },
+    "2638": {
+      "en": {
+        "title": "Statue Before Stained Glass",
+        "subtitle": "",
+        "description": "A robed statue stands with its back to the camera before painted windows."
+      },
+      "zh": {
+        "title": "彩窗与背影",
+        "subtitle": "",
+        "description": "雕像背对镜头立着，背后是整面绘着人物的彩色玻璃。"
+      }
+    },
+    "2639": {
+      "en": {
+        "title": "People on the Balcony",
+        "subtitle": "",
+        "description": "People stand on a pale building’s balcony, with the moon above the roof."
+      },
+      "zh": {
+        "title": "阳台上的几个人",
+        "subtitle": "",
+        "description": "浅色楼房的阳台上站着几个人，月亮还在屋顶上方。"
+      }
+    },
+    "2640": {
+      "en": {
+        "title": "The Street Performer’s Patch",
+        "subtitle": "",
+        "description": "A performer in a hat draws a small audience outside a restaurant."
+      },
+      "zh": {
+        "title": "街头艺人的场地",
+        "subtitle": "",
+        "description": "戴帽子的艺人站在餐厅外，路过的人停下来围观。"
+      }
+    },
+    "2651": {
+      "en": {
+        "title": "Green Chairs by the Pond",
+        "subtitle": "",
+        "description": "Empty green chairs ring the park basin under a grey sky."
+      },
+      "zh": {
+        "title": "池塘边的绿椅",
+        "subtitle": "",
+        "description": "灰天下面，空着的绿椅子围着公园水池摆了一圈。"
+      }
+    },
+    "2652": {
+      "en": {
+        "title": "Lips on the Screen",
+        "subtitle": "",
+        "description": "A close-up of lips fills a small screen, with headphones hanging below."
+      },
+      "zh": {
+        "title": "屏幕上的嘴唇",
+        "subtitle": "",
+        "description": "嘴唇的特写铺满小屏幕，耳机挂在下方。"
+      }
+    },
+    "2653": {
+      "en": {
+        "title": "Two Orange Paintings",
+        "subtitle": "",
+        "description": "Two small orange-toned paintings hang on the white gallery wall."
+      },
+      "zh": {
+        "title": "两幅橙色的画",
+        "subtitle": "",
+        "description": "展厅白墙上挂着两幅小幅橙调的画，旁边贴着说明牌。"
+      }
+    },
+    "2654": {
+      "en": {
+        "title": "Reflections in Gallery Glass",
+        "subtitle": "",
+        "description": "Glass overlays visitors and framed pictures, turning every figure half-transparent."
+      },
+      "zh": {
+        "title": "展厅玻璃反光",
+        "subtitle": "",
+        "description": "玻璃把参观者和挂画叠在一起，人影都变得半透明。"
+      }
+    },
+    "2655": {
+      "en": {
+        "title": "Statue Below the Wheel",
+        "subtitle": "",
+        "description": "A stone statue stands in the clipped garden, the big wheel behind."
+      },
+      "zh": {
+        "title": "雕像与摩天轮",
+        "subtitle": "",
+        "description": "修剪整齐的花园尽头，石像和白色摩天轮排成一线。"
+      }
+    },
+    "2656": {
+      "en": {
+        "title": "Wheel Beside the Sphere",
+        "subtitle": "",
+        "description": "The ferris wheel sits beside a huge metal sphere as visitors walk past."
+      },
+      "zh": {
+        "title": "大球旁的摩天轮",
+        "subtitle": "",
+        "description": "摩天轮紧挨着一枚巨大的金属圆球，游人从下面走过。"
+      }
+    },
+    "2657": {
+      "en": {
+        "title": "Pyramid Through the Arch",
+        "subtitle": "",
+        "description": "Silhouetted visitors gather under the dark arch, the glass pyramid beyond."
+      },
+      "zh": {
+        "title": "拱门下的金字塔",
+        "subtitle": "",
+        "description": "黑漆漆的拱门下聚着人影，玻璃金字塔在亮的那一头。"
+      }
+    },
+    "2658": {
+      "en": {
+        "title": "Umbrellas Above the Roofs",
+        "subtitle": "",
+        "description": "A yellow and a patterned umbrella crowd the lookout above the rooftops."
+      },
+      "zh": {
+        "title": "伞与屋顶",
+        "subtitle": "",
+        "description": "一把黄伞一把花伞挤在高处，伞沿外是连片的屋顶。"
+      }
+    },
+    "2659": {
+      "en": {
+        "title": "Garden Through the Railings",
+        "subtitle": "",
+        "description": "Leaves and flowers partly hide visitors behind the black railings."
+      },
+      "zh": {
+        "title": "隔着栏杆看花园",
+        "subtitle": "",
+        "description": "黑色栏杆后，枝叶与花朵挡住花园里的人影。"
+      }
+    },
+    "2660": {
+      "en": {
+        "title": "Red Awning, Iron Tower",
+        "subtitle": "",
+        "description": "Flowers spill over a red awning; the tower closes the street."
+      },
+      "zh": {
+        "title": "街口的红篷",
+        "subtitle": "",
+        "description": "红色遮阳篷上摆满红花，街道尽头立着铁塔。"
+      }
+    },
+    "2661": {
+      "en": {
+        "title": "Tower Through the Leaves",
+        "subtitle": "",
+        "description": "Green leaves frame the foreground, the tower showing through the gap."
+      },
+      "zh": {
+        "title": "叶缝里的铁塔",
+        "subtitle": "",
+        "description": "近景的绿叶围出一个框，铁塔从树缝里露出半座。"
+      }
+    },
+    "2662": {
+      "en": {
+        "title": "Street Corner by the Tower",
+        "subtitle": "",
+        "description": "The Eiffel Tower rises behind a street pole as pedestrians pass."
+      },
+      "zh": {
+        "title": "铁塔下的街口",
+        "subtitle": "",
+        "description": "铁塔立在路边立柱背后，行人穿行，天上有一只飞鸟。"
+      }
+    },
+    "2663": {
+      "en": {
+        "title": "Works Before the Tower",
+        "subtitle": "",
+        "description": "Gardens lead toward the tower beyond excavated ground and construction equipment."
+      },
+      "zh": {
+        "title": "铁塔前还在施工",
+        "subtitle": "",
+        "description": "花园与铁塔排成中轴，近处是挖开的地面与施工设备。"
+      }
+    },
+    "2664": {
+      "en": {
+        "title": "Tower Across the Plaza",
+        "subtitle": "",
+        "description": "Visitors scatter across the stone esplanade facing the cloud-covered tower."
+      },
+      "zh": {
+        "title": "广场尽头的塔",
+        "subtitle": "",
+        "description": "宽阔的石板广场上人群散布，铁塔在阴云下居中而立。"
+      }
+    },
+    "2665": {
+      "en": {
+        "title": "Across the Platform",
+        "subtitle": "",
+        "description": "Passengers pause beside brightly lit posters across the metro tracks."
+      },
+      "zh": {
+        "title": "站台对面",
+        "subtitle": "",
+        "description": "轨道另一侧，乘客停在色彩鲜艳的海报灯箱前。"
+      }
+    },
+    "2666": {
+      "en": {
+        "title": "People Below the Triangles",
+        "subtitle": "",
+        "description": "Light picks out visitors beneath the triangular ceiling in this monochrome interior."
+      },
+      "zh": {
+        "title": "三角形下面的人",
+        "subtitle": "",
+        "description": "黑白大厅里，三角形顶棚下的人影被亮光勾出来。"
+      }
+    },
+    "2667": {
+      "en": {
+        "title": "The Red Gallery",
+        "subtitle": "",
+        "description": "Visitors move through a skylit gallery hung densely with paintings."
+      },
+      "zh": {
+        "title": "红墙展厅",
+        "subtitle": "",
+        "description": "天窗下的展厅两面挂满油画，参观者在中央穿行。"
+      }
+    },
+    "2668": {
+      "en": {
+        "title": "The Inverted Pyramid",
+        "subtitle": "",
+        "description": "An inverted glass structure funnels daylight into the white concourse."
+      },
+      "zh": {
+        "title": "倒金字塔",
+        "subtitle": "",
+        "description": "倒悬的玻璃结构把天光引进白色的室内空间。"
+      }
+    },
+    "2669": {
+      "en": {
+        "title": "Bronze Horse, Big Wheel",
+        "subtitle": "",
+        "description": "A gilded horseman rears before the ferris wheel and flaring sun."
+      },
+      "zh": {
+        "title": "铜像与摩天轮",
+        "subtitle": "",
+        "description": "金色骑马雕像扬蹄向天，身后摩天轮顶着耀眼的太阳。"
+      }
+    },
+    "2577": {
+      "en": {
+        "title": "Steps Under the Flag",
+        "subtitle": "",
+        "description": "Stone steps climb past two figures toward a flagpole under clear blue."
+      },
+      "zh": {
+        "title": "台阶尽头",
+        "subtitle": "",
+        "description": "石阶沿墙向上，两个人影停在栏边，天蓝得没有云。"
+      }
+    },
+    "2578": {
+      "en": {
+        "title": "Sentry Box and Columns",
+        "subtitle": "",
+        "description": "A guard stands in a blue-striped sentry box below the columned rooftop."
+      },
+      "zh": {
+        "title": "岗亭与廊柱",
+        "subtitle": "",
+        "description": "蓝白条纹岗亭里站着一名卫兵，身后建筑顶部露出一排廊柱。"
+      }
+    },
+    "2579": {
+      "en": {
+        "title": "Steps at the Changing of the Guard",
+        "subtitle": "",
+        "description": "Two guards in red caps lift their legs, rifles slung behind their shoulders."
+      },
+      "zh": {
+        "title": "换岗时的高抬腿",
+        "subtitle": "",
+        "description": "两位红帽卫兵抬腿向前，步枪背在肩后。"
+      }
+    },
+    "2580": {
+      "en": {
+        "title": "Marble Stadium Seats",
+        "subtitle": "",
+        "description": "Tiered marble benches curve around the track beneath the Olympic rings."
+      },
+      "zh": {
+        "title": "大理石看台",
+        "subtitle": "",
+        "description": "层层大理石座席围出空旷场地，看台高处立着奥运五环。"
+      }
+    },
+    "2581": {
+      "en": {
+        "title": "The Standing Column",
+        "subtitle": "",
+        "description": "One tall ancient column rises at the end of an open paved ground."
+      },
+      "zh": {
+        "title": "一根石柱",
+        "subtitle": "",
+        "description": "高大的古代石柱立在空地尽头，两旁有树作陪衬。"
+      }
+    },
+    "2582": {
+      "en": {
+        "title": "Man Above the Night City",
+        "subtitle": "",
+        "description": "A man in a striped shirt stands before the lit hill and city lights."
+      },
+      "zh": {
+        "title": "山坡上的城",
+        "subtitle": "",
+        "description": "穿条纹衬衫的男子站在高处，背后是亮灯的山丘和满城灯火。"
+      }
+    },
+    "2583": {
+      "en": {
+        "title": "The City Lit at Night",
+        "subtitle": "",
+        "description": "City lights blanket the slopes beneath a brightly floodlit hilltop."
+      },
+      "zh": {
+        "title": "万家灯火",
+        "subtitle": "",
+        "description": "夜色里城市灯火铺满山脚，山顶的建筑被单独打亮。"
+      }
+    },
+    "2584": {
+      "en": {
+        "title": "Facing the City Lights",
+        "subtitle": "",
+        "description": "A blurred figure stands in the foreground, focus resting on the lit hill."
+      },
+      "zh": {
+        "title": "看夜景的人",
+        "subtitle": "",
+        "description": "前景一道模糊背影立在城灯前，焦点落在远处的山上。"
+      }
+    },
+    "2585": {
+      "en": {
+        "title": "Places on the Deck",
+        "subtitle": "",
+        "description": "A post divides the deck between passengers standing at the rail and sitting down."
+      },
+      "zh": {
+        "title": "甲板上各有位置",
+        "subtitle": "",
+        "description": "立柱把画面分成两边，乘客或倚栏看海，或坐着休息。"
+      }
+    },
+    "2586": {
+      "en": {
+        "title": "The Wake Behind",
+        "subtitle": "",
+        "description": "A white wake fans across deep blue water toward hazy mountains."
+      },
+      "zh": {
+        "title": "船尾的浪",
+        "subtitle": "",
+        "description": "船行的白色水痕在深蓝海面铺开，远处山影淡淡。"
+      }
+    },
+    "2587": {
+      "en": {
+        "title": "A Few Pages on Board",
+        "subtitle": "",
+        "description": "Someone reads in a dark cabin, with light falling across the open pages."
+      },
+      "zh": {
+        "title": "船上读几页",
+        "subtitle": "",
+        "description": "暗色船舱里，一个人靠在椅子上读书，光落在书页上。"
+      }
+    },
+    "2588": {
+      "en": {
+        "title": "Profile Against the Sunset",
+        "subtitle": "",
+        "description": "A silhouetted profile faces the sea as the orange sun nears the horizon."
+      },
+      "zh": {
+        "title": "落日前的人",
+        "subtitle": "",
+        "description": "剪影里的人侧脸朝海，橙色落日正贴着海平线。"
+      }
+    },
+    "2589": {
+      "en": {
+        "title": "Sunset Between the Beams",
+        "subtitle": "",
+        "description": "The sea meets a warm sky between white structural beams on deck."
+      },
+      "zh": {
+        "title": "船的支架框住落日",
+        "subtitle": "",
+        "description": "白色船体支架之间，海面与暖色天空接在一起。"
+      }
+    },
+    "2590": {
+      "en": {
+        "title": "Coastline Lights Up",
+        "subtitle": "",
+        "description": "House lights scatter down the hillside toward the darkening shore."
+      },
+      "zh": {
+        "title": "入夜的海岸",
+        "subtitle": "",
+        "description": "山坡上的房屋亮起点点灯火，海岸线蜿蜒进暗蓝色的海。"
+      }
+    },
+    "2591": {
+      "en": {
+        "title": "A Rock in the Sea",
+        "subtitle": "",
+        "description": "A lone rock sits on calm water under a sky fading from warm to blue."
+      },
+      "zh": {
+        "title": "海中一块石头",
+        "subtitle": "",
+        "description": "孤立的礁石浮在平静海面上，天色从暖黄渐变成蓝。"
+      }
+    },
+    "2592": {
+      "en": {
+        "title": "One Swimmer, Late Sun",
+        "subtitle": "",
+        "description": "Low sun shatters gold across the ripples around one lone swimmer."
+      },
+      "zh": {
+        "title": "金色水面",
+        "subtitle": "",
+        "description": "低角度的太阳把波纹照成碎金，水里有一个人独自游动。"
+      }
+    },
+    "2593": {
+      "en": {
+        "title": "Lights on a Dark Slope",
+        "subtitle": "",
+        "description": "A few lights burn above dark hillside streets after sunset."
+      },
+      "zh": {
+        "title": "夜路微光",
+        "subtitle": "",
+        "description": "入夜后的坡道上只剩几粒灯光，四周几乎全黑。"
+      }
+    },
+    "2594": {
+      "en": {
+        "title": "Whitewashed Alley Steps",
+        "subtitle": "",
+        "description": "An alley of white walls ends in worn steps and an archway."
+      },
+      "zh": {
+        "title": "白巷石阶",
+        "subtitle": "",
+        "description": "白色小巷的尽头接一段石阶，拱门边有个橙衣人。"
+      }
+    },
+    "2595": {
+      "en": {
+        "title": "Harbor Lights from Above",
+        "subtitle": "",
+        "description": "From above, rooftops and harbor lights cluster along the bay."
+      },
+      "zh": {
+        "title": "夜港灯火",
+        "subtitle": "",
+        "description": "从高处往下看，港湾和坡屋顶的灯火连成一片。"
+      }
+    },
+    "2596": {
+      "en": {
+        "title": "Hillside Town at Dusk",
+        "subtitle": "",
+        "description": "Terraced slopes step down toward a darkening bay at dusk."
+      },
+      "zh": {
+        "title": "坡城入夜",
+        "subtitle": "",
+        "description": "山坡上的房子层层叠叠，天色转成深蓝。"
+      }
+    },
+    "2597": {
+      "en": {
+        "title": "The Church Above Town",
+        "subtitle": "",
+        "description": "A lit church crowns the hillside above white houses and the sea."
+      },
+      "zh": {
+        "title": "山上的教堂亮着",
+        "subtitle": "",
+        "description": "山顶的教堂亮着灯，白色房屋沿坡连向海边。"
+      }
+    },
+    "2598": {
+      "en": {
+        "title": "Swimmer at Sunset",
+        "subtitle": "",
+        "description": "The sun nears the horizon behind a lone swimmer's silhouette."
+      },
+      "zh": {
+        "title": "落日入海前",
+        "subtitle": "",
+        "description": "太阳贴近海平线，一个人影立在泛金的浪里。"
+      }
+    },
+    "2599": {
+      "en": {
+        "title": "Gathering Outside the Shop",
+        "subtitle": "",
+        "description": "A crowd gathers outside a bright shopfront after dark."
+      },
+      "zh": {
+        "title": "店口夜聚",
+        "subtitle": "",
+        "description": "敞亮的店面前围了一群人，有人伸臂比划。"
+      }
+    },
+    "2600": {
+      "en": {
+        "title": "Obelisk on a Sunny Square",
+        "subtitle": "",
+        "description": "An obelisk stands before a stone hall on an empty sunny square."
+      },
+      "zh": {
+        "title": "方尖碑广场",
+        "subtitle": "",
+        "description": "晴日里方尖碑立在石砌小楼前，广场上空无一人。"
+      }
+    },
+    "2601": {
+      "en": {
+        "title": "Quay Below White Houses",
+        "subtitle": "",
+        "description": "Blue water meets a quay below hillside houses, a dog resting nearby."
+      },
+      "zh": {
+        "title": "码头与白屋",
+        "subtitle": "",
+        "description": "蓝色海面挨着码头，白屋爬上山坡，一只狗卧在堤上。"
+      }
+    },
+    "2530": {
+      "en": {
+        "title": "Silhouettes Before the Screen",
+        "subtitle": "",
+        "description": "Two sit in silhouette before a bright projected image."
+      },
+      "zh": {
+        "title": "屏幕前的剪影",
+        "subtitle": "",
+        "description": "两个人坐在亮着的投影屏前，只剩黑色轮廓。"
+      }
+    },
+    "2531": {
+      "en": {
+        "title": "Violet Light Tunnel",
+        "subtitle": "",
+        "description": "Purple light tubes run through a tunnel of woven branches."
+      },
+      "zh": {
+        "title": "紫灯通道",
+        "subtitle": "",
+        "description": "枝条搭成的通道被紫色灯带照亮，一直伸向暗处。"
+      }
+    },
+    "2532": {
+      "en": {
+        "title": "Figures by the Stones",
+        "subtitle": "",
+        "description": "Two figures pause beside standing stones in a dim green garden."
+      },
+      "zh": {
+        "title": "石边的人",
+        "subtitle": "",
+        "description": "暗绿园子里立着几块竖石，两个人停在旁边。"
+      }
+    },
+    "2533": {
+      "en": {
+        "title": "Lights in a Dark Room",
+        "subtitle": "",
+        "description": "Small glowing objects hang suspended in a pitch-black room."
+      },
+      "zh": {
+        "title": "黑屋里的亮点",
+        "subtitle": "",
+        "description": "漆黑的展厅里悬着几枚发光的小物件。"
+      }
+    },
+    "2534": {
+      "en": {
+        "title": "Tree Lines on Cloth",
+        "subtitle": "",
+        "description": "Drawn tree lines cover a curtain at a corridor's end."
+      },
+      "zh": {
+        "title": "布上的树线",
+        "subtitle": "",
+        "description": "窄廊尽头的布帘印满树的线条，灯从上方打下来。"
+      }
+    },
+    "2535": {
+      "en": {
+        "title": "Path Past the Grass Roof",
+        "subtitle": "",
+        "description": "Two people follow the path past a grass-roofed fortification."
+      },
+      "zh": {
+        "title": "小路绕过草顶",
+        "subtitle": "",
+        "description": "两个人沿小路经过，草顶工事藏在树与坡地之间。"
+      }
+    },
+    "2536": {
+      "en": {
+        "title": "A Web Across the Lawn",
+        "subtitle": "",
+        "description": "Fine poles support white netting, anchored by weighted bags on the lawn."
+      },
+      "zh": {
+        "title": "草地上撑开一张网",
+        "subtitle": "",
+        "description": "白色网面被细杆撑起，底部连着一袋袋重物。"
+      }
+    },
+    "2537": {
+      "en": {
+        "title": "Orange Against Green",
+        "subtitle": "",
+        "description": "Orange branches lie across the grassy slope against dense green trees."
+      },
+      "zh": {
+        "title": "绿地里横着一抹橙",
+        "subtitle": "",
+        "description": "一组橙色枝条斜在草坡上，背景是一整片绿树。"
+      }
+    },
+    "2538": {
+      "en": {
+        "title": "Orange from Further Away",
+        "subtitle": "",
+        "description": "From further back, orange branches sit surrounded by green on the slope."
+      },
+      "zh": {
+        "title": "再退远一点看橙色",
+        "subtitle": "",
+        "description": "退远看，草坡上的橙色枝条被绿色包围。"
+      }
+    },
+    "2539": {
+      "en": {
+        "title": "Red House on the Islet",
+        "subtitle": "",
+        "description": "A small red wooden house sits alone on a rocky islet."
+      },
+      "zh": {
+        "title": "礁石上的小红屋",
+        "subtitle": "",
+        "description": "礁石小岛上立着一栋红墙小屋，正对着一片水面。"
+      }
+    },
+    "2540": {
+      "en": {
+        "title": "Statue at the Crossing",
+        "subtitle": "",
+        "description": "A dark statue rises over pedestrians at a busy city corner."
+      },
+      "zh": {
+        "title": "雕像与街口",
+        "subtitle": "",
+        "description": "深色雕像立在广场边，行人和车辆从它脚边经过。"
+      }
+    },
+    "2541": {
+      "en": {
+        "title": "Yellow House Among Birches",
+        "subtitle": "",
+        "description": "A yellow wooden house sits behind birches and tall grass."
+      },
+      "zh": {
+        "title": "桦树后的黄房子",
+        "subtitle": "",
+        "description": "明黄色木屋藏在桦树和高草后面，只露出一个面。"
+      }
+    },
+    "2542": {
+      "en": {
+        "title": "Room on the Benches",
+        "subtitle": "",
+        "description": "Two people sit among mostly empty benches beside a red-brick building."
+      },
+      "zh": {
+        "title": "长椅不必坐满",
+        "subtitle": "",
+        "description": "几排长椅散在草地上，两个人坐在红砖房前。"
+      }
+    },
+    "2543": {
+      "en": {
+        "title": "Benches Under the Trees",
+        "subtitle": "",
+        "description": "A few people rest on light benches under dense green shade."
+      },
+      "zh": {
+        "title": "树荫下的长椅",
+        "subtitle": "",
+        "description": "浓绿树荫下架着几张浅色长椅，两三人靠坐着。"
+      }
+    },
+    "2544": {
+      "en": {
+        "title": "Board Covered in Notes",
+        "subtitle": "",
+        "description": "Hand-drawn cards and notes cover a display board edge to edge."
+      },
+      "zh": {
+        "title": "贴满纸的板子",
+        "subtitle": "",
+        "description": "立板被手绘卡片和字条贴满，字迹大大小小挤在一起。"
+      }
+    },
+    "2488": {
+      "en": {
+        "title": "Street to the Tower",
+        "subtitle": "",
+        "description": "A straight street runs between brick buildings toward a pale stone tower."
+      },
+      "zh": {
+        "title": "街尽头的高塔",
+        "subtitle": "",
+        "description": "道路笔直通向浅色的高塔，两旁砖楼夹着人行道。"
+      }
+    },
+    "2489": {
+      "en": {
+        "title": "This Seat by the Window",
+        "subtitle": "",
+        "description": "A small table sits between dark banquettes, with a window graphic layered over trees outside."
+      },
+      "zh": {
+        "title": "窗边这张椅子",
+        "subtitle": "",
+        "description": "深色卡座围着小圆桌，窗上的大幅图案与窗外绿树叠在一起。"
+      }
+    },
+    "2464": {
+      "en": {
+        "title": "The Striped Seats Are Free",
+        "subtitle": "",
+        "description": "Rows of rainbow-striped seats stand empty inside the metro carriage."
+      },
+      "zh": {
+        "title": "条纹座椅还空着",
+        "subtitle": "",
+        "description": "地铁车厢里，一排排彩色条纹座椅空着。"
+      }
+    },
+    "2465": {
+      "en": {
+        "title": "Eyes Beside the Facade",
+        "subtitle": "",
+        "description": "An ornate facade glows at night between two giant eyes."
+      },
+      "zh": {
+        "title": "立面两边的眼睛",
+        "subtitle": "",
+        "description": "古建筑在夜里亮着灯，两边巨大的眼睛望向广场。"
+      }
+    },
+    "2466": {
+      "en": {
+        "title": "The Red Light Says Wait",
+        "subtitle": "",
+        "description": "Warm lamps light an empty street beneath a red pedestrian signal."
+      },
+      "zh": {
+        "title": "红灯叫人先停一下",
+        "subtitle": "",
+        "description": "空街被暖色路灯照亮，近处行人信号灯亮着红色。"
+      }
+    },
+    "2467": {
+      "en": {
+        "title": "Two Lamps on the Bridge",
+        "subtitle": "",
+        "description": "Under two old lamps on the bridge, a few walkers cross between the lights."
+      },
+      "zh": {
+        "title": "桥上两盏路灯",
+        "subtitle": "",
+        "description": "两盏老式路灯立在石桥上，几个行人走过灯杆之间。"
+      }
+    },
+    "2468": {
+      "en": {
+        "title": "Figures at the Bridge Rail",
+        "subtitle": "",
+        "description": "Two figures rest by the bridge rail, lit buildings shining across the river."
+      },
+      "zh": {
+        "title": "桥栏边的人影",
+        "subtitle": "",
+        "description": "两个人倚在桥栏的路灯旁，远处楼房亮成一片。"
+      }
+    },
+    "2469": {
+      "en": {
+        "title": "Red Hall, Dark Silhouettes",
+        "subtitle": "",
+        "description": "A carved white wall meets a red-lit hall crowded with dark silhouettes."
+      },
+      "zh": {
+        "title": "红厅里的背影",
+        "subtitle": "",
+        "description": "白色浮雕墙贴着深红展区，观众的背影停在明暗之间。"
+      }
+    },
+    "2470": {
+      "en": {
+        "title": "Canal Lights at Night",
+        "subtitle": "",
+        "description": "Lights line the curving embankment and reflect on the dark canal water."
+      },
+      "zh": {
+        "title": "河湾的灯火",
+        "subtitle": "",
+        "description": "弧形河岸的灯光一路排开，映在黑亮的水面上。"
+      }
+    },
+    "2471": {
+      "en": {
+        "title": "Packed Under the Vaults",
+        "subtitle": "",
+        "description": "A standing crowd fills the vaulted stone cellar under warm lamps."
+      },
+      "zh": {
+        "title": "拱顶下的观众",
+        "subtitle": "",
+        "description": "石拱地窖里站满了人，脑袋挤在暖黄灯影下。"
+      }
+    },
+    "2472": {
+      "en": {
+        "title": "Dancing in the Cellar",
+        "subtitle": "",
+        "description": "Dancers crowd the vaulted cellar under pink light."
+      },
+      "zh": {
+        "title": "地窖里挤着跳舞",
+        "subtitle": "",
+        "description": "人群挤在石拱地窖里，粉色灯光落在墙与脸上。"
+      }
+    },
+    "2473": {
+      "en": {
+        "title": "One Outside the Cinémathèque",
+        "subtitle": "",
+        "description": "Someone stands outside the Cinémathèque among trees and parked bicycles."
+      },
+      "zh": {
+        "title": "电影馆前一个人",
+        "subtitle": "",
+        "description": "一个人站在电影馆外，树荫和自行车围着入口。"
+      }
+    },
+    "2474": {
+      "en": {
+        "title": "Inside the Dark Film Gallery",
+        "subtitle": "",
+        "description": "Spotlights pick out white set pieces while a visitor shrinks to a silhouette."
+      },
+      "zh": {
+        "title": "暗厅里的白色布景",
+        "subtitle": "",
+        "description": "射灯只照亮白色布景和展柜，观众缩成一个小剪影。"
+      }
+    },
+    "2475": {
+      "en": {
+        "title": "Mechanical Figure at the Table",
+        "subtitle": "",
+        "description": "A mechanical figure sits at a table before black-and-white faces."
+      },
+      "zh": {
+        "title": "桌边的机械人偶",
+        "subtitle": "",
+        "description": "机械人偶坐在桌边，身后是几张黑白人脸。"
+      }
+    },
+    "2476": {
+      "en": {
+        "title": "Characters on the Stairs",
+        "subtitle": "",
+        "description": "White character outlines climb the black steps toward a bright landing."
+      },
+      "zh": {
+        "title": "把角色画上台阶",
+        "subtitle": "",
+        "description": "白色人物轮廓沿黑色台阶往上排，尽头是一片亮光。"
+      }
+    },
+    "2477": {
+      "en": {
+        "title": "Lit Niches on the Wall",
+        "subtitle": "",
+        "description": "Small niches in the dark wall hold lit lamps and old objects."
+      },
+      "zh": {
+        "title": "墙上的亮格子",
+        "subtitle": "",
+        "description": "深色墙面上嵌着几格小窗，台灯和旧物在里面发亮。"
+      }
+    },
+    "2478": {
+      "en": {
+        "title": "Film Strips Against the Light",
+        "subtitle": "",
+        "description": "Backlit film strips hang in vertical rows, frames visible one by one."
+      },
+      "zh": {
+        "title": "透光的胶片条",
+        "subtitle": "",
+        "description": "几条胶片竖挂着透光，齿孔和画格一格一格排下来。"
+      }
+    },
+    "2479": {
+      "en": {
+        "title": "Old Cameras in the Dark",
+        "subtitle": "",
+        "description": "Old lenses and projectors stand among posters in a dim exhibition hall."
+      },
+      "zh": {
+        "title": "暗室里的老机器",
+        "subtitle": "",
+        "description": "吊灯低垂，老式镜头与放映机立在展台和暗影之间。"
+      }
+    },
+    "2480": {
+      "en": {
+        "title": "A Moon Beside the Old Wheel",
+        "subtitle": "",
+        "description": "A large metal wheel stands beside a projection of the moon."
+      },
+      "zh": {
+        "title": "老轮子旁边放个月亮",
+        "subtitle": "",
+        "description": "大型金属轮留在左侧暗处，墙上的投影亮着一轮月亮。"
+      }
+    },
+    "2481": {
+      "en": {
+        "title": "The Matrix in the Record Stack",
+        "subtitle": "",
+        "description": "A Matrix soundtrack record sits at the front of a green-tinted display."
+      },
+      "zh": {
+        "title": "唱片堆里的黑客帝国",
+        "subtitle": "",
+        "description": "唱片架映着绿色，最前面摆着一张《黑客帝国》原声唱片。"
+      }
+    },
+    "2482": {
+      "en": {
+        "title": "The White Cinémathèque",
+        "subtitle": "",
+        "description": "White stacked forms rise above the glass entrance marked Cinémathèque."
+      },
+      "zh": {
+        "title": "白色的电影馆",
+        "subtitle": "",
+        "description": "入口玻璃上印着'电影馆'字样，白色体块在上面堆叠。"
+      }
+    },
+    "2483": {
+      "en": {
+        "title": "Fallen Leaves on the Lawn",
+        "subtitle": "",
+        "description": "Fallen leaves scatter the wide lawn, the white building peeking through trees."
+      },
+      "zh": {
+        "title": "撒满落叶的草坪",
+        "subtitle": "",
+        "description": "黄叶撒在大片草地上，白色尖顶楼从树后露出来。"
+      }
+    },
+    "2484": {
+      "en": {
+        "title": "Pavilion on the Lawn",
+        "subtitle": "",
+        "description": "A small roofed pavilion sits on the grass before a wide stone stair."
+      },
+      "zh": {
+        "title": "草坡前的小亭",
+        "subtitle": "",
+        "description": "带顶小亭立在草坡前，身后宽台阶通向更高的草丘。"
+      }
+    },
+    "2485": {
+      "en": {
+        "title": "Painted Fountain by the Church",
+        "subtitle": "",
+        "description": "Colorful sculptures stand in a shallow pool before a Gothic church facade."
+      },
+      "zh": {
+        "title": "彩色喷泉与老教堂",
+        "subtitle": "",
+        "description": "彩色雕塑站在浅水池里，背景是老教堂的尖拱长窗。"
+      }
+    },
+    "2486": {
+      "en": {
+        "title": "Crowd Under the Tower",
+        "subtitle": "",
+        "description": "Crowds gather on the terrace as the tower lights up."
+      },
+      "zh": {
+        "title": "塔下夜色",
+        "subtitle": "",
+        "description": "入夜后铁塔亮灯，观景平台上挤满看塔的人群。"
+      }
+    },
+    "2487": {
+      "en": {
+        "title": "Tower Against Dark Sky",
+        "subtitle": "",
+        "description": "The tower glows warm yellow against a dark, cloudy night sky."
+      },
+      "zh": {
+        "title": "夜色铁塔",
+        "subtitle": "",
+        "description": "铁塔在深色夜空中亮着暖黄的灯，塔底远处有城市灯光。"
+      }
+    },
+    "2432": {
+      "en": {
+        "title": "Billboard on Green Wall",
+        "subtitle": "",
+        "description": "A huge black-and-white billboard covers a hedge wall above the pavement."
+      },
+      "zh": {
+        "title": "绿墙广告",
+        "subtitle": "",
+        "description": "整面绿篱墙上挂着一幅巨型黑白双人广告，墙前有人走过。"
+      }
+    },
+    "2433": {
+      "en": {
+        "title": "Cathedral Square",
+        "subtitle": "",
+        "description": "An ornate white cathedral facade overlooks a square with an orange-coated passerby."
+      },
+      "zh": {
+        "title": "教堂前广场",
+        "subtitle": "",
+        "description": "白色大理石教堂立面下，广场上有个穿橙色外套的行人。"
+      }
+    },
+    "2428": {
+      "en": {
+        "title": "Bare Trees at Dusk",
+        "subtitle": "",
+        "description": "Bare trees stand in blue evening light above a grassy field."
+      },
+      "zh": {
+        "title": "傍晚的树",
+        "subtitle": "",
+        "description": "天光发蓝，一排秃树的枝杈立在草地上方。"
+      }
+    },
+    "2429": {
+      "en": {
+        "title": "Silhouette at the Window",
+        "subtitle": "",
+        "description": "A seated silhouette rests against a violet-lit window with a small sign."
+      },
+      "zh": {
+        "title": "窗边剪影",
+        "subtitle": "",
+        "description": "一个人的黑色轮廓贴在紫蓝色的玻璃前，上方有块小标牌。"
+      }
+    },
+    "2430": {
+      "en": {
+        "title": "Mountain Above the Field",
+        "subtitle": "",
+        "description": "A dark peak looms over green fields with a few small houses."
+      },
+      "zh": {
+        "title": "山脚下的房子",
+        "subtitle": "",
+        "description": "深色山体压在田野上方，山脚散落着几座小房子。"
+      }
+    },
+    "2431": {
+      "en": {
+        "title": "White Statue Among the Trees",
+        "subtitle": "",
+        "description": "A white statue stands on a tall column among dark branches."
+      },
+      "zh": {
+        "title": "白色立像留在树间",
+        "subtitle": "",
+        "description": "白色立像立在高柱顶端，深色枝杈围在四周。"
+      }
+    },
+    "2442": {
+      "en": {
+        "title": "View from the Lift",
+        "subtitle": "",
+        "description": "Snowy ridgelines stretch out under a blue sky beside the lift."
+      },
+      "zh": {
+        "title": "索道上望",
+        "subtitle": "",
+        "description": "从索道边望出去，积雪的山脊在蓝天下连成一片。"
+      }
+    },
+    "2443": {
+      "en": {
+        "title": "Mountain in Deep Blue",
+        "subtitle": "",
+        "description": "The slope sinks into deep blue, snow patches faintly visible."
+      },
+      "zh": {
+        "title": "深蓝的山",
+        "subtitle": "",
+        "description": "山体浸在深蓝色天光里，只剩残雪和裸岩隐约可见。"
+      }
+    },
+    "2444": {
+      "en": {
+        "title": "Dotted Ski Slope",
+        "subtitle": "",
+        "description": "Tiny skiers scatter across a wide slope beneath a rocky ridge."
+      },
+      "zh": {
+        "title": "一坡滑雪者",
+        "subtitle": "",
+        "description": "宽阔的雪道上散布着许多小小的滑雪者身影。"
+      }
+    },
+    "2445": {
+      "en": {
+        "title": "Edge of the Resort",
+        "subtitle": "",
+        "description": "Lifts, signs and chalets cluster at the edge of a groomed piste."
+      },
+      "zh": {
+        "title": "雪场一角",
+        "subtitle": "",
+        "description": "缆车、指示牌和成排木屋挤在滑雪场的缓坡边上。"
+      }
+    },
+    "2446": {
+      "en": {
+        "title": "Tracks in the Bowl",
+        "subtitle": "",
+        "description": "Ski tracks crisscross a wide bowl, its shadows turning blue."
+      },
+      "zh": {
+        "title": "雪谷轨迹",
+        "subtitle": "",
+        "description": "开阔的雪谷里留满滑行的轨迹，背光处的阴影发蓝。"
+      }
+    },
+    "2447": {
+      "en": {
+        "title": "Long Gentle Slope",
+        "subtitle": "",
+        "description": "Gentle snowfields run to the horizon with a few lift lines."
+      },
+      "zh": {
+        "title": "缓坡索道",
+        "subtitle": "",
+        "description": "平缓的雪坡一直铺到远处，几处索道架在山坡上。"
+      }
+    },
+    "2448": {
+      "en": {
+        "title": "Chalet and Two Skiers",
+        "subtitle": "",
+        "description": "Two skiers, one in red, one small in blue, stand before a timber chalet."
+      },
+      "zh": {
+        "title": "木屋前两人",
+        "subtitle": "",
+        "description": "全木结构的旅馆前，红衣大人和小孩并排站在雪地上。"
+      }
+    },
+    "2449": {
+      "en": {
+        "title": "Poles Along the Slope",
+        "subtitle": "",
+        "description": "Marker poles line the slope above a valley between snowy peaks."
+      },
+      "zh": {
+        "title": "坡边标杆",
+        "subtitle": "",
+        "description": "雪坡边缘立着一排标杆，远处山谷弯向群山之间。"
+      }
+    },
+    "2450": {
+      "en": {
+        "title": "Sky Meets Snow",
+        "subtitle": "",
+        "description": "Low cloud blurs the line between the slope and the sky."
+      },
+      "zh": {
+        "title": "低云压坡",
+        "subtitle": "",
+        "description": "云雾压得很低，雪坡和天空几乎分不清界限。"
+      }
+    },
+    "2451": {
+      "en": {
+        "title": "One Skier Descending",
+        "subtitle": "",
+        "description": "A lone skier heads downhill under faint lift pylons in the haze."
+      },
+      "zh": {
+        "title": "独自下滑",
+        "subtitle": "",
+        "description": "一个滑雪者正从坡上下来，头顶隐约可见索道的支架。"
+      }
+    },
+    "2452": {
+      "en": {
+        "title": "Ridge in the Fog",
+        "subtitle": "",
+        "description": "Only a dark ridgeline shows through the thick white fog."
+      },
+      "zh": {
+        "title": "雾中山脊",
+        "subtitle": "",
+        "description": "浓雾里只露出一线深色的山脊，四下皆白。"
+      }
+    },
+    "2453": {
+      "en": {
+        "title": "Figures Near the Lift",
+        "subtitle": "",
+        "description": "A few figures move about near the lift, red poles planted in snow."
+      },
+      "zh": {
+        "title": "索道旁的人",
+        "subtitle": "",
+        "description": "索道设施附近的雪地上有几个人在走动，身旁立着红色标杆。"
+      }
+    },
+    "2454": {
+      "en": {
+        "title": "Red Dots on the Slope",
+        "subtitle": "",
+        "description": "Skiers dot the slope below the lift line and low cloud."
+      },
+      "zh": {
+        "title": "红点沿山坡排开",
+        "subtitle": "",
+        "description": "滑雪者沿着索道下方的雪坡散开，远处是低云。"
+      }
+    },
+    "2455": {
+      "en": {
+        "title": "Fence in the Snow",
+        "subtitle": "",
+        "description": "Two figures sit in the snow beside a long fence on the slope."
+      },
+      "zh": {
+        "title": "栅栏边歇脚",
+        "subtitle": "",
+        "description": "长栅栏横在山腰的雪地里，两个人坐在栅栏边的雪上。"
+      }
+    },
+    "2456": {
+      "en": {
+        "title": "Rock Among the White",
+        "subtitle": "",
+        "description": "A small rocky peak rises from the snow below heavy cloud."
+      },
+      "zh": {
+        "title": "白色里露一点岩石",
+        "subtitle": "",
+        "description": "一座露出岩石的小峰立在雪地里，天空被厚云遮住。"
+      }
+    },
+    "2457": {
+      "en": {
+        "title": "Two in a Wide Snowfield",
+        "subtitle": "",
+        "description": "Two tiny figures cross a broad snowfield beneath low cloud."
+      },
+      "zh": {
+        "title": "两个人在大片雪里",
+        "subtitle": "",
+        "description": "大片雪地与低云接在一起，中间留着两个很小的人影。"
+      }
+    },
+    "2458": {
+      "en": {
+        "title": "Peaks Beyond the Markers",
+        "subtitle": "",
+        "description": "Two dark marker posts stand before snowy mountains softened by mist."
+      },
+      "zh": {
+        "title": "标杆后面的雪山",
+        "subtitle": "",
+        "description": "两根深色标杆立在近处，雪山的轮廓被雾气淡去。"
+      }
+    },
+    "2459": {
+      "en": {
+        "title": "Red Wood Below the Eaves",
+        "subtitle": "",
+        "description": "Red timber railings run below a snow-covered roof."
+      },
+      "zh": {
+        "title": "红木栏杆与屋檐",
+        "subtitle": "",
+        "description": "从低处看，红色木栏杆沿着积雪屋檐铺开。"
+      }
+    },
+    "2460": {
+      "en": {
+        "title": "Black Statue Before the Snow",
+        "subtitle": "",
+        "description": "A black statue stands beside the road below snowy slopes and trees."
+      },
+      "zh": {
+        "title": "雪山前的黑色立像",
+        "subtitle": "",
+        "description": "黑色雕像立在路边，背后是雪坡与树林。"
+      }
+    },
+    "2461": {
+      "en": {
+        "title": "Village Street Under Peaks",
+        "subtitle": "",
+        "description": "A plowed street curves between buildings toward a pointed snowy summit."
+      },
+      "zh": {
+        "title": "山间村道",
+        "subtitle": "",
+        "description": "积雪的村道两旁是楼房，道路尽头立着一座尖峭雪峰。"
+      }
+    },
+    "2462": {
+      "en": {
+        "title": "Dogs Across the Snow",
+        "subtitle": "",
+        "description": "People walk dogs across the snow, with resort buildings beneath the mountains."
+      },
+      "zh": {
+        "title": "带狗穿过雪地",
+        "subtitle": "",
+        "description": "几个人带着狗走过雪地，雪场建筑留在远处山下。"
+      }
+    },
+    "2463": {
+      "en": {
+        "title": "Wide View of the Slopes",
+        "subtitle": "",
+        "description": "Broad pistes run between snowy ridges above a valley of small buildings."
+      },
+      "zh": {
+        "title": "宽阔雪道",
+        "subtitle": "",
+        "description": "两侧雪山夹出宽阔雪道，远处谷底能看见散落的建筑。"
+      }
+    },
+    "2434": {
+      "en": {
+        "title": "Miniature Lights Behind Glass",
+        "subtitle": "",
+        "description": "Colourful miniature structures glow in the dark behind reflective glass."
+      },
+      "zh": {
+        "title": "玻璃里的微型灯火",
+        "subtitle": "",
+        "description": "彩色微型建筑亮在暗处，玻璃上叠着反光。"
+      }
+    },
+    "2435": {
+      "en": {
+        "title": "Bon Voyage Window",
+        "subtitle": "",
+        "description": "Behind a painted blue frame, two people look out at the lake."
+      },
+      "zh": {
+        "title": "彩绘窗框",
+        "subtitle": "",
+        "description": "画着鱼和海浪的蓝框窗后，两个人影正望向湖面。"
+      }
+    },
+    "2436": {
+      "en": {
+        "title": "Small Boat, Far Shore",
+        "subtitle": "",
+        "description": "A tiny boat sits on open water with mountains lining the far shore."
+      },
+      "zh": {
+        "title": "远处小船",
+        "subtitle": "",
+        "description": "开阔湖面上有一只很小的船影，对岸山脉淡淡排开。"
+      }
+    },
+    "2437": {
+      "en": {
+        "title": "People on the Rocks",
+        "subtitle": "",
+        "description": "Several people rest on a rocky point beside a signposted pole."
+      },
+      "zh": {
+        "title": "石上歇脚",
+        "subtitle": "",
+        "description": "几个人围坐在湖边的大石头上，旁边立着带标志的杆子。"
+      }
+    },
+    "2438": {
+      "en": {
+        "title": "Birds on the Lake",
+        "subtitle": "",
+        "description": "Waterbirds dot the lake beyond horizontal wooden rails."
+      },
+      "zh": {
+        "title": "湖面上的鸟群",
+        "subtitle": "",
+        "description": "湖面上散着许多水鸟，近处的木栏横过水面。"
+      }
+    },
+    "2439": {
+      "en": {
+        "title": "Two Beneath the Willow",
+        "subtitle": "",
+        "description": "Two people sit on a lakeside bench beneath fine willow branches."
+      },
+      "zh": {
+        "title": "垂柳下坐两个人",
+        "subtitle": "",
+        "description": "两个人坐在湖边长椅上，垂柳的细枝落在上方。"
+      }
+    },
+    "2440": {
+      "en": {
+        "title": "Two Sculpted Figures",
+        "subtitle": "",
+        "description": "Two sculpted figures stand on a tall base above grass and trees."
+      },
+      "zh": {
+        "title": "草丛上的双人雕像",
+        "subtitle": "",
+        "description": "双人雕像立在高高的基座上，草丛与树围在下方。"
+      }
+    },
+    "2441": {
+      "en": {
+        "title": "Another Statue Among the Trees",
+        "subtitle": "",
+        "description": "Light catches a dark statue’s raised arm among the trees."
+      },
+      "zh": {
+        "title": "树间的另一座雕像",
+        "subtitle": "",
+        "description": "一座深色雕像立在树间，光照到它抬起的手臂。"
+      }
+    },
+    "2365": {
+      "en": {
+        "title": "Station Above the Ice",
+        "subtitle": "",
+        "description": "A blue train waits on the elevated track while people cross the icy plaza."
+      },
+      "zh": {
+        "title": "冰面车站",
+        "subtitle": "",
+        "description": "高架上的蓝白列车旁，行人正踩着结冰的地面前行。"
+      }
+    },
+    "2366": {
+      "en": {
+        "title": "Ice Before the Tower",
+        "subtitle": "",
+        "description": "People cross the frozen harbor near a tall tower and a moored ship."
+      },
+      "zh": {
+        "title": "塔楼下的冰面",
+        "subtitle": "",
+        "description": "结冰的水面上人来人往，远处立着高塔和白色大船。"
+      }
+    },
+    "2367": {
+      "en": {
+        "title": "Long Shadow on the Ice",
+        "subtitle": "",
+        "description": "A walker casts a long blue shadow across ice dotted with distant figures."
+      },
+      "zh": {
+        "title": "冰上的长影子",
+        "subtitle": "",
+        "description": "一个人走过冰面，蓝色长影子伸向画面外，远处还有许多人。"
+      }
+    },
+    "2368": {
+      "en": {
+        "title": "Skaters Against the Sun",
+        "subtitle": "",
+        "description": "Low sun turns the skaters into silhouettes before a distant chimney."
+      },
+      "zh": {
+        "title": "逆光冰场",
+        "subtitle": "",
+        "description": "太阳压得很低，冰上的人都成了剪影，远处有一根烟囱。"
+      }
+    },
+    "2369": {
+      "en": {
+        "title": "Hand in Hand on Skates",
+        "subtitle": "",
+        "description": "Two people hold hands on skates before rooftops and a church spire."
+      },
+      "zh": {
+        "title": "牵手滑过冰面",
+        "subtitle": "",
+        "description": "两个人牵手站在冰上，远处教堂尖塔高过楼房。"
+      }
+    },
+    "2370": {
+      "en": {
+        "title": "Hockey Sticks by the Ship",
+        "subtitle": "",
+        "description": "Skaters with hockey sticks gather on the ice beside the old waterfront."
+      },
+      "zh": {
+        "title": "岸边球杆",
+        "subtitle": "",
+        "description": "黄色老楼前的冰面上，几个人握着球杆，白船就泊在岸边。"
+      }
+    },
+    "2371": {
+      "en": {
+        "title": "Waiting Underground",
+        "subtitle": "",
+        "description": "Passengers wait on the underground platform beside a train on curved tracks."
+      },
+      "zh": {
+        "title": "地铁站里等一等",
+        "subtitle": "",
+        "description": "乘客在地下站台等候，列车沿着弯曲轨道停靠。"
+      }
+    },
+    "2774": {
+      "en": {
+        "title": "Horses in the Paddock",
+        "subtitle": "",
+        "description": "Horses graze and wander inside a fence below a green hillside."
+      },
+      "zh": {
+        "title": "围栏里的马",
+        "subtitle": "",
+        "description": "木围栏里几匹马在吃草或走动，背后是满坡的绿色和房屋。"
+      }
+    },
+    "2775": {
+      "en": {
+        "title": "Facing the Pointed Peak",
+        "subtitle": "",
+        "description": "A figure stands in the grass looking across the lake at a pointed peak."
+      },
+      "zh": {
+        "title": "看山的人",
+        "subtitle": "",
+        "description": "一个人站在草坡上，望着脚下的湖水和对面尖顶的山。"
+      }
+    },
+    "2776": {
+      "en": {
+        "title": "Green Valley Below the Peaks",
+        "subtitle": "",
+        "description": "The meadow blurs in the foreground while green slopes rise to gray summits."
+      },
+      "zh": {
+        "title": "青山谷地",
+        "subtitle": "",
+        "description": "草坡从眼前掠过，远处深绿山谷尽头露出灰白色的山脊。"
+      }
+    },
+    "2777": {
+      "en": {
+        "title": "Cemetery in the Mountain Village",
+        "subtitle": "",
+        "description": "Rows of graves and flowers sit before the village beneath overhanging branches."
+      },
+      "zh": {
+        "title": "山村里的墓园",
+        "subtitle": "",
+        "description": "整齐墓碑与花束排在村庄前面，树枝从画面上方伸进来。"
+      }
+    },
+    "2778": {
+      "en": {
+        "title": "Peak Over the Valley",
+        "subtitle": "",
+        "description": "The pyramid peak rises over a green valley and a small village."
+      },
+      "zh": {
+        "title": "谷底的村子",
+        "subtitle": "",
+        "description": "金字塔峰下，绿谷尽头散着几排木屋屋顶。"
+      }
+    },
+    "2779": {
+      "en": {
+        "title": "Snow Peaks from the Passage",
+        "subtitle": "",
+        "description": "A dark passage opens onto snowy peaks above a snow-covered floor."
+      },
+      "zh": {
+        "title": "从暗处看雪山",
+        "subtitle": "",
+        "description": "深色通道的开口框住一排雪山，近处地面也积着雪。"
+      }
+    },
+    "2780": {
+      "en": {
+        "title": "Reflection in the Lake",
+        "subtitle": "",
+        "description": "The peak and its reflection meet in a still shallow lake."
+      },
+      "zh": {
+        "title": "湖中倒影",
+        "subtitle": "",
+        "description": "平静的浅水里映着完整的金字塔峰。"
+      }
+    },
+    "2781": {
+      "en": {
+        "title": "Snowman on the Slope",
+        "subtitle": "",
+        "description": "A squat snowman stands in the snow, the pointed peak behind."
+      },
+      "zh": {
+        "title": "雪人",
+        "subtitle": "",
+        "description": "矮胖的雪人立在雪地里，背后是金字塔峰。"
+      }
+    },
+    "2782": {
+      "en": {
+        "title": "One Standing, One Seated",
+        "subtitle": "",
+        "description": "Two people share a rocky ledge, with the snowy peak between them."
+      },
+      "zh": {
+        "title": "岩石上一站一坐",
+        "subtitle": "",
+        "description": "两个人在褐色岩石上一站一坐，雪峰刚好留在中间。"
+      }
+    },
+    "2783": {
+      "en": {
+        "title": "Patchy Snow Slope",
+        "subtitle": "",
+        "description": "Melting snow streaks the gravel slope below the pointed peak."
+      },
+      "zh": {
+        "title": "残雪坡",
+        "subtitle": "",
+        "description": "融雪的碎石坡一路伸向金字塔峰脚下。"
+      }
+    },
+    "2784": {
+      "en": {
+        "title": "Summit Station",
+        "subtitle": "",
+        "description": "A red train waits at the summit station as visitors gather nearby."
+      },
+      "zh": {
+        "title": "山顶车站",
+        "subtitle": "",
+        "description": "红色列车停靠山顶站房，旅客聚在站台。"
+      }
+    },
+    "2785": {
+      "en": {
+        "title": "Cairn and the Matterhorn",
+        "subtitle": "",
+        "description": "A cairn stands beside the snow with the Matterhorn rising behind it."
+      },
+      "zh": {
+        "title": "石堆与马特洪峰",
+        "subtitle": "",
+        "description": "近处石堆立在雪地边，马特洪峰在后方尖尖地升起。"
+      }
+    },
+    "2786": {
+      "en": {
+        "title": "Train Around the Bend",
+        "subtitle": "",
+        "description": "The red train rounds a curve past the mountain station buildings."
+      },
+      "zh": {
+        "title": "盘山列车",
+        "subtitle": "",
+        "description": "红色列车沿弯道驶过站舍，远处雪山连绵。"
+      }
+    },
+    "2787": {
+      "en": {
+        "title": "Overlooking the Valley",
+        "subtitle": "",
+        "description": "A blond person stands on a boulder above the deep green valley."
+      },
+      "zh": {
+        "title": "崖边远眺",
+        "subtitle": "",
+        "description": "金发的人站在岩头，脚下是深谷与松林。"
+      }
+    },
+    "2788": {
+      "en": {
+        "title": "The Long Ridge",
+        "subtitle": "",
+        "description": "A long grassy ridge runs toward a wall of pale jagged peaks."
+      },
+      "zh": {
+        "title": "绿脊尽头",
+        "subtitle": "",
+        "description": "缓长的草坡尽头，灰白色尖峰成排立起。"
+      }
+    },
+    "2789": {
+      "en": {
+        "title": "Rocky Crest",
+        "subtitle": "",
+        "description": "A broken rocky crest leads up to a sheer grey spire."
+      },
+      "zh": {
+        "title": "岩棱",
+        "subtitle": "",
+        "description": "碎石棱线一路通向直立的灰色尖峰。"
+      }
+    },
+    "2790": {
+      "en": {
+        "title": "Figure on the Hilltop",
+        "subtitle": "",
+        "description": "A small figure stands on the grassy crest beside a steep rock wall."
+      },
+      "zh": {
+        "title": "坡顶的人",
+        "subtitle": "",
+        "description": "小小人影站在草坡顶，旁边是陡直的岩壁。"
+      }
+    },
+    "2791": {
+      "en": {
+        "title": "Flowers Below the Mountains",
+        "subtitle": "",
+        "description": "Yellow flowers fill the blue-green foreground below huts and high mountain walls."
+      },
+      "zh": {
+        "title": "花开在山脚下",
+        "subtitle": "",
+        "description": "黄花与蓝绿色草地铺满近处，木屋留在高大岩壁下面。"
+      }
+    },
+    "2792": {
+      "en": {
+        "title": "Paraglider Over Green Hills",
+        "subtitle": "",
+        "description": "A green paraglider drifts above soft hills folding into the valley."
+      },
+      "zh": {
+        "title": "滑翔伞",
+        "subtitle": "",
+        "description": "绿色滑翔伞掠过山脊，草坡缓缓铺向谷底。"
+      }
+    },
+    "2793": {
+      "en": {
+        "title": "Path Through the Valley",
+        "subtitle": "",
+        "description": "Two walkers follow the gravel path into the broad green valley."
+      },
+      "zh": {
+        "title": "谷中小路",
+        "subtitle": "",
+        "description": "两个人影沿碎石小路走向山谷深处。"
+      }
+    },
+    "2794": {
+      "en": {
+        "title": "Small Paragliders in the Sky",
+        "subtitle": "",
+        "description": "Small colourful paragliders hang above rocky ridges and green woods."
+      },
+      "zh": {
+        "title": "天上的几颗小伞",
+        "subtitle": "",
+        "description": "几颗彩色滑翔伞悬在蓝天里，下方是岩壁与绿林。"
+      }
+    },
+    "2795": {
+      "en": {
+        "title": "The Grassy Footpath",
+        "subtitle": "",
+        "description": "A lone walker pauses on the grassy path below a jagged peak."
+      },
+      "zh": {
+        "title": "草径独行者",
+        "subtitle": "",
+        "description": "独行的人站在草径上，背后尖峰带着残雪。"
+      }
+    },
+    "2796": {
+      "en": {
+        "title": "Moon Over Bare Rock",
+        "subtitle": "",
+        "description": "A small daytime moon hangs above the pale rocky ridge."
+      },
+      "zh": {
+        "title": "白昼的月",
+        "subtitle": "",
+        "description": "浅金色岩坡上方，蓝天里挂着一小轮月亮。"
+      }
+    },
+    "2797": {
+      "en": {
+        "title": "Barn Below the Cliffs",
+        "subtitle": "",
+        "description": "An old barn sits on the green slope beneath pale rocky summits."
+      },
+      "zh": {
+        "title": "坡下木屋",
+        "subtitle": "",
+        "description": "草坡上一座旧木屋，背后压着灰白色岩山。"
+      }
+    },
+    "2798": {
+      "en": {
+        "title": "Two Sitting by the Water",
+        "subtitle": "",
+        "description": "Two people sit beside reflective water, with swimmers further out."
+      },
+      "zh": {
+        "title": "水边坐两个人",
+        "subtitle": "",
+        "description": "两个人背对镜头坐在水边，水面反着光，远处有人游泳。"
+      }
+    },
+    "2799": {
+      "en": {
+        "title": "Under the Big Trees",
+        "subtitle": "",
+        "description": "People rest on the grass in the shade of tall park trees."
+      },
+      "zh": {
+        "title": "大树底下",
+        "subtitle": "",
+        "description": "几棵大树的阴影里，人们散坐在草地上。"
+      }
+    },
+    "2800": {
+      "en": {
+        "title": "Light in the Dark Park",
+        "subtitle": "",
+        "description": "A patch of light falls on two people seated on the grass."
+      },
+      "zh": {
+        "title": "树荫深处",
+        "subtitle": "",
+        "description": "浓暗的树荫里，一束光落在并坐的两人身上。"
+      }
+    },
+    "2801": {
+      "en": {
+        "title": "Sunlight Through the Trees",
+        "subtitle": "",
+        "description": "Trees frame the bright lake around a figure in the waterside shade."
+      },
+      "zh": {
+        "title": "树把阳光筛下来",
+        "subtitle": "",
+        "description": "湖边树丛围住亮光，一个人影留在水边暗处。"
+      }
+    },
+    "2802": {
+      "en": {
+        "title": "A Pause by the Midsummer Pole",
+        "subtitle": "",
+        "description": "Four people pause at the white railing before a leafy midsummer pole."
+      },
+      "zh": {
+        "title": "仲夏柱前站一会儿",
+        "subtitle": "",
+        "description": "白栏杆边站着四个人，前方的仲夏柱挂着绿色枝叶。"
+      }
+    },
+    "2803": {
+      "en": {
+        "title": "Crowd by the Reeds",
+        "subtitle": "",
+        "description": "A crowd stands on grass facing tall reeds, backs to the camera."
+      },
+      "zh": {
+        "title": "苇边人群",
+        "subtitle": "",
+        "description": "人群背对镜头站在苇草前的草地上。"
+      }
+    },
+    "2804": {
+      "en": {
+        "title": "Two Bonfires Burning",
+        "subtitle": "",
+        "description": "Two bonfires burn among trees, smoke rising past onlookers."
+      },
+      "zh": {
+        "title": "两堆篝火",
+        "subtitle": "",
+        "description": "林间点起两堆篝火，烟往上升。"
+      }
+    },
+    "2805": {
+      "en": {
+        "title": "Watching Fire From Shore",
+        "subtitle": "",
+        "description": "A shoreline crowd faces fire and smoke out on the water."
+      },
+      "zh": {
+        "title": "岸上看火",
+        "subtitle": "",
+        "description": "人群挤在湖岸，看水面上的火光与烟。"
+      }
+    },
+    "2806": {
+      "en": {
+        "title": "Fire on the Water",
+        "subtitle": "",
+        "description": "A single fire burns on the open water, its reflection stretching below."
+      },
+      "zh": {
+        "title": "水面篝火",
+        "subtitle": "",
+        "description": "一堆火在水中央燃着，倒影很长。"
+      }
+    },
+    "2807": {
+      "en": {
+        "title": "Wheel on a Tall Pole",
+        "subtitle": "",
+        "description": "Figures gather beneath a tall pole topped with a circular wheel."
+      },
+      "zh": {
+        "title": "轮圈杆下",
+        "subtitle": "",
+        "description": "天色将暗，人影聚在一根顶着轮圈的杆下。"
+      }
+    },
+    "2808": {
+      "en": {
+        "title": "Wooden Frame on the Grass",
+        "subtitle": "",
+        "description": "A wooden swing frame stands on grass where adults and children gather."
+      },
+      "zh": {
+        "title": "草地木架",
+        "subtitle": "",
+        "description": "草地上立着木制秋千架，大人和孩子各自活动。"
+      }
+    },
+    "2809": {
+      "en": {
+        "title": "Boat by the Rocky Shore",
+        "subtitle": "",
+        "description": "A small boat sits near a rocky, tree-lined shore framed by branches."
+      },
+      "zh": {
+        "title": "岩岸小舟",
+        "subtitle": "",
+        "description": "岩石湖岸上树影错落，近岸漂着一条小船。"
+      }
+    },
+    "2810": {
+      "en": {
+        "title": "Two at the White Railing",
+        "subtitle": "",
+        "description": "Two people face the water at a white railing, one carrying red embroidery."
+      },
+      "zh": {
+        "title": "白栏边看水",
+        "subtitle": "",
+        "description": "两人站在白栏杆旁看水，其中一人背着红色刺绣的包。"
+      }
+    },
+    "2811": {
+      "en": {
+        "title": "Pink Left in the Sky",
+        "subtitle": "",
+        "description": "Railings and a wheel stand in silhouette against pink sky and water."
+      },
+      "zh": {
+        "title": "天边还留着粉色",
+        "subtitle": "",
+        "description": "栏杆和轮架成了剪影，粉色天空映在水面。"
+      }
+    },
+    "2812": {
+      "en": {
+        "title": "The Dog Goes for a Swim",
+        "subtitle": "",
+        "description": "A dog swims through the rippled water, only its head showing."
+      },
+      "zh": {
+        "title": "狗也来游泳了",
+        "subtitle": "",
+        "description": "满幅波纹里，一只狗露着头游过水面。"
+      }
+    }
+  }
+}

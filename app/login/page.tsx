@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { I18nProvider, useI18n } from "@/lib/i18n"
 import { supabase } from "@/utils/supabase"
+import { safeReturnPath } from "@/utils/safe-return-path"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,10 +18,7 @@ function LoginInner() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const requestedNext = params.get("next") || ""
-    if (requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
-      setNextPath(requestedNext)
-    }
+    setNextPath(safeReturnPath(params.get("next")))
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {

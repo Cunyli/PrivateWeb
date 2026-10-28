@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import "leaflet/dist/leaflet.css"
+import { ArrowUpRight, ChevronDown } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
+import { capturePortfolioPosition } from "@/lib/portfolio-return"
+import { bindMapWheelGestures } from "@/lib/map-wheel-gestures"
+import chrome from "./portfolio-chrome.module.css"
 
 export interface MapLocationSet {
   id: number
@@ -36,34 +39,26 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
   const markersLayerRef = useRef<any>(null)
   const latestActiveKeyRef = useRef<string | null>(null)
   const [mapReady, setMapReady] = useState(false)
+  const [embedded, setEmbedded] = useState(false)
+  useEffect(() => setEmbedded(document.querySelector<HTMLElement>("[data-portfolio-scroll-root]")?.dataset.embedded === "true"), [])
   const { locale } = useI18n()
-
-  const savePortfolioReturnState = useCallback(() => {
-    if (typeof window === "undefined") return
-    window.sessionStorage.setItem("portfolio:return-scroll", String(window.scrollY ?? 0))
-
-    const horizontalRows = Array.from(document.querySelectorAll<HTMLDivElement>("div.hide-scrollbar.overflow-x-auto"))
-    const topRowScroll = horizontalRows[0]?.scrollLeft ?? 0
-    const bottomRowScroll = horizontalRows[1]?.scrollLeft ?? 0
-
-    window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRowScroll))
-    window.sessionStorage.setItem("portfolio:return-bottom-row-scroll", String(bottomRowScroll))
-  }, [])
 
   const buildWorkHref = useCallback((setId: number | string) => {
     const params = new URLSearchParams()
-    params.set("origin", "portfolio")
+    params.set("origin", embedded ? "home" : "portfolio")
+    params.set("returnSection", "coordinates")
     params.set("returnSet", String(setId))
     return `/work/${setId}?${params.toString()}`
-  }, [])
+  }, [embedded])
 
   useEffect(() => {
     if (!locations.length) {
       setActiveKey(null)
       return
     }
-    if (!activeKey || !locations.find((loc) => loc.key === activeKey)) {
-      setActiveKey(locations[0]?.key ?? null)
+    if (!activeKey || !locations.some(location => location.key === activeKey)) {
+      const saved = window.sessionStorage.getItem("portfolio:return-map-location")
+      setActiveKey(saved && locations.some(location => location.key === saved) ? saved : locations[0]?.key ?? null)
     }
   }, [locations, activeKey])
   useEffect(() => {
@@ -99,6 +94,9 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
   useEffect(() => {
     let cancelled = false
+    let resizeFrame = 0
+    let resizeObserver: ResizeObserver | null = null
+    let releaseWheelGestures: (() => void) | undefined
     setMapReady(false)
 
     const mountMap = async () => {
@@ -121,10 +119,14 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
         zoom: 4,
         minZoom: 2,
         maxZoom: 12,
-        zoomControl: false,
-        attributionControl: false,
+        zoomControl: true,
+        attributionControl: true,
+        scrollWheelZoom: false,
+        dragging: true,
+        touchZoom: true,
         preferCanvas: true,
-        keyboard: false,
+        keyboard: true,
+        zoomSnap: .25,
       })
 
       leaflet
@@ -138,10 +140,19 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
       const markersLayer = leaflet.layerGroup().addTo(map)
       leafletMapRef.current = map
+      releaseWheelGestures = bindMapWheelGestures(map, root.parentElement || root)
       markersLayerRef.current = markersLayer
 
       const bounds = leaflet.latLngBounds(locations.map((loc) => [loc.latitude, loc.longitude]))
-      map.fitBounds(bounds.pad(0.2), { animate: true, duration: 0.8 })
+      map.fitBounds(bounds.pad(0.2), { animate: false })
+      resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(resizeFrame)
+        resizeFrame = requestAnimationFrame(() => {
+          resizeFrame = 0
+          if (!cancelled) map.invalidateSize({ pan: false, animate: false })
+        })
+      })
+      resizeObserver.observe(root)
       setMapReady(true)
     }
 
@@ -149,6 +160,9 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
     return () => {
       cancelled = true
+      releaseWheelGestures?.()
+      cancelAnimationFrame(resizeFrame)
+      resizeObserver?.disconnect()
       setMapReady(false)
       if (leafletMapRef.current) {
         leafletMapRef.current.remove()
@@ -189,12 +203,12 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
         for (let copy = safeMinCopy; copy <= safeMaxCopy; copy += 1) {
           leaflet
             .circleMarker([loc.latitude, loc.longitude + copy * 360], {
-            radius: isActive ? 14 : 9,
+            radius: isActive ? 10 : 6,
             weight: 2,
             opacity: 0.9,
             fillOpacity: 0.65,
-            color: isActive ? "#22d3ee" : "#38bdf8",
-            fillColor: isActive ? "#f472b6" : "#0ea5e9",
+            color: isActive ? "#f3f0e9" : "#eef0df",
+            fillColor: isActive ? "#334d3f" : "#657b6b",
           })
             .on("click", () => setActiveKey(loc.key))
             .on("mouseover", () => setActiveKey(loc.key))
@@ -214,7 +228,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
 
     void syncMarkers()
     const map = leafletMapRef.current
-    map?.on("move", scheduleMarkerSync)
+    map?.on("moveend", scheduleMarkerSync)
     map?.on("zoomend", scheduleMarkerSync)
     map?.on("resize", scheduleMarkerSync)
 
@@ -223,7 +237,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
       if (markerSyncFrame && typeof window !== "undefined") {
         window.cancelAnimationFrame(markerSyncFrame)
       }
-      map?.off("move", scheduleMarkerSync)
+      map?.off("moveend", scheduleMarkerSync)
       map?.off("zoomend", scheduleMarkerSync)
       map?.off("resize", scheduleMarkerSync)
     }
@@ -238,67 +252,40 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
   }
 
   return (
-    <div className="w-full">
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-stretch">
-        <div className="relative h-[280px] w-full overflow-hidden rounded-[1.25rem] border border-zinc-200/70 shadow-[0_28px_70px_-48px_rgba(24,24,27,0.7)] sm:h-[420px] sm:rounded-[2rem]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.18),transparent_55%),radial-gradient(circle_at_80%_15%,rgba(56,189,248,0.18),transparent_55%),radial-gradient(circle_at_50%_80%,rgba(129,140,248,0.16),transparent_65%)]" />
-          <div className="absolute inset-0 mix-blend-screen opacity-40" style={{ backgroundImage: "repeating-linear-gradient(0deg, rgba(148,163,184,0.1), rgba(148,163,184,0.1) 1px, transparent 1px, transparent 48px), repeating-linear-gradient(90deg, rgba(148,163,184,0.08), rgba(148,163,184,0.08) 1px, transparent 1px, transparent 64px)" }} />
-          <div ref={mapRootRef} className="h-full w-full [&_.leaflet-control-container]:hidden" />
-          {!mapReady && <div className="pointer-events-none absolute inset-0 animate-pulse bg-white/40" />}
+    <div className={chrome.coordinateLayout}>
+      <div className={chrome.mapFrame} role="region" aria-label={heading}>
+        <div ref={mapRootRef} className="h-full w-full" />
+        {!mapReady && <div className="pointer-events-none absolute inset-0 animate-pulse bg-white/40" />}
       </div>
-
-        <div className="min-h-0 sm:min-h-[22rem] lg:min-h-0">
-          {activeLocation ? (
-            <div className="flex h-full flex-col">
-              <div className="px-1 pb-3 sm:px-0">
-                <p className="text-[0.65rem] uppercase tracking-[0.28em] text-zinc-400">
-                  {locale === "zh" ? "当前位置" : "Current Point"}
-                </p>
-                <h3 className="mt-1 text-base font-medium text-zinc-900 line-clamp-1">
-                  {activeLocation.name}
-                </h3>
+      <div className={chrome.coordinateAside}>
+        {activeLocation ? <>
+          <label className={chrome.placeField}>
+            <span className={chrome.placeSelectWrap}>
+              <select className={chrome.placeSelect} value={activeKey || ""} aria-label={locale === "zh" ? "选择拍摄地点" : "Choose a location"}
+                onChange={event => {
+                  const location = locations.find(item => item.key === event.target.value)
+                  if (!location) return
+                  setActiveKey(location.key)
+                  leafletMapRef.current?.panTo([location.latitude, location.longitude], {animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches, duration: .45})
+                }}>
+                {locations.map(location => <option key={location.key} value={location.key}>{location.name}</option>)}
+              </select>
+              <ChevronDown size={18} strokeWidth={1.4} aria-hidden="true" />
+            </span>
+          </label>
+          <div className={chrome.locationSets}>
+            {activeLocation.sets.map(set => <Link key={set.id} href={buildWorkHref(set.id)} data-set-id={set.id}
+              aria-label={[set.title,set.subtitle].filter(Boolean).join(" · ")}
+              onClick={event => {window.sessionStorage.setItem("portfolio:return-map-location",activeKey || "");capturePortfolioPosition(event.currentTarget)}}
+              className={chrome.locationSet}>
+              <span className={chrome.locationThumb}><Image src={set.coverUrl} alt="" fill sizes="(max-width: 1023px) 96px, 108px" className="object-cover" /></span>
+              <div className={chrome.locationSetCopy}>
+                <h4>{set.title}</h4>{set.subtitle && <p>{set.subtitle}</p>}
               </div>
-              <div
-                className={`grid max-h-[16rem] flex-1 gap-2.5 overflow-y-auto pr-1 sm:max-h-[24rem] sm:gap-3 ${activeLocation.sets.length === 1 ? "" : "sm:grid-cols-2 lg:grid-cols-1"}`}
-              >
-                {activeLocation.sets.map((set) => (
-                  <Link
-                    key={set.id}
-                    href={buildWorkHref(set.id)}
-                    onClick={savePortfolioReturnState}
-                    className="group grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-3 rounded-[1.1rem] bg-white/65 p-1.5 shadow-[0_16px_42px_-34px_rgba(24,24,27,0.8)] transition-transform duration-300 hover:-translate-y-0.5 sm:block sm:bg-transparent sm:p-0 sm:shadow-none"
-                  >
-                    <div className={`relative aspect-square overflow-hidden rounded-[0.9rem] bg-zinc-100 sm:rounded-[1.1rem] sm:shadow-[0_20px_60px_-42px_rgba(24,24,27,0.85)] ${activeLocation.sets.length === 1 ? "sm:aspect-[16/10]" : "sm:aspect-[4/3]"}`}>
-                      <Image
-                        src={set.coverUrl}
-                        alt={set.title}
-                        fill
-                        sizes="(max-width: 640px) 96px, (max-width: 1280px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        priority={false}
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/18 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                    </div>
-                    <div className="min-w-0 pr-1 sm:px-1 sm:pt-2.5">
-                      <h4 className="text-sm font-medium text-zinc-900 line-clamp-2 sm:text-base sm:line-clamp-1">
-                        {set.title}
-                      </h4>
-                      {set.subtitle && (
-                        <p className="mt-1 text-xs leading-snug text-zinc-500 line-clamp-2 sm:mt-0.5 sm:text-sm">
-                          {set.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-[1.1rem] border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500">
-              {emptyLabel}
-            </div>
-          )}
-        </div>
+              <ArrowUpRight size={16} strokeWidth={1.4} aria-hidden="true" />
+            </Link>)}
+          </div>
+        </> : <div className="rounded-sm border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500">{emptyLabel}</div>}
       </div>
     </div>
   )

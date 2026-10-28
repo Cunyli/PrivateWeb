@@ -1,3 +1,4 @@
+import { headers as requestHeaders } from "next/headers"
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { PHOTOGRAPHY_STYLES, PHOTOGRAPHY_STYLE_BY_ID, PHOTOGRAPHY_TAG_NAME_TO_ID } from "@/lib/photography-styles"
@@ -18,7 +19,7 @@ async function translateText(text: string, target: 'en' | 'zh'): Promise<string>
     if (!text || !text.trim()) return ''
     const res = await fetch(`${getBaseUrl()}/api/translate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: (await requestHeaders()).get('authorization') || '' },
       body: JSON.stringify({ text, sourceLang: 'auto', targetLang: target }),
     })
     if (!res.ok) return ''
@@ -339,7 +340,7 @@ export async function POST(request: Request) {
       try {
         const res = await fetch(`${getBaseUrl()}/api/analyze-image`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: (await requestHeaders()).get('authorization') || '' },
           body: JSON.stringify({ imageUrl: imgUrl, analysisType: type }),
         })
         const data = await res.json().catch(() => ({}))

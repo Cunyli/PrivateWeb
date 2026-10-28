@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-27",
+  "scope": {
+    "layout": "Homepage embedded portfolio and /portfolio collection ribbons and gallery",
+    "assumption": "The optional scope question was unanswered; the announced first pass focused on the portfolio section.",
+    "palette": "Removed the unconfirmed cream background from portfolio, photo viewer, resume, booking, search, and landscape hint; retained original image and hero colours.",
+    "booking_resume_layout": "No further layout changes in this pass."
+  },
+  "layout": {
+    "content_max_width_px": 1220,
+    "ribbon_max_width_px": 1050,
+    "ribbon_height_px": {
+      "desktop": 132,
+      "portrait_mobile": 108,
+      "short_landscape": 96
+    },
+    "ribbon_motion": "Existing horizontal movement with static per-card vertical offsets and small rotations; alternating layers and smaller rounded cards.",
+    "archive_max_width_px": 1040,
+    "archive_collection_links": 34,
+    "archive_structure": "Independent grid columns, each containing groups of two consecutive photographs; natural image proportions.",
+    "archive_motion": {
+      "range_px": [
+        -16,
+        16
+      ],
+      "duration_seconds": [
+        11,
+        17.8
+      ],
+      "mechanism": "CSS transform only",
+      "pause": [
+        "offscreen",
+        "hidden document",
+        "hovered group",
+        "keyboard focus within gallery",
+        "open search"
+      ],
+      "reduced_motion": "Disabled"
+    },
+    "safari_fix": "Replaced CSS multicol fragmentation, which produced a large blank area in Safari, with independent grid columns. Visually verified the gap was gone."
+  },
+  "checks": {
+    "typescript_no_emit": "passed",
+    "production_build": "passed in isolated /private/tmp/portfolio-soft-flow-20261027/production; live .next untouched",
+    "git_diff_check": "passed",
+    "desktop_dom": {
+      "viewport_px": [
+        1440,
+        900
+      ],
+      "gallery_columns": 4,
+      "collection_links": 34,
+      "first_group_tops_px": [
+        72,
+        102,
+        79,
+        94
+      ]
+    },
+    "short_landscape_dom": {
+      "viewport_px": [
+        844,
+        390
+      ],
+      "gallery_columns": 3,
+      "document_width_px": 844
+    },
+    "portrait_dom": {
+      "viewport_px": [
+        390,
+        650
+      ],
+      "gallery_columns": 2,
+      "document_width_px": 390
+    },
+    "interaction": [
+      "Visible groups animate; offscreen groups pause.",
+      "Hovering a group pauses it; moving away resumes.",
+      "Opened work 110 and 73 and returned to the gallery.",
+      "All 34 gallery links retained."
+    ],
+    "return_position": {
+      "before_explicit_column_fix": true,
+      "anchor_id": 73,
+      "before_top_px": 323.0878,
+      "after_top_px": 337.8895,
+      "note": "Added a bounded ResizeObserver correction for delayed content layout. The 14.8 px difference remains within the moving gallery range; this is not exact pixel restoration."
+    },
+    "safari_native_after_only": {
+      "viewport_px": [
+        1512,
+        770
+      ],
+      "page_callback_fps": 57.1,
+      "page_callback_p95_ms": 24,
+      "scene_fps": 0,
+      "note": "Development preview diagnostic after the independent-column change; no before/after benchmark and no compositor or physical display FPS claim."
+    },
+    "screenshots": [
+      "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/portfolio-soft-flow-ribbons.png",
+      "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/portfolio-soft-flow-gallery.png"
+    ]
+  }
+}

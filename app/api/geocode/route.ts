@@ -1,9 +1,13 @@
+import { requireAdminRequest } from "@/utils/admin-auth.server"
 import { NextRequest, NextResponse } from "next/server"
 
 // Simple geocoding proxy using OpenStreetMap Nominatim.
 // For production/heavy use, switch to a paid provider (Mapbox/Google) and respect rate limits.
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminRequest(req)
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
   try {
     const { q, limit = 5 } = await req.json()
     if (!q || typeof q !== 'string' || q.trim().length === 0) {

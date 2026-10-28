@@ -1,0 +1,419 @@
+{
+  "asset": "public/dreamcore-cloud-photographer.webp",
+  "width": 1672,
+  "height": 941,
+  "bytes": 91980,
+  "generator": "built-in image_gen",
+  "source_video": "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4",
+  "character_reference": "User-supplied white-haired anime boy illustration, 2026-10-25",
+  "generated_original": "/Users/lilijie/.codex/generated_images/01a17441-b785-7f20-b56f-d4509ee8e0e8/exec-8dd84a02-5ef0-4dfa-8d57-7131bb2f39da.png",
+  "prompt": "Use case: precise-object-edit / character compositing. Asset type: clean full-frame 16:9 cinematic dreamcore portfolio hero still, later animated in code. IMAGE 1 is the EXACT NEW SCENE TO PRESERVE: a grassy cliff full of tiny pink, lavender and pale blue flowers, an immense soft cloud sea, pastel pink peach horizon and periwinkle-blue twilight sky with a few tiny stars. It is a screenshot of a video, so remove all playback controls, timestamps, icons and black letterbox borders, reconstructing the flowers cleanly to the bottom edge. IMAGE 2 is the owner's exact silver-white-haired young anime boy character reference. IMAGE 3 shows the approved identity and camera-holding pose of that boy, but its eyeball landscape is NOT to be used. Make ONLY this subject change in Image 1: replace the seated dark-haired adult reading a book with the pale silver-white-haired CHILD version of Ken Kaneki from Images 2 and 3, now quietly PHOTOGRAPHING THE CLOUD SEA. He remains seated on the same flower-covered bank at roughly the original woman's position near horizontal center, viewed from rear-left/three-quarter profile facing to the right. Childlike proportions around 8-10 years old, exact delicate soft anime face, tousled pale silver-white hair with airy slightly extended wisps, loose simple white long-sleeve collared shirt softly tinted lavender by the twilight, modest dark gray trousers. His legs are naturally folded or bent on the grass. He holds a small black mirrorless camera naturally with BOTH hands AT EYE LEVEL, right hand on grip/shutter and left hand under the small lens, the lens facing to the RIGHT across the clouds, his head gently raised to the viewfinder. No book remains. Match his scale and seated pose to the original composition; retain ample sky and flowers. Preserve the delicate illustrated character quality of Image 2 while integrating him convincingly with the cinematic realistic landscape using soft dusk light and contact shadows; no sticker edge or plastic 3D look. Preserve Image 1's pastel color palette, exact cliff slope, flower density, cloud sea, large open sky, atmospheric perspective and original quiet mood as closely as possible. Do not introduce the giant eye, planets, moons, buildings, any extra people, props, new decorative objects, additional stars, any text, watermark or interface. No baked-in motion blur or scanlines; output one clean 16:9 photographic dream scene.",
+  "presentation": "Original layered dreamscape, followed by a scroll-controlled fly-through of the user-provided reference clouds, then the live portfolio. No eye, blackout, unrelated landscape or intermediate portfolio photograph.",
+  "animation": {
+    "frame_rate_cap": null,
+    "pixel_ratio_cap": 1.25,
+    "max_canvas_width": 1920,
+    "cloud_model": "Two crossfaded local cloud-video decoders restore changing cloud volume; no subject cutout is applied to the cloud layer.",
+    "foreground_model": "Original isolated character, middle bank and faster near flowers retained. Three-tap defocus and empty-region culling replace unnecessary five-tap sampling.",
+    "pause_button": false,
+    "reduced_motion": true,
+    "renderer_alpha": "Transparent premultiplied WebGL composition with a soft cloud-edge alpha reveal. No eye-lid geometry or black transition.",
+    "uses_source_video": true,
+    "scroll_response": "Smoothed background travel and a decaying wind impulse, shared by clouds, hair tips, loose clothing and flowers; facial/camera geometry remains pinned.",
+    "cloud_overlap_seconds": 1.2,
+    "foreground_loop_seconds": 32,
+    "cloud_clip_seconds": 10.416667,
+    "cloud_cycle_approx_seconds": 9.216667,
+    "depth_of_field": "Existing independent photographer, flower-bank, near-flower and cloud movements retained before the shutter.",
+    "render_cadence": "Display-paced requestAnimationFrame, no fixed 30fps cap.",
+    "max_canvas_pixels": 1600000,
+    "adaptive_resolution": "Under sustained >22ms frames, reduce pixel scale to no lower than .72; recover detail after stable windows. Animation cadence remains display-paced.",
+    "video_upload": "Only new decoded frames are uploaded; use requestVideoFrameCallback when available and a 24fps source-frame fallback. Texture storage is reused."
+  },
+  "interaction": {
+    "type": "Click to recede slightly; scroll separated foreground planes through clouds directly into the live portfolio",
+    "reference": "User-provided Mostar cinematic scroll prompt; user subsequently rejected the flat incoming cards and requested stronger scene depth.",
+    "hero_scroll_height": "150svh entrance spacer, slightly extended to give the cloud flight room; the live gallery aligns with the viewport at progress .735.",
+    "camera": "No full-scene push into a magnified viewfinder. Foreground and background have different transforms, occlusion and focus.",
+    "phases": [
+      "Original dreamscape and name",
+      "Photographer and flower layers pass the camera",
+      "Reference cloud wall progressively covers the view",
+      "Scroll advances through the cloud volume; reversing rewinds it",
+      "Cloud density thins onto the original, clickable portfolio"
+    ],
+    "photo_cards": false,
+    "gallery_styling": "Original translated title, font sizes, controls, thumbnail width pattern, captions and image quality retained.",
+    "destination": "/#works",
+    "return_navigation": "Existing gallery navigation saves scroll; returning restores directly to the live portfolio, without replaying the scene.",
+    "pause_button": false,
+    "menu": false,
+    "reduced_motion": "No pointer parallax, camera push, near-cloud wipe or shutter; scene playback stops and content remains scroll-accessible.",
+    "handoff": "Cloud-only reference frames are directly indexed by smoothed scroll progress. Their luminance shapes the reveal mask onto the same live portfolio DOM, without a route jump.",
+    "accessibility": "Underlying gallery is inert until progress .68; scene interception ends at .70 and overlay hides after .74. Reduced motion uses a calm dissolve with playback stopped."
+  },
+  "verification": {
+    "native_safari_alpha": "Normal picture restored; excessive white grain reproduced before the premultiplied-alpha fix and absent afterward.",
+    "cloud_handoff": "Both decoders observed playing during overlap, with next time 0.50258s and outgoing time 12.40272s.",
+    "desktop_scroll_entry": "Reached /portfolio through native scrolling.",
+    "mobile_scroll_entry": "Reached /portfolio through native scrolling at phone viewport size.",
+    "history_back": "Returned to / with scrollTop=0; repeated automatic entry prevented.",
+    "typecheck": "tsc --noEmit --incremental false passed after the viewfinder rendering change.",
+    "viewfinder_quality": "Desktop at the same 40% scroll stage: source artwork scale reduced from about 9x to 1.93x. At 72%: source capped at 2x, the SVG has no CSS scale transform, and the independent cloud image has only a 1.015x wind drift. SVG edges and clip path visually checked in native Safari.",
+    "viewfinder_scroll_reverse": "Scrolled backward from the full cloud viewport into the vector eyepiece and forward again to /portfolio.",
+    "viewfinder_mobile": "Phone viewport 390x650 (375 CSS-pixel content width): cloud image loaded, no horizontal overflow, source scale capped at 2x, and further scrolling reached /portfolio.",
+    "current_cover": {
+      "layout": "One viewport: 807x787 desktop, 390x650 phone, and 320x568 narrow phone; no page overflow or scroll-driven navigation.",
+      "typography": "Computed headline weight 290 with Portfolio Hanken; both local WOFF2 assets returned HTTP 200. Narrow English CTA kept on one line.",
+      "native_safari": "New cover rendered and screenshot inspected in the actual Safari window.",
+      "navigation": "Main portfolio button opened /portfolio and the return link was used to restore the cover.",
+      "menu": "Chinese and English menu labels, resume link and language switching checked.",
+      "motion": "Pause set both video decoders to paused; playback restored. Existing independent hair, clothing, flowers and cloud animation retained.",
+      "typecheck": "tsc --noEmit --incremental false passed."
+    },
+    "current_photo_entry": {
+      "layer_alpha": "Sky and cloud pixels beside the head sampled as RGBA [0,0,0,0]; the opaque foreground remains visible.",
+      "motion": "Two screenshots: face correlation 0.9982; cloud regions left/right of the head changed continuously (0.7246/0.6527 correlation). No broad subject mask remains.",
+      "images": "All three published portfolio cover images loaded at 1280x853 using the existing storage image loader.",
+      "photo_switch": "Changed from 仲夏节 to 瑞士 via the next-photo control.",
+      "navigation": "A single photo click produced an expanded overlay, reached /portfolio, and removed the overlay after the route committed.",
+      "responsive": "Native Safari desktop and phone viewports 390x650 and 320x568 inspected. One-screen layout without overflow.",
+      "pause": "Paused upper 390x300 region compared pixel-for-pixel across two screenshots: 0 changed channels out of 351000. Playback was resumed.",
+      "typecheck": "tsc --noEmit --incremental false passed after final changes.",
+      "mobile_navigation": "At 320x568 the Browse all work button expanded the selected photograph, reached /portfolio, and removed its overlay.",
+      "narrow_caption": "At 320px width the caption remains two lines without overflow; photo navigation has an expanded touch area."
+    },
+    "current_scroll_cover": {
+      "removed": "No menu/dialog, pause control, profession line, decorative caption or selected-photo kicker remains in the home component or its styles.",
+      "visible_ui": "Name, WHAT THE LIGHT LEFT BEHIND., actual photograph, title, clickable photo count and portfolio entry.",
+      "wheel": "In-app preview: downward wheel changed 仲夏节 to 瑞士; upward wheel returned to 仲夏节. URL stayed / and scrollTop stayed 0.",
+      "native_safari": "Real Safari downward wheel changed the photo from 仲夏节 (1/3) to 瑞士 (2/3); new cover screenshot inspected.",
+      "keyboard": "ArrowDown advanced the photograph while keeping the home URL.",
+      "mobile": "390x650 and 320x568 layouts checked, with no overflow. Vertical touch handlers and post-drag click suppression implemented; no physical phone gesture test was available.",
+      "reduced_motion": "System setting pauses scene motion and disables photograph/title animations; browsing controls remain available.",
+      "renderer": "Both image layers loaded and WebGL data-ready=true with the new travel/wind uniforms.",
+      "typecheck": "tsc --noEmit --incremental false passed."
+    },
+    "current_cloud_window": {
+      "rendering": "Native Safari desktop and 390x650 phone checked. SVG holes reveal the remapped cloud film, with one-line and two-line layouts.",
+      "playback": "Both cloud players recorded played ranges ending at 10.416667 seconds. During handoff both were playing at 0.2653s and 9.5109s.",
+      "wind_switch": "Wheel set data-exiting=true on photograph 111, then switched to photograph 110 with data-exiting=false. Only one photo image exists in the preview.",
+      "cloud_fog": "The small photograph canvas is drawing the shared video frames, without a third decoder.",
+      "grass": "Local multi-frequency sway and moving light patches added, with subject masks still protecting face/camera geometry.",
+      "reduced_motion": "System motion setting pauses both videos and removes cloud-photo motion CSS.",
+      "typecheck": "tsc --noEmit --incremental false passed after final video cleanup.",
+      "navigation": "Clicking the cloud-window photo reached /portfolio; overlay was removed and no cloud player elements remained after the home scene unmounted.",
+      "responsive": "Native Safari desktop plus 390x650 and 320x568 viewports inspected; the compact cutout board stayed above the subject and no page overflow occurred.",
+      "screenshot": "portfolio-cloud-letter-hero.png; native Safari screenshot, browser chrome cropped."
+    },
+    "current_continuous_editorial": {
+      "layout": "Desktop 1440x900 and phone 390x650/320x568 inspected in the in-app browser; document scrollWidth equals clientWidth. Gallery uses window scrolling, with no nested vertical scrolling or hero scroll capture.",
+      "transition": "Mid-scroll screenshots inspected; the opaque gradient endpoint matches the gallery paper color and eliminates the original hard seam.",
+      "entry": "The view-work link smoothly scrolls toward the real works section without a route change or photo expansion.",
+      "navigation": "Opened work 108 with origin=home; its return control reached /?restore=1&focusSet=108 and restored the gallery to approximately the original 900px page position.",
+      "controls": "Search overlay opened and closed in the embedded gallery. Standalone /portfolio rendered its original intro, return link and independent scroll root.",
+      "media": "After scrolling past the hero, both cloud-video elements were paused. Videos resume on return to the visible hero.",
+      "typecheck": "tsc --noEmit --incremental false passed; repeated after final control and playback cleanup.",
+      "screenshots": [
+        "portfolio-continuous-desktop.png",
+        "portfolio-continuous-mobile.png"
+      ]
+    },
+    "current_mist_title_rise": {
+      "palette": "Black #101827 plate replaced with warm mist-lilac #f1e8ef to cool lilac #c6c7df; moving clouds remain visible through the letters.",
+      "animation": "Reloaded the page and inspected consecutive screenshots: blank initial plate, then A/F emerging first, followed by the complete AFTERIMAGE title. Shared baselines and existing word widths are preserved.",
+      "responsive": "1440x900 desktop, 390x650 and 320x568 phones inspected. Compact AFTER / IMAGE layout stays within the viewport and document scrollWidth equals clientWidth.",
+      "renderer": "WebGL canvas data-ready=true after the title-region cloud contrast adjustment.",
+      "typecheck": "tsc --noEmit --incremental false passed.",
+      "screenshots": [
+        "portfolio-mist-title-desktop.png",
+        "portfolio-mist-title-mobile.png"
+      ]
+    },
+    "current_clean_scene_capture": {
+      "requested_removals": "Removed visible AFTERIMAGE and plate. Removed Selected work and restored the original gallery styling rather than redesigning it further.",
+      "gallery": "At desktop 1440x900, original translated title computes to 36px and the first five thumbnail widths follow the original 15/25/20/25/15 percent pattern. Mobile 390x650 title computes to 24px.",
+      "click": "Clicked the whole dreamscape on desktop and mobile viewports. Observed flying progress through 0.25-0.64 and cleanup back to idle. Inspected screenshots of folding scene fragments.",
+      "camera_position": "Desktop target [729.1,469.8]; mobile target [225.6,339.3], computed from the same cover crop as the background renderer.",
+      "main_scene": "During desktop click motion the original scene bounds stayed [0,0,1425,900] and the route stayed /.",
+      "scroll": "The view-work link reached the original gallery heading at page scroll 900. Mobile viewport scrolling advanced to 358px and cancelled the click animation to idle.",
+      "responsive": "Desktop 1440x900 and phone 390x650 inspected; phone document scrollWidth equals clientWidth. No physical-phone gesture validation is claimed.",
+      "typecheck": "tsc --noEmit --incremental false passed.",
+      "screenshots": [
+        "portfolio-clean-capture-desktop.png",
+        "portfolio-clean-capture-mobile.png",
+        "portfolio-restored-gallery.png",
+        "portfolio-capture-in-flight.png"
+      ]
+    },
+    "current_multiplane_depth": {
+      "renderer": "Opaque WebGL data-ready=true and photo-ready=true; no browser errors observed. Seven texture units used.",
+      "assets": "Both generated PNGs have true alpha. Boy bounds [632,372,1006,847], meadow bounds [0,515,1670,940]. Character runtime calibration preserves the intended original composition.",
+      "desktop": "1440x900 inspected at depth progress approximately 0.25, 0.54, 0.65 and 0.89: name/foreground occlusion, passing near planes, closed optical shutter, then the full-frame published photograph.",
+      "responsive": "390x650 and 320x568 inspected; document scrollWidth equals clientWidth. Narrow-screen camera travel and type placement calibrated separately. No physical-phone test claimed.",
+      "gallery": "View-work link reached the original gallery. Narrow title remained 24px, no card preview strip remained, and both cloud videos paused beyond the hero.",
+      "loop": "Both video players recorded played ranges reaching 10.416667 seconds; one active player was at 6.0251s while the other was paused and reset.",
+      "typecheck": "tsc --noEmit --incremental false passed.",
+      "screenshots": [
+        "portfolio-depth-name.png",
+        "portfolio-depth-mobile.png",
+        "portfolio-depth-shutter.png",
+        "portfolio-depth-photo-world.png"
+      ],
+      "navigation": "The full-scene work label opened /work/111?origin=home&returnSet=111 (15 photographs). Its return control restored /?restore=1&focusSet=111 at scroll 1420 with depth progress 1.000 and ready=true.",
+      "physical_coherence": "The photographer and the midground bank share a transform; a second, near portion of the flower bank moves faster and can occlude the lower figure. This avoids a gap beneath the seated character during camera travel."
+    },
+    "current_type_photo_refinement": {
+      "extends": "current_multiplane_depth",
+      "scope": "Only the middle-plane name typography, full-frame destination photograph, and its exact-photo link changed. Existing motion choreography and portfolio grid retained.",
+      "typography": "Self-hosted Portfolio Hanken loaded at weight 850. Bold, tight capitals inspected at desktop 1440x900 and phone 390x650. Existing per-letter entrance and depth composition retained.",
+      "photograph": "Swiss album photo 18 of 24, DSC06759, encoded from 4378x2918 source to 2560x1706 WebP without enlargement. Same-origin texture reported photo-ready=true.",
+      "responsive": "Desktop and phone full-frame crop inspected; phone document scrollWidth and clientWidth both 375px. No physical-phone test claimed.",
+      "navigation": "The hero photo label opened /work/110?origin=home&returnSet=110&index=17 at 18 / 24, showing DSC06759. Return-home restored /?restore=1&focusSet=110 at scroll 1282, progress .950, ready=true.",
+      "errors": "Browser error log empty during this refinement.",
+      "typecheck": "tsc --noEmit --incremental false passed; git diff --check passed.",
+      "screenshots": [
+        "portfolio-bold-name.png",
+        "portfolio-bold-name-mobile.png",
+        "portfolio-alpine-photo-world.png",
+        "portfolio-alpine-photo-mobile.png"
+      ]
+    },
+    "current_direct_gallery_handoff": {
+      "scope": "Removed the intermediate photograph and release fade; original PortfolioGrid source and layout unchanged.",
+      "desktop": "1440x900: full opaque shutter inspected at progress .666; live portfolio appeared inside the opening aperture at .707; the gallery reached viewport top at .735/.736 without a route change or remount.",
+      "mobile": "390x650: original name and foreground layers inspected. Opening aperture at .714 showed live portfolio, and .740 showed normal gallery flow. Document scrollWidth and clientWidth both 375px. No physical-phone test claimed.",
+      "typography": "Existing 850-weight Hanken name retained. Original gallery title remains 36px desktop and 24px mobile.",
+      "navigation": "A visible gallery tile opened /work/110?origin=home&returnSet=110 at 1 / 24. Return-home restored /?restore=1&focusSet=110 at y=1014.5, progress .753, directly on the gallery.",
+      "reverse": "Mobile reverse scroll from y=721.5 to y=234 returned to the dreamscape and name; the underlying gallery became inert again.",
+      "direct_entry": "The existing View work control reached y=715 on a 650px-tall viewport, with worksTop=0 and progress .735.",
+      "media": "Both cloud video decoders observed paused beyond the hero; the name/camera scene rendered again after reverse scrolling.",
+      "alpha": "No white-grain artifact seen with transparent, premultiplied WebGL composition in the desktop and mobile in-app previews.",
+      "errors": "Browser error log empty after this pass.",
+      "typecheck": "tsc --noEmit --incremental false passed; git diff --check passed.",
+      "screenshots": [
+        "portfolio-direct-gallery-opening.png",
+        "portfolio-direct-gallery-landed.png",
+        "portfolio-direct-gallery-mobile-opening.png",
+        "portfolio-direct-gallery-mobile-landed.png"
+      ]
+    },
+    "current_flow_and_performance": {
+      "report": "docs/portfolio-performance.md",
+      "structured": "docs/portfolio-performance.json",
+      "desktop": "1440x900 and 1920x1080 display-paced camera sweep measured; original separated photographer, wind and clouds retained. Cloud alpha directly revealed the live gallery without lids or blackout.",
+      "mobile": "390x650 viewport: new type layout, cloud dissolve and portfolio landing inspected. At y=715 the gallery was aligned at top=0 and progress=.735; document scrollWidth and clientWidth both 375px.",
+      "navigation": "Phone: a visible portfolio tile opened /work/97?origin=home&returnSet=97 at 1 / 19. Return restored /?restore=1&focusSet=97 at y=715, progress=.735, worksTop=0.",
+      "media": "Both lighter videos reported 768x432, duration 10.416667s and paused=true after entering the gallery.",
+      "scope": "PortfolioGrid visual structure, titles, image sources and navigation retained. Only its frame scheduling, containment and GPU-layer hints changed.",
+      "typecheck": "tsc --noEmit --incremental false passed; git diff --check passed.",
+      "screenshots": [
+        "portfolio-flow-type-desktop.png",
+        "portfolio-flow-type-mobile.png",
+        "portfolio-performance-optimized-motion.png"
+      ],
+      "deep_navigation": "Desktop lower gallery: /work/96?origin=home&returnSet=96 opened at 1 / 15; return restored y=2943.5 and progress=1.000 without replay.",
+      "reverse": "Reverse native scroll from y=843 back to y=334.5 restored the dreamscape/type and inert=true on the underlying gallery.",
+      "errors": "Browser error log empty after the final visual and navigation pass."
+    },
+    "current_reference_cloud_flight": {
+      "desktop": {
+        "mode": "cloud flight sweep",
+        "cloudFlight": "true",
+        "windowS": 6,
+        "pageFps": 119.6,
+        "sceneFps": 119.5,
+        "pageP95ms": 10.1,
+        "sceneP95ms": 11.7,
+        "sceneCpuP95ms": 0.3,
+        "over25msPct": 0,
+        "canvas": "1425x900",
+        "viewport": "1440x900",
+        "progress": 0.7,
+        "visible": true
+      },
+      "mobile_viewport": {
+        "mode": "cloud flight sweep",
+        "cloudFlight": "true",
+        "windowS": 6,
+        "pageFps": 119.5,
+        "sceneFps": 119.5,
+        "pageP95ms": 10.1,
+        "sceneP95ms": 12,
+        "sceneCpuP95ms": 0.6,
+        "over25msPct": 0.1,
+        "canvas": "375x650",
+        "viewport": "390x650",
+        "progress": 0.3,
+        "visible": true
+      },
+      "rewind": {
+        "region": {
+          "left": 40,
+          "top": 40,
+          "width": 1200,
+          "height": 780
+        },
+        "meanAbsoluteChannelDifference": 0.12715847578347578,
+        "changedChannels": 303464,
+        "totalChannels": 2808000
+      },
+      "geometry": "Desktop 1440x900: hero 1350px, full cloud wall at y=976.5/p=.532; gallery begins at y=1350. Phone 390x650: hero 975px, gallery top=0 at y=975/p=.735, document scrollWidth=clientWidth=375.",
+      "navigation": "Phone landing tile opened /work/95?origin=home&returnSet=95 at 1 / 26. Return restored /?restore=1&focusSet=95 at y=975, p=.735, worksTop=0 without replay.",
+      "pause": "Both original looping cloud video decoders observed paused after entering the gallery. Atlas frames depend on scroll, not elapsed playback.",
+      "errors": "Browser error log empty after the final navigation pass.",
+      "checks": "tsc --noEmit --incremental false and git diff --check passed after final effect and timing changes.",
+      "screenshots": [
+        "portfolio-reference-cloud-approach.png",
+        "portfolio-reference-cloud-wall.png",
+        "portfolio-reference-cloud-reveal-desktop.png",
+        "portfolio-reference-cloud-reveal-mobile.png"
+      ],
+      "limitations": "Six-second warm local browser sampling; phone viewport is emulated on this Mac, not a physical-phone performance result. Frame blending is interpolation between 64 extracted frames, not optical-flow generation."
+    }
+  },
+  "viewfinder_asset": {
+    "asset": "public/dreamcore-viewfinder-clouds.webp",
+    "width": 1672,
+    "height": 941,
+    "bytes": 1260606,
+    "encoding": "Lossless WebP, native generated dimensions; no upscaling.",
+    "generator": "built-in image_gen",
+    "generated_original": "/Users/lilijie/.codex/generated_images/01a17441-b785-7f20-b56f-d4509ee8e0e8/exec-b624cd63-f8cd-4ef9-86c2-a3e0315dbb51.png",
+    "prompt": "Use case: precise-object-edit. Asset type: a full-frame cloud-sea vista for the INSIDE of a photographer's viewfinder in a dreamcore portfolio website. Input Image 1 is the established scene and exact color/lighting reference. Create a separate, clean, high-detail 16:9 landscape plate, preferably 3840x2160 if supported: the view seen when the seated boy points his camera out over this SAME immense sea of clouds at pink-blue twilight. Remove the boy, the camera, all grass, the cliff and all flowers; reconstruct their areas as the continuing open cloud sea. Fill the lower two thirds of the composition with sculptural, densely layered, naturally rolling clouds, softly luminous pale pink ridges, lavender blue shadows, beautiful fine vapor detail with a natural atmospheric horizon, and leave the top third as the same periwinkle-blue to peach-pink dusk sky. Keep the exact gentle dreamlike palette and photographic/sophisticated illustrated landscape treatment of the reference, but use a fresh full-frame panoramic composition without cropping up a small patch. The image should appear as a clear optical view of the same world through a camera, with crisp natural detail, not out-of-focus, no pixelation, no magnified brushstroke artifacts. No people, no limbs, no cameras, no hills, no foreground grass or flowers, no planets, no eyeballs, no buildings, no UI, no viewfinder frame, no text, no logo, no watermark, no artificial grain or motion blur. Only sky and an immense cloud sea. Preserve the reference mood and colors; this is not a new scene.",
+    "active": true,
+    "usage": "Complete cloud-only background; no longer a viewfinder interior."
+  },
+  "typography": {
+    "reference": "User-provided SOSCALE prompt",
+    "primary": "Self-hosted Hanken Grotesk variable, Latin subset, 100-900",
+    "metadata": "Self-hosted JetBrains Mono variable, Latin subset, 100-800",
+    "headline_weight": 900,
+    "navigation_weight": 250,
+    "headline": "LIJIE LI",
+    "fonts_directory": "public/fonts/",
+    "license": "SIL Open Font License; licenses included beside fonts",
+    "sources": [
+      "https://github.com/google/fonts/tree/main/ofl/hankengrotesk",
+      "https://github.com/google/fonts/tree/main/ofl/jetbrainsmono"
+    ],
+    "entrance": "Whole-word opposing edge reveals and restrained lateral travel. The static atlas is composited behind the photographer; no per-letter rise.",
+    "visible_copy": [
+      "LIJIE LI",
+      "Actual work title at the photograph stage",
+      "看作品 / View work"
+    ],
+    "presentation": "No AFTERIMAGE plate, no Selected work headline, no floating photo cards.",
+    "display": "Self-hosted Hanken Grotesk: 900-weight oversized solid LIJIE, 800-weight outlined LI, asymmetric layout, cool bone #f2f3ef. One 1536x768 atlas, generated at font load rather than on scroll."
+  },
+  "foreground_asset": {
+    "asset": "public/dreamcore-photographer-foreground.png",
+    "generated_original": "/Users/lilijie/.codex/generated_images/01a17441-b785-7f20-b56f-d4509ee8e0e8/exec-54f3ea13-aa65-4fd3-9e13-eb220b4beaad.png",
+    "width": 1671,
+    "height": 941,
+    "bytes": 1621115,
+    "generator": "built-in image_gen",
+    "use_case": "background-extraction",
+    "alpha_verified": true,
+    "prompt": "Use case: background-extraction. Asset type: exact transparent foreground layer for an existing website scene. Image 1 is the EDIT TARGET, 1672x941. This is a careful layer extraction, NOT a redesign. Keep the exact original canvas dimensions, composition, boy position, anatomy, camera position, colors, shading, and all original flower/grass detail. Extract as ONE full-canvas transparent RGBA PNG: the exact silver-white-haired seated anime boy holding a black camera at eye level, including all hair wisps, hands, white shirt, gray trousers, and shoes, PLUS the entire flower-covered grassy bank across the bottom of the image. The sloped bank begins around y=530 at the left edge and descends to around y=820 at the right edge; retain its precise irregular flower/grass silhouette and all foreground through the bottom canvas edge. Everything behind the boy and above/beyond the grass bank, including ALL sky, horizon and clouds, must be genuinely transparent with clean alpha. In the gaps between hair strands, around the camera/hands, and any other background gaps, remove all sky/cloud pixels too. Keep fine soft antialiased edges with no white/blue matte halo. The grass beneath and in front of the child remains opaque, exactly as in the original. Do not draw any replacement background. Do not add a background color, gradient, shadow, checkerboard, new foliage, new props or any text. Preserve every retained foreground pixel's natural appearance and precise position; do not enlarge, recenter, crop, or change the character/pose. Output one transparent image at the same 16:9 1672x941 framing with ample transparent sky above, so it can be perfectly overlaid on the original canvas.",
+    "native_dimension_note": "Generated output is 1671x941, compared with the original scene at 1672x941; no enlargement was performed."
+  },
+  "active_verification": "current_reference_cloud_flight",
+  "rolling_cloud_asset": {
+    "asset": "public/dreamcore-rolling-clouds-light.mp4",
+    "source": "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4",
+    "crop": {
+      "x": 1232,
+      "y": 420,
+      "width": 688,
+      "height": 386
+    },
+    "encoded_width": 768,
+    "encoded_height": 432,
+    "frame_rate": 24,
+    "speed": 1.25,
+    "bytes": 439521,
+    "encoding": "H.264 CRF 19, yuv420p, faststart; 24fps video-only",
+    "description": "Same actor-free 688x386 source crop, previously enlarged to 1280x720; the lighter 768x432 encoding makes no claim of added source detail.",
+    "ffmpeg_filter": "scale=768:432:flags=lanczos, -c:v libx264 -preset slow -crf 19 -pix_fmt yuv420p -movflags +faststart",
+    "previous_asset": "public/dreamcore-rolling-clouds.mp4"
+  },
+  "depth_layers_v2": {
+    "generator": "built-in image_gen",
+    "boy": {
+      "asset": "public/dreamcore-photographer-isolated-v2.png",
+      "width": 1670,
+      "height": 941,
+      "alpha": true,
+      "generated_original": "/Users/lilijie/.codex/generated_images/01a17441-b785-7f20-b56f-d4509ee8e0e8/exec-f9c8d4ca-1e43-4981-ba97-18a5b4224e2a.png",
+      "prompt": "Use case: background-extraction. Asset type: exact isolated character layer for a multilayer parallax website. Image 1 is the EDIT TARGET: the existing transparent foreground, 1671x941. Extract ONLY the exact seated silver-white-haired anime child photographer with his black camera, both hands, loose white shirt, dark trousers and shoes. Remove ALL grass, ALL flowers and ALL ground, leaving genuinely transparent pixels around and below the character. Preserve the character's exact original scale, original pixel position, camera-at-eye pose, face, hair shape, anatomy, lighting, illustration detail and pastel lavender-blue colors. Preserve the full original wide 1671x941 canvas and its large transparent sky above; do NOT crop tightly, enlarge, reposition, change the pose or redraw the child. At the lower silhouette retain the naturally visible folds of the trousers/shoes and use clean transparent antialiased edges without attached fragments of greenery. Do not add scenery, background colors, checkerboards, shadows behind the cutout, props or text. Output one genuinely transparent RGBA PNG at the original wide aspect ratio, suitable to overlay exactly on the source.",
+      "calibration": {
+        "scale": 0.711,
+        "offset": [
+          0.136,
+          0.153
+        ],
+        "note": "Generated extraction was larger than the approved original; corrected in the renderer rather than enlarging the original scene."
+      }
+    },
+    "meadow": {
+      "asset": "public/dreamcore-meadow-isolated-v2.png",
+      "width": 1671,
+      "height": 941,
+      "alpha": true,
+      "generated_original": "/Users/lilijie/.codex/generated_images/01a17441-b785-7f20-b56f-d4509ee8e0e8/exec-8b8865c1-fc73-4387-960b-54290f749a52.png",
+      "prompt": "Use case: background-extraction / precise-object-edit. Asset type: exact isolated flower meadow layer for a multilayer parallax website. Image 1 is the EDIT TARGET: a transparent 1671x941 foreground containing a seated white-haired child and a blue-pink flower bank. REMOVE ONLY THE CHILD AND CAMERA, including all hair, clothing, limbs, shoes and character pixels. Preserve the ENTIRE original flower-covered sloping bank, its exact original framing, flower density, detailed stems, pink/lilac/blue colors, dusk light, depth and irregular silhouette. Reconstruct the small portions of the bank that had been obscured by the child using matching flowers and grass. Keep the bank's natural continuous downward slope from the left at about y=520 to the right at about y=800. Above that slope everything must be truly transparent, including all previously occupied head/torso areas. Keep the full original 1671x941 wide canvas, exact size and placement: no tight crop, no enlargement, no new sky, no new clouds, no people or remaining body fragments, no new scenery, no extra props, no text, no background color or checkerboard. Output one genuinely transparent RGBA PNG, an uninterrupted flower bank that aligns with the source."
+    },
+    "photograph": {
+      "asset": "public/dreamcore-work-alpine-meadow.webp",
+      "width": 2560,
+      "height": 1706,
+      "bytes": 953888,
+      "work_id": 110,
+      "image_index": 17,
+      "source": "https://s3.cunyli.top/picture/responsive/manual-set-110-7fd6cbed61-image-14-DSC06759/original.jpg?w=1920",
+      "source_width": 4378,
+      "source_height": 2918,
+      "encoding": "WebP quality 88, downsized to 2560px wide without enlargement; source colors retained.",
+      "note": "Earlier candidate retained as an unused local asset. The user identified the intermediate single-photo stop as the transition problem; it is no longer requested or rendered.",
+      "active": false
+    }
+  },
+  "scroll_cloud_flight": {
+    "reference_prompt": "/Users/lilijie/.codex/attachments/fbcf7eeb-e4da-4ba1-a35d-677c39cbb4af/已粘贴的文本.txt",
+    "source": "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260821_114821_a8ca298f-be2c-4613-a4dd-51b69e16bbde.mp4",
+    "source_width": 1920,
+    "source_height": 1080,
+    "source_fps": 24,
+    "selected_seconds": [
+      3,
+      6.5
+    ],
+    "frames": 64,
+    "sampling_fps": 18.285714285714285,
+    "frame_width": 448,
+    "frame_height": 252,
+    "layout": "Two 4x8 atlases, 32 frames per sheet. Max dimension 2016px; each sample clamps to its cell interior to prevent tile bleeding.",
+    "sheets": [
+      {
+        "asset": "public/dreamcore-cloud-flight-01.webp",
+        "width": 1792,
+        "height": 2016,
+        "bytes": 82890
+      },
+      {
+        "asset": "public/dreamcore-cloud-flight-02.webp",
+        "width": 1792,
+        "height": 2016,
+        "bytes": 41242
+      }
+    ],
+    "combined_bytes": 124132,
+    "base_rgba_bytes": 28901376,
+    "playback": "GPU interpolation between adjacent sampled frames, indexed by smoothstep(.49,.735,scrollProgress). No autoplay timeline, seeking or runtime full-video extraction.",
+    "intro": "Density-weighted cloud occlusion during progress .32-.53, with a restrained 10% approach scale; subtle local contrast and palette alignment.",
+    "exit": "Cloud luminance plus depth shapes a soft mask during .55-.735, revealing the existing gallery directly.",
+    "loading": "Optional asynchronous sheets, one upload per animation frame. Essential hero rendering does not wait; keep the existing lightweight cloud reveal if sheets are unavailable or reduced motion is enabled.",
+    "extraction": "ffmpeg -ss 3 -t 3.5 -i reference.mp4 -vf fps=128/7,scale=448:252:flags=lanczos,tile=4x8 -frames:v 2 atlas-%02d.png; lossily encoded to WebP quality 90, no image enlargement."
+  }
+}

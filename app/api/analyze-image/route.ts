@@ -1,3 +1,4 @@
+import { requireAdminRequest } from "@/utils/admin-auth.server"
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
@@ -23,6 +24,9 @@ function createOpenAI(kind: 'vision' | 'text') {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminRequest(request)
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
   try {
     // Robust JSON parse with friendly error for invalid/missing body
     let payload: any

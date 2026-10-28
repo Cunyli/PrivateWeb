@@ -1,0 +1,139 @@
+{
+  "measuredOn": "2026-10-27",
+  "timezone": "Europe/Helsinki",
+  "environment": "Existing local Next.js development server; visible in-app browser",
+  "method": "Opt-in ?perf=1. Rolling six-second requestAnimationFrame cadence and completed WebGL draw submissions. ?motion=1 sweeps the camera through the same .04-.44 progress range. CPU figures measure JS plus upload submission, not GPU execution or physical presentation.",
+  "before": {
+    "mode": "camera sweep",
+    "windowS": 6,
+    "pageFps": 120,
+    "sceneFps": 25.8,
+    "pageP95ms": 9.3,
+    "sceneP95ms": 43.1,
+    "sceneCpuP95ms": 1.5,
+    "over25msPct": 0,
+    "canvas": "1425x900",
+    "viewport": "1440x900",
+    "visible": true
+  },
+  "after": {
+    "mode": "camera sweep",
+    "windowS": 6,
+    "pageFps": 120,
+    "sceneFps": 120,
+    "pageP95ms": 9.3,
+    "sceneP95ms": 10,
+    "sceneCpuP95ms": 0.4,
+    "over25msPct": 0,
+    "canvas": "1425x900",
+    "viewport": "1440x900",
+    "progress": 0.4,
+    "visible": true
+  },
+  "wide": {
+    "mode": "camera sweep",
+    "windowS": 6,
+    "pageFps": 120,
+    "sceneFps": 120,
+    "pageP95ms": 9.3,
+    "sceneP95ms": 11.4,
+    "sceneCpuP95ms": 0.6,
+    "over25msPct": 0,
+    "canvas": "1680x952",
+    "viewport": "1920x1080",
+    "progress": 0.1,
+    "visible": true
+  },
+  "mobileViewport": {
+    "mode": "camera sweep",
+    "windowS": 6,
+    "pageFps": 119.8,
+    "sceneFps": 119.9,
+    "pageP95ms": 9.1,
+    "sceneP95ms": 10.6,
+    "sceneCpuP95ms": 1.3,
+    "over25msPct": 0,
+    "canvas": "375x650",
+    "viewport": "390x650",
+    "progress": 0.3,
+    "visible": true
+  },
+  "gallery": {
+    "mode": "native scroll",
+    "windowS": 6,
+    "pageFps": 120,
+    "sceneFps": 0,
+    "pageP95ms": 9.2,
+    "sceneP95ms": 0,
+    "sceneCpuP95ms": 0,
+    "over25msPct": 0,
+    "canvas": "1425x900",
+    "viewport": "1440x900",
+    "progress": 1,
+    "visible": true
+  },
+  "video": {
+    "beforeBytes": 1682351,
+    "afterBytes": 439521,
+    "beforeSize": [
+      1280,
+      720
+    ],
+    "afterSize": [
+      768,
+      432
+    ],
+    "fps": 24,
+    "durationSeconds": 10.416667
+  },
+  "limitations": [
+    "Warm local browser samples, not a guarantee for every machine or cold load.",
+    "Phone dimensions are emulated on this Mac; no physical-phone result claimed.",
+    "Cloud footage retains its native 24fps cadence; scene composition, wind, camera and type follow the display clock."
+  ],
+  "referenceCloudFlight": {
+    "desktop": {
+      "mode": "cloud flight sweep",
+      "cloudFlight": "true",
+      "windowS": 6,
+      "pageFps": 119.6,
+      "sceneFps": 119.5,
+      "pageP95ms": 10.1,
+      "sceneP95ms": 11.7,
+      "sceneCpuP95ms": 0.3,
+      "over25msPct": 0,
+      "canvas": "1425x900",
+      "viewport": "1440x900",
+      "progress": 0.7,
+      "visible": true
+    },
+    "mobileViewport": {
+      "mode": "cloud flight sweep",
+      "cloudFlight": "true",
+      "windowS": 6,
+      "pageFps": 119.5,
+      "sceneFps": 119.5,
+      "pageP95ms": 10.1,
+      "sceneP95ms": 12,
+      "sceneCpuP95ms": 0.6,
+      "over25msPct": 0.1,
+      "canvas": "375x650",
+      "viewport": "390x650",
+      "progress": 0.3,
+      "visible": true
+    },
+    "combinedAssetBytes": 124132,
+    "baseRgbaBytes": 28901376,
+    "rewind": {
+      "region": {
+        "left": 40,
+        "top": 40,
+        "width": 1200,
+        "height": 780
+      },
+      "meanAbsoluteChannelDifference": 0.12715847578347578,
+      "changedChannels": 303464,
+      "totalChannels": 2808000
+    }
+  }
+}

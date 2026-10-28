@@ -1,3 +1,4 @@
+import { requireAdminRequest } from "@/utils/admin-auth.server"
 import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 
@@ -23,6 +24,9 @@ function createOpenAI(kind: 'vision' | 'text') {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminRequest(req)
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
   try {
     const { text, sourceLang = "en", targetLang = "zh" } = await req.json()
     if (!text || typeof text !== "string") {

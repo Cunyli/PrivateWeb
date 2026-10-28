@@ -2,14 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/utils/supabase"
+import { adminFetch } from "@/utils/admin-auth-client"
 import { AdminDashboard } from "@/components/admin-dashboard"
 import { useI18n } from "@/lib/i18n"
-
-const adminEmails = String(process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-  .split(",")
-  .map((value) => value.trim().toLowerCase())
-  .filter(Boolean)
 
 export default function AdminPage() {
   const [loading, setLoading] = useState(true)
@@ -19,15 +14,10 @@ export default function AdminPage() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data, error } = await supabase.auth.getUser()
-        if (error) {
-          console.warn('auth.getUser error:', error)
-        }
-        const user = data?.user
-        const email = String(user?.email || "").trim().toLowerCase()
-        if (!user || !email) {
+        const response = await adminFetch("/api/admin/session", { cache: "no-store" })
+        if (response.status === 401) {
           router.push("/login?next=/admin")
-        } else if (adminEmails.length > 0 && !adminEmails.includes(email)) {
+        } else if (!response.ok) {
           setAuthError("This account is not allowed to access admin.")
           setLoading(false)
         } else {
@@ -35,6 +25,10 @@ export default function AdminPage() {
         }
       } catch (e) {
         console.warn('checkUser failed:', e)
+        if (e instanceof Error && e.message === "Missing admin session") {
+          router.push("/login?next=/admin")
+          return
+        }
         setAuthError("Unable to verify admin access.")
         setLoading(false)
       }

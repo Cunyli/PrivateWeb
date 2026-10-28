@@ -1,7 +1,7 @@
-fastapi
-uvicorn[standard]
-transformers>=5.1.0
-peft
-torch
-torchvision
-Pillow
+fastapi==0.137.2
+uvicorn[standard]==0.49.0
+transformers==5.12.1
+peft==0.19.1
+torch==2.12.1
+torchvision==0.27.1
+Pillow==12.2.0

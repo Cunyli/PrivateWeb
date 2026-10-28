@@ -1,3 +1,5 @@
+import { adminFetch } from "@/utils/admin-auth-client"
+
 /**
  * Helper functions for R2 storage operations
  */
@@ -49,7 +51,7 @@ export async function deleteFileFromR2(url: string): Promise<boolean> {
 
     console.log(`Sending delete request for object key: ${objectKey}`)
 
-    const response = await fetch("/api/delete-from-r2", {
+    const response = await adminFetch("/api/delete-from-r2", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

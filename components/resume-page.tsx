@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
-import { Instagram, Linkedin, Mail, MessageCircle } from "lucide-react"
+import { ArrowUpRight, Check, ChevronDown, Copy, Linkedin, Mail, MessageCircle } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
-import { LangSwitcher } from "@/components/lang-switcher"
+import { LangSwitcher } from "./lang-switcher"
+import styles from "./resume-studio.module.css"
 
 type Locale = "en" | "zh"
 type LocalizedString = Record<Locale, string>
@@ -18,21 +18,6 @@ type Experience = {
   summary: LocalizedString
   highlights: LocalizedString[]
   discipline: "ai"
-}
-
-type FocusCard = {
-  title: LocalizedString
-  description: LocalizedString
-  list: LocalizedString[]
-  accent: string
-  tone?: "light" | "dark"
-}
-
-type HeroProject = {
-  title: LocalizedString
-  eyebrow: LocalizedString
-  description: LocalizedString
-  href?: string
 }
 
 type CaseStudy = {
@@ -61,96 +46,6 @@ const heroCopy = {
   primaryCta: { en: "Contact", zh: "联系我" },
 }
 
-const heroProjectsCopy = {
-  badge: { en: "Selected projects", zh: "代表项目" },
-  link: { en: "View all projects", zh: "查看全部项目" },
-}
-
-const heroProjects: HeroProject[] = [
-  {
-    title: { en: "Public AI Feed", zh: "公开 AI 信息流" },
-    eyebrow: { en: "Public demo", zh: "公开 Demo" },
-    description: {
-      en: "A public, read-only view of my private AI feed, with its own API route and private details filtered out.",
-      zh: "从我的私有 AI 信息流拆出的只读公开版，使用独立 API，并在展示前过滤私密信息。",
-    },
-    href: "/ai-feed/public",
-  },
-  {
-    title: { en: "Speech Enhancement for Health-Biomarker Research", zh: "面向健康语音生物标志物的语音增强" },
-    eyebrow: { en: "Master's thesis", zh: "硕士论文" },
-    description: {
-      en: "Adapting universal speech enhancement to preserve health-relevant speech cues under real recording shifts.",
-      zh: "改造通用语音增强，使模型在真实录音条件变化下仍保留与健康相关的语音线索。",
-    },
-  },
-  {
-    title: { en: "Legal QA with Agentic RAG", zh: "法律文档问答 Agentic RAG" },
-    eyebrow: { en: "Retrieval system", zh: "检索系统" },
-    description: {
-      en: "Legal-document QA with source-grounded retrieval, query decomposition, and citation-quality checks.",
-      zh: "带来源依据的法律文档问答，结合问题拆解、检索和引用质量评估。",
-    },
-  },
-]
-
-const dualPracticeCopy = {
-  badge: { en: "Focus", zh: "方向" },
-  heading: {
-    en: "Speech enhancement, retrieval, and applied ML",
-    zh: "语音增强、检索与应用机器学习",
-  },
-  body: {
-    en: "My current research starts from USE baselines and evaluation, but the goal is to design or adapt enhancement models that preserve biomarker-relevant speech cues under real recording-condition shifts.",
-    zh: "我当前的研究从 USE baseline 和评估入手，但目标是设计或改造语音增强模型，使其在真实录音条件变化下仍保留与健康生物标志物相关的语音线索。",
-  },
-}
-
-const focusCards: FocusCard[] = [
-  {
-    title: { en: "Speech and health-biomarker research", zh: "语音与健康生物标志物研究" },
-    description: {
-      en: "The thesis direction is to adapt universal speech enhancement for biomarker robustness, not only to improve perceptual speech quality.",
-      zh: "论文方向是把通用语音增强改造到健康语音鲁棒性场景，而不只是提升普通听感质量。",
-    },
-    list: [
-      { en: "Distorted speech simulation and cleaning", zh: "失真语音模拟与清理" },
-      { en: "Public SE baseline benchmarking", zh: "公开语音增强 baseline 评测" },
-      { en: "AVQI and downstream classification evaluation", zh: "AVQI 与下游分类评估" },
-      { en: "PyTorch experiments on Triton with Slurm/WandB", zh: "Triton 上的 PyTorch、Slurm 与 WandB 实验" },
-    ],
-    accent: "from-zinc-100 via-white to-zinc-50",
-    tone: "light",
-  },
-  {
-    title: { en: "Retrieval and applied ML systems", zh: "检索与应用 ML 系统" },
-    description: {
-      en: "Past projects cover legal RAG, knowledge-graph search, NLP moderation, ETA uncertainty, and small product-facing ML systems.",
-      zh: "过往项目包括法律 RAG、知识图谱检索、NLP 审核、ETA 不确定性和面向产品的小型 ML 系统。",
-    },
-    list: [
-      { en: "Agentic RAG and source-grounded QA", zh: "Agentic RAG 与有来源依据的问答" },
-      { en: "Hybrid retrieval and reranking", zh: "混合检索与重排" },
-      { en: "Model evaluation beyond a single score", zh: "不依赖单一指标的模型评估" },
-      { en: "Data pipelines and reproducible reports", zh: "数据流水线与可复现实验报告" },
-    ],
-    accent: "from-zinc-50 via-white to-slate-50",
-    tone: "light",
-  },
-]
-
-const caseStudySectionCopy = {
-  badge: { en: "Projects", zh: "项目" },
-  heading: {
-    en: "Projects with implementation context",
-    zh: "带实现细节的项目记录",
-  },
-  summary: {
-    en: "The resume keeps these short. This page keeps more context: input data, modeling choice, evaluation, and what was actually implemented.",
-    zh: "简历里只能压缩展示，这里保留更多上下文：输入数据、建模选择、评估方式和实际实现内容。",
-  },
-  github: { en: "View project repositories on GitHub ↗", zh: "在 GitHub 查看项目仓库 ↗" },
-}
 
 const caseStudies: CaseStudy[] = [
   {
@@ -425,6 +320,7 @@ const caseStudies: CaseStudy[] = [
   },
 ]
 
+
 const experiences: Experience[] = [
   {
     title: { en: "Research Assistant / Master's Thesis Worker", zh: "研究助理 / 硕士论文研究员" },
@@ -491,14 +387,6 @@ const experiences: Experience[] = [
   },
 ]
 
-const experienceSectionCopy = {
-  heading: { en: "Experience", zh: "经历" },
-  badge: { en: "Professional experience", zh: "职业经历" },
-  link: { en: "View full CV on LinkedIn ↗", zh: "在 LinkedIn 查看完整履历 ↗" },
-  columns: [
-    { label: { en: "AI / Data Roles", zh: "AI / 数据角色" }, discipline: "ai" as const },
-  ],
-}
 
 const skills = [
   {
@@ -512,10 +400,6 @@ const skills = [
   },
 ]
 
-const capabilitiesCopy = {
-  badge: { en: "Capabilities", zh: "能力图谱" },
-  heading: { en: "Core skills", zh: "核心技能" },
-}
 
 const services = [
   {
@@ -527,10 +411,6 @@ const services = [
   },
 ]
 
-const servicesSectionCopy = {
-  badge: { en: "Opportunities", zh: "合作意向" },
-  heading: { en: "Roles & consulting", zh: "岗位与咨询" },
-}
 
 const contactLinks = [
   {
@@ -555,6 +435,7 @@ const contactLinks = [
   },
 ]
 
+
 const availabilityCopy = {
   badge: { en: "Availability", zh: "当前档期" },
   heading: { en: "Open to data science roles", zh: "开放数据科学岗位" },
@@ -568,469 +449,164 @@ const availabilityCopy = {
   },
 }
 
+
 const copyFeedback = {
   copyPrefix: { en: "Copy", zh: "复制" },
   copiedSuffix: { en: "copied!", zh: "已复制！" },
   copyFailed: { en: "Copy failed. Please try again.", zh: "复制失败，请重试。" },
 }
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
-}
 
-const sectionReveal = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: "easeOut" } },
-}
-
-const cardReveal = {
-  hidden: { opacity: 0, y: 48 },
-  visible: (index = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: "easeOut", delay: index * 0.08 },
-  }),
-}
+const photographyPreview = [
+  { src: "/photo-session/dsc06071-1280.jpg", alt: { en: "A travel portrait overlooking a mountain lake", zh: "山间湖泊旁的旅行人像" } },
+  { src: "/photo-session/dsc07258-1280.jpg", alt: { en: "A portrait beside turquoise mountain water", zh: "碧绿湖水旁的人像" } },
+  { src: "/photo-session/dsc09183-2-1280.jpg", alt: { en: "Reading in the warm light of a journey", zh: "旅途中暖光下的阅读片刻" } },
+  { src: "/photo-session/dsc06766-1280.jpg", alt: { en: "A photographer in an alpine flower field", zh: "高山花田里的摄影者" } },
+]
 
 export function ResumePage() {
-  const pageRef = useRef<HTMLDivElement>(null)
-  const [copyStatus, setCopyStatus] = useState<{ type: "success" | "error"; key?: string } | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-  const shouldReduceMotion = prefersReducedMotion
-  const disableScrollLinkedMotion = prefersReducedMotion || isMobile
   const { locale } = useI18n()
-  const heroLocale: Locale = locale === "zh" ? "zh" : "en"
-  const contactLabelMap = useMemo(() => {
-    return contactLinks.reduce((acc, link) => {
-      acc[link.key] = link.label[locale]
-      return acc
-    }, {} as Record<string, string>)
-  }, [locale])
+  const lang: Locale = locale === "en" ? "en" : "zh"
+  const zh = lang === "zh"
+  const page = useRef<HTMLDivElement>(null)
+  const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
+  const reset = useRef<number | null>(null)
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("matchMedia" in window)) return
-    const mq = window.matchMedia("(max-width: 640px)")
-    const update = () => setIsMobile(mq.matches)
-    update()
-    if (typeof mq.addEventListener === "function") {
-      mq.addEventListener("change", update)
-      return () => mq.removeEventListener("change", update)
+    const root = page.current
+    if (!root) return
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.target.hasAttribute("data-photo-window")) {
+          entry.target.setAttribute("data-in-view", String(entry.isIntersecting))
+        } else if (entry.isIntersecting) {
+          entry.target.setAttribute("data-revealed", "true")
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.06 })
+    root.querySelectorAll("[data-reveal], [data-photo-window]").forEach(element => observer.observe(element))
+    root.dataset.enhanced = "true"
+    return () => {
+      observer.disconnect()
+      if (reset.current !== null) window.clearTimeout(reset.current)
     }
-    mq.addListener(update)
-    return () => mq.removeListener(update)
   }, [])
 
-  const { scrollYProgress } = useScroll({
-    target: pageRef,
-    offset: ["start start", "end start"],
-  })
-
-  const heroGlowY = useTransform(scrollYProgress, [0, 0.6], ["0%", "25%"])
-  const statsLift = useTransform(scrollYProgress, [0, 0.25], [0, -24])
-  const progressOpacity = useTransform(scrollYProgress, [0, 0.05], [0, 1])
-
-  const createSectionMotionProps = (amount?: number) => {
-    if (shouldReduceMotion) return {}
-    const viewportAmount = isMobile ? Math.min(amount ?? 0.25, 0.08) : amount ?? 0.55
-    return {
-      initial: "hidden" as const,
-      whileInView: "visible" as const,
-      viewport: { once: true, amount: viewportAmount },
+  const copyWeChat = async () => {
+    try {
+      await navigator.clipboard.writeText("Llj773882712")
+      setCopied(true)
+      setCopyError(false)
+    } catch {
+      setCopyError(true)
     }
+    if (reset.current !== null) window.clearTimeout(reset.current)
+    reset.current = window.setTimeout(() => setCopied(false), 2600)
   }
+  const featured = caseStudies[1]
+  const projects = caseStudies.filter((_, index) => index !== 1)
 
-  const getCardMotionProps = (index: number, options?: { viewportAmount?: number; immediate?: boolean }) => {
-    if (shouldReduceMotion) return {}
-    if (options?.immediate) {
-      return {
-        custom: index,
-        variants: cardReveal,
-        initial: "hidden" as const,
-        animate: "visible" as const,
-      }
-    }
-    return {
-      custom: index,
-      variants: cardReveal,
-      initial: "hidden" as const,
-      whileInView: "visible" as const,
-      viewport: { once: true, amount: options?.viewportAmount ?? (isMobile ? 0.25 : 0.45) },
-    }
-  }
+  return <div ref={page} className={styles.page} data-editorial-resume lang={lang}>
+    <header className={`${styles.header} ${styles.shell}`}>
+      <a href="#top" className={styles.brand}>Lijie Li<span aria-hidden="true">.</span></a>
+      <div className={styles.headerRight}>
+        <a href="#contact" className={styles.smallLink}>{zh ? "联系我" : "Get in touch"}<ArrowUpRight size={14} aria-hidden="true" /></a>
+        <LangSwitcher />
+      </div>
+    </header>
 
-  const getFadeInViewProps = (amount?: number) => {
-    if (shouldReduceMotion) return {}
-    return {
-      variants: fadeInUp,
-      initial: "hidden" as const,
-      whileInView: "visible" as const,
-      viewport: { once: true, amount: amount ?? (isMobile ? 0.25 : 0.4) },
-    }
-  }
+    <section id="top" className={styles.hero} aria-labelledby="resume-heading">
+      <p className={`${styles.eyebrow} ${styles.arrive}`} style={{ animationDelay: "50ms" }}>DATA SCIENCE / APPLIED RESEARCH</p>
+      <h1 id="resume-heading" className={`${styles.heroTitle} ${styles.arrive}`} style={{ animationDelay: "120ms" }}>
+        {zh ? <>让模型，<br /><span>走进真实问题。</span></> : <>Models for<br /><span>real-world questions.</span></>}
+      </h1>
+      <p className={`${styles.introduction} ${styles.arrive}`} style={{ animationDelay: "200ms" }}>{heroCopy.description[lang]}</p>
+      <div className={`${styles.heroActions} ${styles.arrive}`} style={{ animationDelay: "280ms" }}>
+        <a href="#contact" className={styles.primaryButton}>{heroCopy.primaryCta[lang]}<ArrowUpRight size={16} aria-hidden="true" /></a>
+        <Link href="/portfolio" className={styles.secondaryButton}>{zh ? "摄影 Portfolio" : "Photography portfolio"}<ArrowUpRight size={16} aria-hidden="true" /></Link>
+      </div>
+      <div className={`${styles.schools} ${styles.arrive}`} style={{ animationDelay: "360ms" }}>{heroCopy.schools[lang].map(school => <span key={school}>{school}</span>)}</div>
+      <nav className={styles.sectionNav} aria-label={zh ? "简历章节" : "Resume sections"}>
+        <a href="#case-studies"><span>01</span>{zh ? "项目" : "Projects"}</a>
+        <a href="#experience"><span>02</span>{zh ? "经历" : "Experience"}</a>
+        <a href="#contact"><span>03</span>{zh ? "联系" : "Contact"}</a>
+      </nav>
+    </section>
 
-  const maybeFade = shouldReduceMotion ? undefined : fadeInUp
-  const maybeSection = shouldReduceMotion ? undefined : sectionReveal
-
-  return (
-    <div ref={pageRef} className="relative min-h-[100svh] bg-zinc-50 text-zinc-900 antialiased">
-      <motion.div
-        className="pointer-events-none fixed inset-x-0 top-0 z-30 h-[2px] origin-left bg-zinc-900/80"
-        style={
-          disableScrollLinkedMotion
-            ? { opacity: 0 }
-            : {
-              scaleX: scrollYProgress,
-              opacity: progressOpacity,
-            }
-        }
-      />
-
-      <motion.section
-        className="relative isolate flex min-h-[100svh] items-center overflow-hidden border-b border-zinc-200/60 bg-zinc-50"
-        variants={maybeFade}
-        initial={shouldReduceMotion ? undefined : "visible"}
-        animate={shouldReduceMotion ? undefined : "visible"}
-      >
-        <div className="absolute right-4 top-4 z-20">
-          <LangSwitcher className="h-10 w-10 border border-zinc-200 bg-white/80 text-zinc-800" />
+    <section className={styles.photography} aria-label={zh ? "摄影作品预览" : "Photography preview"}>
+      <div className={styles.photoWindow} data-photo-window>
+        <div className={styles.photoTrack}>
+          {[0, 1].map(copy => <div className={styles.photoGroup} key={copy} aria-hidden={copy === 1 ? true : undefined}>
+            {photographyPreview.map(photo => <Link href="/portfolio" className={styles.photo} key={photo.src} tabIndex={copy === 1 ? -1 : undefined} aria-label={copy === 0 ? `${zh ? "进入 Portfolio：" : "View portfolio: "}${photo.alt[lang]}` : undefined}>
+              <img src={photo.src} width={1280} height={853} alt={copy === 0 ? photo.alt[lang] : ""} loading="lazy" decoding="async" draggable={false} />
+              <span className={styles.photoArrow} aria-hidden="true"><ArrowUpRight size={20} strokeWidth={1.4} /></span>
+            </Link>)}
+          </div>)}
         </div>
-        <motion.div
-          className="absolute inset-0 pointer-events-none opacity-60 [background:radial-gradient(circle_at_top,_rgba(17,24,39,0.08),_transparent_55%)]"
-          style={disableScrollLinkedMotion ? undefined : { y: heroGlowY }}
-        />
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-12 px-5 py-24 sm:px-10 lg:flex-row lg:items-center">
-          <motion.div className="max-w-2xl space-y-6" variants={maybeFade}>
-            <h1 className="text-4xl font-light leading-tight text-zinc-900 sm:text-5xl lg:text-6xl">
-              {heroCopy.title[heroLocale]}
-            </h1>
-            <div className="flex flex-wrap gap-3">
-              {heroCopy.schools[heroLocale].map((school) => (
-                <span
-                  key={school}
-                  className="rounded-full border border-zinc-900/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-700"
-                >
-                  {school}
-                </span>
-              ))}
+      </div>
+      <div className={`${styles.photoCaption} ${styles.shell}`}>
+        <span>PHOTOGRAPHY</span>
+        <Link href="/portfolio" className={styles.textLink}>{zh ? "打开 Portfolio" : "Explore the portfolio"}<ArrowUpRight size={15} aria-hidden="true" /></Link>
+      </div>
+    </section>
+
+    <div className={styles.shell}>
+      <section id="case-studies" className={styles.section}>
+        <div className={styles.sectionHeading} data-reveal>
+          <div><span className={styles.sectionIndex}>01 / {zh ? "项目" : "PROJECTS"}</span><h2>{zh ? "把想法做出来。" : "Ideas, put to work."}</h2></div>
+          <span className={styles.sectionMeta}>{String(caseStudies.length).padStart(2, "0")} {zh ? "个项目" : "projects"}</span>
+        </div>
+        <div className={styles.projectLayout}>
+          <article className={styles.featuredProject} data-reveal>
+            <div className={styles.featuredTop}><span>{zh ? "当前研究" : "CURRENT RESEARCH"}</span><span>01</span></div>
+            <div className={styles.researchMotif} aria-hidden="true">
+              <svg viewBox="0 0 400 90" fill="none"><path d="M0 45H400" stroke="currentColor" opacity=".16" />{Array.from({ length: 64 }, (_, index) => {
+                const height = 4 + Math.pow(Math.sin(index * 0.38), 2) * Math.sin(Math.PI * index / 63) * 75
+                return <path key={index} d={`M${(index * 6.2 + 4).toFixed(2)} ${(45 - height / 2).toFixed(2)}v${height.toFixed(2)}`} stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              })}</svg>
             </div>
-            <p className="text-lg leading-relaxed text-zinc-600">{heroCopy.description[heroLocale]}</p>
-            <motion.div className="flex flex-wrap gap-4" variants={maybeFade}>
-              <Link
-                href="#contact"
-                className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-zinc-800"
-              >
-                {heroCopy.primaryCta[heroLocale]}
-              </Link>
-            </motion.div>
-          </motion.div>
-
-          <motion.div
-            className="w-full text-zinc-900 lg:w-[460px] lg:border-l lg:border-zinc-200 lg:pl-8"
-            style={disableScrollLinkedMotion ? undefined : { y: statsLift }}
-          >
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
-                {heroProjectsCopy.badge[locale]}
-              </p>
-              <Link
-                href="#case-studies"
-                className="text-xs font-medium uppercase tracking-wide text-zinc-500 transition hover:text-zinc-900"
-              >
-                {heroProjectsCopy.link[locale]}
-              </Link>
-            </div>
-            <div className="divide-y divide-zinc-200">
-              {heroProjects.map((project, index) => {
-                const content = (
-                  <>
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                        {project.eyebrow[locale]}
-                      </p>
-                      {project.href ? <span className="text-xs text-zinc-400 transition group-hover:text-zinc-800">↗</span> : null}
-                    </div>
-                    <h3 className="mt-2 text-lg font-medium text-zinc-900">{project.title[locale]}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-zinc-600">{project.description[locale]}</p>
-                  </>
-                )
-
-                if (project.href) {
-                  return (
-                    <motion.div key={project.title.en} {...getCardMotionProps(index, { immediate: true })}>
-                      <Link href={project.href} className="group block py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-4">
-                        {content}
-                      </Link>
-                    </motion.div>
-                  )
-                }
-
-                return (
-                  <motion.div key={project.title.en} className="py-5" {...getCardMotionProps(index, { immediate: true })}>
-                    {content}
-                  </motion.div>
-                )
-              })}
-            </div>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="border-b border-zinc-200/60 bg-white/70"
-        variants={maybeSection}
-        {...createSectionMotionProps()}
-      >
-        <div className="mx-auto flex max-w-5xl flex-col gap-8 px-5 py-16 sm:px-10">
-          <div className="flex flex-col gap-3">
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{dualPracticeCopy.badge[locale]}</p>
-            <h2 className="text-2xl font-light text-zinc-900">{dualPracticeCopy.heading[locale]}</h2>
-            <p className="text-base text-zinc-600">{dualPracticeCopy.body[locale]}</p>
-          </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            {focusCards.map((card, index) => {
-              const isDark = card.tone === "dark"
-              return (
-                <motion.article
-                  key={card.title.en}
-                  {...getCardMotionProps(index, { viewportAmount: 0.25 })}
-                  className={`rounded-3xl border border-zinc-200/70 bg-gradient-to-br ${card.accent} p-8 shadow-[0_12px_32px_rgba(15,23,42,0.06)]`}
-                >
-                  <p
-                    className={`text-sm uppercase tracking-wide ${isDark ? "text-white/70" : "text-zinc-500"}`}
-                  >
-                    {locale === "zh" ? `实践 #${index + 1}` : `Practice #${index + 1}`}
-                  </p>
-                  <h3 className={`mt-2 text-xl font-semibold ${isDark ? "text-white" : "text-zinc-900"}`}>
-                    {card.title[locale]}
-                  </h3>
-                  <p className={`mt-3 text-base ${isDark ? "text-white/85" : "text-zinc-700"}`}>
-                    {card.description[locale]}
-                  </p>
-                  <ul className={`mt-6 space-y-2 text-sm ${isDark ? "text-white/80" : "text-zinc-600"}`}>
-                    {card.list.map((item) => (
-                      <li key={`${card.title.en}-${item.en}`} className="flex items-start gap-2">
-                        <span className={`mt-1 h-1.5 w-1.5 rounded-full ${isDark ? "bg-white" : "bg-zinc-900"}`} />
-                        <span>{item[locale]}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.article>
-              )
-            })}
+            <h3>{featured.title[lang]}</h3>
+            <p className={styles.featuredContext}>{featured.context[lang]}</p>
+            <p className={styles.featuredResult}>{featured.result[lang]}</p>
+            <ul>{featured.highlights.map(item => <li key={item.en}>{item[lang]}</li>)}</ul>
+            <a href="#contact" className={styles.featuredLink}>{zh ? "聊聊这个研究" : "Talk about the research"}<ArrowUpRight size={18} aria-hidden="true" /></a>
+          </article>
+          <div className={styles.projectList}>
+            {projects.map((project, index) => <details className={styles.project} key={project.title.en} data-reveal>
+              <summary><span className={styles.projectNumber}>{String(index + 2).padStart(2, "0")}</span><div><span className={styles.projectTag}>{project.disciplineTag[lang]}</span><h3>{project.title[lang]}</h3><p>{project.context[lang]}</p></div><ChevronDown size={18} strokeWidth={1.3} aria-hidden="true" /></summary>
+              <div className={styles.projectDetails}><p>{project.result[lang]}</p><ul>{project.highlights.map(item => <li key={item.en}>{item[lang]}</li>)}</ul>{project.href && <Link className={styles.textLink} href={project.href}>{project.linkLabel?.[lang] || (zh ? "查看项目" : "Open project")}<ArrowUpRight size={15} aria-hidden="true" /></Link>}</div>
+            </details>)}
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        id="case-studies"
-        className="border-b border-zinc-200/60 bg-white"
-        variants={maybeSection}
-        {...createSectionMotionProps(0.3)}
-      >
-        <div className="mx-auto flex max-w-5xl flex-col gap-8 px-5 py-16 sm:px-10">
-          <div className="flex flex-col gap-2">
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{caseStudySectionCopy.badge[locale]}</p>
-            <h2 className="text-2xl font-light text-zinc-900">{caseStudySectionCopy.heading[locale]}</h2>
-            <p className="text-base text-zinc-600">{caseStudySectionCopy.summary[locale]}</p>
-            <Link
-              href="https://github.com/Cunyli"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 w-fit text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
-            >
-              {caseStudySectionCopy.github[locale]}
-            </Link>
-          </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            {caseStudies.map((study, index) => {
-              const content = (
-                <>
-                  <div className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                    <span>{study.disciplineTag[locale]}</span>
-                    <span>{study.context[locale]}</span>
-                  </div>
-                  <h3 className="text-lg font-medium text-zinc-900">{study.title[locale]}</h3>
-                  <p className="text-sm text-zinc-500">{study.result[locale]}</p>
-                  <ul className="mt-2 space-y-2 text-sm text-zinc-600">
-                    {study.highlights.map((item) => (
-                      <li key={`${study.title.en}-${item.en}`} className="flex items-start gap-2">
-                        <span className="mt-1 h-1 w-1 rounded-full bg-zinc-900" />
-                        <span>{item[locale]}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  {study.href && study.linkLabel ? (
-                    <span className="mt-auto inline-flex w-fit items-center rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-700 transition group-hover:border-zinc-900 group-hover:text-zinc-900">
-                      {study.linkLabel[locale]} ↗
-                    </span>
-                  ) : null}
-                </>
-              )
+      <section id="experience" className={styles.section}>
+        <div className={styles.sectionHeading} data-reveal><div><span className={styles.sectionIndex}>02 / {zh ? "经历" : "EXPERIENCE"}</span><h2>{zh ? "一路做过的事。" : "Along the way."}</h2></div><a href="https://www.linkedin.com/in/cunyli" target="_blank" rel="noreferrer" className={styles.textLink}>LinkedIn<ArrowUpRight size={14} aria-hidden="true" /></a></div>
+        <div className={styles.experiences}>{experiences.map(role => <article key={role.organization.en} className={styles.experience} data-reveal>
+          <div className={styles.experienceDate}><p>{role.period[lang]}</p><span>{role.location[lang]}</span></div>
+          <div><p className={styles.organization}>{role.organization[lang]}</p><h3>{role.title[lang]}</h3><p className={styles.body}>{role.summary[lang]}</p></div>
+        </article>)}</div>
+        <div className={styles.skills} data-reveal>{skills[0].items.map((item, index) => <div key={item.en}><span>{(zh ? ["语言与工具", "模型与方法", "实验与部署", "数据与检索"] : ["Code & tools", "Models & methods", "Experiments & deployment", "Data & retrieval"])[index]}</span><p>{item[lang]}</p></div>)}</div>
+      </section>
 
-              if (study.href) {
-                return (
-                  <motion.article
-                    key={study.title.en}
-                    className="group overflow-hidden rounded-3xl border border-zinc-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
-                    {...getCardMotionProps(index, { viewportAmount: 0.3 })}
-                  >
-                    <Link
-                      href={study.href}
-                      className="flex h-full flex-col gap-4 p-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
-                    >
-                      {content}
-                    </Link>
-                  </motion.article>
-                )
-              }
-
-              return (
-                <motion.article
-                  key={study.title.en}
-                  className="flex flex-col gap-4 rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
-                  {...getCardMotionProps(index, { viewportAmount: 0.3 })}
-                >
-                  {content}
-                </motion.article>
-              )
-            })}
+      <section id="contact" className={styles.resumeContact} data-reveal>
+        <span className={styles.sectionIndex}>03 / {zh ? "联系" : "CONTACT"}</span>
+        <div className={styles.contactGrid}>
+          <div><h2>{zh ? <>聊聊<br /><span>下一件事。</span></> : <>Let’s talk<br /><span>about what’s next.</span></>}</h2><p className={styles.body}>{availabilityCopy.body[lang]}</p></div>
+          <div className={styles.contactLinks}>
+            {contactLinks.filter(contact => contact.href).map(contact => <a href={contact.href} key={contact.key} target={contact.href?.startsWith("mailto:") ? undefined : "_blank"} rel="noreferrer"><div><span>{contact.label[lang]}</span><p>{contact.value}</p></div><ArrowUpRight size={22} strokeWidth={1.4} aria-hidden="true" /></a>)}
+            <button type="button" onClick={copyWeChat}><div><span>{zh ? "微信" : "WeChat"}</span><p>Llj773882712</p></div>{copied ? <Check size={21} aria-hidden="true" /> : <Copy size={19} strokeWidth={1.4} aria-hidden="true" />}</button>
+            <p className={styles.copyStatus} role="status">{copied ? (zh ? "微信号已复制" : "WeChat ID copied") : copyError ? (zh ? "请复制：Llj773882712" : "Copy: Llj773882712") : ""}</p>
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        className="border-b border-zinc-200/60 bg-white"
-        variants={maybeSection}
-        {...createSectionMotionProps(0.3)}
-      >
-        <div className="mx-auto max-w-5xl px-5 py-16 sm:px-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-light text-zinc-900">{experienceSectionCopy.heading[locale]}</h2>
-              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{experienceSectionCopy.badge[locale]}</p>
-            </div>
-            <Link
-              href="https://www.linkedin.com/in/cunyli"
-              target="_blank"
-              className="text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
-            >
-              {experienceSectionCopy.link[locale]}
-            </Link>
-          </div>
-          <div className="mt-10 grid gap-8">
-            {experienceSectionCopy.columns.map((column, columnIndex) => (
-              <div key={column.label.en} className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{column.label[locale]}</p>
-                  <div className="ml-4 h-px flex-1 bg-zinc-200" />
-                </div>
-                {experiences
-                  .filter((role) => role.discipline === column.discipline)
-                  .map((role, index) => (
-                    <motion.div
-                      key={`${role.title.en}-${role.period.en}`}
-                      className="rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition will-change-transform hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
-                      {...getCardMotionProps(index + columnIndex, { viewportAmount: 0.35 })}
-                    >
-                      <div className="flex flex-col gap-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-zinc-500">{role.period[locale]}</p>
-                          <h3 className="mt-1 text-lg font-medium text-zinc-900">{role.title[locale]}</h3>
-                          <p className="text-sm text-zinc-500">
-                            {role.organization[locale]} · {role.location[locale]}
-                          </p>
-                        </div>
-                        <p className="text-sm text-zinc-600">{role.summary[locale]}</p>
-                        <ul className="mt-4 space-y-2 text-sm text-zinc-600">
-                          {role.highlights.map((item) => (
-                            <li key={`${role.title.en}-${item.en}`} className="flex items-start gap-2">
-                              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zinc-900" />
-                              <span>{item[locale]}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </motion.div>
-                  ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-
-
-      <motion.section
-        id="contact"
-        className="bg-zinc-50"
-        variants={maybeSection}
-        {...createSectionMotionProps(0.4)}
-      >
-        <div className="mx-auto flex max-w-5xl flex-col gap-6 px-5 py-20 text-center sm:px-10">
-          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">{availabilityCopy.badge[locale]}</p>
-          <h2 className="text-3xl font-light text-zinc-900">{availabilityCopy.heading[locale]}</h2>
-          <p className="text-base text-zinc-600">{availabilityCopy.body[locale]}</p>
-          <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-4">
-            {contactLinks.map((contact) => {
-              const Icon = contact.icon
-              if (contact.copyValue) {
-                return (
-                  <button
-                    key={contact.key}
-                    type="button"
-                    title={`${copyFeedback.copyPrefix[locale]} ${contact.label[locale]}`}
-                    aria-label={`${copyFeedback.copyPrefix[locale]} ${contact.label[locale]}`}
-                    className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200/80 bg-white text-zinc-600 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(contact.copyValue || "")
-                        setCopyStatus({ type: "success", key: contact.key })
-                      } catch {
-                        setCopyStatus({ type: "error" })
-                      }
-                      setTimeout(() => setCopyStatus(null), 1500)
-                    }}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </button>
-                )
-              }
-
-              if (!contact.href) {
-                return null
-              }
-
-              return (
-                <Link
-                  key={contact.key}
-                  href={contact.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={contact.label[locale]}
-                  aria-label={contact.label[locale]}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200/80 bg-white text-zinc-600 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md"
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="sr-only">{contact.label[locale]}</span>
-                </Link>
-              )
-            })}
-          </div>
-          {copyStatus && (
-            <p
-              className={`text-xs ${copyStatus.type === "error" ? "text-red-500" : "text-emerald-600"}`}
-              role="status"
-            >
-              {copyStatus.type === "error"
-                ? copyFeedback.copyFailed[locale]
-                : `${(copyStatus.key && contactLabelMap[copyStatus.key]) || ""} ${copyFeedback.copiedSuffix[locale]}`.trim()}
-            </p>
-          )}
-          <p className="text-xs uppercase tracking-[0.3em] text-zinc-400">{availabilityCopy.footer[locale]}</p>
-        </div>
-      </motion.section>
+      <footer className={styles.footer}>
+        <a href="#top" className={styles.brand}>Lijie Li<span aria-hidden="true">.</span></a>
+        <div><Link href="/portfolio">Portfolio<ArrowUpRight size={14} aria-hidden="true" /></Link><Link href="/helsinki-photo-session">{zh ? "约拍" : "Photo sessions"}<ArrowUpRight size={14} aria-hidden="true" /></Link></div>
+      </footer>
     </div>
-  )
+  </div>
 }

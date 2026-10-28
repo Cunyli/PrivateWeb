@@ -4,12 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PortraitLibraryAdmin } from "@/components/portrait-library-admin"
 import { useI18n } from "@/lib/i18n"
-import { supabase } from "@/utils/supabase"
-
-const adminEmails = String(process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-  .split(",")
-  .map((value) => value.trim().toLowerCase())
-  .filter(Boolean)
+import { adminFetch } from "@/utils/admin-auth-client"
 
 export default function PortraitLibraryAdminPage() {
   const [loading, setLoading] = useState(true)
@@ -20,15 +15,10 @@ export default function PortraitLibraryAdminPage() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data, error } = await supabase.auth.getUser()
-        if (error) {
-          console.warn("auth.getUser error:", error)
-        }
-        const user = data?.user
-        const email = String(user?.email || "").trim().toLowerCase()
-        if (!user || !email) {
+        const response = await adminFetch("/api/admin/session", { cache: "no-store" })
+        if (response.status === 401) {
           router.push("/login?next=/admin/portraits")
-        } else if (adminEmails.length > 0 && !adminEmails.includes(email)) {
+        } else if (!response.ok) {
           setAuthError("This account is not allowed to access admin.")
           setLoading(false)
         } else {
@@ -36,6 +26,10 @@ export default function PortraitLibraryAdminPage() {
         }
       } catch (error) {
         console.warn("checkUser failed:", error)
+        if (error instanceof Error && error.message === "Missing admin session") {
+          router.push("/login?next=/admin/portraits")
+          return
+        }
         setAuthError("Unable to verify admin access.")
         setLoading(false)
       }

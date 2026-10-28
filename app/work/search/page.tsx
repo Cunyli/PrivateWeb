@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
-import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { photoEditorial } from "@/lib/portfolio-photo-editorial.server"
+import { supabasePublic } from "@/utils/supabase-public.server"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
 
@@ -15,7 +16,7 @@ const parsePictureIds = (value?: string | string[] | null) => {
     .split(",")
     .map((item) => Number(item.trim()))
     .filter((id) => {
-      if (!Number.isFinite(id) || seen.has(id)) return false
+      if (!Number.isSafeInteger(id) || id < 1 || seen.has(id)) return false
       seen.add(id)
       return true
     })
@@ -36,9 +37,11 @@ export default async function SearchWorkPage({
   const pictureIds = parsePictureIds(resolvedSearchParams?.pictureIds)
   if (pictureIds.length === 0) notFound()
 
-  const { data: pictures, error: pictureError } = await supabaseAdmin
+  const { data: pictures, error: pictureError } = await supabasePublic
     .from("pictures")
-    .select("id, picture_set_id, image_url, raw_image_url, title, subtitle, description")
+    .select("id, picture_set_id, image_url, raw_image_url, title, subtitle, description, picture_sets!inner(is_published)")
+    .eq("is_published",true)
+    .eq("picture_sets.is_published",true)
     .in("id", pictureIds)
 
   if (pictureError) {
@@ -54,7 +57,7 @@ export default async function SearchWorkPage({
   if (orderedPictures.length === 0) notFound()
 
   const resolvedPictureIds = orderedPictures.map((picture: any) => picture.id as number)
-  const { data: pictureTranslations } = await supabaseAdmin
+  const { data: pictureTranslations } = await supabasePublic
     .from("picture_translations")
     .select("picture_id, locale, title, subtitle, description")
     .in("picture_id", resolvedPictureIds)
@@ -102,7 +105,7 @@ export default async function SearchWorkPage({
   }
 
   const images = orderedPictures.map((picture: any) => {
-    const translationEntry = pictureTranslationsMap.get(picture.id) || { en: {}, zh: {} }
+    const translationEntry = photoEditorial(picture.id) || pictureTranslationsMap.get(picture.id) || { en: {}, zh: {} }
     return {
       id: picture.id,
       setId: picture.picture_set_id,
@@ -148,6 +151,7 @@ export default async function SearchWorkPage({
         }}
         returnContext={{
           type: "portfolio",
+          homePath: resolvedSearchParams?.origin === "home" ? "/" : "/portfolio",
           returnSetId,
         }}
       />

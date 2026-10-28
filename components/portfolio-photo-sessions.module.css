@@ -1,0 +1,70 @@
+.album { color: var(--ink,#232724); }
+.book { position: relative; isolation: isolate; width: 100%; height: clamp(360px,40vw,540px); perspective: 2200px; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: transparent; }
+.page { position: absolute; top: 0; display: block; width: 50%; height: 100%; color: inherit; text-decoration: none; background: #fff; box-shadow: 0 1px 0 rgb(35 39 36 / .08),0 13px 22px -21px rgb(35 39 36 / .25); }
+.page[data-page-visible="false"] { visibility: hidden; pointer-events: none; }
+.book[data-book-restored="false"] .page { visibility: hidden; }
+.left { left: 0; transform-origin: right center; transform: rotateY(7deg); }
+.right { right: 0; transform-origin: left center; transform: rotateY(-7deg); }
+/* Keep photographs on one content plane when a leaf is shown after navigation. */
+.pageContent { transform: translateZ(0); backface-visibility: hidden; position: relative; display: grid; width: 100%; height: 100%; padding: clamp(12px,2vw,26px); gap: clamp(8px,1vw,14px); grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-rows: minmax(0,2.15fr) minmax(0,1fr); }
+.image { position: relative; display: block; min-width: 0; min-height: 0; }
+.image:first-child { grid-column: 1 / -1; }
+.pageContent[data-book-layout="vertical"] { grid-template-rows: minmax(0,1fr) minmax(0,1fr); }
+.pageContent[data-book-layout="vertical"] .image:first-child { grid-column: 1; grid-row: 1 / -1; }
+.image img { display: block; width: 100%; height: 100%; object-fit: contain; -webkit-user-drag: none; }
+.paperCanvas { position: absolute; z-index: 4; display: block; max-width: none; pointer-events: none; }
+/* One visual owner: keep the measured, accessible links as hit targets, but
+   never composite their photograph plane over the ready WebGL sheet. */
+.book[data-paper-ready="true"] .page { opacity: 0; }
+.book[data-paper-ready="true"]:has(.page:focus-visible) { outline: 2px solid #657b6b; outline-offset: 4px; }
+.book[data-dragging="true"],.book[data-dragging="true"] .page { cursor: grabbing; }
+.book[data-turning="true"] .page { pointer-events: none; }
+.spine { position: absolute; z-index: 2; top: 0; bottom: 0; left: calc(50% - 6px); width: 12px; background: linear-gradient(90deg,transparent,rgb(35 39 36 / .035) 46%,rgb(35 39 36 / .06) 50%,rgb(35 39 36 / .025) 54%,transparent); pointer-events: none; }
+.dragCue { position: absolute; z-index: 5; bottom: 13px; left: calc(50% - 18px); display: grid; place-items: center; width: 36px; height: 24px; background: white; color: #657b6b; opacity: .65; pointer-events: none; transition: opacity 180ms; }
+.book[data-turning="true"] .dragCue { opacity: 0; }
+.book:not([data-turning="true"]) .page:focus-visible { outline: 2px solid #657b6b; outline-offset: 4px; }
+.caption { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 27px; }
+.caption > a { display: flex; min-height: 44px; min-width: 0; flex-direction: column; align-items: flex-start; gap: 7px; color: inherit; text-decoration: none; }
+.entryTitle { margin: 0; font-size: clamp(21px,2.2vw,27px); line-height: 1.15; font-weight: 450; letter-spacing: -.045em; }
+.entryAction { display: inline-flex; align-items: center; gap: 8px; color: #657b6b; font-size: 13px; line-height: 1.45; letter-spacing: -.015em; }
+.entryAction svg { flex-shrink: 0; }
+.caption > a svg { color: #657b6b; transition: transform 250ms cubic-bezier(.22,1,.36,1); }
+.pagination { display: flex; align-items: center; gap: 13px; }
+.pagination button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; background: transparent; color: var(--ink,#232724); cursor: pointer; transition: transform 180ms,opacity 180ms; }
+.pagination button:disabled { cursor: default; opacity: .35; }
+.pagination > span { min-width: 45px; color: var(--ink,#232724); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pagination > span > span { color: #8d948a; }
+.pagination button:focus-visible,.caption > a:focus-visible { outline: 2px solid #657b6b; outline-offset: 3px; }
+@media (hover: hover) {
+  .book:hover .dragCue { opacity: 1; }
+  .caption > a:hover svg { transform: translate(3px,-3px); }
+  .pagination button:not(:disabled):hover { transform: translateX(3px); }
+  .pagination button:first-child:not(:disabled):hover { transform: translateX(-3px); }
+}
+@media (max-width: 767px) {
+  .book { height: clamp(250px,56vw,380px); perspective: 1400px; }
+  .pageContent { padding: 10px; gap: 8px; }
+  .caption { gap: 8px; padding-top: 18px; }
+  .caption > a { gap: 6px; }
+  .entryTitle { font-size: 22px; }
+  .pagination { gap: 2px; }
+  .pagination > span { min-width: 40px; font-size: 10px; }
+  .dragCue { bottom: 7px; }
+}
+@media (max-width: 479px) {
+  .book { height: clamp(240px,65vw,290px); }
+  .pageContent { padding: 7px; gap: 6px; }
+  .entryTitle { font-size: 20px; }
+  .entryAction { gap: 5px; font-size: 12px; }
+  .entryAction svg { width: 14px; height: 14px; }
+  .pagination button { width: 40px; }
+}
+@media (max-height: 520px) and (min-width: 641px) {
+  .book { height: clamp(250px,66svh,320px); }
+  .pageContent { padding: 13px; gap: 8px; }
+  .caption { padding-top: 16px; padding-right: 52px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caption > a svg,.pagination button,.dragCue { transition: none; }
+
+}

@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 
 const parseAdminEmails = () =>
-  String(process.env.ADMIN_EMAILS || process.env.SUPABASE_ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+  String(process.env.ADMIN_EMAILS || process.env.SUPABASE_ADMIN_EMAILS || "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
@@ -26,6 +26,10 @@ export async function requireAdminRequest(request: Request): Promise<
   const adminEmails = parseAdminEmails()
   if (adminEmails.length === 0) {
     return { ok: false, status: 500, error: "Admin access is not configured" }
+  }
+
+  if (!data.user.email_confirmed_at) {
+    return { ok: false, status: 403, error: "A verified administrator email is required" }
   }
 
   const email = String(data.user.email || "").trim().toLowerCase()

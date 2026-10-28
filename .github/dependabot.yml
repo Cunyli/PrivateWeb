@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: pnpm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      frontend-patches:
+        update-types:
+          - patch
+          - minor
+
+  - package-ecosystem: pip
+    directory: /scripts/hf-jina-embedding-service
+    schedule:
+      interval: weekly
+    groups:
+      embedding-service-patches:
+        update-types:
+          - patch
+          - minor
+
+  - package-ecosystem: docker
+    directory: /scripts/hf-jina-embedding-service
+    schedule:
+      interval: weekly

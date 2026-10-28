@@ -1,283 +1,289 @@
 "use client"
 
-import * as React from "react"
-import Image from "next/image"
-import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion"
+import type { PanInfo } from "framer-motion"
 import { useI18n } from "@/lib/i18n"
-import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { photoSource } from "@/lib/portfolio-photo-source"
+import { PhotoPreviewCache } from "@/lib/photo-preview-cache"
+import type { LoadedPhoto, PhotoSource } from "@/lib/photo-preview-cache"
+import styles from "./portfolio-viewer.module.css"
+import { useViewerFrameProbe } from "./viewer-frame-probe"
+import { useViewerNativeProbe } from "./viewer-native-probe"
 
-interface LocalizedContent {
-  title?: string
-  subtitle?: string
-  description?: string
-}
+export { photoSource } from "@/lib/portfolio-photo-source"
 
-interface ImageItem {
+export interface CarouselImage {
+  id?: number | string | null
   url: string
   rawUrl?: string | null
   setId?: number | string | null
-  translations: {
-    en: LocalizedContent
-    zh: LocalizedContent
-  }
+  translations: { en: { title?: string; subtitle?: string; description?: string }; zh: { title?: string; subtitle?: string; description?: string } }
+}
+type Slide = { serial: number; index: number; direction: number; photo: LoadedPhoto }
+type Bounds = { width: number; height: number; left: number }
+type Navigation = { direction: number; travel: number }
+const SPRING = { type: "spring" as const, stiffness: 260, damping: 25, mass: 1.15 }
+const modulo = (n: number, total: number) => ((n % total) + total) % total
+
+// Sample a damped spring once. Playback uses native transform/opacity keyframes;
+// the browser owns the animation clock, even when photo loading occupies JS.
+function entranceFrames(fromX: number, fromY: number, travel: number): Keyframe[] {
+  return Array.from({ length: 37 }, (_, index) => {
+    const offset = index / 36, t = offset * .66
+    const rest = index === 36 ? 0 : Math.exp(-10.87 * t) * (Math.cos(10.39 * t) + 1.046 * Math.sin(10.39 * t))
+    const x = fromX * rest, y = fromY * rest, amount = Math.min(1, Math.abs(x) / travel)
+    return { offset, transform: `translate3d(${x}px,${y}px,0) rotate(${Math.max(-4,Math.min(4,x/travel*3.5))}deg) scale(${1-amount*.055},${1+amount*.035})`, opacity: Math.min(1,.3+offset*3.2) }
+  })
 }
 
-interface CarouselProps {
-  images: ImageItem[]
-  currentIndex: number
-  onChangeImage: (index: number) => void
-  showThumbnails?: boolean
-  overlayControls?: React.ReactNode
-  onViewSet?: (setId: number | string) => void
-}
+function PhotoSlide({ slide, image, bounds, active, navigation, enhance, navigable, onNavigate, onDragState, onFinish, failed }: {
+  slide: Slide; image: CarouselImage; bounds: Bounds; active: boolean; navigation: Navigation; enhance: boolean; navigable: boolean
+  onNavigate: (direction: number) => void; onDragState: (dragging: boolean) => void
+  onFinish: (serial: number, active: boolean) => void; failed: boolean
+}) {
+  const { locale } = useI18n()
+  const reduced = useReducedMotion()
+  const pose = useRef<HTMLDivElement>(null)
+  const animation = useRef<Animation | null>(null)
+  const finish = useRef(onFinish)
+  finish.current = onFinish
+  const entered = useRef(false)
+  const highImage = useRef<HTMLImageElement>(null)
+  const x = useMotionValue(0)
+  // Dragging follows the pointer; the full slide transition does not use JS RAF.
+  const rotate = useTransform(x, value => reduced ? 0 : Math.max(-4, Math.min(4, value / navigation.travel * 3.5)))
+  const scaleX = useTransform(x, value => reduced ? 1 : 1 - Math.min(1, Math.abs(value) / navigation.travel) * .055)
+  const scaleY = useTransform(x, value => reduced ? 1 : 1 + Math.min(1, Math.abs(value) / navigation.travel) * .035)
+  const [settled, setSettled] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [highSource, setHighSource] = useState<string | null>(null)
+  const [highReady, setHighReady] = useState(false)
+  const ratio = slide.photo.width / slide.photo.height
+  const width = Math.min(bounds.width * .97, bounds.height * .98 * ratio), height = width / ratio
+  const text = image.translations[locale === "zh" ? "zh" : "en"]
+  const fallback = image.translations[locale === "zh" ? "en" : "zh"]
+  const alt = text.title || fallback.title || (locale === "zh" ? `照片 ${slide.index + 1}` : `Photograph ${slide.index + 1}`)
+  const canEnhance = active && settled && enhance && !isDragging
 
-function preferOriginalVariant(src: string) {
-  if (!src.includes("/picture/responsive/")) return src
-  const separator = src.includes("?") ? "&" : "?"
-  return `${src}${separator}variant=original`
-}
-
-export function Carousel({ images, currentIndex, onChangeImage, showThumbnails = true, overlayControls, onViewSet }: CarouselProps) {
-  const { t, locale } = useI18n()
-  const router = useRouter()
-  const primaryLocale = locale === 'zh' ? 'zh' : 'en'
-  const secondaryLocale = primaryLocale === 'zh' ? 'en' : 'zh'
-  const bucketUrl = React.useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || 'https://s3.cunyli.top', [])
-  
-  // 触摸和鼠标滑动状态
-  const [touchStart, setTouchStart] = React.useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = React.useState<number | null>(null)
-  const [isSwiping, setIsSwiping] = React.useState(false)
-  const [isDragging, setIsDragging] = React.useState(false)
-  const [mouseStart, setMouseStart] = React.useState<number | null>(null)
-  
-  // 图片切换动画状态
-  const [displayIndex, setDisplayIndex] = React.useState(currentIndex)
-  const [fadeIn, setFadeIn] = React.useState(true)
-  
-  // 最小滑动距离（像素）
-  const minSwipeDistance = 50
-  
-  // 监听 currentIndex 变化，触发过渡动画
-  React.useEffect(() => {
-    if (currentIndex !== displayIndex) {
-      // 淡出
-      setFadeIn(false)
-      
-      // 100ms 后切换图片并淡入
-      const timer = setTimeout(() => {
-        setDisplayIndex(currentIndex)
-        setFadeIn(true)
-      }, 100)
-      
-      return () => clearTimeout(timer)
+  useLayoutEffect(() => {
+    const node = pose.current
+    if (!node) return
+    if (active && entered.current && settled) { node.style.transform = "translate3d(0,0,0)"; return }
+    const fromX = slide.direction === 0 ? navigation.travel * .14 : slide.direction * navigation.travel
+    const incoming = reduced ? [{ opacity: .3 },{ opacity: 1 }] : entranceFrames(fromX,slide.direction === 0 ? 18 : 0,navigation.travel)
+    const outgoing = [
+      { transform: node.style.transform || "translate3d(0,0,0)", opacity: node.style.opacity || "1" },
+      { transform: reduced ? "translate3d(0,0,0)" : `translate3d(${-navigation.direction*navigation.travel}px,0,0) rotate(${-navigation.direction*3.5}deg) scale(.945,1.035)`, opacity: 0 },
+    ]
+    node.dataset.nativeTransition = "running"
+    const player = node.animate(active ? incoming : outgoing, { duration: reduced ? 120 : active ? 660 : 400, easing: active ? "linear" : "cubic-bezier(.32,.05,.16,1)", fill: "both" })
+    animation.current = player
+    player.onfinish = () => {
+      node.style.transform = active ? "translate3d(0,0,0)" : String(outgoing[1].transform)
+      node.style.opacity = active ? "1" : "0"
+      node.dataset.nativeTransition = "idle"
+      animation.current = null; player.cancel()
+      if (active) { entered.current = true; setSettled(true) }
+      finish.current(slide.serial,active)
     }
-  }, [currentIndex, displayIndex])
-  
-  const goToPrevious = () => {
-    const isFirstImage = currentIndex === 0
-    const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1
-    onChangeImage(newIndex)
-  }
-
-  const goToNext = () => {
-    const isLastImage = currentIndex === images.length - 1
-    const newIndex = isLastImage ? 0 : currentIndex + 1
-    onChangeImage(newIndex)
-  }
-
-  const handleViewSet = () => {
-    const setId = images[currentIndex]?.setId
-    if (setId == null) return
-    if (onViewSet) {
-      onViewSet(setId)
-      return
+    return () => {
+      if (animation.current !== player) return
+      // Freeze only when an incoming slide is interrupted, once per transition.
+      if (node.isConnected && active) { const current = getComputedStyle(node); node.style.transform = current.transform; node.style.opacity = current.opacity }
+      player.onfinish = null; player.cancel(); animation.current = null
     }
-    router.push(`/work/${setId}`)
-  }
-  
-  // 触摸开始
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-    setIsSwiping(false)
-  }
-  
-  // 触摸移动
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-    if (touchStart !== null) {
-      const distance = Math.abs(e.targetTouches[0].clientX - touchStart)
-      if (distance > 10) {
-        setIsSwiping(true)
-        // 阻止浏览器的默认滑动行为（返回/前进）
-        e.preventDefault()
-      }
-    }
-  }
-  
-  // 触摸结束
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
-    
-    if (isLeftSwipe) {
-      goToNext()
-    } else if (isRightSwipe) {
-      goToPrevious()
-    }
-    
-    setIsSwiping(false)
-    setTouchStart(null)
-    setTouchEnd(null)
-  }
-  
-  // 鼠标拖拽开始（桌面端）
-  const onMouseDown = (e: React.MouseEvent) => {
-    // 只在主按钮（左键）按下时触发
-    if (e.button !== 0) return
-    setIsDragging(true)
-    setMouseStart(e.clientX)
-    e.preventDefault() // 防止文本选择
-  }
-  
-  // 鼠标拖拽移动
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || mouseStart === null) return
-    
-    const distance = mouseStart - e.clientX
-    const isLeftDrag = distance > minSwipeDistance
-    const isRightDrag = distance < -minSwipeDistance
-    
-    if (isLeftDrag || isRightDrag) {
-      // 完成拖拽后立即重置状态
-      setIsDragging(false)
-      setMouseStart(null)
-      
-      if (isLeftDrag) {
-        goToNext()
-      } else if (isRightDrag) {
-        goToPrevious()
-      }
-    }
-  }
-  
-  // 鼠标拖拽结束
-  const onMouseUp = () => {
-    setIsDragging(false)
-    setMouseStart(null)
-  }
-  
-  // 鼠标离开区域时也要重置状态
-  const onMouseLeave = () => {
-    setIsDragging(false)
-    setMouseStart(null)
+  }, [active, slide.serial, slide.direction, navigation.direction, navigation.travel, reduced])
+
+  useEffect(() => {
+    if (failed && active) { animation.current?.play(); animate(x,0,reduced ? { duration:0 } : SPRING) }
+  },[failed,active,reduced,x])
+
+  useEffect(() => {
+    setHighSource(null); setHighReady(false)
+    const density = window.devicePixelRatio || 1
+    if (!canEnhance || slide.photo.original === slide.photo.src ||
+      (width*density <= slide.photo.width*1.05 && height*density <= slide.photo.height*1.05)) return
+    // Wait for an actual pause in browsing. No original decode while changing slides.
+    const timer = window.setTimeout(() => setHighSource(slide.photo.original),1100)
+    return () => window.clearTimeout(timer)
+  },[canEnhance,width,height,slide.photo])
+
+  const dragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    setIsDragging(false); onDragState(false)
+    const predicted = info.offset.x+info.velocity.x*.16
+    const threshold = Math.max(48,Math.min(140,bounds.width*.14))
+    if (Math.abs(info.offset.x) >= 24 && Math.abs(predicted) > threshold) onNavigate(predicted < 0 ? 1 : -1)
+    else { animation.current?.play(); animate(x,0,reduced ? { duration:.12 } : SPRING) }
   }
 
-  if (!images || images.length === 0) {
-    return <div>{t('noPictures') || 'No images'}</div>
-  }
-
-  const activeImage = images[displayIndex]
-  const activeText = activeImage.translations[primaryLocale]
-  const fallbackText = activeImage.translations[secondaryLocale]
-  const computedAlt = activeText.title || fallbackText.title || "Portfolio image"
-
-  return (
-    <div className="flex flex-col w-full h-full">
-      {/* Main image container */}
-      <div
-        className="flex-1 flex items-center justify-center w-full relative group touch-pan-y select-none"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseLeave}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-      >
-        {/* Image wrapper */}
-        <div className="w-full h-full flex items-center justify-center relative select-none">
-          <Image
-            key={displayIndex}
-            src={activeImage.url ? preferOriginalVariant(bucketUrl + activeImage.url) : "/placeholder.svg"}
-            alt={computedAlt}
-            fill
-            className="object-contain corner-lg pointer-events-none transition-opacity duration-200 ease-in-out"
-            style={{ opacity: fadeIn ? 1 : 0 }}
-            priority
-            draggable={false}
-          />
-
-          <div className="absolute bottom-4 right-4 z-10 flex flex-col items-center gap-2">
-            {overlayControls && (
-              <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 transform translate-y-2 md:translate-y-2 md:group-hover:translate-y-0">
-                {overlayControls}
-              </div>
-            )}
-
-            {/* View set button - appears on hover */}
-            {activeImage.setId && (
-              <Button
-                variant="secondary"
-                onClick={handleViewSet}
-                className="min-w-[140px] justify-center bg-white/80 hover:bg-white shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 smooth-transition transform translate-y-0 md:translate-y-2 md:group-hover:translate-y-0"
-              >
-                <ArrowUpRight className="h-4 w-4 mr-2" />
-                {t('viewSet') || 'View Set'}
-              </Button>
-            )}
-          </div>
-
-          {/* Navigation buttons - hidden on mobile, shown on desktop hover */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden md:block absolute left-12 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform -translate-x-1 group-hover:translate-x-0 shadow-md"
-            onClick={goToPrevious}
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden md:block absolute right-12 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white/90 rounded-full p-2 opacity-60 group-hover:opacity-100 transition-all duration-300 transform translate-x-1 group-hover:translate-x-0 shadow-md"
-            onClick={goToNext}
-          >
-            <ChevronRight className="h-6 w-6" />
-          </Button>
-        </div>
+  return <div ref={pose} className={styles.slide} data-photo-slide data-photo-index={slide.index} data-settled={active && settled && !isDragging}
+    aria-hidden={!active} role="group" aria-roledescription="slide" aria-label={locale === "zh" ? `照片 ${slide.index+1}` : `Photograph ${slide.index+1}`}
+    style={{ zIndex:active?2:1, pointerEvents:active?"auto":"none" }}>
+    <motion.div className={styles.dragPlane} style={{ x,rotate,scaleX,scaleY }} drag={active && navigable?"x":false} dragMomentum={false} dragElastic={.15}
+      dragConstraints={{ left:-navigation.travel*.48,right:navigation.travel*.48 }}
+      onDragStart={() => {animation.current?.pause();setIsDragging(true);onDragState(true)}} onDragEnd={dragEnd}>
+      <div className={styles.photoFrame} style={{width,height}}>
+        <img className={styles.photo} src={slide.photo.src} alt={alt} width={slide.photo.width} height={slide.photo.height} draggable={false} decoding="async" />
+        {canEnhance && highSource && <img ref={highImage} className={styles.highPhoto} data-original-photo src={highSource} alt="" aria-hidden="true" draggable={false}
+          decoding="async" fetchPriority="low" onLoad={event => { const image = event.currentTarget; image.decode().then(() => {if (highImage.current === image) setHighReady(true)},() => {}) }} style={{opacity:highReady?1:0}} />}
       </div>
+    </motion.div>
+  </div>
+}
 
-      {/* Horizontal thumbnail carousel - only shown if showThumbnails is true */}
-      {showThumbnails && (
-        <div className="mt-2 overflow-x-auto scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-400">
-          <div className="flex gap-2 py-2">
-            {images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => onChangeImage(index)}
-                className={`flex-none w-24 aspect-[16/9] overflow-hidden rounded-md border-2 smooth-transition hover:scale-105 gpu-accelerated snap-center ${
-                  index === currentIndex ? "border-black ring-2 ring-black ring-opacity-20 scale-105" : "border-transparent hover:border-gray-300"
-                }`}
-              >
-                <Image
-                  src={image.url ? (bucketUrl + image.url) : "/placeholder.svg"}
-                  alt={`Thumbnail ${index + 1}`}
-                  width={96}
-                  height={54}
-                  className="object-cover w-full h-full smooth-transition hover:scale-110"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
+export function Carousel({ images, currentIndex, onChangeImage, onDisplayImage, onBusyChange, keyboardInDialog = false }: {
+  images: CarouselImage[]; currentIndex: number; onChangeImage: (index: number) => void
+  onDisplayImage?: (index: number) => void; onBusyChange?: (busy: boolean) => void; keyboardInDialog?: boolean
+}) {
+  const { locale } = useI18n()
+  const stage = useRef<HTMLDivElement>(null)
+  const nativeProbe = useViewerNativeProbe(stage)
+  const activeRef = useRef<Slide | null>(null)
+  const serial = useRef(0)
+  const cache = useRef<PhotoPreviewCache | null>(null)
+  if (!cache.current) cache.current = new PhotoPreviewCache()
+  const explicitDirection = useRef<{ target: number; direction: number } | null>(null)
+  const lastDrag = useRef(-1000)
+  const pointerStart = useRef<{ id:number; x:number; y:number; moved:boolean } | null>(null)
+  const callbacks = useRef({ onDisplayImage, onBusyChange })
+  callbacks.current = { onDisplayImage, onBusyChange }
+  const [bounds, setBounds] = useState<Bounds>({ width: 1, height: 1, left: 0 })
+  const [view, setView] = useState<{ active: Slide | null; outgoing: Slide | null; direction: number }>({ active: null, outgoing: null, direction: 1 })
+  const [pending, setPending] = useState(true)
+  const [dragging, setDragging] = useState(false)
+  const [moving, setMoving] = useState(false)
+  const [error, setError] = useState(false)
+  const [retry, setRetry] = useState(0)
+  const bucket = process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top"
+  const sources = useMemo(() => images.map(image => ({ preview: photoSource(image.url, bucket, 1280), original: photoSource(image.url, bucket, 1920, true) })), [images, bucket])
+  const navigation = { direction: view.direction, travel: Math.max(1, bounds.width * 1.04) }
+
+  const preload = useCallback((source: PhotoSource, priority: "high" | "low" = "low") => cache.current!.load(source,priority), [])
+  useEffect(() => () => cache.current?.clear(), [])
+
+  useEffect(() => {
+    const node = stage.current
+    if (!node) return
+    const measure = () => {
+      const r = node.getBoundingClientRect()
+      const width = node.clientWidth, height = node.clientHeight
+      const left = r.left - (width - r.width) / 2
+      setBounds(previous => previous.width === width && previous.height === height && previous.left === left ? previous : { width, height, left })
+    }
+    const observer = new ResizeObserver(measure)
+    observer.observe(node); measure()
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!images.length) { setPending(false); return }
+    if (activeRef.current?.index === currentIndex) { setPending(false); setError(false); callbacks.current.onBusyChange?.(false); return }
+    let cancelled = false
+    nativeProbe.record.current?.("request", currentIndex)
+    setPending(true); setError(false); callbacks.current.onBusyChange?.(true)
+    preload(sources[currentIndex], "high").then(photo => {
+      if (cancelled) return
+      const previous = activeRef.current
+      const offset = previous ? modulo(currentIndex - previous.index, images.length) : 0
+      const direction = !previous ? 0 : explicitDirection.current?.target === currentIndex
+        ? explicitDirection.current.direction : offset <= images.length / 2 ? 1 : -1
+      const next: Slide = { serial: ++serial.current, index: currentIndex, direction, photo }
+      activeRef.current = next
+      nativeProbe.record.current?.("presented", currentIndex)
+      setView({ active: next, outgoing: previous, direction: direction || 1 })
+      setPending(false); setMoving(true); callbacks.current.onBusyChange?.(false); callbacks.current.onDisplayImage?.(currentIndex)
+    }, () => {
+      if (!cancelled) { setPending(false); setError(true); callbacks.current.onBusyChange?.(false) }
+    })
+    return () => { cancelled = true }
+  }, [currentIndex, images.length, sources, preload, retry])
+
+  useEffect(() => {
+    if (pending || moving || dragging || error || !view.active || images.length < 2) return
+    let cancelled = false, timer = 0
+    const current = view.active.index, direction = view.direction || 1
+    const neighbors = [...new Set([modulo(current+direction,images.length),modulo(current-direction,images.length)])].filter(index => index !== current)
+    const next = (position: number) => {
+      if (cancelled || position >= neighbors.length) return
+      preload(sources[neighbors[position]]).catch(() => {}).finally(() => {
+        if (!cancelled) timer=window.setTimeout(() => next(position+1),200)
+      })
+    }
+    timer=window.setTimeout(() => next(0),150)
+    return () => {cancelled=true;window.clearTimeout(timer)}
+  },[pending,moving,dragging,error,view.active,view.direction,images.length,sources,preload])
+
+  const navigate = useCallback((direction: number) => {
+    if (images.length < 2) return
+    const target = modulo(currentIndex + direction, images.length)
+    explicitDirection.current = { target, direction }
+    onChangeImage(target)
+  }, [currentIndex, images.length, onChangeImage])
+  const navigateRef = useRef(navigate)
+  navigateRef.current = navigate
+  const initialIndex = useRef(currentIndex)
+  const { report } = useViewerFrameProbe(Boolean(view.active), () => navigateRef.current(activeRef.current?.index === initialIndex.current ? 1 : -1))
+
+  useEffect(() => {
+    const key = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      if (event.altKey || event.ctrlKey || event.metaKey || target?.isContentEditable || target?.closest('input,textarea,select') || (!keyboardInDialog && document.querySelector('[role="dialog"][data-state="open"]'))) return
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); navigateRef.current(event.key === "ArrowRight" ? 1 : -1) }
+    }
+    window.addEventListener("keydown", key)
+    return () => window.removeEventListener("keydown", key)
+  }, [keyboardInDialog])
+
+  useEffect(() => {
+    const node = stage.current
+    if (!node) return
+    let accumulated = 0, last = 0, locked = false
+    const wheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 2) return
+      event.preventDefault()
+      const now = performance.now()
+      if (now - last > 180) { accumulated = 0; locked = false }
+      last = now
+      if (locked) return
+      accumulated += event.deltaX
+      if (Math.abs(accumulated) > 60) { locked = true; navigateRef.current(accumulated > 0 ? 1 : -1) }
+    }
+    node.addEventListener("wheel", wheel, { passive: false })
+    return () => node.removeEventListener("wheel", wheel)
+  }, [])
+
+  const dragState = (value: boolean) => { lastDrag.current = performance.now(); setDragging(value) }
+  const finish = (id: number, active: boolean) => {
+    if (active && activeRef.current?.serial === id) { nativeProbe.record.current?.("settled", activeRef.current.index); setMoving(false) }
+    if (!active) setView(previous => previous.outgoing?.serial === id ? { ...previous, outgoing: null } : previous)
+  }
+  return <div ref={stage} className={styles.stage} data-elastic-viewer data-cursor={images.length < 2 ? "static" : "next"}
+    data-gallery-state={error ? "error" : pending ? "loading" : dragging ? "dragging" : moving ? "moving" : "idle"}
+    data-visible-index={view.active?.index ?? ""} data-dragging={dragging || undefined}
+    role="region" aria-roledescription="carousel" aria-label={locale === "zh" ? "照片浏览" : "Photograph viewer"}
+    onPointerDownCapture={event => { if (event.isPrimary && event.button === 0) pointerStart.current={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false} }}
+    onPointerMoveCapture={event => {
+      const start=pointerStart.current
+      if (start?.id === event.pointerId && Math.hypot(event.clientX-start.x,event.clientY-start.y)>6) {start.moved=true;lastDrag.current=performance.now()}
+    }}
+    onPointerUpCapture={event => { if (pointerStart.current?.id === event.pointerId) {if (pointerStart.current.moved) lastDrag.current=performance.now();pointerStart.current=null} }}
+    onPointerCancelCapture={() => {if (pointerStart.current?.moved) lastDrag.current=performance.now();pointerStart.current=null}}
+    onPointerMove={event => {
+      if (images.length < 2 || event.pointerType !== "mouse" || dragging) return
+      const cursor = event.clientX - bounds.left < bounds.width * .25 ? "previous" : "next"
+      if (event.currentTarget.dataset.cursor !== cursor) event.currentTarget.dataset.cursor = cursor
+    }}
+    onClick={event => {
+      if (performance.now() - lastDrag.current < 250 || (event.target as HTMLElement).closest('button')) return
+      navigate(event.clientX - bounds.left < bounds.width * .25 ? -1 : 1)
+    }}>
+    {[view.outgoing, view.active].filter((slide): slide is Slide => slide !== null).map(slide => <PhotoSlide key={slide.serial}
+      slide={slide} image={images[slide.index]} bounds={bounds} active={slide.serial === view.active?.serial}
+      navigation={navigation} navigable={images.length > 1} enhance={!pending && !moving && !dragging} onNavigate={navigate} onDragState={dragState} onFinish={finish} failed={error} />)}
+    {pending && <span className={styles.loadingLine} role="status" aria-label={locale === "zh" ? "正在载入照片" : "Loading photograph"} />}
+    {error && <div className={styles.loadError} role="alert"><span>{locale === "zh" ? "这张照片暂时无法载入" : "This photograph could not load"}</span><button onClick={() => setRetry(value => value + 1)}>{locale === "zh" ? "重试" : "Retry"}</button></div>}
+    {nativeProbe.report && <aside className={styles.performance} data-viewer-native-report>{(() => { const { events, ...summary } = JSON.parse(nativeProbe.report); return <><pre>{JSON.stringify(summary)}</pre><pre>{JSON.stringify(events.map((event: { event: string; index: number; atMs: number }) => [event.event, event.index, event.atMs]))}</pre></> })()}</aside>}
+    {report && <aside className={styles.performance} data-viewer-performance><pre>{report}</pre></aside>}
+  </div>
 }

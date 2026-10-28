@@ -1,3 +1,4 @@
+import "server-only"
 import { createClient } from "@supabase/supabase-js"
 
 // 使用服务端 key 创建 admin client（需要在部署环境配置 SUPABASE_SERVICE_ROLE_KEY）。
@@ -14,4 +15,5 @@ if (!serviceKey) {
 export const supabaseAdmin = createClient(
   supabaseUrl,
   serviceKey,
+  { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } },
 )

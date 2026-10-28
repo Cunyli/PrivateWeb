@@ -24,6 +24,7 @@ public/private/
 *.tsbuildinfo
 
 # Tests and reports
+/public/copy-review.html
 test-results/
 coverage/
 playwright-report/
