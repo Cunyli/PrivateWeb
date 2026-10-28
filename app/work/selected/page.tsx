@@ -14,7 +14,7 @@ export default async function SelectedWorkPage({searchParams}:{searchParams:Prom
   const hidden=new Set(catalog.ids)
   const photos=catalog.photos.filter(photo=>!hidden.has(photo.id))
   const assets=catalog.assets.filter(photo=>!hidden.has(photo.id))
-  const images=[...photos.map(photo=>({id:photo.id,setId:photo.setId,url:photo.src,translations:{
+  const images=[...photos.map(photo=>({id:photo.id,setId:photo.setPublished?photo.setId:undefined,url:photo.src,translations:{
     en:{title:photo.translations.en?.title || photo.title || "",subtitle:photo.translations.en?.subtitle || photo.subtitle || "",description:photo.translations.en?.description || photo.description || ""},
     zh:{title:photo.translations.zh?.title || photo.title || "",subtitle:photo.translations.zh?.subtitle || photo.subtitle || "",description:photo.translations.zh?.description || photo.description || ""}}})),
     ...assets.map(photo=>({id:photo.id,url:new URL(photo.src,base).href,translations:{en:{title:photo.title},zh:{title:photo.title}}}))]
