@@ -26,7 +26,7 @@ import { capturePortfolioPosition, settlePortfolioAnchor } from "@/lib/portfolio
 import { balancedGalleryColumns, galleryCoverRatio } from "@/lib/portfolio-gallery-layout"
 import { usePortfolioRibbon } from "./use-portfolio-ribbon"
 import { usePhotoCuration } from "./photo-curation-provider"
-import { withFeaturedCovers, selectedCollection } from "@/lib/photo-curation-catalog"
+import { withFeaturedCovers } from "@/lib/photo-curation-catalog"
 import { curationVisible } from "@/lib/photo-curation"
 import { photoSource } from "@/lib/portfolio-photo-source"
 import { portfolioLocationLabel } from "@/lib/portfolio-location-label"
@@ -209,7 +209,6 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
   const [galleryColumnCount, setGalleryColumnCount] = useState(4)
   const archiveRef = useRef<HTMLDivElement>(null)
   const [archiveMetrics, setArchiveMetrics] = useState({width: 1040, gap: 24})
-  const [galleryCoverRatios, setGalleryCoverRatios] = useState<Record<string, number>>({})
   const [topRowPaused, setTopRowPaused] = useState(false)
   const [bottomRowPaused, setBottomRowPaused] = useState(false)
   const topRowMaxScrollRef = useRef(0)
@@ -706,10 +705,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
     return () => scrollTarget.removeEventListener("scroll", handleScroll)
   }, [embedded])
 
-  const upPictureSets = useMemo(() => {
-    const selected=selectedCollection(curation)
-    return [...(selected?[selected]:[]),...withFeaturedCovers(derivedUpSets,curation).filter(set=>set.cover_image_url)]
-  },[derivedUpSets,curation])
+  const upPictureSets = useMemo(() => withFeaturedCovers(derivedUpSets,curation).filter(set=>set.cover_image_url),[derivedUpSets,curation])
   const downPictureSets = useMemo(() => withFeaturedCovers(shuffledDownSets,curation).filter(set=>set.cover_image_url),[shuffledDownSets,curation])
   // Keep unrated collections reachable without inventing a photographic cover.
   const coverlessSets = useMemo(() => withFeaturedCovers(pictureSets,curation).filter(set=>!set.cover_image_url),[pictureSets,curation])
@@ -1122,8 +1118,8 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
     return () => observer.disconnect()
   }, [loading])
 
-  const galleryColumns = useMemo(() => balancedGalleryColumns(downPictureSets, galleryColumnCount, archiveMetrics.width, archiveMetrics.gap, galleryCoverRatios),
-    [downPictureSets, galleryColumnCount, archiveMetrics, galleryCoverRatios])
+  const galleryColumns = useMemo(() => balancedGalleryColumns(downPictureSets, galleryColumnCount, archiveMetrics.width, archiveMetrics.gap),
+    [downPictureSets, galleryColumnCount, archiveMetrics])
 
   useEffect(() => {
     const root=pageScrollRef.current
@@ -1158,12 +1154,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
                   return <Link key={item.id} href={buildWorkHref(item.id)} prefetch={false} data-set-id={item.id} data-featured-collection={item.id===0 || undefined} data-cover-id={item.id===0?curation.selectedCover?.id:curation.covers[item.id]?.id}
                     onClick={handlePortfolioNavigation} className={clsx(chrome.archiveTile,"group block relative overflow-hidden")}
                     aria-label={[getText(item,"title"),getText(item,"subtitle")].filter(Boolean).join(" · ")}>
-                    {item.cover_image_url?<img src={portfolioImageLoader({src:coverSrc,width:DOWN_THUMB_PREFETCH_WIDTH})} alt="" width={640} height={Math.round(640/galleryCoverRatio(item,galleryCoverRatios))}
-                      onLoad={({currentTarget}) => {
-                        const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
-                        if (!Number.isFinite(ratio) || ratio <= 0) return
-                        setGalleryCoverRatios(previous => Math.abs(galleryCoverRatio(item,previous)-ratio) < .001 ? previous : {...previous,[item.cover_image_url]:ratio})
-                      }}
+                    {item.cover_image_url?<img src={portfolioImageLoader({src:coverSrc,width:DOWN_THUMB_PREFETCH_WIDTH})} alt="" width={640} height={Math.round(640/galleryCoverRatio(item))}
                       loading="lazy" decoding="async" draggable={false} className="block h-auto w-full" />:<span className={chrome.emptyCollection}>{getText(item,"title")}</span>}
                     <div className={chrome.tileCaption}><h3>{getText(item,"title")}</h3><p>{getText(item,"subtitle")}</p></div>
                   </Link>

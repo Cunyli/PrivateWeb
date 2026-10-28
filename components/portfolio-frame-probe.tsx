@@ -38,6 +38,7 @@ export function PortfolioFrameProbe({ input }: { input: MutableRefObject<Dreamsc
           mode: motion === "flight" ? "cloud flight sweep" : simulate ? "camera sweep" : "native scroll",
           cloudFlight: canvas?.getAttribute("data-cloud-flight-ready"),
           windowS: round((now - (rafTimes[0] || now)) / 1000),
+          deliveredRefreshHz: Number(canvas?.dataset.refreshHz) || null,
           pageFps: round(fps(rafTimes)),
           sceneFps: round(fps(scene.map(sample => sample.time))),
           pageP95ms: round(percentile(intervals, .95)),

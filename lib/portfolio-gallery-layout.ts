@@ -1,7 +1,7 @@
 import dimensions from "./portfolio-cover-dimensions.json"
 import type { PictureSet } from "./pictureSet.types"
 
-type GalleryItem = Pick<PictureSet, "id" | "cover_image_url">
+type GalleryItem = Pick<PictureSet, "id" | "cover_image_url" | "cover_image_width" | "cover_image_height">
 type CoverDimensions = { src: string; width: number; height: number }
 const measuredCovers: Record<string, CoverDimensions> = dimensions
 
@@ -9,6 +9,11 @@ const coverKey = (src: string) => new URL(src, "https://portfolio.local").pathna
   .replace(/\/(?:original\.[^/]+|w\d+\.webp)$/, "")
 
 export function galleryCoverRatio(item: GalleryItem, observedRatios: Record<string, number> = {}): number {
+  // Approved cover metadata is available before lazy images decode. Never
+  // rebalance/reparent the entire gallery in an image load handler.
+  if (item.cover_image_width && item.cover_image_height && item.cover_image_width > 0 && item.cover_image_height > 0) {
+    return item.cover_image_width / item.cover_image_height
+  }
   const observed = observedRatios[item.cover_image_url]
   if (Number.isFinite(observed) && observed > 0) return observed
   const measured = measuredCovers[item.id]
