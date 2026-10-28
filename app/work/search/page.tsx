@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
-import { photoEditorial } from "@/lib/portfolio-photo-editorial.server"
 import { supabasePublic } from "@/utils/supabase-public.server"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
@@ -105,7 +104,7 @@ export default async function SearchWorkPage({
   }
 
   const images = orderedPictures.map((picture: any) => {
-    const translationEntry = photoEditorial(picture.id) || pictureTranslationsMap.get(picture.id) || { en: {}, zh: {} }
+    const translationEntry = pictureTranslationsMap.get(picture.id) || { en: {}, zh: {} }
     return {
       id: picture.id,
       setId: picture.picture_set_id,

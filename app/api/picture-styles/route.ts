@@ -2,8 +2,6 @@ import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { supabasePublic } from "@/utils/supabase-public.server"
 import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
-import { collectionEditorial } from "@/lib/portfolio-editorial"
-import { photoEditorial } from "@/lib/portfolio-photo-editorial.server"
 
 export const runtime = "nodejs"
 
@@ -399,8 +397,8 @@ export async function GET(request: Request) {
         if (!picture) continue
         const relatedSet = setById.get(picture.picture_set_id as number)
         if (!relatedSet) continue
-        const translationEntry = photoEditorial(picture.id) || pictureTransMap.get(picture.id as number)
-        const setTranslation = collectionEditorial(relatedSet.id) || setTransMap.get(relatedSet.id as number)
+        const translationEntry = pictureTransMap.get(picture.id as number)
+        const setTranslation = setTransMap.get(relatedSet.id as number)
       payload.push({
         id: picture.id as number,
         pictureSetId: relatedSet.id as number,

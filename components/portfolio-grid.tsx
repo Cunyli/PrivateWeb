@@ -26,7 +26,6 @@ import { capturePortfolioPosition, settlePortfolioAnchor } from "@/lib/portfolio
 import { balancedGalleryColumns, galleryCoverRatio } from "@/lib/portfolio-gallery-layout"
 import { usePortfolioRibbon } from "./use-portfolio-ribbon"
 import { portfolioLocationLabel } from "@/lib/portfolio-location-label"
-import { collectionEditorial, editorialMatches, matchingEditorialCollections, loadPhotoEditorial } from "@/lib/portfolio-editorial"
 
 const DOWN_THUMB_PREFETCH_WIDTH = 640
 const THUMB_MAX_RESPONSIVE_WIDTH = 640
@@ -467,7 +466,6 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
           pictureTransEn,
           pictureTransZh,
           semanticPictures,
-          editorialPhotos,
         ] = await Promise.all([
           supabase
             .from("picture_sets")
@@ -531,7 +529,6 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
               console.warn("Semantic picture search error:", error)
               return { results: [] as Picture[] }
             }),
-          loadPhotoEditorial(),
         ])
 
         if (setFts.error) console.warn("Set FTS error:", setFts.error)
@@ -563,20 +560,16 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
           ),
         )
 
-        const editorialSetMatches = new Set(matchingEditorialCollections(searchTerms))
-        const editorialPictureMatches = new Set(editorialMatches(editorialPhotos, searchTerms))
         const setIdsFromTranslations = Array.from(
           new Set([
             ...((setTransEn.data || []).map((row: any) => row.picture_set_id)),
             ...((setTransZh.data || []).map((row: any) => row.picture_set_id)),
-            ...editorialSetMatches,
           ].filter((id): id is number => Number.isFinite(id))),
         )
         const pictureIdsFromTranslations = Array.from(
           new Set([
             ...((pictureTransEn.data || []).map((row: any) => row.picture_id)),
             ...((pictureTransZh.data || []).map((row: any) => row.picture_id)),
-            ...editorialPictureMatches,
           ].filter((id): id is number => Number.isFinite(id))),
         )
 
@@ -628,7 +621,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
           ...promotedSets,
           ...baseSets,
           ...normalizePictureSets((extraSetsRes.data || []) as Partial<PictureSet>[]),
-        ]).sort((left, right) => Number(editorialSetMatches.has(right.id)) - Number(editorialSetMatches.has(left.id)))
+        ])
         const publishedPortfolioSetIds = new Set(
           [...pictureSets, ...sets]
             .filter((set) => set.is_published !== false)
@@ -638,14 +631,8 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
           ...basePictures,
           ...((extraPicturesRes.data || []) as Picture[]),
         ]).filter((picture) => publishedPortfolioSetIds.has(picture.picture_set_id))
-          .sort((left, right) => Number(editorialPictureMatches.has(right.id)) - Number(editorialPictureMatches.has(left.id)))
 
         if (!alive) return
-        const curatedPictureMap: Record<number, any> = {}
-        for (const picture of pics) {
-          if (editorialPhotos[picture.id]) curatedPictureMap[picture.id] = editorialPhotos[picture.id]
-        }
-        setPictureTransMap(curatedPictureMap)
         setSetResults(sets)
         setPictureResults(pics)
 
@@ -680,9 +667,6 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
           const pmap: Record<number, any> = {}
           for (const t of pen || []) pmap[(t as any).picture_id] = { ...(pmap[(t as any).picture_id] || {}), en: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
           for (const t of pzh || []) pmap[(t as any).picture_id] = { ...(pmap[(t as any).picture_id] || {}), zh: { title: (t as any).title || undefined, subtitle: (t as any).subtitle || undefined, description: (t as any).description || undefined } }
-          for (const id of picIds) {
-            if (editorialPhotos[id]) pmap[id] = editorialPhotos[id]
-          }
           if (alive) setPictureTransMap(pmap)
         } else {
           if (alive) setPictureTransMap({})
@@ -1058,8 +1042,6 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
   }, [embedded, loading, searchParams, forcePauseTopRow, forcePauseBottomRow])
 
   const getText = useCallback((s: PictureSet, key: 'title' | 'subtitle' | 'description') => {
-    const editorial = collectionEditorial(s.id)
-    if (editorial) return editorial[locale === 'zh' ? 'zh' : 'en'][key]
     const translations = transMap[s.id]
     if (locale === 'zh') return translations?.zh?.[key] || s[key]
     return translations?.en?.[key] || s[key]
@@ -1067,8 +1049,8 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
 
   const getPicText = useCallback((p: Picture, key: 'title' | 'subtitle' | 'description') => {
     const translations = pictureTransMap[p.id]
-    if (locale === 'zh') return translations?.zh?.[key] ?? (p as any)[key]
-    return translations?.en?.[key] ?? (p as any)[key]
+    if (locale === 'zh') return translations?.zh?.[key] || (p as any)[key]
+    return translations?.en?.[key] || (p as any)[key]
   }, [locale, pictureTransMap])
 
   const locationClusters = useMemo(() => {

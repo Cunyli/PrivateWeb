@@ -138,7 +138,10 @@ void main(){
 
   vec2 anchor=vec2(.49,.65);
   float boyScale=1.+push*.65;
-  vec2 boyUv=(uv-anchor-vec2(-push*.55*uCover.x/.89,-push*.04)-uPointer*1.6)/boyScale+anchor;
+  // Camera travel is shared by the seated body and its supporting bank.
+  // Wind deforms only loose details in these source coordinates.
+  vec2 groundUv=(uv-anchor-vec2(-push*.55*uCover.x/.89,-push*.04)-uPointer*1.6)/boyScale+anchor;
+  vec2 boyUv=groundUv;
   vec2 boyAsset=(boyUv-vec2(.136,.153))/.711;
   vec4 boy=vec4(0.);
   float boyFade=1.-phase(.59,.79,p);
@@ -157,30 +160,42 @@ void main(){
   }
 
   vec2 meadowAnchor=vec2(.5,1.);
-  vec2 meadowUv=(uv-meadowAnchor-vec2(-push*.035,push*.52)-uPointer*2.4)/(1.035+push*.70)+meadowAnchor;
+  vec2 meadowUv=(uv-meadowAnchor-vec2(-push*.035,push*.52)-uPointer*2.4)/(1.+push*.70)+meadowAnchor;
   float depth=smoothstep(.58,1.,meadowUv.y);
   if(meadowUv.y>.58){
-    float root=.22+.78*(1.-smoothstep(.93,1.,meadowUv.y));
-    float wave=.75+.25*sin(windPhase*8.-meadowUv.x*16.+meadowUv.y*7.);
-    meadowUv.x-=.009*depth*root*gust*wave;
-    meadowUv.y+=sin(windPhase*8.-meadowUv.x*21.)*.0016*depth*root*gust;
+    // Short ripples travel through the flowers; the whole bank never sways.
+    float tips=sin(meadowUv.x*92.+meadowUv.y*47.-windPhase*12.);
+    float ripple=sin(meadowUv.x*153.-meadowUv.y*61.-windPhase*17.);
+    float root=1.-smoothstep(.94,1.,meadowUv.y);
+    meadowUv.x-=.0032*depth*root*gust*(.55+.30*tips+.15*ripple);
+    meadowUv.y+=.00065*depth*root*gust*sin(meadowUv.x*111.+meadowUv.y*53.-windPhase*12.);
   }
   vec4 meadow=vec4(0.);
   if(meadowUv.y>.50) meadow=meadowAt(meadowUv,phase(.18,.68,p)*.006);
   meadow*=1.-phase(.52,.80,p);
 
-  // The bank belongs to the landscape, not the moving character cutout.
-  vec2 bankUv=(uv-meadowAnchor-vec2(-push*.022,push*.08)-uPointer*.65)/(1.035+push*.12)+meadowAnchor;
+  // The contact area stays fixed relative to the boy. Foliage farther from
+  // his seated weight can respond to the same gust, at a smaller depth.
+  vec2 bankUv=groundUv;
   vec4 farMeadow=vec4(0.);
   if(bankUv.y>.50){
     float bankDepth=smoothstep(.52,.94,bankUv.y);
-    bankUv.x-=.003*gust*bankDepth*(.8+.2*sin(windPhase*8.-bankUv.x*16.+bankUv.y*7.));
-    bankUv.y+=sin(windPhase*8.-bankUv.x*21.)*.0005*gust*bankDepth;
+    float freeTips=1.-region(bankUv,vec2(.467,.822),vec2(.105,.052));
+    float ripple=sin(bankUv.x*92.+bankUv.y*47.-windPhase*12.);
+    bankUv.x-=.0011*gust*bankDepth*freeTips*(.65+.35*ripple);
+    bankUv.y+=.00025*gust*bankDepth*freeTips*sin(bankUv.x*111.+bankUv.y*53.-windPhase*12.);
     farMeadow=meadowAt(bankUv,0.);
   }
   farMeadow*=1.-phase(.52,.80,p);
   color=farMeadow.rgb+color*(1.-farMeadow.a);
+  // A soft contact shadow and a few grass tips embed the weight in the bank.
+  float contactShadow=region(groundUv,vec2(.487,.789),vec2(.077,.014));
+  color*=1.-.18*contactShadow*farMeadow.a*boyFade;
   color=boy.rgb+color*(1.-boy.a);
+  float grassTips=smoothstep(.786,.796,groundUv.y)*
+    region(groundUv,vec2(.487,.789),vec2(.097,.026));
+  vec4 contactGrass=farMeadow*grassTips*boyFade;
+  color=contactGrass.rgb+color*(1.-contactGrass.a);
   vec4 nearFlowers=meadow*smoothstep(.79,.87,meadowUv.y);
   color=nearFlowers.rgb+color*(1.-nearFlowers.a);
 

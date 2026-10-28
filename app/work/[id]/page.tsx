@@ -5,8 +5,6 @@ import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { supabasePublic } from "@/utils/supabase-public.server"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
 import { photoSource } from "@/lib/portfolio-photo-source"
-import { collectionEditorial } from "@/lib/portfolio-editorial"
-import { photoEditorial } from "@/lib/portfolio-photo-editorial.server"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
 
@@ -205,7 +203,7 @@ export default async function WorkPage({
   }
 
   const images = filteredPictures.map((pic) => {
-    const translationEntry = photoEditorial(pic.id) || pictureTranslationsMap.get(pic.id) || { en: {}, zh: {} }
+    const translationEntry = pictureTranslationsMap.get(pic.id) || { en: {}, zh: {} }
     return {
       id: pic.id,
       url: pic.image_url || "/placeholder.svg",
@@ -283,7 +281,7 @@ export default async function WorkPage({
       <PortfolioDetail
         id={setId}
         images={images}
-        translations={collectionEditorial(setId) || setEntry}
+        translations={setEntry}
         locations={resolvedLocations}
         returnContext={
           origin === "style" && originStyle

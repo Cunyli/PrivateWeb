@@ -131,7 +131,6 @@ pnpm start
 pnpm lint
 node scripts/check-supabase-security.cjs
 node scripts/check-portrait-book-transition.cjs
-node scripts/check-portfolio-editorial.cjs
 node scripts/check-portfolio-assets.cjs
 pnpm exec tsc --noEmit --incremental false
 pnpm backfill:picture-embeddings -- --limit 3 --dry-run
