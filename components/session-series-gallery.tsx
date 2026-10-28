@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
 import styles from "./session-series-gallery.module.css"
 
@@ -35,6 +35,7 @@ export function SessionSeriesGallery({ series, onOpen, label }: {
   onOpen: (photo: SeriesPhoto, trigger: HTMLButtonElement) => void
 }) {
   const root = useRef<HTMLElement>(null)
+  const [ratios,setRatios] = useState<Record<string,number>>({})
 
   useEffect(() => {
     const node = root.current
@@ -70,7 +71,7 @@ export function SessionSeriesGallery({ series, onOpen, label }: {
         <div className={styles.spread}>
           {spreadRows(group.photos).map((row, rowIndex) => <div key={rowIndex} data-photo-row data-count={row.length} className={styles.row}>
             {row.map((photo, index) => {
-              const ratio = (photo.width || 3) / (photo.height || 2)
+              const ratio = ratios[photo.id] || (photo.width || 3) / (photo.height || 2)
               return <figure key={photo.id} data-series-source={photo.sourceName} data-portrait={ratio < 1} className={styles.figure}
                 style={{"--photo-ratio": ratio, "--photo-weight": index === 0 ? 1.08 : index === 1 ? .94 : 1,
                   "--reveal-delay": `${index * 55 + rowIndex * 70}ms`} as CSSProperties}>
@@ -78,7 +79,10 @@ export function SessionSeriesGallery({ series, onOpen, label }: {
                   <img src={photo.previewSrc || photo.src} srcSet={photo.previewSrcSet}
                     width={photo.width} height={photo.height} alt={photo.alt}
                     sizes={row.length === 2 ? "(max-width: 640px) 86vw, (max-width: 1023px) 44vw, 700px" : "(max-width: 640px) 44vw, (max-width: 1023px) 30vw, 460px"}
-                    loading="lazy" decoding="async" draggable={false} onContextMenu={event => event.preventDefault()} />
+                    loading="lazy" decoding="async" draggable={false} onLoad={({currentTarget}) => {
+                      const ratio=currentTarget.naturalWidth/currentTarget.naturalHeight
+                      if(Number.isFinite(ratio)&&ratio>0)setRatios(previous=>previous[photo.id]===ratio?previous:{...previous,[photo.id]:ratio})
+                    }} onContextMenu={event => event.preventDefault()} />
                 </button>
               </figure>
             })}

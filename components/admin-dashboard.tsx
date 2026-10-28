@@ -197,6 +197,9 @@ export function AdminDashboard() {
         <h1 className="text-3xl font-bold">{t("adminDashboard")}</h1>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
+            <Link href="/admin/curation">选片与清理</Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/admin/portraits">Portrait Library</Link>
           </Button>
           <Button asChild variant="outline">

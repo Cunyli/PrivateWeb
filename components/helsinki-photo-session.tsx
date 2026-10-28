@@ -11,7 +11,11 @@ import viewerStyles from "./editorial-pages.module.css"
 import sessionStyles from "./photo-session.module.css"
 import introStyles from "./photo-story.module.css"
 import { sessionImageVariants, sessionViewerSource } from "@/lib/session-image-variants"
-import { sessionMomentSeries } from "@/lib/photo-session-selection"
+import { usePhotoCuration } from "./photo-curation-provider"
+import { curationVisible } from "@/lib/photo-curation"
+import { photoSource } from "@/lib/portfolio-photo-source"
+import { selectMomentSeries } from "@/lib/photo-session-series"
+import type { SessionPhoto as Photo, MomentCard, MomentGroup } from "@/lib/photo-session-series"
 import { SessionSeriesGallery } from "./session-series-gallery"
 import "leaflet/dist/leaflet.css"
 import {
@@ -37,11 +41,6 @@ import { bindMapWheelGestures } from "@/lib/map-wheel-gestures"
 
 type Locale = "zh" | "en"
 
-type Photo = {
-  id: string
-  src: string
-  alt: string
-}
 
 type Location = {
   id: string
@@ -61,30 +60,7 @@ type ShootStep = {
   image: Photo
 }
 
-type MomentCard = Photo & {
-  title: string
-  place: string
-  note: string
-  featured?: boolean
-  tags: string[]
-  sourceName?: string
-  width?: number
-  height?: number
-  previewSrc?: string
-  previewSrcSet?: string
-}
 
-type MomentGroup = {
-  id: string
-  title: string
-  place: string
-  note: string
-  featured?: boolean
-  hideCaption?: boolean
-  photoCount?: number
-  tags: string[]
-  photos: MomentCard[]
-}
 
 type Testimonial = {
   quote: string
@@ -526,6 +502,8 @@ const photoSessionCopy = {
 } as const
 
 function SessionImage({ className = "", preview = false, sizes, src, srcSet, ...props }: ImgHTMLAttributes<HTMLImageElement> & {preview?: boolean}) {
+  const curation = usePhotoCuration()
+  if (!curationVisible(curation, { src: typeof src === "string" ? src : "" })) return null
   const local = typeof src === "string" ? sessionImageVariants[src] : undefined
   const remotePreview = preview && typeof src === "string" && src.includes("/w1280.webp")
   return <img loading="lazy" decoding="async" {...props}
@@ -535,29 +513,6 @@ function SessionImage({ className = "", preview = false, sizes, src, srcSet, ...
     draggable={false} onContextMenu={event => event.preventDefault()} className={`${className} select-none`} />
 }
 
-function selectMomentSeries(groups: MomentGroup[], locale: Locale): MomentGroup[] {
-  const available = new Map(groups.flatMap(group => group.photos.map(photo => {
-    const source = photo.sourceName || photo.src.match(/DSC\d+/i)?.[0]?.toUpperCase()
-    return [source, photo] as const
-  })))
-  return sessionMomentSeries.map(series => {
-    const group = groups.find(candidate => candidate.id === series.id)
-    return {
-      id: series.id, title: series.title, place: series.place,
-      note: group?.note || "", tags: group?.tags || [], photoCount: series.photos.length,
-      photos: series.photos.map(item => {
-        const {alt, ...selected} = item
-        const current = available.get(item.sourceName)
-        return {
-          ...current, ...selected, id: current?.id || item.id,
-          src: current?.src || item.src, alt: alt[locale],
-          title: series.title, place: series.place,
-          note: current?.note || "", tags: current?.tags || [],
-        }
-      }),
-    }
-  })
-}
 
 const coverPhoto: Photo = {
   id: "cover-florence",
@@ -1314,6 +1269,7 @@ function BookingQuestions({ copy, locale }: {copy: (typeof photoSessionCopy)[Loc
 
 export function HelsinkiPhotoSession() {
   const router = useRouter()
+  const curation = usePhotoCuration()
   const { locale, setLocale } = useI18n()
   const pageLocale: Locale = locale === "en" ? "en" : "zh"
   const copy = photoSessionCopy[pageLocale]
@@ -1359,22 +1315,26 @@ export function HelsinkiPhotoSession() {
   const activeDisplayLocation = displayLocations.find((location) => location.id === activeLocationId) ?? displayLocations[0]
   const selectedPackage = copy.pricing.packages[selectedPackageIndex] ?? copy.pricing.packages[0]
   const sessionSeries = useMemo(
-    () => selectMomentSeries([localOuterMomentGroup, ...momentGroups], pageLocale),
-    [momentGroups, pageLocale],
+    () => selectMomentSeries([localOuterMomentGroup, ...momentGroups], pageLocale, curation),
+    [momentGroups, pageLocale, curation],
   )
-  const lijiePhotos = useMemo(() => momentGroups.find((group) => group.id === "lijie")?.photos ?? [], [momentGroups])
+  const selectedCover = curation.keptPortraits[0]
+  const displayCover: Photo = curationVisible(curation,coverPhoto) ? coverPhoto
+    : selectedCover ? { id: `portrait-${selectedCover.id}`, src: photoSource(selectedCover.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280), alt: selectedCover.title || "Portrait photograph" }
+    : sessionSeries[0]?.photos[0] || { id: "empty-portrait", src: "/placeholder.svg", alt: "" }
+  const lijiePhotos = useMemo(() => (momentGroups.find((group) => group.id === "lijie" || (group.curated && group.title.toLowerCase() === "lijie"))?.photos ?? []).filter(photo => curationVisible(curation,photo)), [momentGroups,curation])
   const aboutPhoto = useMemo(() => {
-    return lijiePhotos[0] || coverPhoto
-  }, [lijiePhotos])
+    return lijiePhotos[0] || (curationVisible(curation,coverPhoto) ? coverPhoto : { id: "empty-self", src: "/placeholder.svg", alt: "" })
+  }, [lijiePhotos, curation])
   const aboutVisualPhotos = useMemo(() => {
     const seen = new Set<string>()
     const photos = (lijiePhotos.length > 0 ? lijiePhotos : [aboutPhoto]).filter((photo) => {
-      if (!photo?.src || seen.has(photo.src)) return false
+      if (!photo?.src || !curationVisible(curation,photo) || seen.has(photo.src)) return false
       seen.add(photo.src)
       return true
     })
-    return photos.length > 0 ? photos : [coverPhoto]
-  }, [aboutPhoto, lijiePhotos])
+    return photos.length > 0 ? photos : [aboutPhoto]
+  }, [aboutPhoto, lijiePhotos, curation, displayCover.src])
   const shootVisualPhotos = useMemo(() => {
     const fallbackPhotos = shootSteps.map((step, index) => {
       const extraIndex = index - (shootSteps.length - extraWhyMePhotos.length)
@@ -1383,20 +1343,20 @@ export function HelsinkiPhotoSession() {
     const basePhotos = whyMePhotos.length > 0 ? [...whyMePhotos, ...extraWhyMePhotos, ...fallbackPhotos] : fallbackPhotos
     const seen = new Set<string>()
     return basePhotos.filter((photo) => {
-      if (!photo.src || seen.has(photo.src)) return false
+      if (!photo.src || !curationVisible(curation,photo) || seen.has(photo.src)) return false
       seen.add(photo.src)
       return true
     }).slice(0, shootSteps.length)
-  }, [whyMePhotos])
+  }, [whyMePhotos, curation])
   const allPhotos = useMemo(() => {
     const seen = new Set<string>()
-    return [coverPhoto, ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]
+    return [displayCover, ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]
       .filter(photo => {
-        if (seen.has(photo.src)) return false
+        if (!curationVisible(curation,photo) || seen.has(photo.src)) return false
         seen.add(photo.src)
         return true
       })
-  }, [sessionSeries, aboutVisualPhotos, shootVisualPhotos])
+  }, [sessionSeries, aboutVisualPhotos, shootVisualPhotos, curation, displayCover.src])
   const openPhoto = (photo: Photo, trigger?: HTMLButtonElement) => {
     const index = allPhotos.findIndex(item => item.src === photo.src)
     if (index < 0) return
@@ -1494,6 +1454,8 @@ export function HelsinkiPhotoSession() {
               title: candidate.title,
               place: candidate.place,
               note: candidate.note,
+              curated: Boolean(candidate.curated),
+              replaces: Array.isArray(candidate.replaces) ? candidate.replaces.filter((value: unknown): value is string => typeof value === "string") : [],
               featured: Boolean(candidate.featured),
               photoCount: Number(candidate.photoCount || photos.length),
               tags: candidate.tags.filter((tag: unknown): tag is string => typeof tag === "string"),
@@ -1802,8 +1764,8 @@ export function HelsinkiPhotoSession() {
 
       <section id="session-hero" className="relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#050505] text-white">
         <SessionImage
-          src={coverPhoto.src}
-          alt={coverPhoto.alt}
+          src={displayCover.src}
+          alt={displayCover.alt}
           loading="eager"
           fetchPriority="high"
           sizes="100vw"

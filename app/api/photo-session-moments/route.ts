@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
+import { photoSeries, preferSeriesPlace } from "@/lib/photo-series"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 
 export const runtime = "nodejs"
@@ -313,7 +315,27 @@ export async function GET(request: Request) {
       }
     }
 
-    const groups = PHOTO_SESSION_GROUPS.map((group) => {
+    const curation = await getPhotoCurationVisibility()
+    const picks = new Map(curation.keptPortraits.map(photo => [photo.id,photo]))
+    const curatedGroups = new Map<string, { id: string; title: string; place: string; note: string; tags: string[]; curated: boolean; replaces: string[]; photos: Array<ReturnType<typeof buildMomentPhoto> & {width?: number; height?: number}> }>()
+    const normalized = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "")
+    for (const picture of sortedPictures) {
+      const pick = picks.get(picture.id)
+      if (!pick) continue
+      const tags = tagsByPicture.get(picture.id) || []
+      const series = photoSeries(picture.picture_set_id,"People","",tags)
+      const group = curatedGroups.get(series.id) || {
+        id: series.id,title: series.title,place: series.subtitle,note: "",tags: [],curated: true,
+        replaces: PHOTO_SESSION_GROUPS.filter(group => normalized(series.title).includes(normalized(group.title)) && normalized(series.subtitle) === normalized(group.place)).map(group => group.id),
+        photos: [],
+      }
+      group.place=preferSeriesPlace(group.place,series.subtitle)
+      group.photos.push({...buildMomentPhoto(picture,tags,series.title,series.subtitle),width:pick.width || undefined,height:pick.height || undefined})
+      curatedGroups.set(series.id,group)
+    }
+    for(const group of curatedGroups.values())group.replaces=PHOTO_SESSION_GROUPS.filter(template=>normalized(group.title).includes(normalized(template.title))&&normalized(group.place)===normalized(template.place)).map(template=>template.id)
+    const replacedGroups = new Set([...curatedGroups.values()].flatMap(group=>group.replaces))
+    const groups = [...curatedGroups.values(),...PHOTO_SESSION_GROUPS.filter(group=>!replacedGroups.has(group.id)).map((group) => {
       const groupPictures = group.sources
         .map((sourceName) => picturesBySourceName.get(sourceName.toUpperCase()))
         .filter(Boolean)
@@ -331,7 +353,7 @@ export async function GET(request: Request) {
         tags: Array.from(new Set(photos.flatMap((photo) => photo.tags))).slice(0, 4),
         photos,
       }
-    }).filter((group) => group.photos.length > 0)
+    })].filter((group) => group.photos.length > 0)
 
     const aboutPhoto = groups.find((group) => group.id === "lijie")?.photos[0] || null
     const whyMePhotos = WHY_ME_SOURCES
