@@ -29,7 +29,7 @@ utils/                       Supabase, R2, auth, and server helpers
 
 ## Prerequisites
 
-- Node.js 20 LTS recommended
+- Node.js 22 or newer recommended (20.9 is the minimum supported by the image library)
 - pnpm
 - A Supabase project
 - An R2/S3-compatible bucket for uploaded images
@@ -39,7 +39,7 @@ Enable pnpm with Corepack if needed:
 
 ```bash
 corepack enable
-corepack prepare pnpm@latest --activate
+corepack prepare pnpm@9.15.9 --activate
 ```
 
 ## Local Setup

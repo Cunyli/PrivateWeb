@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-28",
+  "defaultBranchAlertsBefore": 41,
+  "registryAuditVulnerabilitiesAfter": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0
+  },
+  "next": "15.5.28",
+  "sharp": "0.35.5",
+  "packageManager": "pnpm@9.15.9",
+  "unusedValidatorsRemoved": [
+    "zod",
+    "@hookform/resolvers"
+  ],
+  "optionalPeerRemoved": "openai>zod",
+  "applicationValidationLogicChanged": false,
+  "sdkImportAndNativeImageEncoding": "passed",
+  "withdrawnAdvisory": "GHSA-vfj7-8cjw-p6xm",
+  "rawAudit": "outputs/dependency-audit-final.json (release scratch)",
+  "remainingSupabaseAdvisors": 10
+}
