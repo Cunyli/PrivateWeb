@@ -184,3 +184,8 @@
 .emptyCollection{display:grid;place-content:center;position:absolute;inset:0;padding:20px;background:#ecefea;color:#536058;font-family:"Portfolio Hanken",sans-serif;font-size:clamp(16px,2vw,28px);font-weight:450;letter-spacing:-.04em;text-align:center}.archiveTile:has(.emptyCollection){min-height:210px}
 
 .tile[data-featured-collection="true"] .tileCaption{opacity:1;transform:none}
+
+.collectionIndex { display:flex; flex-wrap:wrap; justify-content:center; gap:12px 32px; margin-top:64px; font-size:13px; color:var(--muted); }
+.collectionIndex a { display:inline-flex; align-items:center; gap:12px; min-height:44px; }
+.collectionIndex a:hover { color:var(--ink); }
+.collectionIndex a:focus-visible { outline:2px solid #657b6b; outline-offset:4px; }

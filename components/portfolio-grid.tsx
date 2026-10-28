@@ -708,9 +708,11 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
 
   const upPictureSets = useMemo(() => {
     const selected=selectedCollection(curation)
-    return [...(selected?[selected]:[]),...withFeaturedCovers(derivedUpSets,curation)]
+    return [...(selected?[selected]:[]),...withFeaturedCovers(derivedUpSets,curation).filter(set=>set.cover_image_url)]
   },[derivedUpSets,curation])
-  const downPictureSets = useMemo(() => withFeaturedCovers(shuffledDownSets,curation),[shuffledDownSets,curation])
+  const downPictureSets = useMemo(() => withFeaturedCovers(shuffledDownSets,curation).filter(set=>set.cover_image_url),[shuffledDownSets,curation])
+  // Keep unrated collections reachable without inventing a photographic cover.
+  const coverlessSets = useMemo(() => withFeaturedCovers(pictureSets,curation).filter(set=>!set.cover_image_url),[pictureSets,curation])
 
   const { firstRow, secondRow } = useMemo(() => {
     const midpoint = Math.ceil(upPictureSets.length / 2)
@@ -1451,6 +1453,13 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
       )}
 
       {downGallerySection}
+
+      {!loading && coverlessSets.length>0 && <nav className={chrome.collectionIndex} aria-label={locale==="zh"?"更多系列":"More collections"}>
+        {coverlessSets.map(item=><Link key={item.id} href={buildWorkHref(item.id)} prefetch={false}
+          data-text-collection={item.id} onClick={handlePortfolioNavigation}>
+          {getText(item,"title")} <span aria-hidden="true">↗</span>
+        </Link>)}
+      </nav>}
 
       <PortfolioFooter />
       </section>

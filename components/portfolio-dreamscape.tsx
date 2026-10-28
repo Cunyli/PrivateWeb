@@ -136,11 +136,15 @@ void main(){
     color=surname.rgb+color*(1.-surname.a);
   }
 
-  vec2 anchor=vec2(.49,.65);
-  float boyScale=1.+push*.65;
-  // Camera travel is shared by the seated body and its supporting bank.
-  // Wind deforms only loose details in these source coordinates.
-  vec2 groundUv=(uv-anchor-vec2(-push*.55*uCover.x/.89,-push*.04)-uPointer*1.6)/boyScale+anchor;
+  // One continuous foreground: the seated boy and the whole slope share
+  // a bottom-anchored camera. Clamp travel to real image bounds, not a filler layer.
+  vec2 anchor=vec2(.49,1.);
+  float boyScale=1.025+push*.65;
+  vec2 camera=vec2(-push*.32*uCover.x/.89,0.)+uPointer*1.6;
+  vec2 cameraMin=uCover.zw+uCover.xy-anchor-(vec2(1.)-anchor)*boyScale;
+  vec2 cameraMax=uCover.zw-anchor+anchor*boyScale;
+  camera=clamp(camera,cameraMin,cameraMax);
+  vec2 groundUv=(uv-anchor-camera)/boyScale+anchor;
   vec2 boyUv=groundUv;
   vec2 boyAsset=(boyUv-vec2(.136,.153))/.711;
   vec4 boy=vec4(0.);
@@ -159,21 +163,6 @@ void main(){
     boy=cutout(uBoy,boyAsset,phase(.35,.71,p)*.0025)*boyFade;
   }
 
-  vec2 meadowAnchor=vec2(.5,1.);
-  vec2 meadowUv=(uv-meadowAnchor-vec2(-push*.035,push*.52)-uPointer*2.4)/(1.+push*.70)+meadowAnchor;
-  float depth=smoothstep(.58,1.,meadowUv.y);
-  if(meadowUv.y>.58){
-    // Short ripples travel through the flowers; the whole bank never sways.
-    float tips=sin(meadowUv.x*92.+meadowUv.y*47.-windPhase*12.);
-    float ripple=sin(meadowUv.x*153.-meadowUv.y*61.-windPhase*17.);
-    float root=1.-smoothstep(.94,1.,meadowUv.y);
-    meadowUv.x-=.0032*depth*root*gust*(.55+.30*tips+.15*ripple);
-    meadowUv.y+=.00065*depth*root*gust*sin(meadowUv.x*111.+meadowUv.y*53.-windPhase*12.);
-  }
-  vec4 meadow=vec4(0.);
-  if(meadowUv.y>.50) meadow=meadowAt(meadowUv,phase(.18,.68,p)*.006);
-  meadow*=1.-phase(.52,.80,p);
-
   // The contact area stays fixed relative to the boy. Foliage farther from
   // his seated weight can respond to the same gust, at a smaller depth.
   vec2 bankUv=groundUv;
@@ -186,14 +175,7 @@ void main(){
     bankUv.y+=.00025*gust*bankDepth*freeTips*sin(bankUv.x*111.+bankUv.y*53.-windPhase*12.);
     farMeadow=meadowAt(bankUv,0.);
   }
-  // A continuous, slower bank remains behind the seated foreground. Fade
-  // the moving plate before its source edge so camera travel never cuts grass off.
-  vec2 landscapeUv=(uv-meadowAnchor-uPointer*.65)/(1.+push*.10)+meadowAnchor;
-  vec4 landscape=vec4(0.);
-  if(landscapeUv.y>.50) landscape=meadowAt(landscapeUv,0.)*(1.-phase(.52,.80,p));
-  color=landscape.rgb+color*(1.-landscape.a);
-  float plateEdge=smoothstep(-.01,.10,bankUv.x)*(1.-smoothstep(.88,1.01,bankUv.x));
-  farMeadow*=plateEdge*(1.-phase(.52,.80,p));
+  farMeadow*=1.-phase(.52,.80,p);
   color=farMeadow.rgb+color*(1.-farMeadow.a);
   // A soft contact shadow and a few grass tips embed the weight in the bank.
   float contactShadow=region(groundUv,vec2(.487,.789),vec2(.077,.014));
@@ -203,8 +185,6 @@ void main(){
     region(groundUv,vec2(.487,.789),vec2(.097,.026));
   vec4 contactGrass=farMeadow*grassTips*boyFade;
   color=contactGrass.rgb+color*(1.-contactGrass.a);
-  vec4 nearFlowers=meadow*smoothstep(.79,.87,meadowUv.y);
-  color=nearFlowers.rgb+color*(1.-nearFlowers.a);
 
   if(flying){
     float amount=phase(.32,.53,p);
@@ -520,7 +500,7 @@ export function PortfolioDreamscape({ isPlaying, className, input }: {
     }
   }, [input])
 
-  return <div className={className} aria-hidden="true" data-scene-layers="sky,cloud-sea,type,photographer,meadow,near-cloud,scroll-cloud-flight,live-gallery">
+  return <div className={className} aria-hidden="true" data-scene-layers="sky,cloud-sea,type,photographer-and-single-meadow,near-cloud,scroll-cloud-flight,live-gallery">
     {[0, 1].map(index => <video key={index} ref={video => { videos.current[index] = video }} src={cloudFilm}
       muted playsInline loop autoPlay={isPlaying && index === loop.current.primary} preload="auto" disablePictureInPicture style={{ ...layerStyle, opacity: 0 }}
       onLoadedData={() => {
