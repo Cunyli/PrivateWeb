@@ -185,8 +185,13 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sheet)
-        sheet.width = 1; sheet.height = 1
+        try {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sheet)
+        } catch(error) {
+          gl.deleteTexture(texture)
+          if(error instanceof DOMException && error.name === "SecurityError") {book.dataset.paperTextureError="cross-origin";return null}
+          throw error
+        } finally {sheet.width = 1; sheet.height = 1}
         if (existing) gl.deleteTexture(existing.texture)
         const result = {texture, key: actualKey}
         textures.set(index, result)

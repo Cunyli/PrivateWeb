@@ -1,3 +1,5 @@
+import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
+import { curationVisible } from "@/lib/photo-curation"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
@@ -49,7 +51,8 @@ export default async function SearchWorkPage({
   }
 
   const pictureRank = new Map(pictureIds.map((id, index) => [id, index]))
-  const orderedPictures = (pictures || [])
+  const curation=await getPhotoCurationVisibility()
+  const orderedPictures = (pictures || []).filter(picture=>curationVisible(curation,picture))
     .filter((picture) => pictureRank.has((picture as any).id))
     .sort((left, right) => (pictureRank.get((left as any).id) ?? 9999) - (pictureRank.get((right as any).id) ?? 9999))
 

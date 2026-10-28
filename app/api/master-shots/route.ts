@@ -1,3 +1,4 @@
+import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { supabasePublic } from "@/utils/supabase-public.server"
@@ -73,7 +74,8 @@ const loadMasterShots = async (limit: number) => {
     throw new Error(picturesError.message)
   }
 
-  return (pictureRows || [])
+  const curation=await getPhotoCurationVisibility()
+  return (pictureRows || []).filter(row=>curation.featuredIds.includes(row.id)&&!curation.ids.includes(row.id))
     .map((row) => ({
       ...row,
       publicUrl: toPublicUrl(row.image_url),

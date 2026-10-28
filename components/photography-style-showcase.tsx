@@ -75,7 +75,7 @@ const normalizeStylesPayload = (payload: Record<string, StyleApiResponse>) => {
 }
 
 const loadStylesPayload = async () => {
-  const res = await fetch("/api/picture-styles")
+  const res = await fetch("/api/picture-styles?featured=1")
   if (!res.ok) {
     throw new Error(`${res.status} ${res.statusText}`)
   }
@@ -287,10 +287,13 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
     capturePortfolioPosition()
     const params = new URLSearchParams()
     params.set("origin", window.sessionStorage.getItem("portfolio:return-path") === "/" ? "home" : "portfolio")
+    const indices=getEligibleIndices(styleId)
+    const preview=stylesData[styleId]?.pictures[visibleIndex[styleId] ?? indices[0]]
+    if(preview)params.set("pictureId",String(preview.id))
     params.set("returnSection", "styles")
     params.set("restore", "1")
     router.push(`/work/style/${styleId}?${params.toString()}`)
-  }, [router])
+  }, [router,stylesData,visibleIndex,getEligibleIndices])
 
   const prefetchPreview = useCallback((styleId: string | null) => {
     if (typeof window === 'undefined') return

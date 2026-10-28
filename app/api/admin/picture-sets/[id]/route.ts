@@ -1,3 +1,6 @@
+import { revalidatePath, revalidateTag } from "next/cache"
+import { photoCurationTag } from "@/lib/photo-curation.server"
+import { planPictureSync } from "@/lib/photo-library-sync"
 import { headers as requestHeaders } from "next/headers"
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
@@ -386,17 +389,12 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
         .maybeSingle(),
       supabaseAdmin
         .from('pictures')
-        .select('id, image_url, raw_image_url, image_variants')
+        .select('id, image_url, raw_image_url, image_variants, is_published, updated_at')
         .eq('picture_set_id', idNum),
     ])
-    const previousAssetKeys = collectImageAssetKeys([previousSet as any, ...((previousPictures || []) as any[])])
-    const retainedAssetKeys = collectImageAssetKeys([
-      {
-        cover_image_url: payload.cover_image_url,
-        cover_image_variants: payload.cover_image_variants,
-      },
-      ...pictures,
-    ])
+    let picturePlan
+    try { picturePlan=planPictureSync(pictures,previousPictures || []) }
+    catch(error) { return NextResponse.json({error:error instanceof Error?error.message:"照片已变化，请刷新。"},{status:409}) }
 
     const autoGen = !!payload.autogen_titles_subtitles
     const bucketBaseUrl = process.env.NEXT_PUBLIC_BUCKET_URL || ''
@@ -491,10 +489,11 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const desiredSectionIds: number[] = Array.isArray(payload.section_ids) ? Array.from(new Set(payload.section_ids)) : []
     if (desiredSectionIds.length) await supabaseAdmin.from('picture_set_section_assignments').insert(desiredSectionIds.map((sid: number) => ({ picture_set_id: idNum, section_id: sid, page_context: 'default', display_order: 0 })))
 
-    // pictures: delete and recreate
-    const existingPics = previousPictures || []
-    const existingIds = (existingPics || []).map((p: any) => p.id)
-    await deletePictureRows(existingIds)
+    // Keep stable photo IDs, ratings, likes and embeddings when metadata or order changes.
+    const retainedIds=picturePlan.rows.flatMap(row=>row.existing?[row.existing.id]:[])
+    for(const table of ['picture_taggings','picture_categories','picture_locations']) {
+      if(retainedIds.length)await runMutation(`replace ${table}`,supabaseAdmin.from(table).delete().in('picture_id',retainedIds))
+    }
 
     // Apply set props flags similar to POST
     let singleSeasonId: number | null = null
@@ -510,7 +509,7 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
     const hasSetLoc = !!setLocName || (typeof setLocLat === 'number' && typeof setLocLng === 'number')
     let insertedPictureIds: number[] = []
     if (pictures.length) {
-      const toInsert = pictures.filter((p: any) => typeof p.image_url === 'string' && p.image_url.length > 0)
+      const toInsert = picturePlan.rows.map(row=>row.photo)
       if (toInsert.length) {
         const rows = toInsert.map((p: any, idx: number) => ({
           picture_set_id: idNum,
@@ -526,10 +525,20 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
               : (p.season_id ?? (singleSeasonId ?? null)))
             : (p.season_id ?? null)),
         }))
-        const { data: insertedPics, error: insErr } = await supabaseAdmin.from('pictures').insert(rows).select('id,order_index')
-        if (insErr) return NextResponse.json({ error: insErr.message }, { status: 400 })
-        const byIndex: Record<number, number> = {}; for (const r of insertedPics || []) byIndex[(r as any).order_index] = (r as any).id
-        insertedPictureIds = (insertedPics || []).map((picture: any) => picture.id)
+        const byIndex:Record<number,number>={}
+        const newRows=rows.filter((_,index)=>!picturePlan.rows[index].existing)
+        if(newRows.length) {
+          const {data:created,error}=await supabaseAdmin.from('pictures').insert(newRows).select('id,order_index')
+          if(error)return NextResponse.json({error:error.message},{status:400})
+          for(const row of created || [])byIndex[row.order_index]=row.id
+        }
+        for(let index=0;index<rows.length;index++) {
+          const previous=picturePlan.rows[index].existing
+          if(!previous)continue
+          await runMutation('update existing picture',supabaseAdmin.from('pictures').update(rows[index]).eq('id',previous.id).eq('picture_set_id',idNum))
+          byIndex[index]=previous.id
+        }
+        insertedPictureIds=Object.values(byIndex)
         const concurrency = Math.max(1, Math.min(6, Number(process.env.PICTURE_JOB_CONCURRENCY || 4)))
         const locCache = new Map<string, number>()
 
@@ -630,21 +639,25 @@ export async function PUT(request: Request, ctx: { params: { id: string } }) {
         })
       }
     }
-    triggerPictureEmbeddingBackfill(insertedPictureIds)
+    triggerPictureEmbeddingBackfill(insertedPictureIds.filter(id=>!retainedIds.includes(id)))
 
     if (asyncEnrich) {
       triggerAsyncEnrich(idNum, payload, request.headers.get("authorization"))
     }
-    const obsoleteAssetKeys = Array.from(previousAssetKeys).filter((key) => !retainedAssetKeys.has(key))
-    const storageDelete = await deleteObjectKeysFromR2(obsoleteAssetKeys)
-    if (storageDelete.errors.length) {
-      console.warn('Failed to delete some obsolete image assets after picture set update:', storageDelete.errors)
+    // Omitted frames enter the same recoverable trash as the curation UI.
+    // Editing tags/order never purges originals or resurrects a previously trashed frame.
+    if(picturePlan.omitted.length) {
+      const {data:reviews,error:reviewError}=await supabaseAdmin.rpc("portfolio_curation_index")
+      if(reviewError)throw new Error("选片状态没有载入，请刷新核对。")
+      const reviewById=new Map<number,{state:string;reviewed_at:string}>((reviews || []).map((row:any)=>[row.picture_id,row]))
+      const changes=picturePlan.omitted.filter(photo=>reviewById.get(photo.id)?.state!=="trash").map(photo=>({picture_id:photo.id,decision:"trash",expected_updated_at:photo.updated_at,expected_reviewed_at:reviewById.get(photo.id)?.reviewed_at || null}))
+      if(changes.length) {
+        const {error}=await supabaseAdmin.rpc("apply_portfolio_curation",{p_changes:changes,p_reviewer:auth.user.id})
+        if(error)return NextResponse.json({error:"照片已在另一处修改，请刷新核对。"},{status:error.code==="40001"?409:500})
+      }
     }
-    return NextResponse.json({
-      id: idNum,
-      storageDeleted: storageDelete.deleted.length,
-      storageDeleteErrors: storageDelete.errors,
-    })
+    revalidateTag(photoCurationTag);revalidatePath("/","layout")
+    return NextResponse.json({id:idNum,storageDeleted:0,storageDeleteErrors:[]})
   } catch (e: any) { return NextResponse.json({ error: String(e?.message || e) }, { status: 500 }) }
 }
 
@@ -664,7 +677,7 @@ export async function DELETE(request: Request, ctx: { params: { id: string } }) 
         .maybeSingle(),
       supabaseAdmin
         .from('pictures')
-        .select('id, image_url, raw_image_url, image_variants')
+        .select('id, image_url, raw_image_url, image_variants, is_published, updated_at')
         .eq('picture_set_id', idNum),
     ])
     const assetKeys = collectImageAssetKeys([setRow as any, ...((pics || []) as any[])])
@@ -683,6 +696,7 @@ export async function DELETE(request: Request, ctx: { params: { id: string } }) 
     if (storageDelete.errors.length) {
       console.warn('Failed to delete some image assets after picture set delete:', storageDelete.errors)
     }
+    revalidateTag(photoCurationTag);revalidatePath("/","layout")
     return NextResponse.json({
       ok: true,
       storageDeleted: storageDelete.deleted.length,

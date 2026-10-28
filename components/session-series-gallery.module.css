@@ -58,3 +58,6 @@
 @media (prefers-reduced-motion: reduce) {
   .figure,.photo { opacity: 1 !important; transform: none !important; transition: none; }
 }
+
+/* A cull can leave one frame in a shoot. Keep its ratio without blowing it up to the full row. */
+.row[data-count="1"] .figure{flex:0 1 auto;width:min(100%,calc(62svh * var(--photo-ratio)))}

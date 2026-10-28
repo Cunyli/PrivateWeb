@@ -1,4 +1,6 @@
 import { supabasePublic } from "@/utils/supabase-public.server"
+import { getPhotoCurationVisibility } from "./photo-curation.server"
+import { withFeaturedCovers } from "./photo-curation-catalog"
 import type { PictureSet } from "@/lib/pictureSet.types"
 import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
 import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
@@ -16,7 +18,8 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
       return null
     }
 
-    const sets = (setsData || []) as PictureSet[]
+    const curation = await getPhotoCurationVisibility()
+    const sets = withFeaturedCovers((setsData || []) as PictureSet[],curation)
     if (sets.length === 0) {
       return {
         pictureSets: [],

@@ -1,27 +1,14 @@
-import { portraitBookPages } from "./portrait-book-content"
-import { curationVisible, curationBoundId } from "./photo-curation"
+import { curationFeatured } from "./photo-curation"
 import type { CurationVisibility } from "./photo-curation"
-import { photoSource } from "./portfolio-photo-source"
+import { showcasePortraits } from "./photo-session-series"
 
 export type BookPhoto = { src: string; srcSet?: string; width: number; height: number; alt: { zh: string; en: string } }
-
-
 export function curatedPortraitBookPages(curation: CurationVisibility, bucket: string): BookPhoto[][] {
-    if (!curation.ids.length && !curation.keptPortraits.length) return portraitBookPages.map(page => [...page]) as BookPhoto[][]
-    const picks: Array<BookPhoto & { id?: number }> = curation.keptPortraits.map(photo => ({
-      id: photo.id, src: photoSource(photo.src, bucket, 640), srcSet: `${photoSource(photo.src,bucket,640)} 1x, ${photoSource(photo.src,bucket,1280)} 2x`,
-      width: photo.width || 640, height: photo.height || 426, alt: { zh: photo.title || "人像作品", en: "Portrait photograph" },
-    }))
-    const originals = portraitBookPages.flat().filter(photo => curationVisible(curation,photo))
-    const seen = new Set<string>()
-    const pool = [...picks,...originals].filter(photo => {
-      const id = "id" in photo ? photo.id : curationBoundId(photo.src)
-      const key = id !== undefined ? `id:${id}` : photo.src
-      if (seen.has(key)) return false
-      seen.add(key); return true
-    }).slice(0,12)
-    const next: BookPhoto[][] = []
-    for(let index=0;index<pool.length;index+=3)next.push(pool.slice(index,index+3))
-    if(next.length%2)next.push([])
-    return next
+  const photos=showcasePortraits(curation.keptPortraits.filter(photo=>curationFeatured(curation,photo)),12)
+  const pool:BookPhoto[]=photos.map(photo=>({src:`/api/photo-texture?pictureId=${photo.id}&width=640`,srcSet:`/api/photo-texture?pictureId=${photo.id}&width=640 1x, /api/photo-texture?pictureId=${photo.id}&width=1280 2x`,
+    width:photo.width || 640,height:photo.height || 426,alt:{zh:photo.title || "人像作品",en:photo.title || "Portrait photograph"}}))
+  const pages:BookPhoto[][]=[]
+  for(let index=0;index<pool.length;index+=3)pages.push(pool.slice(index,index+3))
+  if(pages.length%2)pages.push([])
+  return pages
 }

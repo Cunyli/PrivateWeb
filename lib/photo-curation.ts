@@ -21,6 +21,7 @@ export type CurationPhoto = {
   order: number
   width?: number
   height?: number
+  tags?: string[]
 }
 
 export type CurationGroup = { id: string; title: string; subtitle: string; count: number }
@@ -32,8 +33,19 @@ export type CurationChange = {
   width?: number
   height?: number
 }
-export type CurationPortrait = { id: number; src: string; title: string; width: number | null; height: number | null }
-export type CurationVisibility = { ids: number[]; keptPortraits: CurationPortrait[] }
+export type CurationPortrait = { id: number; src: string; title: string; width: number | null; height: number | null; setId?: number; tags?: string[]; order?: number }
+export type CurationAsset = CurationPortrait & { source: string; previewUrl: string }
+export type CurationCover = { id: number; src: string; width: number | null; height: number | null }
+export type CurationVisibility = {
+  ids: number[]
+  featuredIds: number[]
+  keptPortraits: CurationPortrait[]
+  featuredAssets: CurationAsset[]
+  covers: Record<number, CurationCover>
+  selectedCover: CurationCover | null
+}
+export const emptyCuration: CurationVisibility = { ids: [], featuredIds: [], keptPortraits: [], featuredAssets: [], covers: {}, selectedCover: null }
+
 
 // Match responsive versions and local preview exports to their original frame.
 export function curationAssetKey(source: string): string {
@@ -55,6 +67,18 @@ export function curationVisible(state: CurationVisibility, photo: { id?: string 
   if (Number.isSafeInteger(id) && id !== 0) return !state.ids.includes(id)
   const boundId = curationBoundId(photo.src || "")
   return boundId === undefined || !state.ids.includes(boundId)
+}
+
+// A missing rating is allowed in the archive, but never in a showcase or cover.
+export function curationFeatured(state: CurationVisibility, photo: { id?: string | number; src?: string }) {
+  const id = typeof photo.id === "number" ? photo.id : Number(String(photo.id || "").replace(/^portrait-/, ""))
+  if (Number.isSafeInteger(id) && id !== 0) return !state.ids.includes(id) && state.featuredIds.includes(id)
+  const family = curationAssetFamily(photo.src || "")
+  const bound = curationBoundId(photo.src || "")
+  if (bound !== undefined) return !state.ids.includes(bound) && state.featuredIds.includes(bound)
+  return [...state.keptPortraits,...state.featuredAssets].some(candidate =>
+    !state.ids.includes(candidate.id) && state.featuredIds.includes(candidate.id) &&
+    (curationAssetFamily(candidate.src) === family || ("source" in candidate && typeof candidate.source === "string" && curationAssetFamily(candidate.source) === family)))
 }
 
 export function parseCurationChanges(value: unknown): CurationChange[] {

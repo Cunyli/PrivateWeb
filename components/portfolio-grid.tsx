@@ -25,6 +25,10 @@ import { PortfolioPhotoSessions } from "./portfolio-photo-sessions"
 import { capturePortfolioPosition, settlePortfolioAnchor } from "@/lib/portfolio-return"
 import { balancedGalleryColumns, galleryCoverRatio } from "@/lib/portfolio-gallery-layout"
 import { usePortfolioRibbon } from "./use-portfolio-ribbon"
+import { usePhotoCuration } from "./photo-curation-provider"
+import { withFeaturedCovers, selectedCollection } from "@/lib/photo-curation-catalog"
+import { curationVisible } from "@/lib/photo-curation"
+import { photoSource } from "@/lib/portfolio-photo-source"
 import { portfolioLocationLabel } from "@/lib/portfolio-location-label"
 
 const DOWN_THUMB_PREFETCH_WIDTH = 640
@@ -175,6 +179,7 @@ interface PortfolioGridProps {
 
 export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridProps) {
   const { locale, t } = useI18n()
+  const curation = usePhotoCuration()
   const searchParams = useSearchParams()
   const entryReturnHref = searchParams.get("from") === "photo-session" ? "/helsinki-photo-session" : "/"
   const [pictureSets, setPictureSets] = useState<PictureSet[]>(initialData?.pictureSets || [])
@@ -634,7 +639,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
 
         if (!alive) return
         setSetResults(sets)
-        setPictureResults(pics)
+        setPictureResults(pics.filter(picture=>curationVisible(curation,picture)))
 
         // Fetch translations for sets in results
         const setIds = sets.map((s) => s.id)
@@ -701,9 +706,11 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
     return () => scrollTarget.removeEventListener("scroll", handleScroll)
   }, [embedded])
 
-  const upPictureSets = derivedUpSets
-  // 直接使用状态中的洗牌结果，不再进行额外洗牌
-  const downPictureSets = shuffledDownSets
+  const upPictureSets = useMemo(() => {
+    const selected=selectedCollection(curation)
+    return [...(selected?[selected]:[]),...withFeaturedCovers(derivedUpSets,curation)]
+  },[derivedUpSets,curation])
+  const downPictureSets = useMemo(() => withFeaturedCovers(shuffledDownSets,curation),[shuffledDownSets,curation])
 
   const { firstRow, secondRow } = useMemo(() => {
     const midpoint = Math.ceil(upPictureSets.length / 2)
@@ -887,7 +894,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
     if (typeof opts?.index === "number" && Number.isFinite(opts.index)) {
       params.set("index", String(opts.index))
     }
-    return `/work/${setId}?${params.toString()}`
+    return `/work/${Number(setId)===0?"selected":setId}?${params.toString()}`
   }, [embedded])
 
   const buildSearchBrowseHref = useCallback((picture: Picture) => {
@@ -958,7 +965,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
         ) {
           restoredSearchQueryRef.current = normalizeSearchInput(storedSearchQuery)
           setSetResults(cachedSearch.setResults)
-          setPictureResults(cachedSearch.pictureResults)
+          setPictureResults(cachedSearch.pictureResults.filter(picture=>curationVisible(curation,picture)))
           setTransMap((prev) => ({ ...prev, ...(cachedSearch.transMap || {}) }))
           setPictureTransMap(cachedSearch.pictureTransMap || {})
           setSearchLoading(false)
@@ -1042,6 +1049,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
   }, [embedded, loading, searchParams, forcePauseTopRow, forcePauseBottomRow])
 
   const getText = useCallback((s: PictureSet, key: 'title' | 'subtitle' | 'description') => {
+    if(s.id===0)return key==='title'?(locale==='zh'?'精选':'Selected'):''
     const translations = transMap[s.id]
     if (locale === 'zh') return translations?.zh?.[key] || s[key]
     return translations?.en?.[key] || s[key]
@@ -1055,7 +1063,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
 
   const locationClusters = useMemo(() => {
     const buckets = new Map<string, { key: string; name: string; latitude: number; longitude: number; sets: Array<{ id: number; title: string; subtitle?: string; coverUrl: string }> }>()
-    for (const set of pictureSets) {
+    for (const set of withFeaturedCovers(pictureSets,curation)) {
       const loc = setLocations[set.id]
       if (!loc) continue
       const lat = Number(loc.latitude)
@@ -1078,7 +1086,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
         id: set.id,
         title,
         subtitle,
-        coverUrl: set.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${set.cover_image_url}`) : '/placeholder.svg',
+        coverUrl: set.cover_image_url ? capResponsiveImageWidth(photoSource(set.cover_image_url,baseUrl,640)) : '',
       })
       buckets.set(bucketKey, existing)
     }
@@ -1087,7 +1095,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
       ...bucket,
       sets: bucket.sets.sort((a, b) => a.title.localeCompare(b.title)),
     })).sort((a, b) => a.name.localeCompare(b.name))
-  }, [pictureSets, setLocations, baseUrl, getText, t, locale])
+  }, [pictureSets, setLocations, baseUrl, getText, t, locale, curation])
 
   useEffect(() => {
     const wide = window.matchMedia("(min-width: 1280px)")
@@ -1144,17 +1152,17 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
               return <div key={pair[0].id} className={chrome.archiveFloatGroup} data-gallery-float-group
                 style={{["--drift-from" as string]:`${-16*direction}px`,["--drift-to" as string]:`${16*direction}px`,["--drift-duration" as string]:`${11+groupIndex%5*1.7}s`,["--drift-delay" as string]:`${-(groupIndex%4)*2.1}s`}}>
                 {pair.map(item => {
-                  const coverSrc=item.cover_image_url?capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`):"/placeholder.svg"
-                  return <Link key={item.id} href={buildWorkHref(item.id)} prefetch={false} data-set-id={item.id}
+                  const coverSrc=item.cover_image_url?capResponsiveImageWidth(photoSource(item.cover_image_url,baseUrl,640)):"/placeholder.svg"
+                  return <Link key={item.id} href={buildWorkHref(item.id)} prefetch={false} data-set-id={item.id} data-featured-collection={item.id===0 || undefined} data-cover-id={item.id===0?curation.selectedCover?.id:curation.covers[item.id]?.id}
                     onClick={handlePortfolioNavigation} className={clsx(chrome.archiveTile,"group block relative overflow-hidden")}
                     aria-label={[getText(item,"title"),getText(item,"subtitle")].filter(Boolean).join(" · ")}>
-                    <img src={portfolioImageLoader({src:coverSrc,width:DOWN_THUMB_PREFETCH_WIDTH})} alt="" width={640} height={Math.round(640/galleryCoverRatio(item,galleryCoverRatios))}
+                    {item.cover_image_url?<img src={portfolioImageLoader({src:coverSrc,width:DOWN_THUMB_PREFETCH_WIDTH})} alt="" width={640} height={Math.round(640/galleryCoverRatio(item,galleryCoverRatios))}
                       onLoad={({currentTarget}) => {
                         const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
                         if (!Number.isFinite(ratio) || ratio <= 0) return
                         setGalleryCoverRatios(previous => Math.abs(galleryCoverRatio(item,previous)-ratio) < .001 ? previous : {...previous,[item.cover_image_url]:ratio})
                       }}
-                      loading="lazy" decoding="async" draggable={false} className="block h-auto w-full" />
+                      loading="lazy" decoding="async" draggable={false} className="block h-auto w-full" />:<span className={chrome.emptyCollection}>{getText(item,"title")}</span>}
                     <div className={chrome.tileCaption}><h3>{getText(item,"title")}</h3><p>{getText(item,"subtitle")}</p></div>
                   </Link>
                 })}
@@ -1228,22 +1236,22 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
                       <p className="text-sm text-gray-500">{searchLoading ? '…' : t('noMatchingSets')}</p>
                     ) : (
                       <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 hide-scrollbar sm:gap-4">
-                        {(setResults || []).map((item) => (
+                        {withFeaturedCovers(setResults || [],curation).map((item) => (
                           <Link
                             key={item.id}
                             href={buildWorkHref(item.id)}
-                            data-set-id={item.id}
+                            data-set-id={item.id} data-featured-collection={item.id===0 || undefined} data-cover-id={item.id===0?curation.selectedCover?.id:curation.covers[item.id]?.id}
                             onClick={handlePortfolioNavigation}
                             className="group relative aspect-[16/9] w-[78%] flex-none snap-start overflow-hidden rounded-lg bg-slate-100 shadow-sm transition-transform duration-300 ease-out hover:-translate-y-0.5 sm:w-[46%] md:w-[34%] lg:w-[27%] xl:w-[22%]"
                           >
-                            <Image
-                              src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
+                            {item.cover_image_url?<Image
+                              src={item.cover_image_url ? capResponsiveImageWidth(photoSource(item.cover_image_url,baseUrl,640)) : "/placeholder.svg"}
                               alt=""
                               fill
                               quality={65}
                               sizes="(max-width: 640px) 78vw, (max-width: 768px) 46vw, (max-width: 1024px) 34vw, 22vw"
                               className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
-                            />
+                            />:<span className={chrome.emptyCollection}>{getText(item,"title")}</span>}
                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/35 to-transparent px-3 pb-3 pt-10 text-white">
                               <div className="line-clamp-1 text-sm font-medium drop-shadow-sm sm:text-base">{getText(item, 'title')}</div>
                               <div className="line-clamp-1 text-xs text-white/78 drop-shadow-sm">{getText(item, 'subtitle')}</div>
@@ -1339,14 +1347,14 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
                         key={`${item.id}-${i}`}
                         href={buildWorkHref(item.id)}
                         draggable={false}
-                        data-set-id={item.id}
+                        data-set-id={item.id} data-featured-collection={item.id===0 || undefined} data-cover-id={item.id===0?curation.selectedCover?.id:curation.covers[item.id]?.id}
                         tabIndex={i >= firstRow.length ? -1 : 0} aria-hidden={i >= firstRow.length || undefined}
                         onClick={handlePortfolioNavigation}
                         style={tileStyle}
                         className={clsx(chrome.tile,"group relative flex-none overflow-hidden bg-gray-100")}
                       >
-                      <Image
-                        src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
+                      {item.cover_image_url?<Image
+                        src={item.cover_image_url ? capResponsiveImageWidth(photoSource(item.cover_image_url,baseUrl,640)) : "/placeholder.svg"}
                         alt=""
                         draggable={false}
                         fill
@@ -1356,7 +1364,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
                         className="object-cover"
                         priority={eager}
                         loading={eager ? "eager" : "lazy"}
-                      />
+                      />:<span className={chrome.emptyCollection}>{getText(item,"title")}</span>}
 
                         <div className={chrome.tileCaption}>
                           <h3>{getText(item, 'title')}</h3>
@@ -1386,14 +1394,14 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
                           key={`${item.id}-${i}`}
                           href={buildWorkHref(item.id)}
                         draggable={false}
-                          data-set-id={item.id}
+                          data-set-id={item.id} data-featured-collection={item.id===0 || undefined} data-cover-id={item.id===0?curation.selectedCover?.id:curation.covers[item.id]?.id}
                         tabIndex={i >= secondRow.length ? -1 : 0} aria-hidden={i >= secondRow.length || undefined}
                           onClick={handlePortfolioNavigation}
                           style={tileStyle}
                         className={clsx(chrome.tile,"group relative flex-none overflow-hidden bg-gray-100")}
                         >
-                        <Image
-                          src={item.cover_image_url ? capResponsiveImageWidth(`${baseUrl}${item.cover_image_url}`) : "/placeholder.svg"}
+                        {item.cover_image_url?<Image
+                          src={item.cover_image_url ? capResponsiveImageWidth(photoSource(item.cover_image_url,baseUrl,640)) : "/placeholder.svg"}
                           alt=""
                           draggable={false}
                           fill
@@ -1403,7 +1411,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
                           className="object-cover"
                           priority={eager}
                           loading={eager ? "eager" : "lazy"}
-                          />
+                          />:<span className={chrome.emptyCollection}>{getText(item,"title")}</span>}
 
                           <div className={chrome.tileCaption}>
                           <h3>{getText(item, 'title')}</h3>

@@ -1,3 +1,4 @@
+import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { headers } from "next/headers"
@@ -78,6 +79,7 @@ export default async function StyleCollectionPage({
   params: Promise<{ style: string }>
   searchParams?: Promise<{
     origin?: string
+    pictureId?: string
     restore?: string
     returnSection?: string
   }>
@@ -90,7 +92,9 @@ export default async function StyleCollectionPage({
   }
 
   const baseUrl = await getBaseUrl()
-  const res = await fetch(`${baseUrl}/api/picture-styles?style=${styleKey}`, { cache: "no-store" })
+  const requestedPictureId=Number(resolvedSearchParams?.pictureId || 0)
+  const curation=await getPhotoCurationVisibility()
+  const res = await fetch(`${baseUrl}/api/picture-styles?style=${styleKey}&pictureId=${Number.isSafeInteger(requestedPictureId)?requestedPictureId:0}`, { cache: "no-store" })
   if (!res.ok) {
     notFound()
   }
@@ -120,7 +124,8 @@ export default async function StyleCollectionPage({
   const dayKey = new Date().toISOString().slice(0, 10)
   const shuffledPictures = shuffleWithSeed(pictures, hashSeed(`${styleKey}-${dayKey}`))
 
-  const images = shuffledPictures.map((pic) => ({
+  const images = shuffledPictures.filter(pic=>!curation.ids.includes(pic.id)).map((pic) => ({
+    id:pic.id,
     url: pic.imageUrl || "/placeholder.svg",
     rawUrl: pic.rawImageUrl || pic.imageUrl,
     setId: pic.pictureSetId,
@@ -157,6 +162,7 @@ export default async function StyleCollectionPage({
     >
       <PortfolioDetail
         id={`style-${styleKey}`}
+        initialPictureId={images.some(image=>image.id===requestedPictureId)?requestedPictureId:images.find(image=>curation.featuredIds.includes(image.id))?.id}
         images={images}
         translations={translations}
         locations={[]}
