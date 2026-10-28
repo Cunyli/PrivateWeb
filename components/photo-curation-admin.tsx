@@ -28,6 +28,9 @@ export function PhotoCurationAdmin() {
   const [groupId, setGroupId] = useState("")
   const [view, setView] = useState<View>("all")
   const [query, setQuery] = useState("")
+  const [personTag,setPersonTag] = useState("")
+  const [locationTag,setLocationTag] = useState("")
+  const [styleTag,setStyleTag] = useState("")
   const [page, setPage] = useState(0)
   const [previewId, setPreviewId] = useState<number | null>(null)
   const [plan, setPlan] = useState<CurationChange[] | null>(null)
@@ -76,10 +79,16 @@ export function PhotoCurationAdmin() {
     for (const photo of library?.items || []) if (matchesView(photo)) counts.set(photo.groupId, (counts.get(photo.groupId) || 0) + 1)
     return counts
   }, [library, matchesView])
+  const tagOptions = useMemo(() => {
+    const tags=new Set((library?.items || []).filter(photo=>groupId==="all" || photo.groupId===groupId).flatMap(photo=>photo.tags || []))
+    const sorted=[...tags].sort((a,b)=>a.localeCompare(b,"zh-CN"))
+    return {person:sorted.filter(tag=>tag.startsWith("model:")),location:sorted.filter(tag=>tag.startsWith("location:")),style:sorted.filter(tag=>tag.startsWith("style:") || ["portrait","landscape","street","travel"].includes(tag.toLowerCase()))}
+  },[library,groupId])
+  const tagLabel = (tag: string) => tag.replace(/^(model|location|style):/,"").replace(/-/g," ")
   const filtered = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase()
-    return (library?.items || []).filter(photo => matchesView(photo) && (groupId === "all" || photo.groupId === groupId) && (!needle || `${photo.filename} ${photo.title} ${photo.groupTitle} ${photo.groupSubtitle}`.toLocaleLowerCase().includes(needle)))
-  }, [library,groupId,matchesView,query])
+    return (library?.items || []).filter(photo => matchesView(photo) && (groupId === "all" || photo.groupId === groupId) && (!needle || `${photo.filename} ${photo.title} ${photo.groupTitle} ${photo.groupSubtitle} ${(photo.tags || []).join(" ")}`.toLocaleLowerCase().includes(needle)) && [personTag,locationTag,styleTag].every(tag=>!tag || photo.tags?.includes(tag)))
+  }, [library,groupId,matchesView,query,personTag,locationTag,styleTag])
   const pageCount = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE))
   const currentPage = Math.min(page,pageCount-1)
   const shown = filtered.slice(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE)
@@ -106,7 +115,7 @@ export function PhotoCurationAdmin() {
     if(busy)return
     setDraft(previous=>({...previous,...Object.fromEntries(photos.map(photo=>[photo.id,next]))}))
   }
-  const changeGroup = (id: string) => { if(!busy){setGroupId(id);setPage(0);setPicked(new Set());setPreviewId(null)} }
+  const changeGroup = (id: string) => { if(!busy){setGroupId(id);setPage(0);setPicked(new Set());setPreviewId(null);setPersonTag("");setLocationTag("");setStyleTag("")} }
   const changeView = (next: View) => { if(!busy){setView(next);setPage(0);setPicked(new Set());if(next==="trash")setGroupId("all")} }
   const movePreview = useCallback((direction: number) => {
     if(shown.length)setPreviewId(shown[(previewIndex+direction+shown.length)%shown.length].id)
@@ -147,6 +156,7 @@ export function PhotoCurationAdmin() {
       setLibrary(await fetchLibrary())
       setDraft(previous=>Object.fromEntries(Object.entries(previous).filter(([id])=>!changedIds.has(Number(id)))))
       setPicked(new Set())
+      router.refresh()
       setNotice({text:[deleted.length?`0 · ${deleted.length} 张已移入回收站`:"",excellent?`1 · ${excellent} 张标为很好`:"",cleared?`${cleared} 张恢复为不标记、保留`:""].filter(Boolean).join("；")+"。未标记照片保持不变。"})
     }catch(error){setPlan(null);setNotice({text:error instanceof Error?error.message:"保存没有完成，请刷新核对状态。",error:true})}
     finally{setBusy(false)}
@@ -169,6 +179,10 @@ export function PhotoCurationAdmin() {
         <div className={styles.titlebar}><div><h2>{groupId==="all"?"全部照片":activeGroup?.title}</h2><p>{groupId==="all"?"逐个系列，慢慢挑。":activeGroup?.subtitle}</p></div><span>不标记的照片保留原样</span></div>
         {notice&&<div role={notice.error?"alert":"status"} className={styles.notice} data-error={!!notice.error}>{notice.text}{!notice.error&&lastDeleted.length>0&&<button type="button" disabled={busy} onClick={()=>void save(library.items.filter(photo=>lastDeleted.includes(photo.id)&&photo.state==="trash").map(photo=>changeFor(photo,null)))} className={styles.button}>恢复刚才删除的照片</button>}</div>}
         <div className={styles.filters} role="group" aria-label="照片状态">{([['all','全部'],['unreviewed','未标记'],['keep','1 · 很好'],['trash','0 · 删除 / 回收站']] as const).map(([value,text])=><button type="button" key={value} data-active={view===value} aria-pressed={view===value} onClick={()=>changeView(value)} disabled={busy}>{text}</button>)}<label><Search size={14}/><span className="sr-only">查找照片</span><input type="search" value={query} onChange={event=>{setQuery(event.target.value);setPage(0)}} placeholder="名字、地点或文件名"/></label></div>
+        <div className={styles.tagFilters} aria-label="按标签筛选">
+          {([["人物",personTag,setPersonTag,tagOptions.person],["地点",locationTag,setLocationTag,tagOptions.location],["风格",styleTag,setStyleTag,tagOptions.style]] as const).map(([label,value,setValue,options])=>options.length>0&&<label key={label}><span>{label}</span><select aria-label={`${label}标签`} value={value} onChange={event=>{setValue(event.target.value);setPage(0);setPicked(new Set())}} disabled={busy}><option value="">全部{label}</option>{options.map(tag=><option key={tag} value={tag}>{tagLabel(tag)}</option>)}</select></label>)}
+          {(personTag||locationTag||styleTag)&&<button type="button" onClick={()=>{setPersonTag("");setLocationTag("");setStyleTag("");setPage(0)}}>清除标签筛选</button>}
+        </div>
         <div className={styles.utility}><span>{filtered.length?`${currentPage*PAGE_SIZE+1}–${Math.min((currentPage+1)*PAGE_SIZE,filtered.length)} / ${filtered.length} 张`:"0 张"}</span><div><button type="button" disabled={busy||!shown.length} onClick={()=>setPicked(new Set(shown.map(photo=>photo.id)))}>全选本页</button><button type="button" disabled={busy||!picked.size} onClick={()=>setPicked(new Set())}>清空选择</button></div></div>
         {shown.length?<div className={styles.grid}>{shown.map(photo=><article key={photo.id} className={styles.card} data-photo-id={photo.id} data-selected={picked.has(photo.id)} data-rating={rating(photo)??"none"} data-pending={Object.hasOwn(draft,photo.id)&&rating(photo)!==savedRating(photo)}>
           <button type="button" className={styles.image} onClick={()=>setPreviewId(photo.id)} aria-label={`放大 ${photo.filename}`}><img src={photo.previewUrl} alt={photo.title||photo.filename} width={photo.width} height={photo.height} loading="lazy" decoding="async" onLoad={({currentTarget})=>{imageSizes.current[photo.id]={width:currentTarget.naturalWidth,height:currentTarget.naturalHeight}}}/></button>

@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { parseCurationChanges, curationAssetKey } from "@/lib/photo-curation"
 import type { CurationPhoto, CurationGroup } from "@/lib/photo-curation"
 import { photoCurationTag } from "@/lib/photo-curation.server"
-import { photoSeries, preferSeriesPlace } from "@/lib/photo-series"
+import { curationGroup, preferSeriesPlace } from "@/lib/photo-series"
 import { photoSource } from "@/lib/portfolio-photo-source"
 
 export const runtime = "nodejs"
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
       const set = setMap.get(row.picture_set_id)
       const translation = translationMap.get(row.picture_set_id)
       const tags = tagMap.get(row.id) || []
-      const group = photoSeries(row.picture_set_id, translation?.title || set?.title, translation?.subtitle || set?.subtitle, tags)
+      const group = curationGroup(row.picture_set_id, translation?.title || set?.title, translation?.subtitle || set?.subtitle, tags)
       const review = reviewMap.get(row.id)
       const imageUrl = row.image_url || row.raw_image_url || "/placeholder.svg"
       return {
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
         title: row.title || "", filename: curationAssetKey(row.raw_image_url || imageUrl) || `照片 ${row.id}`,
         imageUrl, previewUrl: photoSource(imageUrl, bucket, 640), detailUrl: photoSource(imageUrl, bucket, 1280),
         published: row.is_published === true, updatedAt: row.updated_at || null, reviewedAt: review?.reviewed_at || null,
-        state: review?.state || "unreviewed", order: row.order_index ?? row.id, width: review?.image_width || undefined, height: review?.image_height || undefined,
+        tags, state: review?.state || "unreviewed", order: row.order_index ?? row.id, width: review?.image_width || undefined, height: review?.image_height || undefined,
       }
     })
     for (const asset of assets.data || []) items.push({
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
       group.subtitle=preferSeriesPlace(group.subtitle,photo.groupSubtitle)
       group.count++; groups.set(photo.groupId, group)
     }
-    const priority = (group: CurationGroup) => /ziyang/i.test(group.title) ? 0 : /xiya/i.test(group.title) ? 1 : group.id.startsWith("portrait:") ? 2 : 3
+    const priority = (group: CurationGroup) => group.id === "portrait-pool" ? 0 : 1
     const sortedGroups = [...groups.values()].sort((a, b) => priority(a) - priority(b) || a.title.localeCompare(b.title, "zh-CN", { numeric: true }) || a.subtitle.localeCompare(b.subtitle))
     return response({ items: items.sort((a, b) => a.order - b.order || a.id - b.id), groups: sortedGroups, draftKey: `portfolio:curation:ratings-v2:${auth.user.id}` })
   } catch (error) {

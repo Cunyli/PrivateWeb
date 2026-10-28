@@ -121,6 +121,8 @@ Run the SQL files in `docs/` from the Supabase SQL Editor as needed:
 
 The current security setup also requires `docs/supabase-security-hardening-20261028.sql` and `docs/supabase-public-budgets-20261028.sql`. These have already been applied to the linked project; review the SQL before using it on a different project. The shared budgets must exist before deploying booking and semantic search. See `docs/supabase-security-audit-20261028.md` for the original validation and rollback scripts. `docs/supabase-version-update-20261028.md` records the subsequent SDK/CLI updates, verified TOTP settings and remaining managed PostGIS/password-protection advisories.
 
+The current photo display rules are documented in [rating-driven photo display](docs/photo-rating-display-policy.md). Apply `docs/photo-curation-catalog-20261028.sql` before this release; the catalog and the documented legacy tag repair have already been applied to the linked project. Booking and cover imagery now require rating 1.
+
 Semantic search also depends on the `picture_embeddings` table and `match_pictures_by_embedding` RPC described in `docs/semantic-picture-search.md`.
 
 ## Common Commands
@@ -133,6 +135,7 @@ pnpm lint
 node scripts/check-supabase-security.cjs
 node scripts/check-portrait-book-transition.cjs
 node scripts/check-photo-curation.cjs
+node scripts/check-photo-library-sync.cjs
 node scripts/check-portfolio-assets.cjs
 pnpm exec tsc --noEmit --incremental false
 pnpm backfill:picture-embeddings -- --limit 3 --dry-run

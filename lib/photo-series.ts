@@ -17,3 +17,13 @@ export function preferSeriesPlace(current: string, candidate: string) {
   const broad=new Set(["","europe","switzerland","finland","italy","other city"])
   return broad.has(current.toLowerCase()) && !broad.has(candidate.toLowerCase()) ? candidate : current || candidate
 }
+
+export const portraitPoolId = "portrait-pool"
+export function isPortraitPool(title?: string | null, tags: string[] = []) {
+  return /^portrait booking samples$/i.test(String(title || "").trim()) || tags.includes("portrait-library")
+}
+export function curationGroup(setId: number, title: string, subtitle: string, tags: string[]) {
+  return isPortraitPool(title,tags)
+    ? {id:portraitPoolId,title:"人像素材库",subtitle:"",portrait:true}
+    : photoSeries(setId,title,subtitle,tags)
+}

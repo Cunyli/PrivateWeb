@@ -278,7 +278,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
               aria-label={[set.title,set.subtitle].filter(Boolean).join(" · ")}
               onClick={event => {window.sessionStorage.setItem("portfolio:return-map-location",activeKey || "");capturePortfolioPosition(event.currentTarget)}}
               className={chrome.locationSet}>
-              <span className={chrome.locationThumb}><Image src={set.coverUrl} alt="" fill sizes="(max-width: 1023px) 96px, 108px" className="object-cover" /></span>
+              <span className={chrome.locationThumb}>{set.coverUrl&&<Image src={set.coverUrl} alt="" fill sizes="(max-width: 1023px) 96px, 108px" className="object-cover" />}</span>
               <div className={chrome.locationSetCopy}>
                 <h4>{set.title}</h4>{set.subtitle && <p>{set.subtitle}</p>}
               </div>

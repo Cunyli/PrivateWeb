@@ -12,9 +12,9 @@ import sessionStyles from "./photo-session.module.css"
 import introStyles from "./photo-story.module.css"
 import { sessionImageVariants, sessionViewerSource } from "@/lib/session-image-variants"
 import { usePhotoCuration } from "./photo-curation-provider"
-import { curationVisible } from "@/lib/photo-curation"
+import { curationFeatured } from "@/lib/photo-curation"
 import { photoSource } from "@/lib/portfolio-photo-source"
-import { selectMomentSeries } from "@/lib/photo-session-series"
+import { selectMomentSeries, bookingPortraitGroups, showcasePortraits } from "@/lib/photo-session-series"
 import type { SessionPhoto as Photo, MomentCard, MomentGroup } from "@/lib/photo-session-series"
 import { SessionSeriesGallery } from "./session-series-gallery"
 import "leaflet/dist/leaflet.css"
@@ -57,7 +57,6 @@ type ShootStep = {
   eyebrow: string
   title: string
   body: string
-  image: Photo
 }
 
 
@@ -503,7 +502,7 @@ const photoSessionCopy = {
 
 function SessionImage({ className = "", preview = false, sizes, src, srcSet, ...props }: ImgHTMLAttributes<HTMLImageElement> & {preview?: boolean}) {
   const curation = usePhotoCuration()
-  if (!curationVisible(curation, { src: typeof src === "string" ? src : "" })) return null
+  if (!curationFeatured(curation, { src: typeof src === "string" ? src : "" })) return null
   const local = typeof src === "string" ? sessionImageVariants[src] : undefined
   const remotePreview = preview && typeof src === "string" && src.includes("/w1280.webp")
   return <img loading="lazy" decoding="async" {...props}
@@ -513,41 +512,6 @@ function SessionImage({ className = "", preview = false, sizes, src, srcSet, ...
     draggable={false} onContextMenu={event => event.preventDefault()} className={`${className} select-none`} />
 }
 
-
-const coverPhoto: Photo = {
-  id: "cover-florence",
-  src: "/photo-session/cover-florence.jpg",
-  alt: "Travel portrait session cover photo",
-}
-
-const galleryPhotos: Photo[] = [
-  coverPhoto,
-  {
-    id: "master-1",
-    src: "/private/master1.jpg",
-    alt: "Soft portrait sample",
-  },
-  {
-    id: "master-2",
-    src: "/private/master2.jpg",
-    alt: "City walk portrait sample",
-  },
-  {
-    id: "master-3",
-    src: "/private/master3.jpg",
-    alt: "Travel portrait sample",
-  },
-  {
-    id: "master-4",
-    src: "/private/master4.jpg",
-    alt: "Editorial portrait sample",
-  },
-  {
-    id: "independent",
-    src: "/private/independent.jpg",
-    alt: "Quiet portrait sample",
-  },
-]
 
 const highlightLines = [
   "Base赫尔辛基，但拍摄不只限芬兰，全欧可飞",
@@ -623,49 +587,41 @@ const shootSteps: ShootStep[] = [
     eyebrow: "01 / Route",
     title: "路线可以我定，也可以你定",
     body: "路线优先选，不让转场吃掉拍摄时间。我会按时间、光线和转场安排路线，你也可以提供自己的路线。",
-    image: coverPhoto,
   },
   {
     eyebrow: "02 / Direction",
     title: "不要求你本来就是模特",
     body: "现场会给动作指导。走路、坐下、不看镜头、大头照、游客照，都可以自然完成。",
-    image: galleryPhotos[1],
   },
   {
     eyebrow: "03 / Device",
     title: "设备可以很自由",
     body: "我会用自己的设备，也可以用你的设备拍。数码、胶片、CCD、拍立得都可以提前沟通。",
-    image: galleryPhotos[3],
   },
   {
     eyebrow: "04 / Local",
     title: "熟悉赫尔辛基现场",
     body: "我在这里生活两年，也是在校学生，更清楚该去哪拍、怎么走、哪段路更适合你。",
-    image: galleryPhotos[2],
   },
   {
     eyebrow: "05 / Mood",
     title: "稳定、耐心，也好相处",
     body: "拍摄过程会轻松一点。我可以帮你扛东西和器材，也可以像摄影搭子一样一起行动。",
-    image: galleryPhotos[4],
   },
   {
     eyebrow: "06 / Companion",
     title: "可以像地陪一样带你玩",
     body: "如果你愿意，我也可以顺路带你吃吃喝喝，把拍摄变成半天城市散步。",
-    image: galleryPhotos[5],
   },
   {
     eyebrow: "07 / Clear rules",
     title: "规则提前写清楚",
     body: "价格、交付、取消和额外费用都会提前确认，网站和小红书也会持续写清楚。",
-    image: coverPhoto,
   },
   {
     eyebrow: "08 / Travel",
     title: "全欧可飞，也接受亚洲旅拍",
     body: "你承担对应路费、住宿、门票等成本，我就可以配合远距离路线和旅拍计划。",
-    image: galleryPhotos[3],
   },
 ]
 
@@ -681,204 +637,6 @@ const serviceTypes = [
 const languageItems = ["中文", "English", "粤语"]
 
 const briefItems = ["人数", "日期", "大概地点", "想拍的样式"]
-
-const fallbackMomentCards: MomentCard[] = [
-  {
-    ...coverPhoto,
-    title: "Florence overlook",
-    place: "Italy / Florence",
-    note: "旅途中停下来的一段城市视角。",
-    featured: true,
-    tags: ["意大利", "旅行感", "城市漫步"],
-  },
-  {
-    ...galleryPhotos[2],
-    title: "City walk portrait",
-    place: "Helsinki / street",
-    note: "不强摆，边走边拍的日常感。",
-    featured: false,
-    tags: ["赫尔辛基", "城市漫步", "自然街拍"],
-  },
-  {
-    ...galleryPhotos[1],
-    title: "Soft portrait",
-    place: "Nordic light",
-    note: "更安静、靠近人的 portrait。",
-    featured: false,
-    tags: ["自然街拍", "旅行感"],
-  },
-  {
-    ...galleryPhotos[3],
-    title: "Travel portrait",
-    place: "Europe",
-    note: "适合旅拍、游客照和社交平台画幅。",
-    featured: true,
-    tags: ["旅行感", "城市漫步"],
-  },
-  {
-    ...galleryPhotos[4],
-    title: "Editorial mood",
-    place: "Style group",
-    note: "我最满意的视觉方向之一。",
-    featured: true,
-    tags: ["自然街拍", "旅行感"],
-  },
-  {
-    ...galleryPhotos[5],
-    title: "Campus / daily",
-    place: "Helsinki / Aalto",
-    note: "适合校园写真、毕业记录和学生日常。",
-    featured: false,
-    tags: ["赫尔辛基", "校园", "自然街拍"],
-  },
-]
-
-const fallbackMomentGroups: MomentGroup[] = [
-  {
-    id: "fallback-florence",
-    title: "Lijie",
-    place: "Florence",
-    note: "旅行路线上停下来的一组城市人像。",
-    featured: true,
-    tags: ["意大利", "旅行感", "城市漫步"],
-    photos: [fallbackMomentCards[0], fallbackMomentCards[3], fallbackMomentCards[4]],
-  },
-  {
-    id: "fallback-helsinki",
-    title: "City walk",
-    place: "Helsinki",
-    note: "边走边拍，把人和地点放在同一组里。",
-    tags: ["赫尔辛基", "自然街拍"],
-    photos: [fallbackMomentCards[1], fallbackMomentCards[2], fallbackMomentCards[5]],
-  },
-]
-
-const localOuterMomentGroup: MomentGroup = {
-  id: "quiet-travel-notes",
-  title: "Europe",
-  place: "Europe",
-  note: "",
-  tags: ["旅行感", "自然片段"],
-  photos: [
-    {
-      id: "dsc07258-local",
-      src: "/photo-session/dsc07258-1280.jpg",
-      alt: "A travel portrait beside turquoise mountain water",
-      title: "Europe",
-      place: "Europe",
-      note: "",
-      tags: ["旅行感", "自然片段"],
-    },
-    {
-      id: "dsc09183-local",
-      src: "/photo-session/dsc09183-2-1280.jpg",
-      alt: "A warm low-light portrait of a person reading during travel",
-      title: "Europe",
-      place: "Europe",
-      note: "",
-      tags: ["旅行感", "低光"],
-    },
-  ],
-}
-
-const extraWhyMePhotos: MomentCard[] = [
-  {
-    id: "why-me-dsc06766",
-    src: "/photo-session/dsc06766-1280.jpg",
-    alt: "A mountain portrait with a camera in a flower field",
-    title: "Why me",
-    place: "Travel route",
-    note: "旅行环境里的人和风景。",
-    tags: ["旅拍", "环境人像"],
-  },
-  {
-    id: "why-me-dsc06071",
-    src: "/photo-session/dsc06071-1280.jpg",
-    alt: "A wide mountain travel portrait overlooking a lake",
-    title: "Why me",
-    place: "Travel route",
-    note: "开阔风景里保留人的比例。",
-    tags: ["旅拍", "环境人像"],
-  },
-]
-
-const testimonials: Testimonial[] = [
-  {
-    quote: "一开始其实很担心自己不会拍照，但现场不是那种被命令摆姿势的感觉。会边走边调整动作，也会告诉我手放哪里、看哪里，最后照片比我平时自拍自然很多。",
-    name: "Z. Li",
-    context: "第一次单人约拍",
-  },
-  {
-    quote: "路线不是把景点一个个打卡，而是会看光线和我们当时的状态。拍完有一些远景，也有很多聊天走路时抓到的瞬间，比较像真的旅行记忆。",
-    name: "Rico",
-    context: "瑞士旅拍",
-  },
-  {
-    quote: "我不太喜欢太正式的毕业照，所以重点放在校园、衣服和当天的情绪上。成片没有很僵，也保留了学校环境，发给家里人和朋友都很合适。",
-    name: "H. Jia",
-    context: "校园 / 毕业记录",
-  },
-  {
-    quote: "沟通的时候会把价格、加钱项和交付讲清楚，所以拍之前没有那种不确定感。现场也会帮忙看包、看衣服，整体更像有人一起把这件事照顾好。",
-    name: "D. Wang",
-    context: "旅行人像",
-  },
-  {
-    quote: "我只给了大概想去的地点，最后路线被重新排过，基本没有把时间浪费在乱走上。照片里既有地点，也有人在里面的状态。",
-    name: "Junjie",
-    context: "旅途中记录",
-  },
-  {
-    quote: "收到图以后最喜欢的是那些没有刻意看镜头的照片。它们不是模板照，更像那天真的发生过的片段，这一点对我来说很重要。",
-    name: "M. Chen",
-    context: "自然街拍",
-  },
-]
-
-const packages = [
-  {
-    name: "单人",
-    price: "EUR 99",
-    note: "2 小时",
-  },
-  {
-    name: "双人 / 情侣",
-    price: "EUR 139",
-    note: "2 小时",
-  },
-  {
-    name: "三人",
-    price: "EUR 169",
-    note: "2 小时",
-  },
-  {
-    name: "四人及以上",
-    price: "另议",
-    note: "按人数和路线确认",
-  },
-]
-
-const includedItems = [
-  "拍摄前路线和风格沟通",
-  "2 小时拍摄与动作引导",
-  "筛选后 JPG 底片",
-  "9 张精修",
-  "9 张精修图对应 RAW 文件",
-]
-
-const boundaryItems = [
-  "续时 EUR 40 / 小时；额外精修 EUR 2 / 张",
-  "下雪或小雨如确认继续拍摄，加 EUR 5 / 小时",
-  "旅拍、远距离地点、门票和交通费需实报实销",
-  "精心二次后期后仍不满意，可以要求退款",
-  "妆发需自理；未经同意不会公开发布照片",
-]
-
-const bookingProcessItems = [
-  "私信沟通并选定套餐",
-  "约定时间和地点，拍摄当天提前会合",
-  "拍完后五天以内返回照片；加钱可加急",
-]
 
 const faqs = [
   {
@@ -1112,14 +870,14 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
       <div ref={viewport} className={introStyles.viewport}>
         <div ref={track} className={introStyles.track}>
           {lines.map((line, index) => {
-            const photo = photos[index % photos.length]
+            const photo = photos.length ? photos[index % photos.length] : null
             return <figure key={index} className={introStyles.spread} data-personal-spread>
-              <button type="button" className={introStyles.photograph} style={{ "--intro-ratio": photoRatios[photo.src] || 1.5 } as CSSProperties} data-intro-photo onClick={() => onOpen(photo)} onFocus={event => focusSpread(index, event.currentTarget)} aria-label={photo.alt}>
+              {photo&&<button type="button" className={introStyles.photograph} style={{ "--intro-ratio": photoRatios[photo.src] || 1.5 } as CSSProperties} data-intro-photo onClick={() => onOpen(photo)} onFocus={event => focusSpread(index, event.currentTarget)} aria-label={photo.alt}>
                 <SessionImage src={photo.src} alt={photo.alt} onLoad={({ currentTarget }) => {
                   const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
                   if (Number.isFinite(ratio) && ratio > 0) setPhotoRatios(previous => previous[photo.src] === ratio ? previous : { ...previous, [photo.src]: ratio })
                 }} />
-              </button>
+              </button>}
               <figcaption><span className={introStyles.folio} aria-hidden="true">{String(index + 1).padStart(2, "0")} / {String(lines.length).padStart(2, "0")}</span><p>{line}</p></figcaption>
             </figure>
           })}
@@ -1141,7 +899,7 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
   useScrollFocus("process",stepRefs,setActiveStepIndex,locale,.42)
   const displayShootSteps = shootSteps.map((step,index) => ({...step,title:copy.process.steps[index]?.title || step.title,body:copy.process.steps[index]?.body || step.body}))
   const activeStep = displayShootSteps[activeStepIndex] || displayShootSteps[0]
-  const activeShootPhoto = photos[activeStepIndex % photos.length] || activeStep.image
+  const activeShootPhoto = photos.length ? photos[activeStepIndex % photos.length] : null
   return (
       <section id="process" className="bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
         <div className="mx-auto max-w-7xl">
@@ -1200,7 +958,7 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
             </div>
 
           <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-8rem)] flex items-center justify-center">
-            <ScrollPhoto photos={photos} activePhoto={activeShootPhoto} onOpen={onOpen} />
+            {activeShootPhoto&&<ScrollPhoto photos={photos} activePhoto={activeShootPhoto} onOpen={onOpen} />}
           </div>
           </div>
         </div>
@@ -1276,7 +1034,7 @@ export function HelsinkiPhotoSession() {
   const [isEntering, setIsEntering] = useState(true)
   const [isLeaving, setIsLeaving] = useState(false)
   const [activeLocationId, setActiveLocationId] = useState(locations[0].id)
-  const [momentGroups, setMomentGroups] = useState<MomentGroup[]>(fallbackMomentGroups)
+  const [momentGroups, setMomentGroups] = useState<MomentGroup[]>(() => bookingPortraitGroups(curation,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top"))
   const [whyMePhotos, setWhyMePhotos] = useState<MomentCard[]>([])
   const [selectedPackageIndex, setSelectedPackageIndex] = useState(0)
   const [isEmailFormOpen, setIsEmailFormOpen] = useState(false)
@@ -1315,48 +1073,27 @@ export function HelsinkiPhotoSession() {
   const activeDisplayLocation = displayLocations.find((location) => location.id === activeLocationId) ?? displayLocations[0]
   const selectedPackage = copy.pricing.packages[selectedPackageIndex] ?? copy.pricing.packages[0]
   const sessionSeries = useMemo(
-    () => selectMomentSeries([localOuterMomentGroup, ...momentGroups], pageLocale, curation),
+    () => selectMomentSeries(momentGroups, pageLocale, curation),
     [momentGroups, pageLocale, curation],
   )
-  const selectedCover = curation.keptPortraits[0]
-  const displayCover: Photo = curationVisible(curation,coverPhoto) ? coverPhoto
-    : selectedCover ? { id: `portrait-${selectedCover.id}`, src: photoSource(selectedCover.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280), alt: selectedCover.title || "Portrait photograph" }
-    : sessionSeries[0]?.photos[0] || { id: "empty-portrait", src: "/placeholder.svg", alt: "" }
-  const lijiePhotos = useMemo(() => (momentGroups.find((group) => group.id === "lijie" || (group.curated && group.title.toLowerCase() === "lijie"))?.photos ?? []).filter(photo => curationVisible(curation,photo)), [momentGroups,curation])
-  const aboutPhoto = useMemo(() => {
-    return lijiePhotos[0] || (curationVisible(curation,coverPhoto) ? coverPhoto : { id: "empty-self", src: "/placeholder.svg", alt: "" })
-  }, [lijiePhotos, curation])
+  const approvedPortraits = useMemo(() => showcasePortraits(curation.keptPortraits,curation.keptPortraits.length),[curation])
+  const selectedCover = approvedPortraits.find(photo=>(photo.tags || []).includes("display:hero")) || approvedPortraits[0]
+  const approvedHero = curation.featuredAssets.find(asset=>asset.id===-1&&curationFeatured(curation,asset))
+  const displayCover: Photo | null = approvedHero ? {id:String(approvedHero.id),src:approvedHero.source,alt:approvedHero.title} : selectedCover ? { id:`portrait-${selectedCover.id}`,src:photoSource(selectedCover.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280),alt:selectedCover.title || "Portrait photograph" } : null
   const aboutVisualPhotos = useMemo(() => {
-    const seen = new Set<string>()
-    const photos = (lijiePhotos.length > 0 ? lijiePhotos : [aboutPhoto]).filter((photo) => {
-      if (!photo?.src || !curationVisible(curation,photo) || seen.has(photo.src)) return false
-      seen.add(photo.src)
-      return true
-    })
-    return photos.length > 0 ? photos : [aboutPhoto]
-  }, [aboutPhoto, lijiePhotos, curation, displayCover.src])
-  const shootVisualPhotos = useMemo(() => {
-    const fallbackPhotos = shootSteps.map((step, index) => {
-      const extraIndex = index - (shootSteps.length - extraWhyMePhotos.length)
-      return extraWhyMePhotos[extraIndex] ?? step.image
-    })
-    const basePhotos = whyMePhotos.length > 0 ? [...whyMePhotos, ...extraWhyMePhotos, ...fallbackPhotos] : fallbackPhotos
-    const seen = new Set<string>()
-    return basePhotos.filter((photo) => {
-      if (!photo.src || !curationVisible(curation,photo) || seen.has(photo.src)) return false
-      seen.add(photo.src)
-      return true
-    }).slice(0, shootSteps.length)
-  }, [whyMePhotos, curation])
+    const own = curation.keptPortraits.filter(photo=>(photo.tags || []).some(tag=>/^model:lijie$/i.test(tag)))
+    return own.map(photo=>({id:`portrait-${photo.id}`,src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280),alt:photo.title || "Lijie Li"}))
+  },[curation])
+  const shootVisualPhotos = useMemo(() => approvedPortraits.slice(0,shootSteps.length).map(photo=>({id:`portrait-${photo.id}`,src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280),alt:photo.title || "Portrait photograph"})),[approvedPortraits])
   const allPhotos = useMemo(() => {
     const seen = new Set<string>()
-    return [displayCover, ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]
+    return [...(displayCover?[displayCover]:[]), ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]
       .filter(photo => {
-        if (!curationVisible(curation,photo) || seen.has(photo.src)) return false
+        if (!curationFeatured(curation,photo) || seen.has(photo.src)) return false
         seen.add(photo.src)
         return true
       })
-  }, [sessionSeries, aboutVisualPhotos, shootVisualPhotos, curation, displayCover.src])
+  }, [sessionSeries, aboutVisualPhotos, shootVisualPhotos, curation, displayCover?.src])
   const openPhoto = (photo: Photo, trigger?: HTMLButtonElement) => {
     const index = allPhotos.findIndex(item => item.src === photo.src)
     if (index < 0) return
@@ -1763,14 +1500,14 @@ export function HelsinkiPhotoSession() {
       </button>
 
       <section id="session-hero" className="relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#050505] text-white">
-        <SessionImage
+        {displayCover&&<SessionImage
           src={displayCover.src}
           alt={displayCover.alt}
           loading="eager"
           fetchPriority="high"
           sizes="100vw"
           className="absolute inset-0 h-full w-full object-cover opacity-75"
-        />
+        />}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.86)_0%,rgba(0,0,0,0.48)_48%,rgba(0,0,0,0.14)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.92))]" />
 

@@ -4,6 +4,8 @@ import PortfolioDetail from "@/components/portfolio-detail"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { supabasePublic } from "@/utils/supabase-public.server"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
+import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
+import { curationVisible } from "@/lib/photo-curation"
 import { photoSource } from "@/lib/portfolio-photo-source"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
@@ -122,7 +124,8 @@ export default async function WorkPage({
 
   console.log(`Found ${pictures?.length || 0} pictures for set ID: ${setId}`)
 
-  const rawPictures = pictures || []
+  const curation = await getPhotoCurationVisibility()
+  const rawPictures = (pictures || []).filter(picture=>curationVisible(curation,picture))
   if (rawPictures.length === 0) {
     console.log("No pictures found, returning 404")
     notFound()
@@ -271,7 +274,8 @@ export default async function WorkPage({
 
   const resolvedLocations = [...locations]
   const pictureIndex = resolvedSearchParams?.pictureId ? images.findIndex(image => String(image.id) === resolvedSearchParams.pictureId) : -1
-  const requestedIndex = Number.parseInt(resolvedSearchParams?.index || "0",10)
+  const coverIndex=images.findIndex(image=>image.id===curation.covers[Number(setId)]?.id)
+  const requestedIndex = Number.parseInt(resolvedSearchParams?.index || String(Math.max(0,coverIndex)),10)
   const initialIndex = pictureIndex >= 0 ? pictureIndex : Math.max(0,Math.min(Number.isFinite(requestedIndex)?requestedIndex:0,images.length-1))
   const firstPreview = photoSource(images[initialIndex].url,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280)
 
@@ -280,6 +284,7 @@ export default async function WorkPage({
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <PortfolioDetail
         id={setId}
+        initialPictureId={resolvedSearchParams?.index?null:curation.covers[Number(setId)]?.id}
         images={images}
         translations={setEntry}
         locations={resolvedLocations}

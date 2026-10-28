@@ -13,6 +13,7 @@ import styles from "./portfolio-viewer.module.css"
 interface LocalizedContent { title?: string; subtitle?: string; description?: string }
 interface PortfolioDetailProps {
   id: string
+  initialPictureId?: number | null
   images: CarouselImage[]
   translations: { en: LocalizedContent; zh: LocalizedContent }
   locations?: unknown[]
@@ -47,10 +48,10 @@ function PhotoOverview({ images, currentIndex, title, open, onOpenChange, onSele
   </Drawer>
 }
 
-export default function PortfolioDetail({ images, translations, locations = [], returnContext, viewSetContext = null }: PortfolioDetailProps) {
+export default function PortfolioDetail({ images, initialPictureId, translations, locations = [], returnContext, viewSetContext = null }: PortfolioDetailProps) {
   const reduced = useReducedMotion()
   const searchParams = useSearchParams()
-  const requestedId = searchParams.get("pictureId")
+  const requestedId = searchParams.get("pictureId") || (initialPictureId!=null?String(initialPictureId):null)
   const pictureIndex = requestedId ? images.findIndex(image => String(image.id) === requestedId) : -1
   const requestedIndex = pictureIndex >= 0 ? pictureIndex : Number.parseInt(searchParams.get("index") || "0", 10)
   const initialIndex = Math.max(0, Math.min(Number.isFinite(requestedIndex) ? requestedIndex : 0, images.length - 1))

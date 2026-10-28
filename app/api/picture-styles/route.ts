@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { supabasePublic } from "@/utils/supabase-public.server"
+import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
 import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
 
 export const runtime = "nodejs"
@@ -53,6 +54,11 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url)
     const styleParam = searchParams.get("style")
+    const featuredOnly=searchParams.get("featured")==="1"
+    const requestedPictureId=Number(searchParams.get("pictureId") || 0)
+    const curation=await getPhotoCurationVisibility()
+    const approved=new Set(curation.featuredIds)
+    const hidden=new Set(curation.ids)
     const targetStyles = styleParam
       ? PHOTOGRAPHY_STYLES.filter((style) => style.id === styleParam)
       : PHOTOGRAPHY_STYLES
@@ -171,7 +177,7 @@ export async function GET(request: Request) {
     for (const styleId of styleIds) {
       const rawIds = Array.from(pictureIdsByStyle[styleId] || new Set<number>())
       candidateIdsByStyle[styleId] = rawIds
-        .filter((id) => Number.isFinite(id) && id > 0)
+        .filter((id) => Number.isFinite(id) && id > 0 && !hidden.has(id) && (!featuredOnly || approved.has(id)))
         .slice(0, MAX_PICTURES_PER_STYLE * 3)
     }
 
@@ -187,10 +193,15 @@ export async function GET(request: Request) {
       const recentIds = (recentRows || [])
         .filter((row: any) => row && row.image_url && row.is_published === true)
         .map((row: any) => row.id as number)
-        .filter((id: number) => Number.isFinite(id) && id > 0)
+        .filter((id: number) => Number.isFinite(id) && id > 0 && !hidden.has(id) && (!featuredOnly || approved.has(id)))
       candidateIdsByStyle[RECENT_STYLE_ID] = recentIds
     }
 
+    // Keep the clicked approved preview in the full style viewer even beyond its usual first 80 frames.
+    for(const styleId of styleIds) {
+      const valid=(pictureIdsByStyle[styleId]?.has(requestedPictureId) || candidateIdsByStyle[styleId]?.includes(requestedPictureId)) && !hidden.has(requestedPictureId) && (!featuredOnly || approved.has(requestedPictureId))
+      if(requestedPictureId>0 && valid)candidateIdsByStyle[styleId]=[requestedPictureId,...candidateIdsByStyle[styleId].filter(id=>id!==requestedPictureId)]
+    }
     const allPictureIds = Array.from(
       new Set(Object.values(candidateIdsByStyle).flat()),
     )
@@ -412,7 +423,7 @@ export async function GET(request: Request) {
           id: relatedSet.id as number,
           title: relatedSet.title || "",
             subtitle: relatedSet.subtitle || "",
-            coverImageUrl: relatedSet.cover_image_url || null,
+            coverImageUrl: curation.covers[relatedSet.id]?.src || null,
             translations: {
               en: setTranslation?.en || { title: relatedSet.title || "", subtitle: relatedSet.subtitle || "", description: relatedSet.description || "" },
               zh: setTranslation?.zh || { title: "", subtitle: "", description: "" },
@@ -429,7 +440,7 @@ export async function GET(request: Request) {
         if (dateDiff !== 0) return dateDiff
         return (b.orderIndex ?? 0) - (a.orderIndex ?? 0)
       })
-      picturesByStyle[styleId] = payload.slice(0, MAX_PICTURES_PER_STYLE)
+      picturesByStyle[styleId] = [...payload.filter(photo=>photo.id===requestedPictureId),...payload.filter(photo=>photo.id!==requestedPictureId)].slice(0, MAX_PICTURES_PER_STYLE)
     }
 
     const response = targetStyles.reduce<Record<string, { id: string; tagName: string; pictures: PicturePayload[] }>>((acc, style) => {

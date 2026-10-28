@@ -1,3 +1,5 @@
+import { revalidatePath, revalidateTag } from "next/cache"
+import { photoCurationTag } from "@/lib/photo-curation.server"
 import { headers as requestHeaders } from "next/headers"
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
@@ -625,6 +627,7 @@ export async function POST(request: Request) {
     if (asyncEnrich) {
       triggerAsyncEnrich(picture_set_id, payload, request.headers.get("authorization"))
     }
+    revalidateTag(photoCurationTag);revalidatePath("/","layout")
     return NextResponse.json({ id: picture_set_id })
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })

@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..')
 const modules = new Map()
 let auth = { ok: false, status: 401, error: 'No session' }
 let calls = 0, stale = false, applied, invalidated = []
+let textureFetches=0
 const stamp = '2026-10-28T01:00:00.123456+00:00'
 const tables = {
   pictures: Array.from({length:1001},(_,index)=>({ id:index+1,picture_set_id:8,title:`Original ${index+1}`,image_url:`/picture/responsive/frame-${index+1}-DSC00111/original.webp`,is_published:true,updated_at:stamp,order_index:index })),
@@ -30,6 +31,7 @@ const client = {
     calls++
     if(name==='portfolio_curation_index')return {data:[{picture_id:1,state:'keep',reviewed_at:stamp,image_width:640,image_height:960}],error:null}
     if(name==='portfolio_curation_assets_index')return {data:[{id:-1,source_url:'/photo-session/cover.jpg',preview_url:'/photo-session/cover-640.webp',detail_url:'/photo-session/cover-1280.webp',title:'cover',updated_at:stamp,reviewed_at:null,state:'unreviewed',image_width:640,image_height:426}],error:null}
+    if(name==='portfolio_curation_catalog')return {data:{ids:[2],assets:[],photos:[{id:1,src:'/picture/responsive/approved/original.webp'},{id:2,src:'/picture/responsive/deleted/original.webp'},{id:3,src:'https://unapproved.example.invalid/private.webp'}]},error:null}
     if(name==='apply_portfolio_curation'){applied=args;return stale?{data:null,error:{code:'40001'}}:{data:{changed:args.p_changes.length},error:null}}
     throw new Error(`Unexpected RPC ${name}`)
   },
@@ -41,7 +43,7 @@ function load(relative) {
   const output=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true,allowJs:true}}).outputText
   const requireLocal=name=>{
     if(name==='server-only')return {}
-    if(name==='next/server')return {NextResponse:{json:(body,init)=>new Response(JSON.stringify(body),{...init,headers:{'content-type':'application/json',...(init?.headers||{})}})}}
+    if(name==='next/server')return {NextResponse:class extends Response{static json(body,init){return new Response(JSON.stringify(body),{...init,headers:{'content-type':'application/json',...(init?.headers||{})}})}}}
     if(name==='next/cache')return {unstable_cache:fn=>fn,revalidateTag:tag=>invalidated.push(tag),revalidatePath:value=>invalidated.push(value)}
     if(name==='@/utils/admin-auth.server')return {requireAdminRequest:async()=>auth}
     if(name==='@/utils/supabaseAdmin')return {supabaseAdmin:client}
@@ -49,7 +51,7 @@ function load(relative) {
     if(base){for(const ext of ['.ts','.tsx','.js'])if(fs.existsSync(path.join(root,base+ext)))return load(base+ext)}
     throw new Error(`Unexpected dependency ${name}`)
   }
-  vm.runInNewContext(`(function(require,module,exports){${output}\n})`,{console,process:{env:{NEXT_PUBLIC_BUCKET_URL:'https://images.example.invalid'}},URL,Request,Response,Headers},{filename})(requireLocal,module,module.exports)
+  vm.runInNewContext(`(function(require,module,exports){${output}\n})`,{console,process:{env:{NEXT_PUBLIC_BUCKET_URL:'https://images.example.invalid'}},URL,Request,Response,Headers,AbortSignal,fetch:async(url,options)=>{textureFetches++;assert.equal(new URL(url).origin,'https://images.example.invalid');assert.equal(options.redirect,'error');return new Response(new Uint8Array([1,2,3]),{headers:{'content-type':'image/webp',etag:'"texture-test"'}})}},{filename})(requireLocal,module,module.exports)
   return module.exports
 }
 const request=body=>new Request('https://portfolio.example.invalid/api/admin/photo-curation',{method:'POST',headers:{'content-type':'application/json'},body:typeof body==='string'?body:JSON.stringify(body)})
@@ -65,24 +67,44 @@ async function main(){
   assert.equal(helper.curationVisible({ids:[-2],keptPortraits:[]},{src:'/photo-session/optimized/master1-1280.webp'}),false)
   assert.notEqual(helper.curationAssetFamily('/picture/responsive/a-DSC00111/w640.webp'),helper.curationAssetFamily('/picture/responsive/b-DSC00111/w640.webp'))
   const selector=load('lib/photo-session-series.ts')
-  const empty={ids:[],keptPortraits:[]}
-  const baseline=selector.selectMomentSeries([], 'zh', empty)
-  const ziyang=baseline.find(group=>group.id==='ziyang-stockholm')
-  const untouched=ziyang.photos.filter(photo=>photo.id!=='portrait-2829').map(photo=>photo.id)
-  const curated={id:'curated-shoot',title:'Ziyang',place:'Stockholm',note:'',tags:[],curated:true,replaces:['ziyang-stockholm'],photos:[{id:'portrait-999',src:'/new.webp',sourceName:'NEW-FRAME',title:'',place:'Stockholm',note:'',tags:[],alt:'New favorite'}]}
-  const merged=selector.selectMomentSeries([curated],'zh',{ids:[2829],keptPortraits:[]}).find(group=>group.id==='curated-shoot')
-  assert.ok(merged.photos.some(photo=>photo.id==='portrait-999'))
-  for(const id of untouched)assert.ok(merged.photos.some(photo=>photo.id===id),'Excellent picks suppressed an unmarked photograph')
-  assert.ok(!merged.photos.some(photo=>photo.id==='portrait-2829'))
+  const empty={ids:[],featuredIds:[],keptPortraits:[],featuredAssets:[],covers:{},selectedCover:null}
+  const fixturePhoto={id:999,src:'/picture/responsive/favorite/original.webp',title:'Favorite',width:640,height:960,setId:9,tags:['model:Example','location:helsinki'],order:0}
+  const featured={...empty,featuredIds:[999],keptPortraits:[fixturePhoto]}
+  assert.equal(helper.curationFeatured(empty,fixturePhoto),false,'Unrated images must not enter a showcase')
+  assert.equal(helper.curationFeatured(featured,fixturePhoto),true)
+  assert.equal(helper.curationFeatured({...featured,ids:[999]},fixturePhoto),false,'Trash overrides stale approved IDs')
+  assert.equal(helper.curationFeatured(featured,{src:'/unknown.webp'}),false,'Unknown sources must not become fallback photos')
+  assert.equal(helper.curationFeatured(featured,{src:'https://images.example.invalid/picture/responsive/favorite/w640.webp'}),true)
+  const curated={id:'curated-shoot',title:'Example',place:'Helsinki',note:'',tags:[],curated:true,photos:[{id:'portrait-999',src:fixturePhoto.src,title:'',place:'',note:'',tags:[],alt:'Favorite'},{id:'portrait-998',src:'/unrated.webp',title:'',place:'',note:'',tags:[],alt:'Unrated'}]}
+  assert.equal(selector.selectMomentSeries([], 'zh', empty).length,0,'No old static booking series may be resurrected')
+  const strictSeries=selector.selectMomentSeries([curated], 'zh', featured)
+  assert.deepEqual(Array.from(strictSeries[0].photos,photo=>photo.id),['portrait-999'])
+  assert.equal(selector.bookingPortraitGroups(featured,'https://images.example.invalid').flatMap(group=>group.photos).length,1)
   const book=load('lib/curated-portrait-book.ts')
-  assert.equal(book.curatedPortraitBookPages(empty,'https://images.example.invalid').flat().length,12)
-  const hiddenBook=book.curatedPortraitBookPages({ids:[2830],keptPortraits:[]},'https://images.example.invalid').flat()
-  assert.equal(hiddenBook.length,11)
-  assert.ok(!hiddenBook.some(photo=>photo.src.includes('DSC04154')))
-  const preferred=book.curatedPortraitBookPages({ids:[],keptPortraits:[{id:999,src:'/picture/responsive/favorite/original.webp',title:'Favorite',width:640,height:960}]},'https://images.example.invalid')
+  assert.equal(book.curatedPortraitBookPages(empty,'https://images.example.invalid').flat().length,0,'Empty approved pool must not restore the old book')
+  const preferred=book.curatedPortraitBookPages(featured,'https://images.example.invalid')
+  assert.equal(preferred.flat().length,1)
   assert.equal(preferred[0][0].height,960)
-  assert.ok(preferred[0][0].src.includes('favorite/w640.webp'))
+  assert.ok(preferred[0][0].src.includes('pictureId=999&width=640'),'WebGL book images must use the approved same-origin texture endpoint')
+  const varied=[...Array.from({length:6},(_,i)=>({...fixturePhoto,id:100+i,tags:['model:A']})),...Array.from({length:6},(_,i)=>({...fixturePhoto,id:200+i,tags:['model:B']}))]
+  assert.deepEqual(Array.from(selector.showcasePortraits(varied,4),photo=>photo.tags[0]),['model:A','model:B','model:A','model:B'],'Book pages should sample different tagged shoots before repeating one person')
+  const catalog=load('lib/photo-curation-catalog.ts')
+  const visibility=catalog.catalogVisibility({ids:[4],assets:[],photos:[
+    {...fixturePhoto,id:1,setId:1,setPublished:true,booking:false,setCoverSrc:'/unrated-cover.webp',tags:[],order:0},
+    {...fixturePhoto,id:2,setId:1,setPublished:true,booking:false,setCoverSrc:'/unrated-cover.webp',tags:['display:cover'],order:1},
+    {...fixturePhoto,id:3,setId:2,setPublished:false,booking:true,setCoverSrc:null,tags:[],order:0},
+    {...fixturePhoto,id:4,setId:1,setPublished:true,booking:false,setCoverSrc:null,tags:[],order:0}]})
+  assert.equal(visibility.covers[1].id,2)
+  assert.equal(visibility.covers[2],undefined,'Private portrait parent must not become a normal public collection')
+  assert.ok(!visibility.featuredIds.includes(4))
+  const covers=catalog.withFeaturedCovers([{id:1,cover_image_url:'/old.webp'},{id:8,cover_image_url:'/unrated.webp'}],visibility)
+  assert.equal(covers[0].cover_image_url,fixturePhoto.src)
+  assert.equal(covers[1].cover_image_url,'','Unrated-only collections must have no photo cover')
+  assert.equal(helper.curationVisible(visibility,{id:998}),true,'Unrated photos remain available to ordinary portfolio views')
+  assert.equal(catalog.selectedCollection(visibility).id,0)
   const series=load('lib/photo-series.ts')
+  assert.equal(series.curationGroup(112,'Portrait Booking Samples','',['model:A']).id,'portrait-pool')
+  assert.equal(series.curationGroup(120,'Other title','',['portrait-library','model:B']).id,'portrait-pool')
   assert.equal(series.photoSeries(9,'','',['model:David','series:same-trip','location:appenzell']).id,series.photoSeries(9,'','',['model:David','series:same-trip','location:switzerland']).id)
   assert.notEqual(series.photoSeries(9,'','',['model:Hongjia','series:cherry']).id,series.photoSeries(9,'','',['model:Hongjia','series:alps']).id)
   const route=load('app/api/admin/photo-curation/route.ts')
@@ -111,6 +133,17 @@ async function main(){
   assert.ok(invalidated.includes('portfolio-photo-curation')&&invalidated.includes('/'))
   stale=true
   assert.equal((await route.POST(request({changes:[row]}))).status,409)
-  console.log(JSON.stringify({authenticatedOnly:true,invalidBatchesRejected:true,unmarkedIdsUntouched:true,zeroTrashOneExcellent:true,staticCopiesBoundToExactRecords:true,libraryPagination:'1001 DB + 1 static',tagPagination:true,concurrentChangeConflict:409,publicCacheInvalidation:true},null,2))
+  const texture=load('app/api/photo-texture/route.ts')
+  const textureRequest=params=>new Request('https://portfolio.example.invalid/api/photo-texture?'+params)
+  assert.equal((await texture.GET(textureRequest('pictureId=1&width=9999'))).status,400)
+  assert.equal((await texture.GET(textureRequest('pictureId=-1'))).status,400)
+  assert.equal((await texture.GET(textureRequest('pictureId=2'))).status,404)
+  assert.equal((await texture.GET(textureRequest('pictureId=3'))).status,404,'Texture endpoint must not fetch arbitrary origins')
+  assert.equal((await texture.GET(textureRequest('pictureId=999'))).status,404)
+  assert.equal(textureFetches,0)
+  const image=await texture.GET(textureRequest('pictureId=1&width=640&src=http://127.0.0.1/private'))
+  assert.equal(image.status,200);assert.equal(image.headers.get('content-type'),'image/webp')
+  assert.equal(image.headers.get('cross-origin-resource-policy'),'same-origin');assert.equal(textureFetches,1)
+  console.log(JSON.stringify({authenticatedOnly:true,invalidBatchesRejected:true,unmarkedIdsUntouched:true,zeroTrashOneExcellent:true,staticCopiesBoundToExactRecords:true,libraryPagination:'1001 DB + 1 static',tagPagination:true,bookingOnlyRatedOne:true,noStaticFallback:true,coversOnlyRatedOne:true,unratedArchivePreserved:true,pooledPortraitLibrary:true,balancedShowcase:true,sameOriginTexturesApprovedOnly:true,textureProxyCannotFetchArbitraryUrls:true,concurrentChangeConflict:409,publicCacheInvalidation:true},null,2))
 }
 main().catch(error=>{console.error(error);process.exitCode=1})

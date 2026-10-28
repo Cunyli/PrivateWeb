@@ -180,3 +180,7 @@
 .styleElasticSurface button:focus-visible { outline: 2px solid rgb(255 255 255 / .9); outline-offset: -5px; }
 @media (min-width: 768px) { .styleElasticStage { position: relative; display: block; margin-block: -28px; padding-block: 28px; } }
 @media (prefers-reduced-motion: reduce) { .styleElasticSurface { transform: none !important; } }
+
+.emptyCollection{display:grid;place-content:center;position:absolute;inset:0;padding:20px;background:#ecefea;color:#536058;font-family:"Portfolio Hanken",sans-serif;font-size:clamp(16px,2vw,28px);font-weight:450;letter-spacing:-.04em;text-align:center}.archiveTile:has(.emptyCollection){min-height:210px}
+
+.tile[data-featured-collection="true"] .tileCaption{opacity:1;transform:none}
