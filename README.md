@@ -29,7 +29,7 @@ utils/                       Supabase, R2, auth, and server helpers
 
 ## Prerequisites
 
-- Node.js 22 or newer recommended (20.9 is the minimum supported by the image library)
+- Node.js 22 or newer (required by Supabase JS 2.118.0)
 - pnpm
 - A Supabase project
 - An R2/S3-compatible bucket for uploaded images
@@ -118,7 +118,7 @@ Run the SQL files in `docs/` from the Supabase SQL Editor as needed:
 - `docs/upgrade-picture-embeddings-1024.sql`: 1024-dimensional vector embeddings and matching RPC.
 - `docs/ai-tasks.sql`: private AI/work task table used by the authenticated `/ai-feed` workspace.
 
-The current security setup also requires `docs/supabase-security-hardening-20261028.sql` and `docs/supabase-public-budgets-20261028.sql`. These have already been applied to the linked project; review the SQL before using it on a different project. The shared budgets must exist before deploying booking and semantic search. See `docs/supabase-security-audit-20261028.md` for validation, rollback scripts and the remaining managed PostGIS/authentication advisories.
+The current security setup also requires `docs/supabase-security-hardening-20261028.sql` and `docs/supabase-public-budgets-20261028.sql`. These have already been applied to the linked project; review the SQL before using it on a different project. The shared budgets must exist before deploying booking and semantic search. See `docs/supabase-security-audit-20261028.md` for the original validation and rollback scripts. `docs/supabase-version-update-20261028.md` records the subsequent SDK/CLI updates, verified TOTP settings and remaining managed PostGIS/password-protection advisories.
 
 Semantic search also depends on the `picture_embeddings` table and `match_pictures_by_embedding` RPC described in `docs/semantic-picture-search.md`.
 
