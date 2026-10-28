@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { supabasePublic } from "@/utils/supabase-public.server"
 import { PHOTOGRAPHY_STYLES } from "@/lib/photography-styles"
+import { collectionEditorial } from "@/lib/portfolio-editorial"
+import { photoEditorial } from "@/lib/portfolio-photo-editorial.server"
 
 export const runtime = "nodejs"
 
@@ -175,7 +178,7 @@ export async function GET(request: Request) {
     }
 
     if (styleIds.includes(RECENT_STYLE_ID)) {
-      const { data: recentRows, error: recentErr } = await supabaseAdmin
+      const { data: recentRows, error: recentErr } = await supabasePublic
         .from("pictures")
         .select("id, image_url, is_published, created_at")
         .order("created_at", { ascending: false })
@@ -184,7 +187,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: recentErr.message }, { status: 500 })
       }
       const recentIds = (recentRows || [])
-        .filter((row: any) => row && row.image_url && row.is_published !== false)
+        .filter((row: any) => row && row.image_url && row.is_published === true)
         .map((row: any) => row.id as number)
         .filter((id: number) => Number.isFinite(id) && id > 0)
       candidateIdsByStyle[RECENT_STYLE_ID] = recentIds
@@ -202,7 +205,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ styles: empty })
     }
 
-    const { data: pictureRows, error: picturesErr } = await supabaseAdmin
+    const { data: pictureRows, error: picturesErr } = await supabasePublic
       .from("pictures")
       .select("id, picture_set_id, image_url, raw_image_url, title, subtitle, description, order_index, created_at, is_published")
       .in("id", allPictureIds)
@@ -211,21 +214,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: picturesErr.message }, { status: 500 })
     }
 
-    const publishedPictures = (pictureRows || []).filter((picture: any) => picture && picture.image_url && picture.is_published !== false)
+    const publishedPictures = (pictureRows || []).filter((picture: any) => picture && picture.image_url && picture.is_published === true)
 
     const pictureIdSet = new Set(publishedPictures.map((picture: any) => picture.id as number))
     const setIds = Array.from(new Set(publishedPictures.map((picture: any) => picture.picture_set_id as number)))
 
     let setRows: any[] = []
     if (setIds.length) {
-      const { data: setsData, error: setErr } = await supabaseAdmin
+      const { data: setsData, error: setErr } = await supabasePublic
         .from("picture_sets")
         .select("id, title, subtitle, cover_image_url, is_published")
         .in("id", setIds)
       if (setErr) {
         return NextResponse.json({ error: setErr.message }, { status: 500 })
       }
-      setRows = (setsData || []).filter((set: any) => set && set.is_published !== false)
+      setRows = (setsData || []).filter((set: any) => set && set.is_published === true)
     }
 
     const publishedSetIds = new Set(setRows.map((set) => set.id as number))
@@ -242,12 +245,12 @@ export async function GET(request: Request) {
     }
 
     const [{ data: picEn }, { data: picZh }] = await Promise.all([
-      supabaseAdmin
+      supabasePublic
         .from("picture_translations")
         .select("picture_id, title, subtitle, description")
         .eq("locale", "en")
         .in("picture_id", filteredPictureIds),
-      supabaseAdmin
+      supabasePublic
         .from("picture_translations")
         .select("picture_id, title, subtitle, description")
         .eq("locale", "zh")
@@ -341,12 +344,12 @@ export async function GET(request: Request) {
 
     const setIdsFiltered = Array.from(publishedSetIds)
     const [{ data: setEn }, { data: setZh }] = await Promise.all([
-      supabaseAdmin
+      supabasePublic
         .from("picture_set_translations")
         .select("picture_set_id, title, subtitle, description")
         .eq("locale", "en")
         .in("picture_set_id", setIdsFiltered),
-      supabaseAdmin
+      supabasePublic
         .from("picture_set_translations")
         .select("picture_set_id, title, subtitle, description")
         .eq("locale", "zh")
@@ -396,8 +399,8 @@ export async function GET(request: Request) {
         if (!picture) continue
         const relatedSet = setById.get(picture.picture_set_id as number)
         if (!relatedSet) continue
-        const translationEntry = pictureTransMap.get(picture.id as number)
-        const setTranslation = setTransMap.get(relatedSet.id as number)
+        const translationEntry = photoEditorial(picture.id) || pictureTransMap.get(picture.id as number)
+        const setTranslation = collectionEditorial(relatedSet.id) || setTransMap.get(relatedSet.id as number)
       payload.push({
         id: picture.id as number,
         pictureSetId: relatedSet.id as number,

@@ -1,4 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap");
+@font-face {
+  font-family: "Portfolio Hanken";
+  src: url("/fonts/hanken-variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -74,6 +80,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Portfolio Hanken", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
@@ -205,4 +213,14 @@
 /* 特殊的弹性动画 */
 .elastic-transition {
   transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+::selection { background: #d4ddcf; color: #232724; }
+a,button { -webkit-tap-highlight-color: transparent; }
+button:disabled { cursor: default; }
+input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
+@media (prefers-reduced-motion: reduce) {
+  .smooth-scroll { scroll-behavior: auto; }
+  .image-fade-soft { animation: none; }
+  .animate-pulse { animation: none; }
 }

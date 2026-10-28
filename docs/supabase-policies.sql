@@ -11,6 +11,11 @@
 
 begin;
 
+-- Remove legacy permissive rules; permissive SELECT policies are ORed.
+drop policy if exists select_public_policy on public.pictures;
+drop policy if exists pictures_public_read on public.pictures;
+drop policy if exists picture_sets_public_read on public.picture_sets;
+
 -- Core published content -----------------------------------------------------
 
 alter table public.picture_sets enable row level security;

@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-28",
+  "projectRef": "ncytmmujlnhscchfujkc",
+  "databaseChanges": "applied and verified on linked cloud project",
+  "applicationChanges": "local only; production deployment not performed",
+  "dataRowsOrImagesDeleted": false,
+  "credentialsRotated": false,
+  "anonymousPictures": {
+    "before": 494,
+    "after": 420,
+    "unpublishedParentPicturesExcluded": 74
+  },
+  "publishedCollections": 36,
+  "servicePictures": 494,
+  "serviceCollections": 45,
+  "securityAdvisor": {
+    "before": 11,
+    "after": 10,
+    "error": 1,
+    "warn": 9,
+    "remainingPostgis": 8,
+    "remainingAuthentication": 2
+  },
+  "validation": {
+    "typecheck": "passed separately (build ignores type errors in existing config)",
+    "productionBuild": "passed in isolated mirror with public Supabase reads",
+    "securityUnitRegression": "passed",
+    "anonymousAdminEndpointsRejected": 11,
+    "publicRouteChecks": 12,
+    "liveDatabaseChecks": 7,
+    "mapPublicJoinRows": 35,
+    "trackedFilesCheckedForConfiguredSecrets": 187,
+    "builtClientAssetsCheckedForConfiguredSecrets": 84,
+    "configuredSecretTypesChecked": 8,
+    "secretMatches": 0,
+    "gitDiffCheck": "passed"
+  },
+  "budgets": {
+    "booking": {
+      "hour": 20,
+      "day": 60
+    },
+    "semanticSearch": {
+      "minute": 60,
+      "day": 2000
+    },
+    "scope": "global across server instances; not per user",
+    "onDatabaseError": "503, no provider call",
+    "onExceeded": "429 with Retry-After"
+  },
+  "pending": [
+    "Supabase dashboard sign-in or explicit authorization for the rejected CLI-credential extraction method",
+    "Leaked-password and MFA auth settings",
+    "Provider-owned PostGIS relocation through Supabase Support; reviewable request draft saved, not sent",
+    "Deploy local application changes before considering the public website fixed"
+  ],
+  "scopeLimits": [
+    "Data API pre-request guard does not cover Realtime, Storage, GraphQL or direct SQL; core table RLS/grants apply independently. Storage buckets and Realtime publications were empty at audit time.",
+    "RLS protects metadata access; it cannot revoke previously known public R2 image URLs.",
+    "No email submission, image deletion or paid-model call was used as a test. Admin authentication logic was tested with controlled fixtures, not a real admin write session."
+  ]
+}

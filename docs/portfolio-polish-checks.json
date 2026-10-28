@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-27",
+  "scope": "Visitor-facing portfolio and photo browsing, with navigation checks of the resume, public demo and photo-session introduction. No publication or data-pipeline changes.",
+  "verified": [
+    "Homepage View work reveals the embedded gallery through the existing cloud transition.",
+    "Direct /portfolio opens photographs, without the former YouTube introduction, snap scrolling or delayed white curtain.",
+    "Chinese and English gallery headers fit at 390x650; primary gallery controls are 44x44; document language follows the selected language.",
+    "Search is a focus-trapped dialog; / opens it; Escape closes it and restores focus without scrolling. A Paris query returned 3 collections and 26 photographs; entering a photograph and returning restored the query/results.",
+    "Both horizontal rows remain stationary while the search dialog is open.",
+    "Map tiles use correct absolute positioning; city selection supports native keyboard/touch input. Paris selection survived full reload after returning from its collection.",
+    "Photo Escape/back returns to the gallery or series context. Mobile landscape-series navigation restored the series section.",
+    "After opening work 96 at 1440x900 and returning at 390x650, the gallery starts at scrollY=975, is not inert, and work 96 is focused and visible at x=108.",
+    "About/CV is in the footer; its back link restores the portfolio route. Copy WeChat displays a success confirmation.",
+    "Photo-session introduction and public AI demo render without horizontal overflow at 390x650; the demo return link goes to the resume.",
+    "Custom not-found page renders with a return-to-photographs link; photo loading state was observed on a real collection navigation.",
+    "TypeScript noEmit incremental=false and git diff --check passed."
+  ],
+  "performance": {
+    "method": "Opt-in six-second rolling browser requestAnimationFrame cadence and completed WebGL draw submissions. This is not a GPU timer or physical-display counter.",
+    "cloud": {
+      "mode": "cloud flight sweep",
+      "cloudFlight": "true",
+      "windowS": 6,
+      "pageFps": 119.3,
+      "sceneFps": 119.3,
+      "pageP95ms": 10.1,
+      "sceneP95ms": 11.5,
+      "sceneCpuP95ms": 1.2,
+      "over25msPct": 0,
+      "canvas": "1425x900",
+      "viewport": "1440x900",
+      "progress": 0.4,
+      "visible": true
+    },
+    "gallery": {
+      "mode": "native scroll",
+      "cloudFlight": "true",
+      "windowS": 6,
+      "pageFps": 119.7,
+      "sceneFps": 0,
+      "pageP95ms": 10.2,
+      "sceneP95ms": 0,
+      "sceneCpuP95ms": 0,
+      "over25msPct": 0,
+      "canvas": "1425x900",
+      "viewport": "1440x900",
+      "progress": 0.7,
+      "visible": true
+    }
+  },
+  "limits": [
+    "Warm local Next.js development preview on this Mac, not a production or cold-network benchmark.",
+    "Phone layouts use a resized browser viewport; physical-phone performance was not measured.",
+    "The photo error retry boundary is implemented and type-checked; no backend outage was forced."
+  ]
+}

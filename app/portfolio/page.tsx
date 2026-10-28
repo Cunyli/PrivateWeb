@@ -7,8 +7,8 @@ export const revalidate = 60
 export default async function PortfolioPage() {
   const initialData = await fetchPortfolioInitialData()
   return (
-    <main className="min-h-screen bg-white">
-      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+    <main className="min-h-screen bg-[#f3f0e9]">
+      <Suspense fallback={<div className="min-h-screen bg-[#f3f0e9]" />}>
         <PortfolioGrid initialData={initialData || undefined} />
       </Suspense>
     </main>

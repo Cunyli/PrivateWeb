@@ -1,3 +1,4 @@
+import { adminFetch } from "@/utils/admin-auth-client"
 import { useState } from 'react'
 
 export interface AnalysisResult {
@@ -20,7 +21,7 @@ export function useImageAnalysis() {
     setIsAnalyzing(true)
     
     try {
-      const response = await fetch('/api/analyze-image', {
+      const response = await adminFetch('/api/analyze-image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -71,7 +71,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_BUCKET_URL=
 ADMIN_EMAILS=
-NEXT_PUBLIC_ADMIN_EMAILS=
 ```
 
 5. Start the development server:
@@ -93,7 +92,7 @@ Required for the core site:
 - `SUPABASE_SERVICE_ROLE_KEY`: Server-only key used by admin API routes and scripts.
 - `NEXT_PUBLIC_BUCKET_URL`: Public base URL for image assets.
 - `ADMIN_EMAILS`: Comma-separated admin email allowlist for server checks.
-- `NEXT_PUBLIC_ADMIN_EMAILS`: Comma-separated admin email allowlist used by client-side admin UI.
+- `NEXT_PUBLIC_ADMIN_EMAILS` is legacy configuration and does not authorize access; the UI verifies the current session with the server.
 
 Required for uploads:
 
@@ -119,6 +118,8 @@ Run the SQL files in `docs/` from the Supabase SQL Editor as needed:
 - `docs/upgrade-picture-embeddings-1024.sql`: 1024-dimensional vector embeddings and matching RPC.
 - `docs/ai-tasks.sql`: private AI/work task table used by the authenticated `/ai-feed` workspace.
 
+The current security setup also requires `docs/supabase-security-hardening-20261028.sql` and `docs/supabase-public-budgets-20261028.sql`. These have already been applied to the linked project; review the SQL before using it on a different project. The shared budgets must exist before deploying booking and semantic search. See `docs/supabase-security-audit-20261028.md` for validation, rollback scripts and the remaining managed PostGIS/authentication advisories.
+
 Semantic search also depends on the `picture_embeddings` table and `match_pictures_by_embedding` RPC described in `docs/semantic-picture-search.md`.
 
 ## Common Commands
@@ -128,6 +129,11 @@ pnpm dev
 pnpm build
 pnpm start
 pnpm lint
+node scripts/check-supabase-security.cjs
+node scripts/check-portrait-book-transition.cjs
+node scripts/check-portfolio-editorial.cjs
+node scripts/check-portfolio-assets.cjs
+pnpm exec tsc --noEmit --incremental false
 pnpm backfill:picture-embeddings -- --limit 3 --dry-run
 ```
 

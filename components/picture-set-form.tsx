@@ -1045,7 +1045,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel, variant 
   const translateText = async (text: string, source: 'zh'|'en'|'auto' = 'zh', target: 'zh'|'en' = 'en'): Promise<string> => {
     try {
       if (!text || !text.trim()) return ''
-      const res = await fetch('/api/translate', {
+      const res = await adminFetch('/api/translate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, sourceLang: source, targetLang: target })
       })
@@ -2258,7 +2258,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel, variant 
                 onClick={async ()=>{
                   if (!primaryLocationName.trim()) return
                   try {
-                    const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: primaryLocationName, limit: 1 }) })
+                    const res = await adminFetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: primaryLocationName, limit: 1 }) })
                     const data = await res.json()
                     const g = data?.results?.[0]
                     if (g) {
@@ -2752,7 +2752,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel, variant 
                             const nm = (pic as any).location_name as string | undefined
                             if (!nm || !nm.trim()) return
                             try {
-                              const res = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: nm, limit: 1 }) })
+                              const res = await adminFetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: nm, limit: 1 }) })
                               const data = await res.json()
                               const g = data?.results?.[0]
                               if (g) {

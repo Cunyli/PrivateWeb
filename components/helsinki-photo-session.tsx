@@ -1,13 +1,22 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import type { FormEvent, ImgHTMLAttributes, MouseEvent } from "react"
+import type { CSSProperties, Dispatch, FormEvent, ImgHTMLAttributes, MouseEvent, RefObject, SetStateAction } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
+import * as Dialog from "@radix-ui/react-dialog"
+import { X } from "lucide-react"
+import type { CarouselImage } from "./carousel"
+import viewerStyles from "./editorial-pages.module.css"
+import sessionStyles from "./photo-session.module.css"
+import introStyles from "./photo-story.module.css"
+import { sessionImageVariants, sessionViewerSource } from "@/lib/session-image-variants"
+import { sessionMomentSeries } from "@/lib/photo-session-selection"
+import { SessionSeriesGallery } from "./session-series-gallery"
 import "leaflet/dist/leaflet.css"
 import {
   ArrowDown,
   ArrowRight,
-  Camera,
   CalendarDays,
   Check,
   Clock,
@@ -24,6 +33,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n"
+import { bindMapWheelGestures } from "@/lib/map-wheel-gestures"
 
 type Locale = "zh" | "en"
 
@@ -58,6 +68,10 @@ type MomentCard = Photo & {
   featured?: boolean
   tags: string[]
   sourceName?: string
+  width?: number
+  height?: number
+  previewSrc?: string
+  previewSrcSet?: string
 }
 
 type MomentGroup = {
@@ -78,6 +92,8 @@ type Testimonial = {
   context: string
 }
 
+const LazyCarousel = dynamic(() => import("./carousel").then(module => module.Carousel), { ssr: false })
+
 const xhsHref = "https://xhslink.com/m/7aNml9q2AjQ"
 
 const photoSessionCopy = {
@@ -86,10 +102,12 @@ const photoSessionCopy = {
     languageLabel: "切换到英文",
     momentTypeCouple: "情侣拍摄",
     hero: {
-      title: "旅拍摄影师 - Lijie",
+      title: "一起，\n拍下你的这一刻。",
+      eyebrow: "与 Lijie 一起拍照",
+      description: "常驻赫尔辛基 · 接受欧洲旅拍",
       samples: "样片",
       portfolio: "摄影集",
-      booking: "预约",
+      booking: "聊聊约拍",
     },
     about: {
       eyebrow: "About me",
@@ -103,7 +121,7 @@ const photoSessionCopy = {
     },
     process: {
       eyebrow: "Why ME",
-      title: "我的责任，是把拍摄当天也照顾好",
+      title: "为什么是我。",
       steps: [
         {
           title: "路线可以我定，也可以你定",
@@ -140,13 +158,15 @@ const photoSessionCopy = {
       ],
     },
     options: {
-      eyebrow: "Details / shooting brief",
-      titleTop: "你定大概",
-      titleBottom: "我定方案",
+      eyebrow: "Your session",
+      titleTop: "想拍什么，",
+      titleBottom: "由你决定。",
+      body: "不用先做好一整套计划。告诉我大概的想法，路线、时间和拍摄方式，我们一起慢慢定。",
+      action: "从这里开始约拍",
       typesTitle: "可以拍什么",
       languagesTitle: "可以说什么",
-      briefTitle: "可以定什么",
-      serviceTypes: ["旅拍 / 游客照", "情侣拍照", "家庭拍照", "证件照", "宠物照片", "毕业写真", "校园写真"],
+      briefTitle: "先告诉我这些",
+      serviceTypes: ["旅拍 / 游客照", "情侣拍照", "家庭拍照", "宠物照片", "毕业写真", "校园写真"],
       languageItems: ["中文", "English", "粤语"],
       briefItems: ["人数", "日期", "大概地点", "想拍的样式"],
     },
@@ -265,7 +285,7 @@ const photoSessionCopy = {
     },
     faq: {
       eyebrow: "FAQ",
-      title: "拍之前最常问到的问题。",
+      title: "见面之前。",
       items: [
         { question: "可以拍视频吗？", answer: "目前只接照片拍摄，不接正式视频拍摄。我的重点会放在静态照片里的人物状态、地点感和旅行氛围。" },
         { question: "预约之后会发生什么？", answer: "确认预约后，我会和你对齐套餐、集合点、拍摄时间、穿搭和想要的感觉。拍摄前可以继续私信沟通，把不确定的地方先处理掉。" },
@@ -284,7 +304,7 @@ const photoSessionCopy = {
       ],
     },
     footer: {
-      title: "旅拍摄影师 / Base赫尔辛基",
+      title: "人像约拍 / 常驻赫尔辛基",
       notice: "本站图片未经许可禁止使用、复制、下载、转载或用于训练/商业用途。预约沟通请通过上方入口进入。",
       booking: "预约方式",
       top: "回到顶部",
@@ -295,10 +315,12 @@ const photoSessionCopy = {
     languageLabel: "Switch to Chinese",
     momentTypeCouple: "Couple session",
     hero: {
-      title: "Travel Photographer - Lijie",
+      title: "Portraits,\nmade with you.",
+      eyebrow: "Photo sessions with Lijie",
+      description: "Helsinki based · Available across Europe",
       samples: "Samples",
       portfolio: "Portfolio",
-      booking: "Book",
+      booking: "Plan a session",
     },
     about: {
       eyebrow: "About me",
@@ -312,7 +334,7 @@ const photoSessionCopy = {
     },
     process: {
       eyebrow: "Why me",
-      title: "I take care of the shoot day, not only the camera",
+      title: "Why me.",
       steps: [
         {
           title: "I can plan the route, or we can use yours",
@@ -349,13 +371,15 @@ const photoSessionCopy = {
       ],
     },
     options: {
-      eyebrow: "Details / shooting brief",
-      titleTop: "You set the idea",
-      titleBottom: "I shape the plan",
+      eyebrow: "Your session",
+      titleTop: "Make it",
+      titleBottom: "yours.",
+      body: "You do not need a finished plan. Bring a rough idea; we will work out the route, timing and photographs together.",
+      action: "Plan this session",
       typesTitle: "What we can shoot",
       languagesTitle: "Languages",
-      briefTitle: "What you can decide",
-      serviceTypes: ["Travel photos", "Couple photos", "Family photos", "ID photos", "Pet photos", "Graduation portraits", "Campus portraits"],
+      briefTitle: "Just the essentials",
+      serviceTypes: ["Travel photos", "Couple photos", "Family photos", "Pet photos", "Graduation portraits", "Campus portraits"],
       languageItems: ["Chinese", "English", "Cantonese"],
       briefItems: ["People", "Date", "Rough location", "Visual style"],
     },
@@ -474,7 +498,7 @@ const photoSessionCopy = {
     },
     faq: {
       eyebrow: "FAQ",
-      title: "Common questions before booking.",
+      title: "Before we meet.",
       items: [
         { question: "Do you offer Helsinki videographers?", answer: "At the moment, I focus on photography only. The goal is to capture people, place, and travel atmosphere through still images." },
         { question: "What happens after I book a Helsinki photo session?", answer: "After confirmation, we align on the package, meeting point, time, outfits, and the mood you want. You can keep messaging me before the shoot to clear up details." },
@@ -493,7 +517,7 @@ const photoSessionCopy = {
       ],
     },
     footer: {
-      title: "Travel photographer / Based in Helsinki",
+      title: "Portrait sessions / Based in Helsinki",
       notice: "Images on this site may not be used, copied, downloaded, reposted, used for training, or used commercially without permission. Please use the booking entry above for inquiries.",
       booking: "Booking",
       top: "Back to top",
@@ -501,122 +525,38 @@ const photoSessionCopy = {
   },
 } as const
 
-function SessionImage({ className = "", ...props }: ImgHTMLAttributes<HTMLImageElement>) {
-  return (
-    <img
-      {...props}
-      draggable={false}
-      onContextMenu={(event) => event.preventDefault()}
-      className={`${className} select-none`}
-    />
-  )
+function SessionImage({ className = "", preview = false, sizes, src, srcSet, ...props }: ImgHTMLAttributes<HTMLImageElement> & {preview?: boolean}) {
+  const local = typeof src === "string" ? sessionImageVariants[src] : undefined
+  const remotePreview = preview && typeof src === "string" && src.includes("/w1280.webp")
+  return <img loading="lazy" decoding="async" {...props}
+    src={local?.src || (remotePreview ? src.replace("/w1280.webp","/w640.webp") : src)}
+    srcSet={srcSet || local?.srcSet || (remotePreview ? `${src.replace("/w1280.webp","/w640.webp")} 1x, ${src} 2x` : undefined)}
+    sizes={srcSet || local ? sizes || "(max-width: 767px) 92vw, 720px" : undefined}
+    draggable={false} onContextMenu={event => event.preventDefault()} className={`${className} select-none`} />
 }
 
-const getMomentTileClass = (photoCount: number, index: number) => {
-  if (photoCount >= 5) {
-    return [
-      "col-span-3 row-span-2",
-      "col-span-3 row-span-2",
-      "col-span-3 row-span-2",
-      "col-span-3 row-span-2",
-      "col-span-6 row-span-2",
-    ][index] ?? "col-span-6 row-span-2"
-  }
-
-  if (photoCount === 4) {
-    return [
-      "col-span-3 row-span-3",
-      "col-span-3 row-span-3",
-      "col-span-3 row-span-3",
-      "col-span-3 row-span-3",
-    ][index] ?? "col-span-3 row-span-3"
-  }
-
-  if (photoCount === 3) {
-    return [
-      "col-span-3 row-span-3",
-      "col-span-3 row-span-3",
-      "col-span-6 row-span-3",
-    ][index] ?? "col-span-6 row-span-3"
-  }
-
-  if (photoCount === 2) {
-    return "col-span-6 row-span-3"
-  }
-
-  return "col-span-6 row-span-6"
-}
-
-function MomentPhotoMosaic({
-  photos,
-  eager = false,
-  imageFit = "cover",
-}: {
-  photos: MomentCard[]
-  eager?: boolean
-  imageFit?: "cover" | "contain"
-}) {
-  const visiblePhotos = photos.slice(0, 5)
-
-  return (
-    <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 gap-1.5 p-1.5">
-      {visiblePhotos.map((photo, index) => (
-        <figure
-          key={`${photo.id}-${index}`}
-          className={`${getMomentTileClass(visiblePhotos.length, index)} overflow-hidden rounded-[3px] bg-[#050505]`}
-        >
-          <SessionImage
-            src={photo.src}
-            alt={photo.alt}
-            className={`h-full w-full object-center transition duration-700 group-hover:scale-[1.025] ${
-              imageFit === "contain" ? "object-contain" : "object-cover"
-            }`}
-            loading={eager || index < 2 ? "eager" : "lazy"}
-          />
-        </figure>
-      ))}
-    </div>
-  )
-}
-
-function getMomentPlaceLabel(group: MomentGroup) {
-  if (group.id === "jianji-xinyi") return "Barcelona / Croatia"
-  return group.place
-}
-
-function getMomentTypeLabel(group: MomentGroup, locale: Locale) {
-  if (group.id === "jianji-xinyi") return photoSessionCopy[locale].momentTypeCouple
-  return ""
-}
-
-function MomentGroupFrame({
-  group,
-  eager = false,
-  className = "",
-  imageFit = "cover",
-  locale = "zh",
-}: {
-  group: MomentGroup
-  eager?: boolean
-  className?: string
-  imageFit?: "cover" | "contain"
-  locale?: Locale
-}) {
-  const typeLabel = getMomentTypeLabel(group, locale)
-
-  return (
-    <article
-      className={`group relative min-h-[56svh] min-w-[82vw] snap-center overflow-hidden rounded-md bg-white/[0.045] shadow-[0_26px_90px_-70px_rgba(255,255,255,0.35)] sm:min-w-[58vw] lg:min-h-0 lg:min-w-0 ${className}`}
-    >
-      <MomentPhotoMosaic photos={group.photos} eager={eager} imageFit={imageFit} />
-      {!group.hideCaption && (
-        <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.82))] px-4 pb-4 pt-20">
-          <p className="text-sm font-semibold uppercase tracking-normal text-white/82">{getMomentPlaceLabel(group)}</p>
-          {typeLabel && <p className="mt-1 text-xs font-semibold text-white/58">{typeLabel}</p>}
-        </div>
-      )}
-    </article>
-  )
+function selectMomentSeries(groups: MomentGroup[], locale: Locale): MomentGroup[] {
+  const available = new Map(groups.flatMap(group => group.photos.map(photo => {
+    const source = photo.sourceName || photo.src.match(/DSC\d+/i)?.[0]?.toUpperCase()
+    return [source, photo] as const
+  })))
+  return sessionMomentSeries.map(series => {
+    const group = groups.find(candidate => candidate.id === series.id)
+    return {
+      id: series.id, title: series.title, place: series.place,
+      note: group?.note || "", tags: group?.tags || [], photoCount: series.photos.length,
+      photos: series.photos.map(item => {
+        const {alt, ...selected} = item
+        const current = available.get(item.sourceName)
+        return {
+          ...current, ...selected, id: current?.id || item.id,
+          src: current?.src || item.src, alt: alt[locale],
+          title: series.title, place: series.place,
+          note: current?.note || "", tags: current?.tags || [],
+        }
+      }),
+    }
+  })
 }
 
 const coverPhoto: Photo = {
@@ -778,7 +718,6 @@ const serviceTypes = [
   { label: "旅拍 / 游客照", icon: MapPin },
   { label: "情侣拍照", icon: Heart },
   { label: "家庭拍照", icon: Users },
-  { label: "证件照", icon: Camera },
   { label: "宠物照片", icon: PawPrint },
   { label: "毕业写真", icon: GraduationCap },
   { label: "校园写真", icon: GraduationCap },
@@ -1045,6 +984,334 @@ const faqs = [
   },
 ]
 
+function useScrollFocus<T extends HTMLElement>(sectionId: string, refs: RefObject<Array<T | null>>, setActive: Dispatch<SetStateAction<number>>, locale: Locale, itemAnchor = .5) {
+  useEffect(() => {
+    const section = document.getElementById(sectionId)
+    if (!section) return
+    let visible = false, frame = 0
+    let anchors: Array<{index:number;top:number}> = []
+    const update = () => {
+      frame = 0
+      if (!visible || document.hidden) return
+      const point = window.scrollY + window.innerHeight * .46
+      let nearest = 0, distance = Infinity
+      for (const anchor of anchors) {const next=Math.abs(anchor.top-point);if(next<distance){nearest=anchor.index;distance=next}}
+      setActive(current => current === nearest ? current : nearest)
+    }
+    const schedule = () => {if(visible && !frame)frame=requestAnimationFrame(update)}
+    const measure = () => {
+      anchors = (refs.current || []).flatMap((node,index) => {if(!node)return [];const rect=node.getBoundingClientRect();return [{index,top:rect.top+window.scrollY+rect.height*itemAnchor}]})
+      schedule()
+    }
+    const observer = new IntersectionObserver(([entry]) => {visible=entry.isIntersecting;if(visible)measure()}, {rootMargin:"100px"})
+    const resize = new ResizeObserver(measure)
+    observer.observe(section);resize.observe(section);measure()
+    window.addEventListener("scroll",schedule,{passive:true});window.addEventListener("resize",measure)
+    return () => {observer.disconnect();resize.disconnect();cancelAnimationFrame(frame);window.removeEventListener("scroll",schedule);window.removeEventListener("resize",measure)}
+  }, [sectionId,refs,setActive,locale,itemAnchor])
+}
+
+function ScrollPhoto({ photos, activePhoto, about = false, onOpen }: {
+  photos: Photo[]
+  activePhoto: Photo
+  about?: boolean
+  onOpen: (photo: Photo) => void
+}) {
+  const [ratios, setRatios] = useState<Record<string, number>>({})
+  const ratio = ratios[activePhoto.src] || 1.5
+  return <div className={about ? sessionStyles.aboutVisual : sessionStyles.processVisual}>
+    <button type="button" className={sessionStyles.naturalFrame} style={{ "--frame-ratio": ratio } as CSSProperties}
+      onClick={() => onOpen(activePhoto)} aria-label={activePhoto.alt}>
+      {photos.map(photo => <SessionImage key={photo.src} src={photo.src} alt={photo.src === activePhoto.src ? photo.alt : ""}
+        aria-hidden={photo.src !== activePhoto.src} className={sessionStyles.naturalPhoto} data-active={photo.src === activePhoto.src}
+        onLoad={({currentTarget}) => {
+          const next = currentTarget.naturalWidth / currentTarget.naturalHeight
+          if (Number.isFinite(next) && next > 0) setRatios(previous => previous[photo.src] === next ? previous : {...previous, [photo.src]: next})
+        }} />)}
+    </button>
+  </div>
+}
+
+function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen }: {
+  photos: Photo[]
+  title: string
+  body: string
+  lines: readonly string[]
+  eyebrow: string
+  locale: Locale
+  onOpen: (photo: Photo) => void
+}) {
+  const root = useRef<HTMLElement>(null)
+  const stage = useRef<HTMLDivElement>(null)
+  const viewport = useRef<HTMLDivElement>(null)
+  const track = useRef<HTMLDivElement>(null)
+  const [photoRatios, setPhotoRatios] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    const section = root.current
+    const sticky = stage.current
+    const windowElement = viewport.current
+    const strip = track.current
+    if (!section || !sticky || !windowElement || !strip) return
+
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const panels = Array.from(strip.querySelectorAll<HTMLElement>("[data-personal-spread]"))
+    const compositions = panels.map(panel => ({
+      panel,
+      photo: panel.querySelector<HTMLElement>("[data-intro-photo]"),
+      caption: panel.querySelector<HTMLElement>("figcaption"),
+      left: 0,
+      width: 0,
+    }))
+    let visible = false, frame = 0, start = 0, distance = 1, travel = 0, windowWidth = 1
+    let position = 0, previous = 0, initialized = false
+    const update = (now: number) => {
+      frame = 0
+      if (!visible || motion.matches || document.hidden) return
+      const target = travel * Math.max(0,Math.min(1,(window.scrollY-start)/distance))
+      const dt = Math.min(.06,previous ? (now-previous)/1000 : 1/60)
+      previous = now
+      position = initialized ? position+(target-position)*(1-Math.exp(-dt/.055)) : target
+      initialized = true
+      if(Math.abs(target-position)<.06)position=target
+      strip.style.transform=`translate3d(${(-position).toFixed(2)}px,0,0)`
+      compositions.forEach(({photo,caption,left,width}) => {
+        const relative=Math.max(-1,Math.min(1,(left+width/2-position-windowWidth/2)/windowWidth))
+        if(photo)photo.style.transform=`translate3d(0,${(relative*18).toFixed(2)}px,0) rotate(${(relative*-2.4).toFixed(2)}deg)`
+        if(caption)caption.style.transform=`translate3d(${(relative*-22).toFixed(2)}px,${(relative*-24).toFixed(2)}px,0)`
+      })
+      section.dataset.storyProgress=(travel ? position/travel : 0).toFixed(3)
+      if(Math.abs(target-position)>.06)frame=requestAnimationFrame(update)
+      else previous=0
+    }
+    const schedule = () => {if(visible && !motion.matches && !document.hidden && !frame)frame=requestAnimationFrame(update)}
+    const measure = () => {
+      start = section.getBoundingClientRect().top + window.scrollY
+      distance = Math.max(1, section.offsetHeight - sticky.offsetHeight)
+      windowWidth = windowElement.clientWidth
+      strip.style.setProperty("--spread-width", `${windowWidth}px`)
+      travel = Math.max(0, strip.scrollWidth - windowWidth)
+      compositions.forEach(composition => {
+        composition.left = composition.panel.offsetLeft
+        composition.width = composition.panel.offsetWidth
+      })
+      schedule()
+    }
+    const configure = () => {
+      if (motion.matches) {
+        delete section.dataset.storyEnhanced
+        strip.style.removeProperty("transform")
+        compositions.forEach(({ photo, caption }) => {
+          photo?.style.removeProperty("transform")
+          caption?.style.removeProperty("transform")
+        })
+      } else {
+        section.dataset.storyEnhanced = "true"
+      }
+      measure()
+    }
+    const visibility = new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting
+      section.dataset.storyActive = String(visible)
+      if (visible) measure()
+      else { cancelAnimationFrame(frame); frame = 0; previous = 0; initialized = false }
+    }, { rootMargin: "100px" })
+    const resize = new ResizeObserver(measure)
+    configure()
+    visibility.observe(section)
+    resize.observe(sticky)
+    resize.observe(windowElement)
+    resize.observe(strip)
+    window.addEventListener("scroll", schedule, { passive: true })
+    window.addEventListener("resize", measure)
+    document.addEventListener("visibilitychange", schedule)
+    motion.addEventListener("change", configure)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      visibility.disconnect()
+      resize.disconnect()
+      window.removeEventListener("scroll", schedule)
+      window.removeEventListener("resize", measure)
+      document.removeEventListener("visibilitychange", schedule)
+      motion.removeEventListener("change", configure)
+    }
+  }, [photos, lines, locale])
+
+  const focusSpread = (index: number, button: HTMLButtonElement) => {
+    if (!button.matches(":focus-visible") || !root.current?.dataset.storyEnhanced || !viewport.current || !track.current || !stage.current) return
+    const panel = track.current.children[index] as HTMLElement
+    const travel = track.current.scrollWidth - viewport.current.clientWidth
+    const progress = travel > 0 ? Math.min(1, panel.offsetLeft / travel) : 0
+    const start = root.current.getBoundingClientRect().top + window.scrollY
+    const distance = root.current.offsetHeight - stage.current.offsetHeight
+    window.scrollTo({ top: start + progress * distance, behavior: "instant" })
+  }
+
+  return <section id="story" ref={root} className={introStyles.story} aria-labelledby="photographer-intro-heading">
+    <div ref={stage} className={introStyles.stage}>
+      <header className={introStyles.heading}>
+        <div><p className={introStyles.eyebrow}>{eyebrow}</p><h2 id="photographer-intro-heading">{title}</h2></div>
+        <p className={introStyles.body}>{body}</p>
+      </header>
+      <div ref={viewport} className={introStyles.viewport}>
+        <div ref={track} className={introStyles.track}>
+          {lines.map((line, index) => {
+            const photo = photos[index % photos.length]
+            return <figure key={index} className={introStyles.spread} data-personal-spread>
+              <button type="button" className={introStyles.photograph} style={{ "--intro-ratio": photoRatios[photo.src] || 1.5 } as CSSProperties} data-intro-photo onClick={() => onOpen(photo)} onFocus={event => focusSpread(index, event.currentTarget)} aria-label={photo.alt}>
+                <SessionImage src={photo.src} alt={photo.alt} onLoad={({ currentTarget }) => {
+                  const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
+                  if (Number.isFinite(ratio) && ratio > 0) setPhotoRatios(previous => previous[photo.src] === ratio ? previous : { ...previous, [photo.src]: ratio })
+                }} />
+              </button>
+              <figcaption><span className={introStyles.folio} aria-hidden="true">{String(index + 1).padStart(2, "0")} / {String(lines.length).padStart(2, "0")}</span><p>{line}</p></figcaption>
+            </figure>
+          })}
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+
+function WhyMeSection({ copy, photos, locale, onOpen }: {
+  copy: (typeof photoSessionCopy)[Locale]
+  photos: Photo[]
+  locale: Locale
+  onOpen: (photo: Photo) => void
+}) {
+  const [activeStepIndex,setActiveStepIndex] = useState(0)
+  const stepRefs = useRef<Array<HTMLElement | null>>([])
+  useScrollFocus("process",stepRefs,setActiveStepIndex,locale,.42)
+  const displayShootSteps = shootSteps.map((step,index) => ({...step,title:copy.process.steps[index]?.title || step.title,body:copy.process.steps[index]?.body || step.body}))
+  const activeStep = displayShootSteps[activeStepIndex] || displayShootSteps[0]
+  const activeShootPhoto = photos[activeStepIndex % photos.length] || activeStep.image
+  return (
+      <section id="process" className="bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 lg:grid-cols-[0.46fr_0.54fr]">
+            <div className="space-y-8">
+              <div>
+                <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-tight sm:text-6xl">
+                  {copy.process.title}
+                </h2>
+              </div>
+
+              <div className="relative pb-[10svh] pt-4">
+                <div className="pointer-events-none absolute bottom-0 left-[1.1rem] top-4 hidden w-px bg-white/12 sm:block" />
+                {displayShootSteps.map((step, index) => (
+                  <article
+                    key={step.title}
+                    ref={(node) => {
+                      stepRefs.current[index] = node
+                    }}
+                    data-step-index={index}
+                    className={`group relative grid min-h-[36svh] gap-5 border-t border-white/12 py-8 transition duration-500 sm:grid-cols-[3.25rem_minmax(0,1fr)] sm:border-t-0 sm:py-10 ${
+                      activeStepIndex === index ? "text-white" : "text-white/35"
+                    }`}
+                  >
+                    <div className="relative flex items-start gap-3 sm:block">
+                      <span
+                        className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition duration-500 ${
+                          activeStepIndex === index
+                            ? "border-white bg-white text-[#151612]"
+                            : "border-white/20 bg-[#0b0c0a] text-white/42"
+                        }`}
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+
+                    <div className="max-w-2xl sm:pt-6">
+                      <h3
+                        className={`text-3xl font-semibold leading-tight transition duration-500 sm:text-4xl ${
+                          activeStepIndex === index ? "translate-x-0 opacity-100" : "translate-x-0 opacity-62"
+                        }`}
+                      >
+                        {step.title}
+                      </h3>
+                      <p
+                        className={`mt-5 max-w-xl text-lg leading-8 transition duration-500 ${
+                          activeStepIndex === index ? "text-white/74" : "text-white/38"
+                        }`}
+                      >
+                        {step.body}
+                      </p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+          <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-8rem)] flex items-center justify-center">
+            <ScrollPhoto photos={photos} activePhoto={activeShootPhoto} onOpen={onOpen} />
+          </div>
+          </div>
+        </div>
+      </section>
+
+  )
+}
+
+function SessionPlanning({ copy, onPlan }: {
+  copy: (typeof photoSessionCopy)[Locale]["options"]
+  onPlan: (type: string, trigger: HTMLButtonElement) => void
+}) {
+  const [selected, setSelected] = useState(0)
+  return <section id="options" className={sessionStyles.planning} aria-labelledby="session-planning-title">
+    <div className={sessionStyles.sectionInner}>
+      <header className={sessionStyles.planningHeader}>
+        <div><p className={sessionStyles.sectionKicker}>{copy.eyebrow}</p><h2 id="session-planning-title">{copy.titleTop} {copy.titleBottom}</h2></div>
+        <div className={sessionStyles.planningLanguages} aria-label={copy.languagesTitle}>{copy.languageItems.map(item => <span key={item}>{item}</span>)}</div>
+      </header>
+      <div className={sessionStyles.planningLayout}>
+        <fieldset className={sessionStyles.servicePicker}>
+          <legend>{copy.typesTitle}</legend>
+          <div className={sessionStyles.serviceChoices}>
+            {copy.serviceTypes.map((label,index) => <label key={label} className={sessionStyles.serviceChoice} data-selected={selected === index}>
+              <input type="radio" name="session-type" checked={selected === index} onChange={() => setSelected(index)} className={sessionStyles.serviceRadio} />
+              <span className={sessionStyles.serviceLabel}><span className={sessionStyles.serviceDot} aria-hidden="true" /><span>{label}</span><ArrowRight size={18} strokeWidth={1.3} aria-hidden="true" /></span>
+            </label>)}
+          </div>
+        </fieldset>
+        <div className={sessionStyles.sessionBrief}>
+          <p className={sessionStyles.briefSelection}>{copy.serviceTypes[selected]}</p>
+          <h3>{copy.briefTitle}</h3>
+          <div className={sessionStyles.briefEssentials}>{copy.briefItems.map(item => <span key={item}>{item}</span>)}</div>
+          <p className={sessionStyles.briefBody}>{copy.body}</p>
+          <button type="button" onClick={event => onPlan(copy.serviceTypes[selected],event.currentTarget)} className={sessionStyles.planButton}>
+            {copy.action}<ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+function BookingQuestions({ copy, locale }: {copy: (typeof photoSessionCopy)[Locale]["faq"]; locale: Locale}) {
+  const groups = [
+    {label: locale === "zh" ? "预约安排" : "Making a plan", questions: [2,1,3,7,10]},
+    {label: locale === "zh" ? "拍摄当天" : "The experience", questions: [4,0,6,8,12]},
+    {label: locale === "zh" ? "照片交付" : "Your photographs", questions: [5,11,9,13]},
+  ]
+  return <section id="faq" className={sessionStyles.questions} aria-labelledby="booking-questions-title">
+    <div className={sessionStyles.sectionInner}>
+      <header className={sessionStyles.questionsHeader}><p className={sessionStyles.sectionKicker}>{copy.eyebrow}</p><h2 id="booking-questions-title">{copy.title}</h2></header>
+      <div className={sessionStyles.questionColumns}>
+        {groups.map(group => <div key={group.label} className={sessionStyles.questionGroup}>
+          <h3>{group.label}</h3>
+          {group.questions.map(index => {const item=copy.items[index]; return <details key={index} className={sessionStyles.question} data-booking-question={index}>
+            <summary><span>{item.question}</span><span className={sessionStyles.questionToggle} aria-hidden="true" /></summary>
+            <p>{item.answer}</p>
+          </details>})}
+        </div>)}
+      </div>
+    </div>
+  </section>
+}
+
+
 export function HelsinkiPhotoSession() {
   const router = useRouter()
   const { locale, setLocale } = useI18n()
@@ -1052,12 +1319,9 @@ export function HelsinkiPhotoSession() {
   const copy = photoSessionCopy[pageLocale]
   const [isEntering, setIsEntering] = useState(true)
   const [isLeaving, setIsLeaving] = useState(false)
-  const [activeHighlightIndex, setActiveHighlightIndex] = useState(0)
-  const [activeStepIndex, setActiveStepIndex] = useState(0)
   const [activeLocationId, setActiveLocationId] = useState(locations[0].id)
   const [momentGroups, setMomentGroups] = useState<MomentGroup[]>(fallbackMomentGroups)
   const [whyMePhotos, setWhyMePhotos] = useState<MomentCard[]>([])
-  const [momentScrollStage, setMomentScrollStage] = useState(0)
   const [selectedPackageIndex, setSelectedPackageIndex] = useState(0)
   const [isEmailFormOpen, setIsEmailFormOpen] = useState(false)
   const [bookingForm, setBookingForm] = useState({
@@ -1071,24 +1335,17 @@ export function HelsinkiPhotoSession() {
   const [bookingStatus, setBookingStatus] = useState<"idle" | "sending" | "sent" | "error">("idle")
   const [bookingMessage, setBookingMessage] = useState("")
   const [mapReady, setMapReady] = useState(false)
-  const scrollAnimationRef = useRef<number | null>(null)
-  const highlightRefs = useRef<Array<HTMLParagraphElement | null>>([])
-  const stepRefs = useRef<Array<HTMLElement | null>>([])
+  const [mapNear, setMapNear] = useState(false)
+  const [lightbox, setLightbox] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [presentedIndex, setPresentedIndex] = useState(0)
   const locationRefs = useRef<Array<HTMLElement | null>>([])
   const testimonialScrollerRef = useRef<HTMLDivElement | null>(null)
-  const momentsSectionRef = useRef<HTMLElement | null>(null)
   const mapRootRef = useRef<HTMLDivElement | null>(null)
+  const bookingTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const photoTriggerRef = useRef<HTMLButtonElement | null>(null)
   const mapRef = useRef<any>(null)
   const markersLayerRef = useRef<any>(null)
-  const displayShootSteps = useMemo(
-    () =>
-      shootSteps.map((step, index) => ({
-        ...step,
-        title: copy.process.steps[index]?.title || step.title,
-        body: copy.process.steps[index]?.body || step.body,
-      })),
-    [copy],
-  )
   const displayLocations = useMemo(
     () =>
       locations.map((location, index) => ({
@@ -1098,22 +1355,13 @@ export function HelsinkiPhotoSession() {
       })),
     [copy],
   )
-  const activeStep = displayShootSteps[activeStepIndex] ?? displayShootSteps[0]
   const activeLocation = locations.find((location) => location.id === activeLocationId) ?? locations[0]
   const activeDisplayLocation = displayLocations.find((location) => location.id === activeLocationId) ?? displayLocations[0]
   const selectedPackage = copy.pricing.packages[selectedPackageIndex] ?? copy.pricing.packages[0]
-  const primaryMomentGroups = useMemo(() => {
-    const groups = momentGroups.filter(
-      (group) => !["lijie", "jianji-xinyi", "hongjia-oeschinen"].includes(group.id) && group.photos.length >= 2,
-    )
-    return [localOuterMomentGroup, ...(groups.length > 0 ? groups : fallbackMomentGroups)]
-  }, [momentGroups])
-  const featureMomentGroups = useMemo(() => {
-    const orderedGroups = ["jianji-xinyi"]
-      .map((id) => momentGroups.find((group) => group.id === id))
-      .filter((group): group is MomentGroup => Boolean(group))
-    return orderedGroups.length > 0 ? orderedGroups : primaryMomentGroups.slice(0, 4)
-  }, [momentGroups, primaryMomentGroups])
+  const sessionSeries = useMemo(
+    () => selectMomentSeries([localOuterMomentGroup, ...momentGroups], pageLocale),
+    [momentGroups, pageLocale],
+  )
   const lijiePhotos = useMemo(() => momentGroups.find((group) => group.id === "lijie")?.photos ?? [], [momentGroups])
   const aboutPhoto = useMemo(() => {
     return lijiePhotos[0] || coverPhoto
@@ -1127,7 +1375,6 @@ export function HelsinkiPhotoSession() {
     })
     return photos.length > 0 ? photos : [coverPhoto]
   }, [aboutPhoto, lijiePhotos])
-  const activeAboutPhoto = aboutVisualPhotos[activeHighlightIndex % aboutVisualPhotos.length] ?? aboutPhoto
   const shootVisualPhotos = useMemo(() => {
     const fallbackPhotos = shootSteps.map((step, index) => {
       const extraIndex = index - (shootSteps.length - extraWhyMePhotos.length)
@@ -1141,7 +1388,23 @@ export function HelsinkiPhotoSession() {
       return true
     }).slice(0, shootSteps.length)
   }, [whyMePhotos])
-  const activeShootPhoto = shootVisualPhotos[activeStepIndex % shootVisualPhotos.length] ?? activeStep.image
+  const allPhotos = useMemo(() => {
+    const seen = new Set<string>()
+    return [coverPhoto, ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]
+      .filter(photo => {
+        if (seen.has(photo.src)) return false
+        seen.add(photo.src)
+        return true
+      })
+  }, [sessionSeries, aboutVisualPhotos, shootVisualPhotos])
+  const openPhoto = (photo: Photo, trigger?: HTMLButtonElement) => {
+    const index = allPhotos.findIndex(item => item.src === photo.src)
+    if (index < 0) return
+    photoTriggerRef.current = trigger || (document.activeElement instanceof HTMLButtonElement ? document.activeElement : null)
+    setCurrentIndex(index)
+    setPresentedIndex(index)
+    setLightbox(true)
+  }
 
   const updateBookingField = (field: keyof typeof bookingForm, value: string) => {
     setBookingForm((current) => ({ ...current, [field]: value }))
@@ -1149,6 +1412,7 @@ export function HelsinkiPhotoSession() {
 
   const handleBookingSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (bookingStatus === "sending") return
     setBookingStatus("sending")
     setBookingMessage("")
 
@@ -1297,49 +1561,43 @@ export function HelsinkiPhotoSession() {
     const scroller = testimonialScrollerRef.current
     if (!scroller) return
 
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
+    let visible = false
+    const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting })
+    observer.observe(scroller)
     const timer = window.setInterval(() => {
+      if (!visible || document.hidden || reduced.matches || scroller.matches(":hover") || scroller.contains(document.activeElement)) return
       const step = Math.max(280, Math.round(scroller.clientWidth * 0.72))
       const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
       const nextLeft = scroller.scrollLeft + step >= maxScrollLeft - 8 ? 0 : scroller.scrollLeft + step
       scroller.scrollTo({ left: nextLeft, behavior: "smooth" })
     }, 4200)
 
-    return () => window.clearInterval(timer)
+    return () => { window.clearInterval(timer); observer.disconnect() }
   }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsEntering(false), 80)
     return () => {
       window.clearTimeout(timer)
-      if (scrollAnimationRef.current !== null) {
-        window.cancelAnimationFrame(scrollAnimationRef.current)
-      }
     }
   }, [])
 
   useEffect(() => {
-    const updateMomentStage = () => {
-      const node = momentsSectionRef.current
-      if (!node) return
-
-      const rect = node.getBoundingClientRect()
-      const scrollable = Math.max(rect.height - window.innerHeight, 1)
-      const progress = Math.min(1, Math.max(0, -rect.top / scrollable))
-      setMomentScrollStage(progress)
-    }
-
-    updateMomentStage()
-    window.addEventListener("scroll", updateMomentStage, { passive: true })
-    window.addEventListener("resize", updateMomentStage)
-    return () => {
-      window.removeEventListener("scroll", updateMomentStage)
-      window.removeEventListener("resize", updateMomentStage)
-    }
+    const root = mapRootRef.current
+    if (!root) return
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) { setMapNear(true); observer.disconnect() }
+    }, {rootMargin: "600px"})
+    observer.observe(root)
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
     let cancelled = false
+    let releaseWheelGestures: (() => void) | undefined
 
+    if (!mapNear) return
     const mountMap = async () => {
       const root = mapRootRef.current
       if (!root) return
@@ -1364,6 +1622,10 @@ export function HelsinkiPhotoSession() {
         minZoom: 10,
         maxZoom: 17,
         scrollWheelZoom: false,
+        dragging: true,
+        touchZoom: true,
+        keyboard: true,
+        zoomSnap: .25,
         zoomControl: true,
         attributionControl: false,
       })
@@ -1379,6 +1641,7 @@ export function HelsinkiPhotoSession() {
       const bounds = leaflet.latLngBounds(locations.map((location) => [location.lat, location.lng]))
       map.fitBounds(bounds.pad(0.18), { animate: false })
       mapRef.current = map
+      releaseWheelGestures = bindMapWheelGestures(map, root.parentElement || root)
       markersLayerRef.current = leaflet.layerGroup().addTo(map)
       window.requestAnimationFrame(() => {
         map.invalidateSize()
@@ -1396,6 +1659,7 @@ export function HelsinkiPhotoSession() {
 
     return () => {
       cancelled = true
+      releaseWheelGestures?.()
       window.removeEventListener("resize", handleResize)
       if (mapRef.current) {
         mapRef.current.remove()
@@ -1404,7 +1668,7 @@ export function HelsinkiPhotoSession() {
       }
       setMapReady(false)
     }
-  }, [])
+  }, [mapNear])
 
   useEffect(() => {
     let cancelled = false
@@ -1434,14 +1698,13 @@ export function HelsinkiPhotoSession() {
               className: "",
               iconSize: [34, 34],
               iconAnchor: [17, 17],
-              html: `<span style="display:flex;height:34px;width:34px;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #20231f;background:${isActive ? "#d7c4a5" : "#355d63"};color:${isActive ? "#20231f" : "#fff"};font-size:14px;font-weight:700;box-shadow:0 14px 34px -18px rgba(32,35,31,.9);">${index + 1}</span>`,
+              html: `<span style="display:flex;height:34px;width:34px;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #20231f;background:${isActive ? "#cad8da" : "#355d63"};color:${isActive ? "#20231f" : "#fff"};font-size:14px;font-weight:700;box-shadow:0 14px 34px -18px rgba(32,35,31,.9);">${index + 1}</span>`,
             }),
           })
           .on("click", () => {
             setActiveLocationId(location.id)
             mapRef.current?.setView([location.lat, location.lng], Math.max(mapRef.current.getZoom(), 13), { animate: true })
           })
-          .on("mouseover", () => setActiveLocationId(location.id))
           .addTo(markersLayerRef.current)
 
         marker.bindTooltip(`${index + 1}. ${location.name}`, {
@@ -1465,33 +1728,6 @@ export function HelsinkiPhotoSession() {
     mapRef.current.setView([activeLocation.lat, activeLocation.lng], Math.max(mapRef.current.getZoom(), 13), { animate: true })
   }, [activeLocation.lat, activeLocation.lng, mapReady])
 
-  useEffect(() => {
-    const updateActiveHighlightFromScroll = () => {
-      const candidates = highlightRefs.current
-        .map((node, index) => (node ? { node, index } : null))
-        .filter((item): item is { node: HTMLParagraphElement; index: number } => Boolean(item))
-      if (candidates.length === 0) return
-
-      const anchor = window.innerHeight * 0.46
-      const nearest = candidates.reduce<{ index: number; distance: number } | null>((best, item) => {
-        const rect = item.node.getBoundingClientRect()
-        const target = rect.top + rect.height * 0.5
-        const distance = Math.abs(target - anchor)
-        return !best || distance < best.distance ? { index: item.index, distance } : best
-      }, null)
-
-      if (!nearest) return
-      setActiveHighlightIndex((current) => (current === nearest.index ? current : nearest.index))
-    }
-
-    updateActiveHighlightFromScroll()
-    window.addEventListener("scroll", updateActiveHighlightFromScroll, { passive: true })
-    window.addEventListener("resize", updateActiveHighlightFromScroll)
-    return () => {
-      window.removeEventListener("scroll", updateActiveHighlightFromScroll)
-      window.removeEventListener("resize", updateActiveHighlightFromScroll)
-    }
-  }, [pageLocale])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -1512,66 +1748,13 @@ export function HelsinkiPhotoSession() {
     return () => observer.disconnect()
   }, [])
 
-  useEffect(() => {
-    const updateActiveStepFromScroll = () => {
-      const candidates = stepRefs.current
-        .map((node, index) => (node ? { node, index } : null))
-        .filter((item): item is { node: HTMLElement; index: number } => Boolean(item))
-      if (candidates.length === 0) return
-
-      const anchor = window.innerHeight * 0.46
-      const nearest = candidates.reduce<{ index: number; distance: number } | null>((best, item) => {
-        const rect = item.node.getBoundingClientRect()
-        const target = rect.top + rect.height * 0.42
-        const distance = Math.abs(target - anchor)
-        return !best || distance < best.distance ? { index: item.index, distance } : best
-      }, null)
-
-      if (!nearest) return
-      setActiveStepIndex((current) => (current === nearest.index ? current : nearest.index))
-    }
-
-    updateActiveStepFromScroll()
-    window.addEventListener("scroll", updateActiveStepFromScroll, { passive: true })
-    window.addEventListener("resize", updateActiveStepFromScroll)
-    return () => {
-      window.removeEventListener("scroll", updateActiveStepFromScroll)
-      window.removeEventListener("resize", updateActiveStepFromScroll)
-    }
-  }, [])
 
   const handleSectionLink = (sectionId: string) => (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     const target = document.getElementById(sectionId)
     if (!target) return
-
-    if (scrollAnimationRef.current !== null) {
-      window.cancelAnimationFrame(scrollAnimationRef.current)
-    }
-
-    const startY = window.scrollY
-    const documentHeight = document.documentElement.scrollHeight
-    const viewportHeight = window.innerHeight
-    const targetY = Math.min(target.getBoundingClientRect().top + startY, documentHeight - viewportHeight)
-    const distance = targetY - startY
-    const duration = Math.min(1100, Math.max(620, Math.abs(distance) * 0.08))
-    const startTime = window.performance.now()
-    const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3)
-
-    const step = (now: number) => {
-      const progress = Math.min(1, (now - startTime) / duration)
-      window.scrollTo(0, startY + distance * easeOutCubic(progress))
-
-      if (progress < 1) {
-        scrollAnimationRef.current = window.requestAnimationFrame(step)
-        return
-      }
-
-      scrollAnimationRef.current = null
-      window.history.replaceState(null, "", `#${sectionId}`)
-    }
-
-    scrollAnimationRef.current = window.requestAnimationFrame(step)
+    target.scrollIntoView({block:"start",behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"})
+    window.history.replaceState(null,"",`#${sectionId}`)
   }
 
   const handlePortfolioLink = (event: MouseEvent<HTMLButtonElement>) => {
@@ -1589,16 +1772,13 @@ export function HelsinkiPhotoSession() {
 
   const handleScrollTop = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    if (scrollAnimationRef.current !== null) {
-      window.cancelAnimationFrame(scrollAnimationRef.current)
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
     window.history.replaceState(null, "", window.location.pathname)
   }
 
   return (
-    <main
-      className="min-h-screen select-none bg-[#f5f2ec] font-['Manrope'] text-[#151612]"
+    <main lang={pageLocale}
+      className={`${sessionStyles.page} min-h-screen bg-white font-['Portfolio_Hanken'] text-[#151612]`}
       onDragStart={(event) => event.preventDefault()}
     >
       <div
@@ -1608,9 +1788,10 @@ export function HelsinkiPhotoSession() {
         aria-hidden="true"
       />
 
+      <a href="/" className={sessionStyles.homeLink} aria-label={pageLocale === "zh" ? "返回首页" : "Back to home"}>LIJIE LI</a>
       <button
         type="button"
-        className="fixed right-4 top-4 z-50 inline-flex h-10 items-center gap-2 rounded-md border border-white/28 bg-black/42 px-3 text-sm font-semibold text-white shadow-[0_18px_42px_-28px_rgba(0,0,0,0.82)] backdrop-blur transition hover:bg-black/58 sm:right-6 sm:top-6"
+        className={sessionStyles.languageSwitch}
         onClick={handleLanguageToggle}
         aria-label={copy.languageLabel}
         title={copy.languageLabel}
@@ -1619,292 +1800,48 @@ export function HelsinkiPhotoSession() {
         {copy.languageButton}
       </button>
 
-      <section className="relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#050505] text-white">
+      <section id="session-hero" className="relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#050505] text-white">
         <SessionImage
           src={coverPhoto.src}
           alt={coverPhoto.alt}
+          loading="eager"
+          fetchPriority="high"
+          sizes="100vw"
           className="absolute inset-0 h-full w-full object-cover opacity-75"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.86)_0%,rgba(0,0,0,0.48)_48%,rgba(0,0,0,0.14)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.92))]" />
 
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-[18svh] pt-28 sm:px-8 lg:pb-[20svh]">
+        <div className={sessionStyles.heroContent}>
           <div className="max-w-6xl">
-            <h1 className="mt-4 max-w-6xl text-5xl font-semibold leading-[0.94] tracking-normal text-white sm:text-7xl lg:text-[6.8rem]">
-              {copy.hero.title}
-            </h1>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button type="button" className="h-11 rounded-md bg-white px-5 text-[#151612] hover:bg-white/90" onClick={handleSectionLink("moments")}>
-                <ArrowDown className="h-4 w-4" />
-                {copy.hero.samples}
-              </Button>
-              <Button type="button" variant="secondary" className="h-11 rounded-md bg-white/12 px-5 text-white hover:bg-white/20" onClick={handlePortfolioLink}>
-                <Images className="h-4 w-4" />
-                {copy.hero.portfolio}
-              </Button>
-              <Button type="button" variant="secondary" className="h-11 rounded-md bg-white/12 px-5 text-white hover:bg-white/20" onClick={handleSectionLink("contact")}>
-                <MessageCircle className="h-4 w-4" />
-                {copy.hero.booking}
-              </Button>
+            <p className={sessionStyles.heroKicker}>{copy.hero.eyebrow}</p>
+            <h1 className={sessionStyles.heroTitle}>{copy.hero.title}</h1>
+            <p className={sessionStyles.heroDescription}>{copy.hero.description}</p>
+            <div className={sessionStyles.heroActions}>
+              <Button type="button" className="h-11 rounded-md bg-white px-5 text-[#151612] hover:bg-white/90" onClick={handleSectionLink("contact")}><MessageCircle className="h-4 w-4" />{copy.hero.booking}</Button>
+              <Button type="button" variant="secondary" className="h-11 rounded-md bg-white/12 px-5 text-white hover:bg-white/20" onClick={handleSectionLink("moments")}><ArrowDown className="h-4 w-4" />{copy.hero.samples}</Button>
+              <Button type="button" variant="secondary" className="h-11 rounded-md bg-white/12 px-5 text-white hover:bg-white/20" onClick={handlePortfolioLink}><Images className="h-4 w-4" />{copy.hero.portfolio}</Button>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="story" className="bg-[#050505] px-5 py-24 text-white sm:px-8 lg:py-32">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.42fr_0.58fr]">
-          <div className="lg:sticky lg:top-24 lg:h-fit">
-            <p className="text-sm font-semibold uppercase text-white/40">{copy.about.eyebrow}</p>
-            <h2 className="mt-3 max-w-md text-4xl font-semibold leading-tight sm:text-5xl">
-              {copy.about.title}
-            </h2>
-            <p className="mt-5 max-w-md text-sm leading-7 text-white/55">
-              {copy.about.body}
-            </p>
-            <figure className="mt-8 max-w-md overflow-hidden rounded-md bg-[#050505] shadow-[0_26px_90px_-62px_rgba(255,255,255,0.45)]">
-              <div className="relative flex h-[42svh] min-h-[280px] max-h-[430px] items-center justify-center overflow-hidden bg-[#050505]">
-                {aboutVisualPhotos.map((photo, index) => (
-                  <SessionImage
-                    key={`${photo.id}-${photo.src}`}
-                    src={photo.src}
-                    alt={photo.alt}
-                    className={`absolute left-1/2 top-1/2 max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain transition duration-700 ${
-                      activeAboutPhoto.src === photo.src ? "scale-100 opacity-100" : "scale-[0.985] opacity-0"
-                    }`}
-                  />
-                ))}
-              </div>
-            </figure>
-          </div>
-          <div className="space-y-[15svh] pb-[8svh]">
-            {copy.about.highlightLines.map((line, index) => (
-              <p
-                key={line}
-                ref={(node) => {
-                  highlightRefs.current[index] = node
-                }}
-                data-highlight-index={index}
-                className={`max-w-4xl text-4xl font-semibold leading-tight transition duration-500 sm:text-6xl ${
-                  activeHighlightIndex === index ? "text-white" : "text-white/20"
-                }`}
-              >
-                {line}
-              </p>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PhotographerIntro photos={aboutVisualPhotos} title={copy.about.title} body={copy.about.body}
+        lines={copy.about.highlightLines} eyebrow={copy.about.eyebrow} locale={pageLocale} onOpen={openPhoto} />
 
-      <section id="moments" ref={momentsSectionRef} className="relative min-h-[190svh] bg-[#050505] text-white">
-        <div className="sticky top-0 flex min-h-[100svh] items-center overflow-hidden px-5 py-16 sm:px-8">
-          <div className="mx-auto w-full max-w-7xl">
-            <div className="relative min-h-[78svh]">
-              <div
-                className="absolute inset-0 transition duration-700 ease-out"
-                style={{
-                  opacity: Math.max(0, 1 - momentScrollStage * 1.65),
-                  transform: `translateY(${-momentScrollStage * 26}px) scale(${1 - momentScrollStage * 0.025})`,
-                }}
-              >
-                <div className="min-h-[78svh]">
-                  <div className="flex snap-x items-start gap-4 overflow-x-auto pb-4 [scrollbar-width:none] lg:grid lg:min-h-[78svh] lg:grid-cols-3 lg:grid-rows-2 lg:items-stretch lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
-                    {primaryMomentGroups.slice(0, 6).map((group, index) => (
-                      <MomentGroupFrame
-                        key={group.id}
-                        group={group}
-                        eager={index < 2}
-                        locale={pageLocale}
-                        className="h-[56svh] min-h-[430px] lg:h-auto"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+      <SessionSeriesGallery series={sessionSeries} onOpen={openPhoto} label={pageLocale === "zh" ? "人像系列" : "Portrait series"} />
 
-              <div
-                className="absolute inset-0 transition duration-700 ease-out"
-                style={{
-                  opacity: Math.min(1, Math.max(0, (momentScrollStage - 0.38) / 0.42)),
-                  transform: `translateY(${Math.max(0, 1 - momentScrollStage) * 32}px) scale(${0.985 + Math.min(1, momentScrollStage) * 0.015})`,
-                  pointerEvents: momentScrollStage > 0.46 ? "auto" : "none",
-                }}
-              >
-                <div className="flex min-h-[78svh] snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] lg:grid lg:grid-cols-1 lg:grid-rows-1 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
-                  {featureMomentGroups.slice(0, 1).map((group, index) => (
-                    <MomentGroupFrame
-                      key={`${group.id}-featured`}
-                      group={group}
-                      eager={index === 0}
-                      imageFit="contain"
-                      locale={pageLocale}
-                      className="h-[64svh] min-h-[480px] lg:h-auto"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <WhyMeSection copy={copy} photos={shootVisualPhotos} locale={pageLocale} onOpen={openPhoto} />
 
-      <section id="process" className="border-y border-[#24251f] bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 lg:grid-cols-[0.46fr_0.54fr]">
-            <div className="space-y-8">
-              <div>
-                <p className="text-sm font-semibold uppercase text-white/40">{copy.process.eyebrow}</p>
-                <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-tight sm:text-6xl">
-                  {copy.process.title}
-                </h2>
-              </div>
+      <SessionPlanning copy={copy.options} onPlan={(type,trigger) => {
+        const couple = type === copy.options.serviceTypes[1]
+        if (couple) setSelectedPackageIndex(1)
+        setBookingForm(current => ({...current,style:type,...(couple ? {people:"2"} : {})}))
+        bookingTriggerRef.current = trigger
+        setIsEmailFormOpen(true)
+      }} />
 
-              <div className="relative pb-[10svh] pt-4">
-                <div className="pointer-events-none absolute bottom-0 left-[1.1rem] top-4 hidden w-px bg-white/12 sm:block" />
-                {displayShootSteps.map((step, index) => (
-                  <article
-                    key={step.title}
-                    ref={(node) => {
-                      stepRefs.current[index] = node
-                    }}
-                    data-step-index={index}
-                    className={`group relative grid min-h-[36svh] gap-5 border-t border-white/12 py-8 transition duration-500 sm:grid-cols-[3.25rem_minmax(0,1fr)] sm:border-t-0 sm:py-10 ${
-                      activeStepIndex === index ? "text-white" : "text-white/35"
-                    }`}
-                  >
-                    <div className="relative flex items-start gap-3 sm:block">
-                      <span
-                        className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition duration-500 ${
-                          activeStepIndex === index
-                            ? "border-white bg-white text-[#151612]"
-                            : "border-white/20 bg-[#0b0c0a] text-white/42"
-                        }`}
-                      >
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    </div>
-
-                    <div className="max-w-2xl sm:pt-6">
-                      <h3
-                        className={`text-3xl font-semibold leading-tight transition duration-500 sm:text-4xl ${
-                          activeStepIndex === index ? "translate-x-0 opacity-100" : "translate-x-0 opacity-62"
-                        }`}
-                      >
-                        {step.title}
-                      </h3>
-                      <p
-                        className={`mt-5 max-w-xl text-lg leading-8 transition duration-500 ${
-                          activeStepIndex === index ? "text-white/74" : "text-white/38"
-                        }`}
-                      >
-                        {step.body}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-
-          <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-8rem)]">
-            <div className="relative h-[72svh] min-h-[520px] overflow-hidden rounded-md bg-[#050505] lg:h-full">
-              <div className="absolute inset-3 flex items-center justify-center overflow-hidden rounded-sm bg-black">
-                {shootVisualPhotos.map((photo, index) => {
-                  const isActive = activeShootPhoto.src === photo.src
-
-                  return (
-                    <SessionImage
-                      key={`${photo.id}-${photo.src}-${index}`}
-                      src={photo.src}
-                      alt={photo.alt}
-                      className={`absolute h-full w-full object-contain transition duration-700 ${
-                        isActive ? "scale-100 opacity-100" : "scale-[0.985] opacity-0"
-                      }`}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="options" className="bg-[#efe8dc] px-5 py-24 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-sm border-y border-[#20231f] py-10 sm:py-12">
-            <div className="pointer-events-none absolute inset-x-0 top-10 border-t border-[#20231f]/12" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-10 border-t border-[#20231f]/12" />
-            <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-stretch">
-              <div className="relative z-10 flex min-h-[430px] flex-col justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.options.eyebrow}</p>
-                  <h2 className="mt-5 max-w-md text-6xl font-semibold leading-[0.9] tracking-normal text-[#20231f] sm:text-7xl lg:text-[5.15rem]">
-                    {copy.options.titleTop}
-                    <br />
-                    {copy.options.titleBottom}
-                  </h2>
-                </div>
-              </div>
-
-              <div className="relative z-10 min-h-[430px]">
-                <div className="absolute bottom-0 left-0 top-0 hidden w-px bg-[#20231f] lg:block" />
-                <div className="flex h-full flex-col justify-between gap-8 lg:pl-9">
-                  <div className="rounded-md border border-[#20231f] bg-[#f5efe4] p-5">
-                    <div className="flex items-center gap-3 text-[#20231f]">
-                      <Camera className="h-5 w-5 text-[#355d63]" />
-                      <h3 className="text-xl font-semibold">{copy.options.typesTitle}</h3>
-                    </div>
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                      {copy.options.serviceTypes.map((label, index) => {
-                        const Icon = serviceTypes[index]?.icon || Camera
-                        return (
-                          <span key={label} className="inline-flex items-center gap-2 border-t border-[#20231f]/18 pt-3 text-base font-semibold text-[#20231f]">
-                            <Icon className="h-4 w-4 text-[#355d63]" />
-                            <span className="font-mono text-xs text-[#b9aa94]">0{index + 1}</span>
-                            {label}
-                          </span>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-5 md:grid-cols-[0.78fr_1.22fr]">
-                    <div className="rounded-md border border-[#20231f]/40 bg-[#f5efe4] p-5">
-                      <div className="flex items-center gap-2 text-[#355d63]">
-                        <Languages className="h-5 w-5" />
-                        <h3 className="text-xl font-semibold text-[#20231f]">{copy.options.languagesTitle}</h3>
-                      </div>
-                      <div className="mt-5 flex flex-wrap gap-2">
-                        {copy.options.languageItems.map((item) => (
-                          <span key={item} className="rounded-full border border-[#20231f]/24 bg-[#efe8dc] px-4 py-2 text-sm font-semibold text-[#20231f]">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-md border border-[#20231f]/40 bg-[#f5efe4] p-5">
-                      <div className="flex items-center gap-2 text-[#355d63]">
-                        <CalendarDays className="h-5 w-5" />
-                        <h3 className="text-xl font-semibold text-[#20231f]">{copy.options.briefTitle}</h3>
-                      </div>
-                      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                        {copy.options.briefItems.map((item, index) => (
-                          <div key={item} className="flex items-center gap-3 border-t border-[#20231f]/18 pt-3">
-                            <span className="font-mono text-xs text-[#9b8b78]">0{index + 1}</span>
-                            <span className="text-sm font-semibold text-[#20231f]">{item}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="locations" className="bg-[#f5f2ec] px-5 py-20 sm:px-8">
+      <section id="locations" className="bg-[#ffffff] px-5 py-20 sm:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 grid gap-4 lg:grid-cols-[0.38fr_0.62fr] lg:items-end">
             <div>
@@ -1930,7 +1867,7 @@ export function HelsinkiPhotoSession() {
                   className={`rounded-md border p-5 transition duration-500 ${
                     activeLocationId === location.id
                       ? "border-[#20231f] bg-white shadow-[0_24px_70px_-48px_rgba(32,35,31,0.7)]"
-                      : "border-[#ded4c6] bg-white/60 text-[#7a6f62]"
+                      : "border-[#d9dfe0] bg-white/60 text-[#7a6f62]"
                   }`}
                   onMouseEnter={() => setActiveLocationId(location.id)}
                 >
@@ -1938,7 +1875,7 @@ export function HelsinkiPhotoSession() {
                     <button
                       type="button"
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
-                        activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#f0e8da] text-[#4e493f]"
+                        activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#eef1f2] text-[#4e493f]"
                       }`}
                       onClick={() => setActiveLocationId(location.id)}
                       aria-label={`Focus ${location.name}`}
@@ -1959,8 +1896,8 @@ export function HelsinkiPhotoSession() {
             </div>
 
             <div className="lg:sticky lg:top-16 lg:order-1 lg:h-[calc(100svh-8rem)]">
-              <div className="relative h-[70svh] min-h-[540px] overflow-hidden rounded-md border border-[#ded4c6] bg-[#dfe9ea] shadow-[0_24px_70px_-58px_rgba(32,35,31,0.55)] lg:h-full">
-                <div ref={mapRootRef} className="absolute inset-0 z-0 h-full w-full [&_.leaflet-tooltip.photo-session-map-tooltip]:rounded-md [&_.leaflet-tooltip.photo-session-map-tooltip]:border-[#ded4c6] [&_.leaflet-tooltip.photo-session-map-tooltip]:bg-white/95 [&_.leaflet-tooltip.photo-session-map-tooltip]:px-2.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:py-1.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:text-xs [&_.leaflet-tooltip.photo-session-map-tooltip]:font-semibold [&_.leaflet-tooltip.photo-session-map-tooltip]:text-[#20231f] [&_.leaflet-tooltip.photo-session-map-tooltip]:shadow-sm" />
+              <div className="relative h-[70svh] min-h-[540px] overflow-hidden rounded-md border border-[#d9dfe0] bg-[#dfe9ea] shadow-[0_24px_70px_-58px_rgba(32,35,31,0.55)] lg:h-full">
+                <div ref={mapRootRef} className="absolute inset-0 z-0 h-full w-full [&_.leaflet-tooltip.photo-session-map-tooltip]:rounded-md [&_.leaflet-tooltip.photo-session-map-tooltip]:border-[#d9dfe0] [&_.leaflet-tooltip.photo-session-map-tooltip]:bg-white/95 [&_.leaflet-tooltip.photo-session-map-tooltip]:px-2.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:py-1.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:text-xs [&_.leaflet-tooltip.photo-session-map-tooltip]:font-semibold [&_.leaflet-tooltip.photo-session-map-tooltip]:text-[#20231f] [&_.leaflet-tooltip.photo-session-map-tooltip]:shadow-sm" />
                 <div
                   className={`pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#dfe9ea] transition duration-500 ${
                     mapReady ? "opacity-0" : "opacity-100"
@@ -1978,7 +1915,7 @@ export function HelsinkiPhotoSession() {
                   </div>
                 </div>
                 <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(255,250,242,0.05),rgba(32,35,31,0.08))]" />
-                <div className="absolute bottom-5 left-5 right-5 z-20 rounded-md bg-white/92 px-4 py-3 text-sm text-[#20231f] shadow-sm backdrop-blur">
+                <div className="pointer-events-none absolute bottom-5 left-5 right-5 z-20 rounded-md bg-white/92 px-4 py-3 text-sm text-[#20231f] shadow-sm backdrop-blur">
                   <p className="font-semibold">{activeDisplayLocation.name}</p>
                   <p className="mt-1 text-xs text-[#676256]">{activeDisplayLocation.place} · {activeDisplayLocation.bestTime}</p>
                 </div>
@@ -2010,7 +1947,7 @@ export function HelsinkiPhotoSession() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#d7c4a5] text-sm font-bold text-[#151612]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#cad8da] text-sm font-bold text-[#151612]">
                       {item.name.slice(0, 1)}
                     </div>
                     <div>
@@ -2018,7 +1955,7 @@ export function HelsinkiPhotoSession() {
                       <p className="mt-0.5 text-xs font-semibold uppercase text-white/38">{item.context}</p>
                     </div>
                   </div>
-                  <div className="flex gap-0.5 text-[#d7c4a5]">
+                  <div className="flex gap-0.5 text-[#cad8da]">
                     {[0, 1, 2, 3, 4].map((star) => (
                       <Star key={star} className="h-3.5 w-3.5 fill-current" />
                     ))}
@@ -2032,7 +1969,7 @@ export function HelsinkiPhotoSession() {
         </div>
       </section>
 
-      <section id="pricing" className="border-y border-[#ded4c6] bg-[#fffaf2] px-5 py-20 sm:px-8">
+      <section id="pricing" className="border-y border-[#d9dfe0] bg-[#ffffff] px-5 py-20 sm:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.32fr_0.68fr]">
           <div>
             <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.pricing.eyebrow}</p>
@@ -2051,7 +1988,7 @@ export function HelsinkiPhotoSession() {
                   className={`rounded-md border p-5 text-left transition ${
                     isSelected
                       ? "border-[#20231f] bg-[#20231f] text-white shadow-[0_24px_70px_-50px_rgba(32,35,31,0.82)]"
-                      : "border-[#ded4c6] bg-white hover:border-[#9cb4b7]"
+                      : "border-[#d9dfe0] bg-white hover:border-[#9cb4b7]"
                   }`}
                   onClick={() => setSelectedPackageIndex(index)}
                   aria-pressed={isSelected}
@@ -2073,7 +2010,7 @@ export function HelsinkiPhotoSession() {
         </div>
       </section>
 
-      <section className="bg-[#f5f2ec] px-5 py-20 sm:px-8">
+      <section className="bg-[#ffffff] px-5 py-20 sm:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.34fr_0.66fr]">
           <div>
             <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.delivery.eyebrow}</p>
@@ -2082,7 +2019,7 @@ export function HelsinkiPhotoSession() {
             </h2>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <article className="rounded-md border border-[#ded4c6] bg-white p-5">
+            <article className="rounded-md border border-[#d9dfe0] bg-white p-5">
               <h3 className="font-semibold">{copy.delivery.includedTitle}</h3>
               <ul className="mt-4 grid gap-2 text-sm leading-6 text-[#676256]">
                 {copy.delivery.includedItems.map((item) => (
@@ -2093,7 +2030,7 @@ export function HelsinkiPhotoSession() {
                 ))}
               </ul>
             </article>
-            <article className="rounded-md border border-[#ded4c6] bg-white p-5">
+            <article className="rounded-md border border-[#d9dfe0] bg-white p-5">
               <h3 className="font-semibold">{copy.delivery.boundaryTitle}</h3>
               <ul className="mt-4 grid gap-2 text-sm leading-6 text-[#676256]">
                 {copy.delivery.boundaryItems.map((item) => (
@@ -2108,7 +2045,7 @@ export function HelsinkiPhotoSession() {
         </div>
       </section>
 
-      <section id="contact" className="bg-[#f5f2ec] px-5 py-20 sm:px-8">
+      <section id="contact" className="bg-[#ffffff] px-5 py-20 sm:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.34fr_0.66fr]">
           <div>
             <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.contact.eyebrow}</p>
@@ -2117,7 +2054,7 @@ export function HelsinkiPhotoSession() {
             </h2>
             <ol className="mt-6 grid gap-3 text-sm leading-6 text-[#676256]">
               {copy.contact.processItems.map((item, index) => (
-                <li key={item} className="flex gap-3 rounded-md border border-[#ded4c6] bg-white px-4 py-3">
+                <li key={item} className="flex gap-3 rounded-md border border-[#d9dfe0] bg-white px-4 py-3">
                   <span className="font-mono text-xs font-semibold text-[#355d63]">0{index + 1}</span>
                   <span>{item}</span>
                 </li>
@@ -2144,8 +2081,9 @@ export function HelsinkiPhotoSession() {
 
             <button
               type="button"
-              className="group flex min-h-[220px] flex-col justify-between rounded-md border border-[#ded4c6] bg-white p-5 text-left transition hover:border-[#20231f]"
-              onClick={() => setIsEmailFormOpen(true)}
+              className="group flex min-h-[220px] flex-col justify-between rounded-md border border-[#d9dfe0] bg-white p-5 text-left transition hover:border-[#20231f]"
+              ref={bookingTriggerRef}
+              onClick={event => { bookingTriggerRef.current = event.currentTarget; setIsEmailFormOpen(true) }}
             >
               <div>
                 <Mail className="h-6 w-6 text-[#355d63]" />
@@ -2171,25 +2109,34 @@ export function HelsinkiPhotoSession() {
         </div>
       </section>
 
-      {isEmailFormOpen && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/58 px-5 py-8 backdrop-blur-sm">
-          <form onSubmit={handleBookingSubmit} className="max-h-full w-full max-w-3xl overflow-y-auto rounded-md border border-[#ded4c6] bg-white p-5 shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
+      <Dialog.Root open={isEmailFormOpen} onOpenChange={setIsEmailFormOpen}><Dialog.Portal>
+        <Dialog.Overlay className={sessionStyles.bookingOverlay} />
+        <Dialog.Content asChild aria-describedby={undefined} className={sessionStyles.bookingDialog}
+          onCloseAutoFocus={event => { event.preventDefault(); bookingTriggerRef.current?.focus({preventScroll: true}) }}>
+          <form onSubmit={handleBookingSubmit} className="fixed left-1/2 top-1/2 z-[10002] max-h-[calc(100dvh-40px)] w-[calc(100%-40px)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border border-[#d9dfe0] bg-white p-5 shadow-[0_32px_110px_rgba(0,0,0,0.38)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.form.eyebrow}</p>
-                <h3 className="mt-2 text-3xl font-semibold leading-tight text-[#20231f]">{copy.form.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#676256]">
-                  {copy.form.packagePrefix}: {selectedPackage.name} / {selectedPackage.price} / {selectedPackage.note}
-                </p>
+                <Dialog.Title asChild><h3 className="mt-2 text-3xl font-semibold leading-tight text-[#20231f]">{copy.form.title}</h3></Dialog.Title>
               </div>
               <button
                 type="button"
-                className="rounded-md border border-[#ded4c6] px-3 py-2 text-sm font-semibold text-[#20231f] transition hover:border-[#20231f]"
+                className="min-h-11 shrink-0 whitespace-nowrap rounded-md border border-[#d9dfe0] px-3 py-2 text-sm font-semibold text-[#20231f] transition hover:border-[#20231f]"
                 onClick={() => setIsEmailFormOpen(false)}
               >
                 {copy.form.close}
               </button>
             </div>
+            <label className={sessionStyles.packageChoice}>
+              <span>{copy.form.packagePrefix}</span>
+              <select value={selectedPackageIndex} aria-label={copy.form.packagePrefix} onChange={event => {
+                const index = Number(event.target.value)
+                setSelectedPackageIndex(index)
+                setBookingForm(current => ({...current,people:index < 3 ? String(index + 1) : ""}))
+              }}>
+                {copy.pricing.packages.map((item,index) => <option key={item.name} value={index}>{item.name} / {item.price} / {item.note}</option>)}
+              </select>
+            </label>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold text-[#20231f]">
                 {copy.form.name}
@@ -2197,7 +2144,7 @@ export function HelsinkiPhotoSession() {
                   required
                   value={bookingForm.name}
                   onChange={(event) => updateBookingField("name", event.target.value)}
-                  className="h-11 rounded-md border border-[#ded4c6] bg-[#fffaf2] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
+                  className="h-11 rounded-md border border-[#d9dfe0] bg-[#ffffff] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
                   placeholder={copy.form.namePlaceholder}
                 />
               </label>
@@ -2207,7 +2154,7 @@ export function HelsinkiPhotoSession() {
                   required
                   value={bookingForm.date}
                   onChange={(event) => updateBookingField("date", event.target.value)}
-                  className="h-11 rounded-md border border-[#ded4c6] bg-[#fffaf2] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
+                  className="h-11 rounded-md border border-[#d9dfe0] bg-[#ffffff] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
                   placeholder={copy.form.datePlaceholder}
                 />
               </label>
@@ -2217,7 +2164,7 @@ export function HelsinkiPhotoSession() {
                   required
                   value={bookingForm.contact}
                   onChange={(event) => updateBookingField("contact", event.target.value)}
-                  className="h-11 rounded-md border border-[#ded4c6] bg-[#fffaf2] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
+                  className="h-11 rounded-md border border-[#d9dfe0] bg-[#ffffff] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
                   placeholder={copy.form.contactPlaceholder}
                 />
               </label>
@@ -2226,7 +2173,7 @@ export function HelsinkiPhotoSession() {
                 <input
                   value={bookingForm.people}
                   onChange={(event) => updateBookingField("people", event.target.value)}
-                  className="h-11 rounded-md border border-[#ded4c6] bg-[#fffaf2] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
+                  className="h-11 rounded-md border border-[#d9dfe0] bg-[#ffffff] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
                   placeholder={copy.form.peoplePlaceholder}
                 />
               </label>
@@ -2235,7 +2182,7 @@ export function HelsinkiPhotoSession() {
                 <input
                   value={bookingForm.style}
                   onChange={(event) => updateBookingField("style", event.target.value)}
-                  className="h-11 rounded-md border border-[#ded4c6] bg-[#fffaf2] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
+                  className="h-11 rounded-md border border-[#d9dfe0] bg-[#ffffff] px-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
                   placeholder={copy.form.stylePlaceholder}
                 />
               </label>
@@ -2246,12 +2193,12 @@ export function HelsinkiPhotoSession() {
               <textarea
                 value={bookingForm.note}
                 onChange={(event) => updateBookingField("note", event.target.value)}
-                className="min-h-28 rounded-md border border-[#ded4c6] bg-[#fffaf2] px-3 py-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
+                className="min-h-28 rounded-md border border-[#d9dfe0] bg-[#ffffff] px-3 py-3 text-sm font-medium outline-none transition focus:border-[#355d63]"
                 placeholder={copy.form.notePlaceholder}
               />
             </label>
 
-            <div className="mt-5 rounded-md border border-[#ded4c6] bg-[#f7f3ec] p-4 text-sm leading-6 text-[#676256]">
+            <div className="mt-5 rounded-md border border-[#d9dfe0] bg-[#f3f5f6] p-4 text-sm leading-6 text-[#676256]">
               <p className="font-semibold text-[#20231f]">{copy.form.summaryTitle}</p>
               <p className="mt-2">{selectedPackage.name} / {selectedPackage.price} / {selectedPackage.note}</p>
               <p>{bookingForm.date || copy.form.dateFallback} / {copy.form.timeFallback}</p>
@@ -2272,29 +2219,12 @@ export function HelsinkiPhotoSession() {
               </p>
             )}
           </form>
-        </div>
-      )}
+        </Dialog.Content>
+      </Dialog.Portal></Dialog.Root>
 
-      <section className="border-t border-[#ded4c6] bg-[#fffaf2] px-5 py-20 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.34fr_0.66fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.faq.eyebrow}</p>
-            <h2 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
-              {copy.faq.title}
-            </h2>
-          </div>
-          <div className="grid gap-3">
-            {copy.faq.items.map((faq) => (
-              <details key={faq.question} className="rounded-md border border-[#ded4c6] bg-white p-5">
-                <summary className="cursor-pointer font-semibold">{faq.question}</summary>
-                <p className="mt-3 leading-7 text-[#676256]">{faq.answer}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+      <BookingQuestions copy={copy.faq} locale={pageLocale} />
 
-      <footer className="border-t border-[#ded4c6] bg-[#20231f] px-5 py-8 text-white sm:px-8">
+      <footer className="border-t border-[#d9dfe0] bg-[#20231f] px-5 py-8 text-white sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-semibold">{copy.footer.title}</p>
@@ -2317,6 +2247,25 @@ export function HelsinkiPhotoSession() {
           </div>
         </div>
       </footer>
+
+      <Dialog.Root open={lightbox} onOpenChange={setLightbox}><Dialog.Portal>
+        <Dialog.Overlay className={viewerStyles.lightboxOverlay} />
+        <Dialog.Content className={viewerStyles.lightbox} aria-describedby={undefined}
+          onCloseAutoFocus={event => { event.preventDefault(); photoTriggerRef.current?.focus({preventScroll: true}) }}>
+          <header className={viewerStyles.lightboxHeader}>
+            <Dialog.Title>{pageLocale === "zh" ? "拍摄片刻" : "Photographs"}<span>{String(presentedIndex + 1).padStart(2, "0")} / {String(allPhotos.length).padStart(2, "0")}</span></Dialog.Title>
+            <Dialog.Close asChild><button className={viewerStyles.closeButton} aria-label={pageLocale === "zh" ? "关闭样片" : "Close photographs"}><X size={21} strokeWidth={1.4} /></button></Dialog.Close>
+          </header>
+          <div className={viewerStyles.lightboxStage}>{lightbox && <LazyCarousel keyboardInDialog images={allPhotos.map((photo): CarouselImage => {
+            const src = sessionViewerSource(photo.src)
+            return {id: photo.id, url: /^https?:/.test(src) ? src : `${window.location.origin}${src}`, translations: {en: {title: photo.alt}, zh: {title: photo.alt}}}
+          })} currentIndex={currentIndex} onChangeImage={setCurrentIndex} onDisplayImage={setPresentedIndex} />}</div>
+          <footer className={viewerStyles.lightboxFooter}><span>{allPhotos[presentedIndex]?.alt}</span><div>
+            <button className={viewerStyles.closeButton} onClick={() => setCurrentIndex(index => (index - 1 + allPhotos.length) % allPhotos.length)} aria-label={pageLocale === "zh" ? "上一张样片" : "Previous photograph"}><ArrowRight size={18} className="rotate-180" /></button>
+            <button className={viewerStyles.closeButton} onClick={() => setCurrentIndex(index => (index + 1) % allPhotos.length)} aria-label={pageLocale === "zh" ? "下一张样片" : "Next photograph"}><ArrowRight size={18} /></button>
+          </div></footer>
+        </Dialog.Content>
+      </Dialog.Portal></Dialog.Root>
     </main>
   )
 }

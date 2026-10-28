@@ -1,0 +1,252 @@
+{
+  "measuredOn": "2026-10-27",
+  "browser": "Actual macOS Safari app com.apple.Safari, native keyboard control; 1512x770 CSS viewport, devicePixelRatio 2.",
+  "method": "Two isolated production builds served sequentially on 127.0.0.1:3001. Each version was opened once without diagnostics, then fully navigated to audit=viewer. The same native-control batch sent six Right keypresses, each followed by an accessibility snapshot, starting immediately after initial UI state. Probe freezes after 20 seconds. Existing HTTP image cache was retained.",
+  "before": {
+    "mode": "native photo input",
+    "phase": "complete",
+    "durationS": 20,
+    "method": "Real input; callback intervals, not GPU presentation. Moving gaps include stalls over 80ms.",
+    "viewport": "1512x770",
+    "density": 2,
+    "visible": true,
+    "documentResponseMs": 62,
+    "viewerMountedAtMs": 897,
+    "pageP95ms": 18,
+    "maxPageGapMs": 82,
+    "movingP95ms": 31,
+    "maxMovingGapMs": 82,
+    "movingGapsOver25ms": 16,
+    "inputQueueP95ms": 16,
+    "peakDOMPhotoMiB": 56.7,
+    "peakMovingDOMPhotoMiB": 8.3,
+    "originalSizes": [
+      "4546x3030"
+    ],
+    "events": [
+      {
+        "event": "request",
+        "index": 0,
+        "atMs": 0
+      },
+      {
+        "event": "presented",
+        "index": 0,
+        "atMs": 34
+      },
+      {
+        "event": "settled",
+        "index": 0,
+        "atMs": 646
+      },
+      {
+        "event": "request",
+        "index": 1,
+        "atMs": 671
+      },
+      {
+        "event": "presented",
+        "index": 1,
+        "atMs": 672
+      },
+      {
+        "event": "request",
+        "index": 2,
+        "atMs": 1220
+      },
+      {
+        "event": "presented",
+        "index": 2,
+        "atMs": 1221
+      },
+      {
+        "event": "request",
+        "index": 3,
+        "atMs": 1738
+      },
+      {
+        "event": "presented",
+        "index": 3,
+        "atMs": 1738
+      },
+      {
+        "event": "request",
+        "index": 4,
+        "atMs": 2241
+      },
+      {
+        "event": "presented",
+        "index": 4,
+        "atMs": 2242
+      },
+      {
+        "event": "request",
+        "index": 5,
+        "atMs": 2738
+      },
+      {
+        "event": "presented",
+        "index": 5,
+        "atMs": 2738
+      },
+      {
+        "event": "request",
+        "index": 6,
+        "atMs": 3275
+      },
+      {
+        "event": "presented",
+        "index": 6,
+        "atMs": 3275
+      },
+      {
+        "event": "settled",
+        "index": 6,
+        "atMs": 4129
+      }
+    ],
+    "selectionDecodeWaitP95ms": 1
+  },
+  "after": {
+    "mode": "native photo input",
+    "phase": "complete",
+    "durationS": 20,
+    "method": "Real input; callback intervals, not GPU presentation. Moving gaps include stalls over 80ms.",
+    "viewport": "1512x770",
+    "density": 2,
+    "visible": true,
+    "documentResponseMs": 14,
+    "viewerMountedAtMs": 399,
+    "pageP95ms": 18,
+    "maxPageGapMs": 42,
+    "movingP95ms": 29,
+    "maxMovingGapMs": 42,
+    "movingGapsOver25ms": 14,
+    "inputQueueP95ms": 16,
+    "peakDOMPhotoMiB": 56.7,
+    "peakMovingDOMPhotoMiB": 8.3,
+    "originalSizes": [
+      "4546x3030"
+    ],
+    "events": [
+      {
+        "event": "request",
+        "index": 0,
+        "atMs": 0
+      },
+      {
+        "event": "presented",
+        "index": 0,
+        "atMs": 2
+      },
+      {
+        "event": "request",
+        "index": 1,
+        "atMs": 643
+      },
+      {
+        "event": "presented",
+        "index": 1,
+        "atMs": 652
+      },
+      {
+        "event": "request",
+        "index": 2,
+        "atMs": 1165
+      },
+      {
+        "event": "presented",
+        "index": 2,
+        "atMs": 1173
+      },
+      {
+        "event": "request",
+        "index": 3,
+        "atMs": 1693
+      },
+      {
+        "event": "presented",
+        "index": 3,
+        "atMs": 1702
+      },
+      {
+        "event": "request",
+        "index": 4,
+        "atMs": 2230
+      },
+      {
+        "event": "presented",
+        "index": 4,
+        "atMs": 2243
+      },
+      {
+        "event": "request",
+        "index": 5,
+        "atMs": 2738
+      },
+      {
+        "event": "presented",
+        "index": 5,
+        "atMs": 2751
+      },
+      {
+        "event": "settled",
+        "index": 5,
+        "atMs": 3423
+      },
+      {
+        "event": "request",
+        "index": 6,
+        "atMs": 3697
+      },
+      {
+        "event": "presented",
+        "index": 6,
+        "atMs": 3698
+      },
+      {
+        "event": "settled",
+        "index": 6,
+        "atMs": 4372
+      }
+    ],
+    "selectionDecodeWaitP95ms": 13
+  },
+  "limits": [
+    "One local run per build, warm assets, foreground/background OS scheduling and accessibility snapshot overhead; results are not universal FPS guarantees.",
+    "RAF intervals measure callback opportunities, not physical GPU presentation. Native transform/opacity playback may continue without these JS callbacks.",
+    "presented events mean a decoded preview was committed to React state, not a physical screen-presentation timestamp.",
+    "viewerMountedAtMs is relative to full document navigation; it is not time to finished entrance animation.",
+    "DOM photo MiB is a natural-dimension estimate for current image elements only, not process, off-DOM cache, video or GPU memory.",
+    "Average page P95 and input queue P95 did not improve in this run. Preview decoding waits increased from approximately 1ms to 13ms under the more conservative prefetch schedule."
+  ],
+  "verification": {
+    "typecheck": "Passed",
+    "productionBuild": "Both before and final after builds passed in temporary copies; original .next left intact.",
+    "cacheChecks": [
+      "Superseded selection cancelled",
+      "Decoded image object retained and reused",
+      "Speculative failure does not request original",
+      "Speculative task promoted to foreground",
+      "Selected-image original fallback",
+      "LRU eviction keeps five entries",
+      "Unmount cancels pending task"
+    ],
+    "uiChecks": [
+      "Actual Safari six new-photo transitions with final counter 07/19",
+      "At most two photo planes during eight fast keypresses in IAB",
+      "12px short drag keeps current photograph",
+      "590px drag advances exactly one photograph",
+      "Contact sheet direct selection of photograph 19",
+      "19-to-1 wraparound",
+      "Details drawer blocks photo keys until dismissed",
+      "Actual Safari normal-mode next button click changes 07/19 to 08/19",
+      "Normal-mode photograph click advances one image",
+      "URL index=6 preloads the exact displayed seventh photograph",
+      "844x390 landscape has no horizontal overflow and preserves natural photograph ratio",
+      "Photo-session lightbox also switches by arrow key and closes with Escape",
+      "Ordinary preview shows no native audit or frame probe"
+    ]
+  },
+  "reference": "https://webkit.org/blog/10266/web-animations-in-safari-13-1/"
+}

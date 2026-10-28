@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-27",
+  "environment": "Local Next.js development preview, macOS in-app browser. Mobile is a resized viewport, not a physical phone.",
+  "method": "Six automatic adjacent-photo transitions at 1.4-second intervals; freeze the last six seconds of sampling after 11 seconds. pageFps measures requestAnimationFrame cadence; activeMotionFps measures active Framer Motion onUpdate callbacks and is not a physical display/GPU frame counter.",
+  "results": {
+    "desktop": {
+      "mode": "elastic photo viewer",
+      "phase": "complete",
+      "benchmarkTransitions": 6,
+      "windowS": 6,
+      "pageFps": 119.5,
+      "activeMotionFps": 121.1,
+      "pageP95ms": 10,
+      "motionP95ms": 10.7,
+      "over25msPct": 0,
+      "slides": 1,
+      "viewport": "1440x900",
+      "visible": true
+    },
+    "mobile": {
+      "mode": "elastic photo viewer",
+      "phase": "complete",
+      "benchmarkTransitions": 6,
+      "windowS": 6,
+      "pageFps": 119.1,
+      "activeMotionFps": 120.8,
+      "pageP95ms": 10,
+      "motionP95ms": 9.8,
+      "over25msPct": 0,
+      "slides": 1,
+      "viewport": "390x650",
+      "visible": true
+    }
+  },
+  "scope": "Warm adjacent previews, not cold-network loading. Normal viewer URLs do not run the performance probe."
+}

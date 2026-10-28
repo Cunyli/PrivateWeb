@@ -162,6 +162,7 @@ export default async function StyleCollectionPage({
         locations={[]}
         returnContext={{
           type: "portfolio",
+          homePath: resolvedSearchParams?.origin === "home" ? "/" : "/portfolio",
           focusSection: resolvedSearchParams?.returnSection === "styles" ? "styles" : undefined,
           restore: resolvedSearchParams?.restore === "1" || resolvedSearchParams?.origin === "portfolio",
         }}

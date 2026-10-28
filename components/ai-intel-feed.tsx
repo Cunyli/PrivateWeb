@@ -1368,8 +1368,8 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
             </div>
             <div className="flex flex-wrap gap-2 md:justify-end">
               {publicMode ? (
-                <Link href="/ai-feed" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white">
-                  Admin feed
+                <Link href="/resume?from=portfolio" className="inline-flex min-h-11 items-center rounded-sm border border-[#657b6b] px-3 py-2 text-sm text-[#516c5a] transition-colors hover:bg-[#e7ecdf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
+                  ← 返回简历
                 </Link>
               ) : null}
               {!publicMode ? (

@@ -22,13 +22,12 @@ export function LangSwitcher({ className }: LangSwitcherProps) {
       aria-label={locale === "en" ? "Switch to Chinese" : "切换到英文"}
       title={locale === "en" ? "Switch to Chinese" : "切换到英文"}
       className={clsx(
-        "inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/80 text-gray-700 shadow-sm transition-all duration-200 hover:shadow-md hover:text-black",
-        "backdrop-blur-sm",
+        "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-current/15 bg-transparent text-[#232724] transition-[background,transform] duration-200 hover:-translate-y-0.5 hover:bg-black/5 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#657b6b]",
         className,
       )}
     >
-      <span aria-hidden="true" className="text-[15px] leading-none">
-        🌍
+      <span aria-hidden="true" className="text-[11px] font-medium leading-none tracking-[-.02em]">
+        {nextLocale === "en" ? "EN" : "中"}
       </span>
       <span className="sr-only">{nextLocale === "en" ? "Switch to English" : "切换到中文"}</span>
     </button>

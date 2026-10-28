@@ -1,0 +1,442 @@
+{
+  "sourceSha256": "a74533aad92bc0099686c31ff8d4413945bbeb0377bb61be5a1530f19263d9e2",
+  "sourceExportedAt": "2026-10-28T01:05:35.465Z",
+  "version": 1,
+  "date": "2026-10-28",
+  "draftModel": "verda/kimi-k3",
+  "reviewedBy": "Codex",
+  "collections": {
+    "67": {
+      "en": {
+        "title": "Vienna, Take It Slowly",
+        "subtitle": "Gardens, riverbanks and side streets",
+        "description": "April walks through Vienna's gardens, riverbanks and side streets, with people stretched out on the grass and a florist busy with flowers."
+      },
+      "zh": {
+        "title": "维也纳，先躺一下",
+        "subtitle": "花园、河岸和街角",
+        "description": "四月走过维也纳的花园、河岸和街角。有人在草坪上晒太阳，花店里也有人忙着手里的花。"
+      }
+    },
+    "68": {
+      "en": {
+        "title": "Vienna in the Glass",
+        "subtitle": "Street corners and the Plague Column",
+        "description": "Facades bend across glass, people cross under the trees, and visitors gather at the Plague Column. Another look at the city from its street corners."
+      },
+      "zh": {
+        "title": "玻璃里的维也纳",
+        "subtitle": "街头与鼠疫纪念柱",
+        "description": "老城立面映在玻璃幕墙上，树荫下有人穿过街道，鼠疫纪念柱前围着游客。同一座城，从街角再看一遍。"
+      }
+    },
+    "69": {
+      "en": {
+        "title": "Dubrovnik, Overcast",
+        "subtitle": "The King's Landing filming city",
+        "description": "Grey skies and a sharp sea wind did not stop us wandering Dubrovnik for hours. I remember the lemons and stone steps more clearly than the route."
+      },
+      "zh": {
+        "title": "杜布罗夫尼克，阴天",
+        "subtitle": "君临城取景地",
+        "description": "我们在杜布罗夫尼克逗留了很久。阴天和刺骨海风没耽误闲逛，树上的柠檬和一段段石阶，反而记得很清楚。"
+      }
+    },
+    "70": {
+      "en": {
+        "title": "Split, Plans Cancelled",
+        "subtitle": "After the Blue Cave trip fell through",
+        "description": "Bad weather cancelled the Blue Cave trip, so I stayed in Split, climbed a hill and wandered. A €4.50 Coke lasted an hour by the sea; dinner's seafood risotto was cheaper and better than Dubrovnik's."
+      },
+      "zh": {
+        "title": "斯普利特，计划之外",
+        "subtitle": "蓝洞取消以后",
+        "description": "去蓝洞的计划因天气取消，便留在斯普利特爬山、闲逛。最后坐到海边，守着一杯4.5欧元的可乐发呆；晚饭的海鲜烩饭比杜布罗夫尼克的便宜，也更好吃。"
+      }
+    },
+    "71": {
+      "en": {
+        "title": "Four Euros by Lake Bled",
+        "subtitle": "Slovenia, sketches by the shore",
+        "description": "Lake Bled brightened just as we arrived. An older man was sketching by the shore, selling drawings for four euros; elsewhere there were pistachio croissants and a long search for the cave train."
+      },
+      "zh": {
+        "title": "布莱德，四欧一张",
+        "subtitle": "斯洛文尼亚，湖边速写",
+        "description": "到布莱德湖时，阴了一整天的天忽然放晴。湖边有位画速写的老人，画卖四欧一张；这趟还记住了找火车的折腾和小镇的开心果可颂。"
+      }
+    },
+    "72": {
+      "en": {
+        "title": "Next Stop, Vienna",
+        "subtitle": "Austria, through the train window",
+        "description": "Most photographs were made through the train window from Slovenia to Vienna. Villages, yellow fields and rainbows passed by, followed after dark by the lights beside the tracks."
+      },
+      "zh": {
+        "title": "下一站，维也纳",
+        "subtitle": "奥地利，车窗与彩虹",
+        "description": "从斯洛文尼亚去维也纳，大多数照片都隔着车窗。村庄、黄花田和彩虹一段段经过；天黑后，铁轨边的灯又接着亮起来。"
+      }
+    },
+    "73": {
+      "en": {
+        "title": "King's Landing to Freight Yard",
+        "subtitle": "Croatia, inside and outside the city",
+        "description": "Red rooftops above the sea, freight cars beneath green mountains, and sky through the round opening of a stone dome: Croatia seen inside and outside its cities."
+      },
+      "zh": {
+        "title": "君临城与货运列车",
+        "subtitle": "克罗地亚，城里城外",
+        "description": "海边老城的红屋顶，山脚下的货运车厢，还有石穹顶圆孔里露出的天空。这组克罗地亚照片，把城里和城外接在了一起。"
+      }
+    },
+    "74": {
+      "en": {
+        "title": "An Island in Lake Bled",
+        "subtitle": "Slovenia, Lake Bled and the caves",
+        "description": "Town rooftops, an island in Lake Bled and a hilltop castle share this trip. Clouds hang over the mountains above the deep green water."
+      },
+      "zh": {
+        "title": "布莱德，湖心有座岛",
+        "subtitle": "斯洛文尼亚，布莱德湖与溶洞",
+        "description": "城里的屋顶、布莱德湖的小岛和山上的城堡，收在同一趟行程里。山腰压着云，湖水是很深的绿。"
+      }
+    },
+    "77": {
+      "en": {
+        "title": "Cranes Over the Sagrada Família",
+        "subtitle": "Barcelona shore and streets, February 2025",
+        "description": "Sailboats in the haze, palms framed by a train window, a city lighting up, and the Sagrada Família among its cranes. Much of this Spanish trip was spent looking toward the sea and across the city."
+      },
+      "zh": {
+        "title": "圣家堂还立着塔吊",
+        "subtitle": "巴塞罗那，海边与街头，2025年2月",
+        "description": "雾里的小帆船、车窗框住的棕榈、亮起来的城市，还有塔吊之间的圣家堂。这趟西班牙旅行，有不少时间都在看海和看城。"
+      }
+    },
+    "78": {
+      "en": {
+        "title": "Spain, Who's Looking?",
+        "subtitle": "Between buildings and passers-by",
+        "description": "Gilded ceilings, pine-covered slopes, the kiss wall and a giant face behind glass. In these photographs from Spain, buildings and passers-by keep sharing the frame."
+      },
+      "zh": {
+        "title": "西班牙，看谁在看谁",
+        "subtitle": "街头与建筑之间",
+        "description": "教堂里的金色天顶，山坡上的松树，吻墙前的人，还有玻璃后的巨大人脸。这组西班牙照片里，建筑和路人常常挤在同一个画面。"
+      }
+    },
+    "79": {
+      "en": {
+        "title": "Five Walkers on Ice",
+        "subtitle": "Otaranta, by the campus shore",
+        "description": "A chance meeting with friends by the campus shore turned into a walk across the ice. Footprints trailed behind, with someone sitting farther out."
+      },
+      "zh": {
+        "title": "五个人走过结冰的海",
+        "subtitle": "Otaranta，学校海边",
+        "description": "在学校海边碰到几个朋友，就一起走上冰面。雪地留下一串串脚印，远处还有人独坐着。"
+      }
+    },
+    "80": {
+      "en": {
+        "title": "An Exam-Week Independence Day",
+        "subtitle": "Helsinki Cathedral square, December 2024",
+        "description": "Went out in the middle of exam week, cold to the bone. The Christmas tree and carousel were lit, and Aalto guild representatives were making their way to the cathedral celebration."
+      },
+      "zh": {
+        "title": "考试周溜出去过独立日",
+        "subtitle": "赫尔辛基，大教堂前，2024年12月",
+        "description": "考试周跑出门，冷得整个人发僵。圣诞树和旋转木马都亮着灯，阿尔托各公会的代表也走向大教堂参加庆祝。"
+      }
+    },
+    "81": {
+      "en": {
+        "title": "Tampere Turns Yellow",
+        "subtitle": "Leaves, old sculptures and a red moon",
+        "description": "The trees in Tampere were thoroughly yellow, and so were the paths beneath them. Old museum sculptures and a red moon above the rooftops filled the rest of the roll."
+      },
+      "zh": {
+        "title": "坦佩雷，秋天很黄",
+        "subtitle": "落叶、旧雕像和红月",
+        "description": "坦佩雷的树叶黄得很彻底，地上也是一层黄。另一边是博物馆里的旧雕像，夜里则有一轮红月挂在屋顶上方。"
+      }
+    },
+    "82": {
+      "en": {
+        "title": "Late Summer at the Fortress",
+        "subtitle": "Grass banks by the sea",
+        "description": "The path winds past old fortifications, with grass banks partly hiding the sea. Under the trees, sunlight reaches only a small patch of ground."
+      },
+      "zh": {
+        "title": "晚夏，走到海堡",
+        "subtitle": "海边的草坡与旧工事",
+        "description": "草坡把海挡住一半，步道从旧工事旁绕过。到了树下，光只落在一小段路面上，晚夏的照片就这样慢慢走过去。"
+      }
+    },
+    "83": {
+      "en": {
+        "title": "Aalto's First Snow",
+        "subtitle": "A red car and a blue campus",
+        "description": "I did not dislike snow so much then. A red car stood beside the birches, the campus turned white, and I learned that winter driving begins with clearing snow off the car."
+      },
+      "zh": {
+        "title": "阿尔托，第一场雪",
+        "subtitle": "红色小车和蓝色校园",
+        "description": "那时候还没那么讨厌下雪。红色小车停在白桦旁，校园一下子变白；也是那回，我才知道冬天开车前要先把车上的雪清干净。"
+      }
+    },
+    "84": {
+      "en": {
+        "title": "Riga and Tallinn, Off Duty",
+        "subtitle": "Between EIT kick-off sessions",
+        "description": "The EIT kick-off brought us to Riga and Tallinn, with time to wander outside the sessions. Galleries, old-town nights and a lifebuoy by the water became part of the same trip."
+      },
+      "zh": {
+        "title": "里加和塔林，会议之外",
+        "subtitle": "EIT 启动会的空档",
+        "description": "来参加 EIT 启动会，也趁空在里加和塔林走走。画廊、老城夜景和船边的一只救生圈，最后和会议一起留在了这趟行程里。"
+      }
+    },
+    "85": {
+      "en": {
+        "title": "Yunnan, at Altitude",
+        "subtitle": "Dali, Lijiang and Diqing",
+        "description": "Tiled roofs with snowy peaks behind them, lakes beside the road and wooden boardwalks. We drove through Dali, Lijiang and Diqing, and survived the altitude."
+      },
+      "zh": {
+        "title": "云南，高海拔自驾",
+        "subtitle": "大理、丽江、迪庆",
+        "description": "屋顶后面是雪山，路旁是湖和木栈道。我们自驾走过大理、丽江和迪庆，高海拔也算挺过来了。"
+      }
+    },
+    "86": {
+      "en": {
+        "title": "Beijing, Roofs and Domes",
+        "subtitle": "Palaces, temples and theatre seats",
+        "description": "Palace rooftops from above, the Temple of Heaven and street corners below. A small moon hangs over a glass dome at night, followed by rows of red theatre seats."
+      },
+      "zh": {
+        "title": "北京，从屋顶到穹顶",
+        "subtitle": "故宫、天坛和剧院",
+        "description": "从高处看故宫的屋顶，再绕到天坛和街头。入夜有一枚小月亮挂在玻璃穹顶上方，剧院里则是一圈圈红色座席。"
+      }
+    },
+    "87": {
+      "en": {
+        "title": "Wappu, White Caps Everywhere",
+        "subtitle": "Helsinki, student May Day",
+        "description": "White student caps pass the glass buildings at a Wappu crossing. Someone sits by the fountain; elsewhere, people, trees and ducks turn upside down in the water."
+      },
+      "zh": {
+        "title": "瓦普节，街上都是白帽",
+        "subtitle": "赫尔辛基，学生节",
+        "description": "街口的一群白帽子从玻璃楼下走过，喷泉边有人坐着。另一张照片里，树、人和鸭子又倒进了水面。"
+      }
+    },
+    "92": {
+      "en": {
+        "title": "Venice, Zima Blue",
+        "subtitle": "Lagoon and gondolas",
+        "description": "Across the water, San Giorgio Maggiore moves from daylight into deep blue. Gondolas lie at their moorings, with boatmen waiting beside the Gondola Service kiosk."
+      },
+      "zh": {
+        "title": "威尼斯，齐马蓝",
+        "subtitle": "潟湖与贡多拉",
+        "description": "隔着水望向圣乔治马焦雷，白天的水色到入夜变成一整片蓝。贡多拉停在岸边，船夫就在写着 Gondola Service 的亭子旁等着。"
+      }
+    },
+    "93": {
+      "en": {
+        "title": "Naples, My Favourite in Italy",
+        "subtitle": "Old lanes, laundry and the metro",
+        "description": "My favourite city in Italy. Shop signs and bunting crowd the narrow lanes; below ground, mirrors and escalators make a different sort of scene."
+      },
+      "zh": {
+        "title": "那不勒斯，偏心这一座",
+        "subtitle": "老巷、地铁和晾衣绳",
+        "description": "这是我最爱的意大利城市。窄巷里招牌和彩旗挤在一起；转身下到地铁，镜面和扶梯又是另一种场面。"
+      }
+    },
+    "94": {
+      "en": {
+        "title": "Florence, from Above",
+        "subtitle": "Florence and Pisa",
+        "description": "Close views of the cathedral walls, then a climb to look over the rooftops. People linger on the terrace after dark; a detour to Pisa joins the photographs from Florence."
+      },
+      "zh": {
+        "title": "翡冷翠，屋顶这边",
+        "subtitle": "佛罗伦萨与比萨",
+        "description": "近处看教堂的墙面，爬到高处再看满城屋顶。人们在观景台坐到天黑，这趟还绕去了比萨；翡冷翠，还是这个名字好听。"
+      }
+    },
+    "95": {
+      "en": {
+        "title": "Rome, Walls and Skylight",
+        "subtitle": "Rome and the Vatican",
+        "description": "Statues line red galleries and a spiral stair winds down. The Pantheon’s circular opening shines overhead, with crowds gathering again at the Trevi Fountain."
+      },
+      "zh": {
+        "title": "罗马，从红墙到天窗",
+        "subtitle": "罗马与梵蒂冈",
+        "description": "红墙展厅里站着一排排雕像，旋梯向下绕。到了万神殿，圆形天窗亮在头顶；许愿池前，又围满了人。"
+      }
+    },
+    "96": {
+      "en": {
+        "title": "After the Tide Goes Out",
+        "subtitle": "Rennes and the French coast",
+        "description": "Low tide exposes the sand, and a long bridge crosses winding channels. Elsewhere on the trip, an artificial moon hangs in a church and a performer draws a crowd."
+      },
+      "zh": {
+        "title": "海退下去以后",
+        "subtitle": "雷恩与法国北岸",
+        "description": "退潮露出沙地，长桥跨过弯曲的潮沟。旅途中还见到教堂里的人造月亮，以及广场上引来围观的艺人。"
+      }
+    },
+    "97": {
+      "en": {
+        "title": "Paris, Running a Fever",
+        "subtitle": "The Orangerie, rain and thoughts of home",
+        "description": "I went through Paris alone, feverish and homesick, and the weather did not help. Wet street corners, empty chairs and the tower in the rain stayed in the photographs."
+      },
+      "zh": {
+        "title": "巴黎，一个人发着烧",
+        "subtitle": "橘园、雨天和回家的念头",
+        "description": "发着烧，一个人走完这段想家的旅行。巴黎也没给好天气，湿漉漉的街角、空椅子和雨里的铁塔，就这样留在照片里。"
+      }
+    },
+    "98": {
+      "en": {
+        "title": "Friends on Syros",
+        "subtitle": "Greece, summer school",
+        "description": "Athens, then the ferry to Syros for summer school. Spending that time abroad with my best friend and a group of local friends was something rare."
+      },
+      "zh": {
+        "title": "锡罗斯，和朋友一起",
+        "subtitle": "希腊，暑期学校",
+        "description": "在雅典看过卫兵，再坐船去锡罗斯。和最好的朋友、还有一群本地朋友在异国一起过这段暑期学校的日子，很难得。"
+      }
+    },
+    "99": {
+      "en": {
+        "title": "An Island Biennial",
+        "subtitle": "Helsinki, art among the trees",
+        "description": "Art is scattered among the island’s trees: a screening, drawings pinned to a wall, and orange-red branches leaning across the grass."
+      },
+      "zh": {
+        "title": "岛上双年展",
+        "subtitle": "赫尔辛基，树林里的艺术",
+        "description": "艺术作品散在岛上的树林之间。看放映、看纸上的涂画，也看一组斜在绿地里的橙红色枝条。"
+      }
+    },
+    "100": {
+      "en": {
+        "title": "Finland, Two August Frames",
+        "subtitle": "Helsinki, streets and café windows",
+        "description": "A cyclist heads toward the church in one frame; sunlight falls across empty café tables in the other. Just two photographs from August."
+      },
+      "zh": {
+        "title": "芬兰，八月的两张",
+        "subtitle": "赫尔辛基，街上与窗边",
+        "description": "一张在街上，骑车的人正往教堂方向去；另一张在咖啡馆，阳光落到窗边的空桌上。八月就留下这么两张。"
+      }
+    },
+    "101": {
+      "en": {
+        "title": "Goodbye, Paris",
+        "subtitle": "Metro cars, jazz and terrible internet",
+        "description": "Back in Paris: empty metro cars, the tower at night, a film museum and a jazz bar that brought La La Land to mind. Mixed feelings about the trip; no ambiguity about the terrible internet."
+      },
+      "zh": {
+        "title": "再见巴黎",
+        "subtitle": "地铁、爵士和很差的网络",
+        "description": "又来了一次巴黎：空地铁、亮灯的铁塔、电影博物馆，还有让人想到《爱乐之城》的爵士酒吧。喜欢又不喜欢，网络倒是记得很清楚，真的很差。"
+      }
+    },
+    "102": {
+      "en": {
+        "title": "Milan, No Cameos",
+        "subtitle": "Two photographs in Milan",
+        "description": "An ivy-covered wall and a flash of orange by the Duomo. No Wanyu, no Zhanbo, as the old TV joke goes."
+      },
+      "zh": {
+        "title": "米兰，不见婉瑜",
+        "subtitle": "两张米兰照片",
+        "description": "爬满常春藤的墙，和大教堂前的一抹橙色。不见婉瑜，不见展博，拍照时倒还带着这个老剧梗。"
+      }
+    },
+    "105": {
+      "en": {
+        "title": "A Twin Peaks Kind of Evening",
+        "subtitle": "A few frames around sundown",
+        "description": "Grass, trees and houses at the foot of a mountain sink into blue-violet. A white angel stands before the dark woods; together, the frames feel a little like Twin Peaks."
+      },
+      "zh": {
+        "title": "像是《双峰》的一幕",
+        "subtitle": "日落前后的几张",
+        "description": "草地、树影和山脚的房子，颜色一起沉进蓝紫色。白色天使站在暗下来的树林前，有一点《双峰》式的不对劲。"
+      }
+    },
+    "106": {
+      "en": {
+        "title": "Up and Down Val d'Isère",
+        "subtitle": "The French Alps",
+        "description": "Lifts carry people uphill while skiers shrink to small marks on the pistes. Some peaks hide in cloud, while others open into long views across the snow."
+      },
+      "zh": {
+        "title": "伊泽尔谷，上山下山",
+        "subtitle": "法国阿尔卑斯雪场",
+        "description": "缆车和吊椅把人送上山，滑雪者在雪道里只剩一点点。山头有时藏在云里，露出来就是一整片雪峰。"
+      }
+    },
+    "107": {
+      "en": {
+        "title": "Lausanne, a Friend's Days",
+        "subtitle": "Lake Geneva and woodland paths",
+        "description": "Lit miniature buildings behind glass, a painted window framing two figures by the lake. Then a walk along Lake Geneva, past waterbirds, distant mountains and woodland sculptures."
+      },
+      "zh": {
+        "title": "洛桑，朋友的日常",
+        "subtitle": "莱蒙湖边与树林里",
+        "description": "玻璃里藏着亮灯的微型建筑，窗上的彩绘框住湖边背影。再沿莱蒙湖走走，看看水鸟、远山和树林中的雕塑。"
+      }
+    },
+    "108": {
+      "en": {
+        "title": "Stockholm, Across the Ice",
+        "subtitle": "Perfect Blue",
+        "description": "People walk and skate across the ice, their shadows long in the sunlight. Frozen water and a brightly lit platform share this set of Stockholm photographs."
+      },
+      "zh": {
+        "title": "斯京，走到水面上",
+        "subtitle": "Perfect Blue",
+        "description": "人们走上结冰的水面，滑冰的、散步的，影子被阳光拖得很长。白天的冰面和亮着灯的站台，收在这一组斯德哥尔摩照片里。"
+      }
+    },
+    "110": {
+      "en": {
+        "title": "Switzerland, Mostly Mountains",
+        "subtitle": "Alpine meadows and snowy peaks",
+        "description": "Horses by a fence, a red train below snowy peaks, and a barn in a wide meadow. Around the mountain paths and lakes, people become small parts of the view."
+      },
+      "zh": {
+        "title": "瑞士，山比人多",
+        "subtitle": "阿尔卑斯的草地与雪峰",
+        "description": "马在围栏边吃草，红色火车从雪峰下经过，木屋旁是一大片草地。镜头再转向山路和湖边，人也就成了风景里的一小部分。"
+      }
+    },
+    "111": {
+      "en": {
+        "title": "Midsummer by the Water",
+        "subtitle": "A crowd, a bonfire and two people",
+        "description": "People watch the bonfire, raise their phones or sit together beneath the trees. A dog swims through the rippled water: another small pause inside the midsummer crowd."
+      },
+      "zh": {
+        "title": "仲夏节，先坐到水边",
+        "subtitle": "人群、篝火和两个人",
+        "description": "有人在岸边看篝火，有人举起手机，树荫下两个人并排坐着。最后，一只狗游过满是波纹的水面；仲夏节也有这样的小空档。"
+      }
+    }
+  }
+}

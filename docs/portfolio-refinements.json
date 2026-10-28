@@ -1,0 +1,141 @@
+{
+  "date": "2026-10-27",
+  "scope": "Collection ribbons, selectable location panel, and gallery column balance shared by the homepage and /portfolio.",
+  "ribbon": {
+    "heights_px": {
+      "desktop": 156,
+      "portrait": 120,
+      "short_landscape": 104
+    },
+    "previous_desktop_px": 132,
+    "curve_geometry": "retained",
+    "captions": "Hidden by default; only title appears on hover or keyboard focus.",
+    "checked": {
+      "default_opacity": 0,
+      "hover_opacity": 1,
+      "keyboard_focus_opacity": 0.999877,
+      "subtitle_display": "none"
+    }
+  },
+  "coordinates": {
+    "location_selection": "Preserved native keyboard-accessible select and map pan.",
+    "layout": "Location name and collection count above compact thumbnail rows.",
+    "tested_location": "阿尔托大学",
+    "works": [
+      "芬兰初雪",
+      "阳光明媚的冬天"
+    ],
+    "desktop_thumbnail_width_px": 108,
+    "desktop_row_height_px": 103,
+    "map_height_px": 380,
+    "navigation": "Opened /work/83 from the location panel; returning preserved 阿尔托大学 and placed the clicked link at viewport y 398.59."
+  },
+  "gallery": {
+    "all_collections": 34,
+    "before_counts": [
+      10,
+      8,
+      8,
+      8
+    ],
+    "after_counts": [
+      9,
+      9,
+      8,
+      8
+    ],
+    "before_column_end_spread_px": 597.203125,
+    "after_static_column_end_spread_px": 0.0234375,
+    "after_moving_photo_end_spread_px": 30.34253,
+    "photo_policy": "No images removed or cropped. Natural proportions retained.",
+    "layout": "Plan balanced counts and image heights; use bounded per-column spacing, small offsets, and the existing pair drift.",
+    "dimensions": "34 observed cover dimensions reserve correct initial image geometry. Cover paths are checked against the metadata; newly loaded or changed covers update measured ratios from the existing image load, without additional preload requests.",
+    "motion": "Existing visible-only pause, hover pause, keyboard pause, document visibility and reduced-motion behavior retained."
+  },
+  "checks": {
+    "typescript": "passed --noEmit --incremental false",
+    "production_build": "passed in isolated temporary source copy; live preview .next untouched",
+    "diff_check": "passed",
+    "pure_layout_cases": [
+      {
+        "columns": 4,
+        "width": 1040,
+        "counts": [
+          9,
+          9,
+          8,
+          8
+        ]
+      },
+      {
+        "columns": 3,
+        "width": 760,
+        "counts": [
+          12,
+          11,
+          11
+        ]
+      },
+      {
+        "columns": 3,
+        "width": 930,
+        "counts": [
+          12,
+          11,
+          11
+        ]
+      },
+      {
+        "columns": 2,
+        "width": 354,
+        "counts": [
+          17,
+          17
+        ]
+      },
+      {
+        "columns": 2,
+        "width": 650,
+        "counts": [
+          17,
+          17
+        ]
+      }
+    ],
+    "pure_layout_invariants": "All 34 ids exactly once, count differences at most one, bounded spacing, no empty-input NaNs, changed-cover measured-ratio override.",
+    "responsive": [
+      {
+        "viewport": [
+          390,
+          650
+        ],
+        "scroll_width": 375,
+        "counts": [
+          17,
+          17
+        ],
+        "moving_photo_end_spread_px": 30.72827
+      },
+      {
+        "viewport": [
+          844,
+          390
+        ],
+        "scroll_width": 829,
+        "counts": [
+          12,
+          11,
+          11
+        ],
+        "moving_photo_end_spread_px": 30.60327
+      }
+    ],
+    "limitations": "Desktop-browser responsive viewport checks, not physical-phone or new Safari/GPU frame-rate measurements."
+  },
+  "screenshots": {
+    "ribbon": "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/portfolio-refined-ribbon.png",
+    "hover": "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/portfolio-refined-hover.png",
+    "coordinates": "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/portfolio-refined-coordinates.png",
+    "gallery_end": "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/portfolio-refined-gallery-end.png"
+  }
+}

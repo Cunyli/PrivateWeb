@@ -8,6 +8,10 @@ import { useI18n } from "@/lib/i18n"
 import { ArrowUpRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import portfolioImageLoader from "@/lib/portfolio-image-loader"
+import { capturePortfolioPosition } from "@/lib/portfolio-return"
+import { useReducedMotion } from "framer-motion"
+import chrome from "./portfolio-chrome.module.css"
+import { useElasticStyleSurface } from "./use-elastic-style-surface"
 
 type PictureTranslation = {
   title?: string | null
@@ -52,7 +56,6 @@ const HOVER_INTENT_DELAY_MS = 90
 const PREVIEW_QUALITY = 55
 const PREVIEW_PREFETCH_WIDTH = 800
 const PREVIEW_SIZES = "(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
-const STYLE_NAVIGATION_DELAY_MS = 420
 
 let stylesPayloadPromise: Promise<Record<string, StyleApiResponse>> | null = null
 
@@ -91,20 +94,20 @@ export const preloadPhotographyStyles = () => {
   return stylesPayloadPromise
 }
 
-const savePortfolioReturnState = () => {
-  if (typeof window === "undefined") return
-
-  const scrollRoot = document.querySelector<HTMLDivElement>("[data-portfolio-scroll-root]")
-  const topRow = document.querySelector<HTMLDivElement>('[data-portfolio-row="top"]')
-  const bottomRow = document.querySelector<HTMLDivElement>('[data-portfolio-row="bottom"]')
-
-  window.sessionStorage.setItem("portfolio:return-scroll", String(scrollRoot?.scrollTop ?? window.scrollY ?? 0))
-  window.sessionStorage.setItem("portfolio:return-top-row-scroll", String(topRow?.scrollLeft ?? 0))
-  window.sessionStorage.setItem("portfolio:return-bottom-row-scroll", String(bottomRow?.scrollLeft ?? 0))
-}
-
-export function PhotographyStyleShowcase() {
+export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean }) {
   const { t, locale } = useI18n()
+  const sectionRef = useRef<HTMLElement>(null)
+  const elasticStageRef = useRef<HTMLDivElement>(null)
+  const elasticSurfaceRef = useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const node = sectionRef.current
+    if (!node) return
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { rootMargin: "160px" })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
   const router = useRouter()
   const bucketUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top", [])
 
@@ -112,17 +115,16 @@ export function PhotographyStyleShowcase() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeStyle, setActiveStyle] = useState<string | null>(null)
-  const [styleNavigating, setStyleNavigating] = useState(false)
   const [visibleIndex, setVisibleIndex] = useState<Record<string, number>>({})
+  const fetchedOnce = useRef(false)
   const rotationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [landscapeMap, setLandscapeMap] = useState<Record<string, Record<number, boolean>>>({})
   const [, startHighlightTransition] = useTransition()
   const hoverTimerRef = useRef<number | null>(null)
   const prefetchedImagesRef = useRef<Set<string>>(new Set())
   const [hoveredMobileIndex, setHoveredMobileIndex] = useState<number | null>(null)
-  const [activeMobileStyleId, setActiveMobileStyleId] = useState<string | null>(null) // 追踪手机端当前激活的风格
+  const [activeMobileStyleId, setActiveMobileStyleId] = useState<string | null>(PHOTOGRAPHY_STYLES[0]?.id || null) // 当前可见的风格
   const scrollThrottleTimer = useRef<number | null>(null) // 滚动节流定时器
-  const lastVibrateStyleId = useRef<string | null>(null) // 记录上次触发震动的风格ID
 
   const updateOrientation = useCallback((styleId: string | null, pictureId: number, width?: number, height?: number) => {
     if (!styleId) return
@@ -235,10 +237,13 @@ export function PhotographyStyleShowcase() {
   }, [])
 
   useEffect(() => {
+    if (!inView || fetchedOnce.current) return
+    fetchedOnce.current = true
     fetchStyles().catch(() => {})
-  }, [fetchStyles])
+  }, [fetchStyles, inView])
 
   useEffect(() => {
+    if (!inView || reduced || paused) return
     // Clear existing timers before scheduling new ones
     Object.values(rotationTimers.current).forEach((timer) => clearTimeout(timer))
     rotationTimers.current = {}
@@ -249,6 +254,7 @@ export function PhotographyStyleShowcase() {
         if (eligibleIndices.length <= 1) return
         const delay = FALLBACK_DELAY_MS + Math.random() * DELAY_VARIANCE_MS
         rotationTimers.current[style.id] = setTimeout(() => {
+          if (document.hidden) { schedule(); return }
           setVisibleIndex((prev) => {
             const currentEligible = getEligibleIndices(style.id)
             if (currentEligible.length === 0) return prev
@@ -275,20 +281,16 @@ export function PhotographyStyleShowcase() {
       Object.values(rotationTimers.current).forEach((timer) => clearTimeout(timer))
       rotationTimers.current = {}
     }
-  }, [getEligibleIndices, pickNextEligibleIndex, stylesData])
+  }, [getEligibleIndices, pickNextEligibleIndex, stylesData, inView, reduced, paused])
 
   const handleOpenStyle = useCallback((styleId: string) => {
-    if (styleNavigating) return
-    savePortfolioReturnState()
+    capturePortfolioPosition()
     const params = new URLSearchParams()
-    params.set("origin", "portfolio")
+    params.set("origin", window.sessionStorage.getItem("portfolio:return-path") === "/" ? "home" : "portfolio")
     params.set("returnSection", "styles")
     params.set("restore", "1")
-    setStyleNavigating(true)
-    window.setTimeout(() => {
-      router.push(`/work/style/${styleId}?${params.toString()}`)
-    }, STYLE_NAVIGATION_DELAY_MS)
-  }, [router, styleNavigating])
+    router.push(`/work/style/${styleId}?${params.toString()}`)
+  }, [router])
 
   const prefetchPreview = useCallback((styleId: string | null) => {
     if (typeof window === 'undefined') return
@@ -435,28 +437,20 @@ export function PhotographyStyleShowcase() {
     }
   })
 
+  useElasticStyleSurface({ stage: elasticStageRef, surface: elasticSurfaceRef,
+    enabled: inView && !paused && !reduced && !loadingState && !error })
+
   return (
-    <section className="mt-16 sm:mt-24">
-      <div
-        className={`pointer-events-none fixed inset-0 z-[10000] bg-white transition-opacity duration-500 ease-out ${styleNavigating ? "opacity-100" : "opacity-0"}`}
-        aria-hidden="true"
-      />
+    <section ref={sectionRef} className={chrome.section} data-performance-section="photography-styles">
       <div className="flex flex-col gap-4 md:gap-6">
-        <div className="text-center max-w-3xl mx-auto mb-2 sm:mb-4">
-          <h2 className="text-lg sm:text-2xl font-medium text-slate-900 tracking-[0.08em] uppercase">
-            {t("styleShowcaseTitle")}
-          </h2>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500/80">
-            {t("styleShowcaseSubtitle")}
-          </p>
-        </div>
+        <h2 className="sr-only">{t("styleShowcaseTitle")}</h2>
 
         {loadingState && (
           <div className="grid gap-2.5 md:grid-cols-4">
             {PHOTOGRAPHY_STYLES.map((style) => (
               <div
                 key={style.id}
-                className="h-64 rounded-[2.5rem] bg-gradient-to-br from-gray-200 via-gray-100 to-white animate-pulse"
+                className="h-64 rounded-sm bg-gradient-to-br from-gray-200 via-gray-100 to-white animate-pulse"
               />
             ))}
           </div>
@@ -464,7 +458,8 @@ export function PhotographyStyleShowcase() {
 
         {!loadingState && error && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+            {locale === "zh" ? "暂时无法载入，稍后再试。" : "Could not load this section. Please try again."}
+            <button type="button" className="ml-3 underline" onClick={fetchStyles}>{locale === "zh" ? "重试" : "Retry"}</button>
           </div>
         )}
 
@@ -494,7 +489,7 @@ export function PhotographyStyleShowcase() {
                     scrollThrottleTimer.current = null
                     
                     // 检查 container 是否仍然存在
-                    if (!container || !container.scrollLeft === undefined) {
+                    if (!container) {
                       return
                     }
                     
@@ -522,18 +517,7 @@ export function PhotographyStyleShowcase() {
                     if (closestStyleId !== activeMobileStyleId) {
                       setActiveMobileStyleId(closestStyleId)
                       
-                      // 触觉反馈 - 当切换到新卡片时振动
-                      if (closestStyleId && closestStyleId !== lastVibrateStyleId.current) {
-                        lastVibrateStyleId.current = closestStyleId
-                        // 检查设备是否支持振动API
-                        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-                          try {
-                            navigator.vibrate(50) // 轻微振动50毫秒
-                          } catch (error) {
-                            // 忽略振动错误
-                          }
-                        }
-                      }
+
                     }
                   })
                 }}
@@ -552,6 +536,8 @@ export function PhotographyStyleShowcase() {
                     key={`${style.id}-mobile`}
                     type="button"
                     onClick={() => handleOpenStyle(style.id)}
+                    aria-label={locale === "zh" ? `浏览${t(style.i18nKey)}专栏` : `Explore ${t(style.i18nKey)}`}
+                    disabled={!hasContent}
                     onTouchStart={() => setActiveMobileStyleId(style.id)}
                     className="snap-center relative inline-flex h-[320px] min-h-[320px] flex-shrink-0 overflow-hidden bg-slate-900 text-left shadow-[0_24px_70px_-42px_rgba(15,23,42,0.85)] transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 active:scale-[0.96]"
                     style={{
@@ -562,7 +548,6 @@ export function PhotographyStyleShowcase() {
                       marginLeft: isFirst ? '0' : '-10%',
                       transform: isMobileActive ? 'scale(1.015) translateY(-5px)' : 'scale(1) translateY(0)',
                       zIndex: isMobileActive ? 20 : 10 - cardIdx,
-                      filter: isMobileActive ? 'brightness(1.1)' : 'brightness(0.95)',
                     }}
                   >
                     <div className="absolute inset-0">
@@ -575,8 +560,8 @@ export function PhotographyStyleShowcase() {
                           quality={PREVIEW_QUALITY}
                           sizes={PREVIEW_SIZES}
                           // 图片优先级优化：第一张优先加载，第二张预加载，其余懒加载
-                          priority={cardIdx < 4}
-                          loading={cardIdx < 4 ? "eager" : "lazy"}
+                          priority={false}
+                          loading={inView ? "eager" : "lazy"}
                           className={clsx(
                             "transition-all ease-out object-center",
                             shouldContain ? "object-contain" : "object-cover",
@@ -593,13 +578,10 @@ export function PhotographyStyleShowcase() {
                         <div className="h-full w-full bg-gradient-to-br from-slate-300 via-slate-200 to-white" />
                       )}
                       <div 
-                        className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/85 transition-opacity duration-500"
+                        className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/75 transition-opacity duration-500"
                         style={{ opacity: isMobileActive ? 0.6 : 0.8 }}
                       />
-                      <div 
-                        className="absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(148,163,184,0.3),transparent_55%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.28),transparent_60%)] opacity-70 mix-blend-screen transition-opacity duration-500"
-                        style={{ opacity: isMobileActive ? 0.9 : 0.6 }}
-                      />
+
                     </div>
 
                     <div className="relative z-10 flex h-full flex-col justify-between p-5 transition-all duration-500">
@@ -610,11 +592,6 @@ export function PhotographyStyleShowcase() {
                           transform: isMobileActive ? 'translateY(0)' : 'translateY(4px)'
                         }}
                       >
-                        {hasContent && (
-                          <span className="ml-auto text-[10px] uppercase tracking-[0.4em] text-white/55">
-                            {pictures.length} {locale === "zh" ? "张" : "photos"}
-                          </span>
-                        )}
                       </div>
                       <div 
                         className="space-y-2 transition-all duration-500"
@@ -623,7 +600,7 @@ export function PhotographyStyleShowcase() {
                           opacity: isMobileActive ? 1 : 0.9
                         }}
                       >
-                        <h3 className="text-[1.55rem] font-extralight text-white drop-shadow-xl">
+                        <h3 className="text-[1.55rem] font-medium tracking-[-.035em] text-white drop-shadow-xl">
                           {t(style.i18nKey)}
                         </h3>
                       </div>
@@ -663,25 +640,23 @@ export function PhotographyStyleShowcase() {
                         // 点击指示器滚动到对应卡片
                         const container = document.querySelector('[data-style-scroll-container]') as HTMLElement
                         if (container) {
-                          const cardWidth = container.clientWidth - 32 // 减去padding
-                          const scrollTo = idx * (cardWidth * 0.88) // 考虑12%重叠
-                          container.scrollTo({ left: scrollTo, behavior: 'smooth' })
+                          const card = container.children[idx] as HTMLElement | undefined
+                          if (!card) return
+                          const left = container.scrollLeft + card.getBoundingClientRect().left - container.getBoundingClientRect().left - (container.clientWidth - card.clientWidth) / 2
+                          container.scrollTo({ left, behavior: reduced ? "auto" : "smooth" })
                         }
                       }}
-                      className="transition-all duration-300 rounded-full"
-                      style={{
-                        width: isActive ? '32px' : '8px',
-                        height: '8px',
-                        backgroundColor: isActive ? 'rgba(59, 130, 246, 0.8)' : 'rgba(148, 163, 184, 0.3)',
-                      }}
+                      className="inline-flex h-11 w-11 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#657b6b]"
+                      aria-current={isActive ? "true" : undefined}
                       aria-label={`${t(style.i18nKey)} ${idx + 1}/${PHOTOGRAPHY_STYLES.length}`}
-                    />
+                    ><span aria-hidden="true" className="h-[2px] transition-[width,background] duration-300" style={{ width: isActive ? 30 : 14, background: isActive ? "#516c5a" : "#c5c9bd" }} /></button>
                   )
                 })}
               </div>
             </div>
 
-            <div className="hidden md:flex md:flex-row [clip-path:polygon(0_0,100%_0,100%_100%,0_100%)] overflow-hidden">
+            <div ref={elasticStageRef} className={chrome.styleElasticStage} data-style-elastic-stage>
+              <div ref={elasticSurfaceRef} className={chrome.styleElasticSurface} data-style-elastic-surface>
               {styleCards.map(({ style, preview, hasContent, pictures, isFirst, isLast, isActive, translateY, scale, previewOrientation }, cardIdx) => {
                 const clipPath = isFirst
                   ? "polygon(0% 0, 100% 0, 94% 100%, 0% 100%)"
@@ -694,11 +669,14 @@ export function PhotographyStyleShowcase() {
                   <button
                     key={style.id}
                     type="button"
+                    data-style-card-index={cardIdx}
                     onMouseEnter={() => handleHighlightChange(style.id)}
                     onMouseLeave={() => handleHighlightChange(null)}
                     onFocus={() => handleHighlightChange(style.id)}
                     onBlur={() => handleHighlightChange(null)}
                     onClick={() => handleOpenStyle(style.id)}
+                    aria-label={locale === "zh" ? `浏览${t(style.i18nKey)}专栏` : `Explore ${t(style.i18nKey)}`}
+                    disabled={!hasContent}
                     className="group relative min-h-[320px] flex-1 bg-black/70 text-left transition-transform duration-500 transform-gpu"
                     style={{
                       clipPath,
@@ -719,6 +697,7 @@ export function PhotographyStyleShowcase() {
                             src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
                             alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                             fill
+                            draggable={false}
                             quality={PREVIEW_QUALITY}
                             sizes={PREVIEW_SIZES}
                             className={clsx(
@@ -727,8 +706,8 @@ export function PhotographyStyleShowcase() {
                               shouldContain ? "scale-100 group-hover:scale-100" : "scale-[1.02] group-hover:scale-[1.08]"
                             )}
                             style={{ willChange: "transform, opacity", transitionDuration: '1200ms' }}
-                            priority={cardIdx < 4}
-                            loading={cardIdx < 4 ? "eager" : "lazy"}
+                            priority={false}
+                            loading={inView ? "eager" : "lazy"}
                             onLoad={(e) => {
                               const img = e.target as HTMLImageElement
                               updateOrientation(style.id, preview.id, img.naturalWidth, img.naturalHeight)
@@ -738,7 +717,7 @@ export function PhotographyStyleShowcase() {
                           <div className="h-full w-full bg-gradient-to-br from-slate-300 via-slate-200 to-white" />
                         )}
                         <div
-                          className={`absolute inset-0 bg-gradient-to-br from-black/80 via-black/30 to-black/75 transition-opacity duration-500 ${isActive ? "opacity-25" : "opacity-55"}`}
+                          className={`absolute inset-0 bg-gradient-to-br from-transparent via-black/10 to-black/70 transition-opacity duration-500 ${isActive ? "opacity-25" : "opacity-55"}`}
                           style={{ willChange: "opacity" }}
                         />
                       </div>
@@ -746,14 +725,9 @@ export function PhotographyStyleShowcase() {
 
                     <div className="relative z-10 flex h-full flex-col justify-between px-6 py-8 md:px-8 md:py-10 space-y-6 transition-opacity duration-300 ease-out">
                       <div className="flex w-full items-center gap-3 text-white/70">
-                        {hasContent && (
-                          <span className="ml-auto text-[10px] uppercase tracking-[0.4em] text-white/50">
-                            {pictures.length} {locale === "zh" ? "张" : "photos"}
-                          </span>
-                        )}
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-[1.9rem] md:text-[2.2rem] font-extralight text-white drop-shadow-lg transition-transform duration-500 ease-out group-hover:-translate-y-[3px]">
+                        <h3 className="text-[1.9rem] md:text-[2.2rem] font-medium tracking-[-.035em] text-white drop-shadow-lg transition-transform duration-500 ease-out group-hover:-translate-y-[3px]">
                           {t(style.i18nKey)}
                         </h3>
                       </div>
@@ -769,6 +743,7 @@ export function PhotographyStyleShowcase() {
                   </button>
                 )
               })}
+              </div>
             </div>
           </>
         )}

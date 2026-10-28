@@ -1,11 +1,11 @@
-import { supabaseAdmin } from "@/utils/supabaseAdmin"
+import { supabasePublic } from "@/utils/supabase-public.server"
 import type { PictureSet } from "@/lib/pictureSet.types"
 import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
 import type { InitialPortfolioPayload } from "@/lib/portfolioInitialData"
 
 export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPayload | null> => {
   try {
-    const { data: setsData, error: setsError } = await supabaseAdmin
+    const { data: setsData, error: setsError } = await supabasePublic
       .from('picture_sets')
       .select('id, created_at, updated_at, cover_image_url, title, subtitle, description, position, is_published')
       .eq('is_published', true)
@@ -30,29 +30,38 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
     const ids = sets.map((s) => s.id)
 
     const [translationsEnRes, translationsZhRes, locationsRes, assignmentsRes, sectionsRes] = await Promise.all([
-      supabaseAdmin
+      supabasePublic
         .from('picture_set_translations')
         .select('picture_set_id, title, subtitle, description')
         .eq('locale', 'en')
         .in('picture_set_id', ids),
-      supabaseAdmin
+      supabasePublic
         .from('picture_set_translations')
         .select('picture_set_id, title, subtitle, description')
         .eq('locale', 'zh')
         .in('picture_set_id', ids),
-      supabaseAdmin
+      supabasePublic
         .from('picture_set_locations')
         .select('picture_set_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
         .in('picture_set_id', ids)
         .eq('is_primary', true),
-      supabaseAdmin
+      supabasePublic
         .from('picture_set_section_assignments')
         .select('picture_set_id, section_id')
         .in('picture_set_id', ids),
-      supabaseAdmin
+      supabasePublic
         .from('sections')
         .select('id, name'),
     ])
+
+    // An incomplete payload suppresses the browser's fresh-data fallback and
+    // can silently hide the map. Let it retry instead of caching partial data.
+    const failedQuery = [translationsEnRes, translationsZhRes, locationsRes, assignmentsRes, sectionsRes]
+      .find((result) => result.error)
+    if (failedQuery?.error) {
+      console.error('[portfolioInitialData] related public data unavailable', failedQuery.error.code)
+      return null
+    }
 
     const transMap: Record<number, { en?: any; zh?: any }> = {}
     for (const row of translationsEnRes.data || []) {

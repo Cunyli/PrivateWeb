@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-27",
+  "scope": "Restore the photo-session page after the user rejected removal of its introduction, scroll-led storytelling, and photo-layout decisions.",
+  "baseline": "/private/tmp/portfolio-fluid-editorial-20261027/before/components/helsinki-photo-session.tsx",
+  "restored": [
+    "Original photographic opening",
+    "Personal introduction and three scroll-highlighted statements",
+    "Personal photograph changes linked to the statements",
+    "Eight process statements with linked photographs",
+    "Curated sample groups and scroll-linked feature sequence",
+    "Interactive six-stop route map",
+    "Original packages, delivery rules, booking content, and FAQ"
+  ],
+  "photo_layout": {
+    "intro_and_process": "Frame width and aspect ratio follow actual natural image dimensions; no fixed portrait/landscape mat.",
+    "sample_overview": "Restored curated thumbnail mosaics. These previews may crop; clicking opens the complete photograph.",
+    "sample_feature": "Complete photographs retain their natural shapes.",
+    "viewer": "Retained the decoded-image-aware native-animation carousel and bounded preview cache from the previous performance pass.",
+    "viewer_unique_photos_observed": 36
+  },
+  "performance": [
+    "Continuous sample progress updates only its two DOM layers through one scheduled animation frame, without per-frame page React state.",
+    "Introduction and process scroll calculations run only near their visible sections.",
+    "Sample images default to lazy loading and asynchronous decoding.",
+    "Leaflet mounts as the route section approaches the viewport.",
+    "Testimonials pause offscreen, in hidden documents, on hover/focus, and for reduced motion."
+  ],
+  "checks": {
+    "typescript": "passed --noEmit --incremental false",
+    "production_build": "passed in an isolated temporary source copy; live .next untouched",
+    "diff_check": "passed",
+    "desktop_viewport": [
+      1440,
+      900
+    ],
+    "scroll_statement_photo_change": "Statement index 1 changed to index 2 with wheel scrolling; the active personal photograph changed from DSC03210 to DSC07046.",
+    "portrait_process_image": {
+      "native": [
+        1280,
+        1920
+      ],
+      "frame": [
+        432,
+        648
+      ],
+      "native_ratio": 0.6666666666666666,
+      "frame_ratio": 0.6666666666666666
+    },
+    "landscape_process_image": {
+      "native": [
+        1280,
+        853
+      ],
+      "frame": [
+        646,
+        430
+      ],
+      "native_ratio": 1.5005861664712778,
+      "frame_ratio": 1.500608327734297
+    },
+    "portrait_image_viewer": {
+      "desktop_frame": [
+        504,
+        757
+      ],
+      "landscape_844x390_frame": [
+        172,
+        259
+      ],
+      "portrait_390x650_frame": [
+        341,
+        512
+      ]
+    },
+    "short_landscape_intro": {
+      "viewport": [
+        844,
+        390
+      ],
+      "columns_px": [
+        307.859,
+        425.133
+      ],
+      "active_photo_bottom_px": 370.586,
+      "horizontal_overflow": false
+    },
+    "booking": {
+      "couple_package_summary": "EUR 139 / 2 hours",
+      "phone_dialog_width_px": 350,
+      "phone_viewport_width_px": 390,
+      "input_font_px": 16,
+      "required_empty_fields": 3,
+      "close_button_wraps": false,
+      "escape_focus_return": "email booking trigger",
+      "submitted": false
+    },
+    "route": {
+      "clicked": "Aalto",
+      "selected_label": "Otaniemi / Aalto University",
+      "loaded_tiles": 16
+    },
+    "languages": "Verified English introduction and pricing, then restored Chinese.",
+    "limitations": [
+      "Responsive checks used desktop-browser viewport emulation, not a physical phone.",
+      "No new Safari or GPU-presentation frame-rate benchmark was performed in this restoration pass."
+    ],
+    "screenshots": [
+      "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/booking-story-restored.png",
+      "/Users/lilijie/.codex/visualizations/2026/10/25/01a17441-b785-7f20-b56f-d4509ee8e0e8/booking-portrait-layout.png"
+    ]
+  },
+  "build_operations": {
+    "initial_issue": "One isolated build failed inside Webpack WasmHash; a clean build passed.",
+    "disk_issue": "A later write encountered ENOSPC. Removed only this task-owned temporary build caches; then completed the final build.",
+    "live_preview": "http://127.0.0.1:3000/helsinki-photo-session"
+  }
+}

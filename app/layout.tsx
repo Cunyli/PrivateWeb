@@ -1,12 +1,15 @@
 // app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
+import 'leaflet/dist/leaflet.css'
 import { Analytics } from '@vercel/analytics/react'
 import { I18nProvider } from "@/lib/i18n"
+import { InteractionPerformanceProbe } from "@/components/interaction-performance-probe"
+import { PortfolioLandscapeHint } from "@/components/portfolio-landscape-hint"
 
 export const metadata: Metadata = {
   title: "Lijie's Portfolio",
-  description: 'Pictures, life, and more',
+  description: 'Photographs and visual stories by Lijie Li.',
   icons: {
     icon: '/icon.jpeg',
     shortcut: '/icon.jpeg',
@@ -20,11 +23,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head />
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head><link rel="preload" href="/fonts/hanken-variable.woff2" as="font" type="font/woff2" crossOrigin="anonymous" /></head>
       <body>
         <I18nProvider>
           {children}
+          <PortfolioLandscapeHint />
+          <InteractionPerformanceProbe />
         </I18nProvider>
         <Analytics />
       </body>
