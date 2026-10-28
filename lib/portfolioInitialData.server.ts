@@ -1,5 +1,7 @@
+import { supabaseAdmin } from "@/utils/supabaseAdmin"
 import { supabasePublic } from "@/utils/supabase-public.server"
-import { getPhotoCurationVisibility } from "./photo-curation.server"
+import { initialStylePreviews } from "./photography-style-previews"
+import { getPhotoCurationCatalog, getPhotoCurationVisibility } from "./photo-curation.server"
 import { withFeaturedCovers } from "./photo-curation-catalog"
 import type { PictureSet } from "@/lib/pictureSet.types"
 import { derivePortfolioBuckets, fallbackBuckets } from "@/lib/portfolio-order"
@@ -32,7 +34,7 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
 
     const ids = sets.map((s) => s.id)
 
-    const [translationsEnRes, translationsZhRes, locationsRes, assignmentsRes, sectionsRes] = await Promise.all([
+    const [translationsEnRes, translationsZhRes, locationsRes, assignmentsRes, sectionsRes, styleCategoriesRes] = await Promise.all([
       supabasePublic
         .from('picture_set_translations')
         .select('picture_set_id, title, subtitle, description')
@@ -55,11 +57,12 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
       supabasePublic
         .from('sections')
         .select('id, name'),
+      supabaseAdmin.from('picture_categories').select('picture_id,category:categories(name)').in('picture_id',curation.featuredIds.filter(id=>id>0)),
     ])
 
     // An incomplete payload suppresses the browser's fresh-data fallback and
     // can silently hide the map. Let it retry instead of caching partial data.
-    const failedQuery = [translationsEnRes, translationsZhRes, locationsRes, assignmentsRes, sectionsRes]
+    const failedQuery = [translationsEnRes, translationsZhRes, locationsRes, assignmentsRes, sectionsRes, styleCategoriesRes]
       .find((result) => result.error)
     if (failedQuery?.error) {
       console.error('[portfolioInitialData] related public data unavailable', failedQuery.error.code)
@@ -122,13 +125,20 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
       downSets = fallback.downCombined
     }
 
-    return {
+    const initial = {
       pictureSets: sets,
       transMap,
       setLocations,
       upSets,
       downSets,
     }
+    const categories: Record<number,string[]>={}
+    for(const row of styleCategoriesRes.data || []){
+      const relation=(row as any).category
+      const name=String((Array.isArray(relation)?relation[0]:relation)?.name || "")
+      if(name)(categories[row.picture_id] ||= []).push(name)
+    }
+    return {...initial,stylePreviews:initialStylePreviews(await getPhotoCurationCatalog(),initial,categories)}
   } catch (err) {
     console.error('[portfolioInitialData] unexpected failure', err)
     return null

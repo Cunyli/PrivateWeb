@@ -255,8 +255,8 @@ async function clearPortraitLibraryDraft() {
   })
 }
 
-const RESPONSIVE_IMAGE_WIDTHS = [640, 1280] as const
-const RESPONSIVE_PRIMARY_WIDTH = RESPONSIVE_IMAGE_WIDTHS[RESPONSIVE_IMAGE_WIDTHS.length - 1]
+const RESPONSIVE_IMAGE_WIDTHS = [640, 1280, 2560] as const
+const RESPONSIVE_PRIMARY_WIDTH = 1280
 
 function getResponsiveImageQuality(width: number) {
   if (width <= 640) return 0.64
@@ -2100,7 +2100,7 @@ export function PictureSetForm({ onSubmit, editingPictureSet, onCancel, variant 
               {coverOriginalSize > 0 && (
                 <p className="text-sm text-gray-500 mt-2">
                   {t('originalSize')} {formatSize(coverOriginalSize)}
-                  {" • 640/1280 WebP + original"}
+                  {" • 640/1280/2560 WebP + original"}
                 </p>
               )}
             </div>

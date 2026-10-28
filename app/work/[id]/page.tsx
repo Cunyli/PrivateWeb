@@ -6,7 +6,7 @@ import { supabasePublic } from "@/utils/supabase-public.server"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
 import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
 import { curationVisible } from "@/lib/photo-curation"
-import { photoSource } from "@/lib/portfolio-photo-source"
+import { ViewerPhotoPreload } from "@/components/viewer-photo-preload"
 
 const looksZh = (text?: string | null) => /[\u4e00-\u9fff]/.test(String(text || ""))
 
@@ -211,6 +211,7 @@ export default async function WorkPage({
       id: pic.id,
       url: pic.image_url || "/placeholder.svg",
       rawUrl: pic.raw_image_url || pic.image_url,
+      displayUrl:pic.image_variants?.["2560"] || null,
       translations: {
         en: {
           title: translationEntry.en.title || '',
@@ -277,10 +278,9 @@ export default async function WorkPage({
   const coverIndex=images.findIndex(image=>image.id===curation.covers[Number(setId)]?.id)
   const requestedIndex = Number.parseInt(resolvedSearchParams?.index || String(Math.max(0,coverIndex)),10)
   const initialIndex = pictureIndex >= 0 ? pictureIndex : Math.max(0,Math.min(Number.isFinite(requestedIndex)?requestedIndex:0,images.length-1))
-  const firstPreview = photoSource(images[initialIndex].url,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280)
 
   return <>
-    <link rel="preload" as="image" href={firstPreview} />
+    <ViewerPhotoPreload image={images[initialIndex]}/>
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <PortfolioDetail
         id={setId}

@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import PortfolioDetail from "@/components/portfolio-detail"
-import { photoSource } from "@/lib/portfolio-photo-source"
+import { ViewerPhotoPreload } from "@/components/viewer-photo-preload"
 import { getPhotoCurationCatalog } from "@/lib/photo-curation.server"
 
 export const revalidate=0
@@ -19,7 +19,7 @@ export default async function SelectedWorkPage({searchParams}:{searchParams:Prom
     zh:{title:photo.translations.zh?.title || photo.title || "",subtitle:photo.translations.zh?.subtitle || photo.subtitle || "",description:photo.translations.zh?.description || photo.description || ""}}})),
     ...assets.map(photo=>({id:photo.id,url:new URL(photo.src,base).href,translations:{en:{title:photo.title},zh:{title:photo.title}}}))]
   if(!images.length)notFound()
-  return <><link rel="preload" as="image" href={photoSource(images[0].url,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280)}/><Suspense fallback={<div className="min-h-screen"/>}><PortfolioDetail id="selected" images={images}
+  return <><ViewerPhotoPreload image={images[0]}/><Suspense fallback={<div className="min-h-screen"/>}><PortfolioDetail id="selected" images={images}
     translations={{en:{title:"Selected",subtitle:"",description:""},zh:{title:"精选",subtitle:"",description:""}}}
     returnContext={{type:"portfolio",homePath:params.origin==="home"?"/":"/portfolio",returnSetId:0}}/></Suspense></>
 }

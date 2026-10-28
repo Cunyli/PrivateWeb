@@ -11,44 +11,11 @@ import portfolioImageLoader from "@/lib/portfolio-image-loader"
 import { capturePortfolioPosition } from "@/lib/portfolio-return"
 import { useReducedMotion } from "framer-motion"
 import chrome from "./portfolio-chrome.module.css"
+import { usePhotoCuration } from "./photo-curation-provider"
 import { useElasticStyleSurface } from "./use-elastic-style-surface"
 
-type PictureTranslation = {
-  title?: string | null
-  subtitle?: string | null
-  description?: string | null
-}
-
-type StylePicture = {
-  id: number
-  pictureSetId: number
-  imageUrl: string
-  rawImageUrl: string | null
-  orderIndex: number | null
-  createdAt: string
-  tags: string[]
-  categories: string[]
-  set: {
-    id: number
-    title: string
-    subtitle: string
-    coverImageUrl: string | null
-    translations: {
-      en: PictureTranslation
-      zh: PictureTranslation
-    }
-  }
-  translations: {
-    en: PictureTranslation
-    zh: PictureTranslation
-  }
-}
-
-type StyleApiResponse = {
-  id: string
-  tagName: string
-  pictures: StylePicture[]
-}
+import type { StylePicture, StyleApiResponse } from "@/lib/photography-style-previews"
+import { viewerPhotoSource } from "@/lib/viewer-photo-source"
 
 const FALLBACK_DELAY_MS = 15_000
 const DELAY_VARIANCE_MS = 6_000
@@ -57,6 +24,7 @@ const PREVIEW_QUALITY = 55
 const PREVIEW_PREFETCH_WIDTH = 800
 const PREVIEW_SIZES = "(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
 
+let stylesPayloadVersion=""
 let stylesPayloadPromise: Promise<Record<string, StyleApiResponse>> | null = null
 
 const normalizeStylesPayload = (payload: Record<string, StyleApiResponse>) => {
@@ -75,7 +43,7 @@ const normalizeStylesPayload = (payload: Record<string, StyleApiResponse>) => {
 }
 
 const loadStylesPayload = async () => {
-  const res = await fetch("/api/picture-styles?featured=1")
+  const res = await fetch("/api/picture-styles?featured=1&preview=1")
   if (!res.ok) {
     throw new Error(`${res.status} ${res.statusText}`)
   }
@@ -83,8 +51,9 @@ const loadStylesPayload = async () => {
   return normalizeStylesPayload((data?.styles || {}) as Record<string, StyleApiResponse>)
 }
 
-export const preloadPhotographyStyles = () => {
+export const preloadPhotographyStyles = (version="") => {
   if (typeof window === "undefined") return null
+  if (stylesPayloadVersion!==version) {stylesPayloadPromise=null;stylesPayloadVersion=version}
   if (!stylesPayloadPromise) {
     stylesPayloadPromise = loadStylesPayload().catch((error) => {
       stylesPayloadPromise = null
@@ -94,8 +63,10 @@ export const preloadPhotographyStyles = () => {
   return stylesPayloadPromise
 }
 
-export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean }) {
+export function PhotographyStyleShowcase({ paused = false, initialData }: { paused?: boolean; initialData?: Record<string,StyleApiResponse> }) {
   const { t, locale } = useI18n()
+  const curation=usePhotoCuration()
+  const version=useMemo(()=>`${curation.ids.join(",")}/${curation.featuredIds.join(",")}`,[curation])
   const sectionRef = useRef<HTMLElement>(null)
   const elasticStageRef = useRef<HTMLDivElement>(null)
   const elasticSurfaceRef = useRef<HTMLDivElement>(null)
@@ -111,12 +82,12 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
   const router = useRouter()
   const bucketUrl = useMemo(() => process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top", [])
 
-  const [stylesData, setStylesData] = useState<Record<string, StyleApiResponse>>({})
-  const [loading, setLoading] = useState(true)
+  const [stylesData, setStylesData] = useState<Record<string, StyleApiResponse>>(initialData || {})
+  const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
   const [activeStyle, setActiveStyle] = useState<string | null>(null)
   const [visibleIndex, setVisibleIndex] = useState<Record<string, number>>({})
-  const fetchedOnce = useRef(false)
+  const fetchedVersion = useRef<string | null>(null)
   const rotationTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [landscapeMap, setLandscapeMap] = useState<Record<string, Record<number, boolean>>>({})
   const [, startHighlightTransition] = useTransition()
@@ -164,8 +135,8 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
       const tierPreferred: number[] = []
       const tierFallback: number[] = []
       pictures.forEach((picture, idx) => {
-        if (!hasMasterTag(picture)) return
-        const orientationValue = orientationMap[picture.id]
+        if (!hasMasterTag(picture) || curation.ids.includes(picture.id) || !curation.featuredIds.includes(picture.id)) return
+        const orientationValue = orientationMap[picture.id] ?? (picture.width && picture.height ? picture.width>=picture.height : undefined)
         if (orientationValue === true) {
           tierPreferred.push(idx)
         } else if (orientationValue === undefined) {
@@ -181,7 +152,7 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
       }
     }
     return cache
-  }, [hasMasterTag, landscapeMap, stylesData])
+  }, [hasMasterTag, landscapeMap, stylesData,curation])
 
   const getEligibleIndices = useCallback((styleId: string) => eligibleCache[styleId] || [], [eligibleCache])
 
@@ -219,28 +190,30 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
   const fetchStyles = useCallback(async () => {
     try {
       setLoading(true)
-      const normalized = await (preloadPhotographyStyles() ?? loadStylesPayload())
+      const normalized = await (preloadPhotographyStyles(version) ?? loadStylesPayload())
       setStylesData(normalized)
       const nextVisible: Record<string, number> = {}
       for (const style of PHOTOGRAPHY_STYLES) {
         const pictures = normalized[style.id]?.pictures || []
-        nextVisible[style.id] = pictures.length ? 0 : -1
+        const previousId=initialData?.[style.id]?.pictures[0]?.id
+        const preserved=pictures.findIndex(p=>p.id===previousId)
+        nextVisible[style.id] = preserved>=0?preserved:pictures.length?0:-1
       }
       setVisibleIndex(nextVisible)
       setError(null)
     } catch (err: any) {
       console.error("Failed to load photography styles", err)
-      setError(err?.message || "Failed to load styles")
+      setError(Object.values(initialData || {}).some(style=>style.pictures.length)?null:err?.message || "Failed to load styles")
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [initialData,version])
 
   useEffect(() => {
-    if (!inView || fetchedOnce.current) return
-    fetchedOnce.current = true
+    if (fetchedVersion.current===version) return
+    fetchedVersion.current = version
     fetchStyles().catch(() => {})
-  }, [fetchStyles, inView])
+  }, [fetchStyles,version])
 
   useEffect(() => {
     if (!inView || reduced || paused) return
@@ -283,25 +256,26 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
     }
   }, [getEligibleIndices, pickNextEligibleIndex, stylesData, inView, reduced, paused])
 
-  const handleOpenStyle = useCallback((styleId: string) => {
-    capturePortfolioPosition()
-    const params = new URLSearchParams()
-    params.set("origin", window.sessionStorage.getItem("portfolio:return-path") === "/" ? "home" : "portfolio")
+  const styleHref=useCallback((styleId:string)=>{
+    const params=new URLSearchParams()
+    params.set("origin",window.location.pathname==="/"?"home":"portfolio")
     const indices=getEligibleIndices(styleId)
     const preview=stylesData[styleId]?.pictures[visibleIndex[styleId] ?? indices[0]]
     if(preview)params.set("pictureId",String(preview.id))
-    params.set("returnSection", "styles")
-    params.set("restore", "1")
-    router.push(`/work/style/${styleId}?${params.toString()}`)
-  }, [router,stylesData,visibleIndex,getEligibleIndices])
+    params.set("returnSection","styles");params.set("restore","1")
+    return `/work/style/${styleId}?${params.toString()}`
+  },[stylesData,visibleIndex,getEligibleIndices])
+  const handleOpenStyle=useCallback((styleId:string)=>{
+    capturePortfolioPosition();router.push(styleHref(styleId))
+  },[router,styleHref])
 
-  const prefetchPreview = useCallback((styleId: string | null) => {
+  const prefetchPreview = useCallback((styleId: string | null, intent=false) => {
     if (typeof window === 'undefined') return
     if (!styleId) return
     const pictures = stylesData[styleId]?.pictures || []
     if (!pictures.length) return
     const eligible = getEligibleIndices(styleId)
-    const candidateIdx = eligible.length ? eligible[0] : 0
+    const candidateIdx = visibleIndex[styleId] ?? (eligible.length ? eligible[0] : 0)
     const candidate = pictures[candidateIdx]
     if (!candidate) return
     const src = candidate.imageUrl?.startsWith("http")
@@ -309,12 +283,20 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
       : `${bucketUrl}${candidate.imageUrl}`
     if (!src) return
     const optimizedSrc = portfolioImageLoader({ src, width: PREVIEW_PREFETCH_WIDTH })
-    if (prefetchedImagesRef.current.has(optimizedSrc)) return
+    if (!prefetchedImagesRef.current.has(optimizedSrc)) {
     const img = new window.Image()
     img.decoding = "async"
     img.src = optimizedSrc
     prefetchedImagesRef.current.add(optimizedSrc)
-  }, [bucketUrl, getEligibleIndices, stylesData])
+    }
+    if(!intent)return
+    router.prefetch(styleHref(styleId))
+    const display=viewerPhotoSource({id:candidate.id,url:candidate.imageUrl},bucketUrl,{width:window.innerWidth,height:window.innerHeight*.82,density:window.devicePixelRatio})
+    if(display!==optimizedSrc && !prefetchedImagesRef.current.has(display)){
+      const photo=new window.Image();photo.decoding="async";photo.fetchPriority="low";photo.src=display
+      prefetchedImagesRef.current.add(display)
+    }
+  }, [bucketUrl, getEligibleIndices, stylesData,visibleIndex,router,styleHref])
 
   const handleHighlightChange = useCallback((next: string | null) => {
     if (hoverTimerRef.current != null) {
@@ -329,7 +311,7 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
     }
 
     if (typeof window !== 'undefined') {
-      prefetchPreview(next)
+      prefetchPreview(next,true)
     }
 
     hoverTimerRef.current = window.setTimeout(() => {
@@ -359,13 +341,6 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
       const next = { ...prev }
       const usedPictureIds = new Set<number>()
       for (const style of PHOTOGRAPHY_STYLES) {
-        const idx = prev[style.id]
-        if (idx == null || idx < 0) continue
-        const picture = stylesData[style.id]?.pictures?.[idx]
-        if (picture) usedPictureIds.add(picture.id)
-      }
-
-      for (const style of PHOTOGRAPHY_STYLES) {
         const pictures = stylesData[style.id]?.pictures || []
         const eligible = getEligibleIndices(style.id)
         if (!eligible.length) {
@@ -376,6 +351,10 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
           continue
         }
         const current = prev[style.id]
+        if (eligible.includes(current) && pictures[current] && !usedPictureIds.has(pictures[current].id)) {
+          usedPictureIds.add(pictures[current].id)
+          continue
+        }
         let candidate = eligible.find((idx) => {
           const picture = pictures[idx]
           if (!picture) return false
@@ -412,7 +391,8 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
   const styleCards = PHOTOGRAPHY_STYLES.map((style, idx) => {
     const pictures = stylesData[style.id]?.pictures || []
     const eligible = getEligibleIndices(style.id)
-    const activeIndex = visibleIndex[style.id] ?? (eligible[0] ?? -1)
+    const desiredIndex=visibleIndex[style.id] ?? eligible[0]
+    const activeIndex = eligible.includes(desiredIndex)?desiredIndex:eligible[0] ?? -1
     const preview = activeIndex >= 0 ? pictures[activeIndex] : undefined
     const orientationMap = landscapeMap[style.id] || {}
     const previewOrientation = preview ? orientationMap[preview.id] : undefined
@@ -541,7 +521,7 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
                     onClick={() => handleOpenStyle(style.id)}
                     aria-label={locale === "zh" ? `浏览${t(style.i18nKey)}专栏` : `Explore ${t(style.i18nKey)}`}
                     disabled={!hasContent}
-                    onTouchStart={() => setActiveMobileStyleId(style.id)}
+                    onTouchStart={() => {setActiveMobileStyleId(style.id);prefetchPreview(style.id,true)}}
                     className="snap-center relative inline-flex h-[320px] min-h-[320px] flex-shrink-0 overflow-hidden bg-slate-900 text-left shadow-[0_24px_70px_-42px_rgba(15,23,42,0.85)] transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 active:scale-[0.96]"
                     style={{
                       clipPath,
@@ -557,7 +537,7 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
                       {preview ? (
                         <Image
                           key={`${style.id}-mobile-${preview.id}`}
-                          src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
+                          src={preview.imageUrl ? (/^https?:/.test(preview.imageUrl)?preview.imageUrl:`${bucketUrl}${preview.imageUrl}`) : "/placeholder.svg"}
                           alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                           fill
                           quality={PREVIEW_QUALITY}
@@ -697,7 +677,7 @@ export function PhotographyStyleShowcase({ paused = false }: { paused?: boolean 
                         {preview ? (
                           <Image
                             key={`${style.id}-${preview.id}`}
-                            src={preview.imageUrl ? `${bucketUrl}${preview.imageUrl}` : "/placeholder.svg"}
+                            src={preview.imageUrl ? (/^https?:/.test(preview.imageUrl)?preview.imageUrl:`${bucketUrl}${preview.imageUrl}`) : "/placeholder.svg"}
                             alt={preview.translations[locale as "zh" | "en"]?.title || preview.translations.en?.title || t(style.i18nKey)}
                             fill
                             draggable={false}

@@ -1,7 +1,8 @@
+import { ViewerPhotoPreload } from "@/components/viewer-photo-preload"
 import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
-import { headers } from "next/headers"
+import { getPhotographyStyles } from "@/lib/photography-styles.server"
 import PortfolioDetail from "@/components/portfolio-detail"
 import { PHOTOGRAPHY_STYLE_BY_ID } from "@/lib/photography-styles"
 
@@ -17,6 +18,7 @@ type StylePicture = {
   id: number
   pictureSetId: number
   imageUrl: string
+  displayUrl?: string | null
   rawImageUrl: string | null
   orderIndex: number | null
   createdAt: string
@@ -63,15 +65,6 @@ const shuffleWithSeed = <T,>(items: T[], seed: number) => {
   return next
 }
 
-const getBaseUrl = async () => {
-  const envBase = process.env.NEXT_PUBLIC_SITE_URL
-  if (envBase) return envBase
-  const host = (await headers()).get("host")
-  if (!host) return "http://localhost:3000"
-  const protocol = host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https"
-  return `${protocol}://${host}`
-}
-
 export default async function StyleCollectionPage({
   params,
   searchParams,
@@ -91,15 +84,9 @@ export default async function StyleCollectionPage({
     notFound()
   }
 
-  const baseUrl = await getBaseUrl()
   const requestedPictureId=Number(resolvedSearchParams?.pictureId || 0)
   const curation=await getPhotoCurationVisibility()
-  const res = await fetch(`${baseUrl}/api/picture-styles?style=${styleKey}&pictureId=${Number.isSafeInteger(requestedPictureId)?requestedPictureId:0}`, { cache: "no-store" })
-  if (!res.ok) {
-    notFound()
-  }
-
-  const data = await res.json()
+  const data = await getPhotographyStyles(styleKey,false,Number.isSafeInteger(requestedPictureId)?requestedPictureId:0)
   const stylePayload = data?.styles?.[styleKey]
   const pictures = (stylePayload?.pictures || []) as StylePicture[]
 
@@ -128,6 +115,7 @@ export default async function StyleCollectionPage({
     id:pic.id,
     url: pic.imageUrl || "/placeholder.svg",
     rawUrl: pic.rawImageUrl || pic.imageUrl,
+    displayUrl:pic.displayUrl,
     setId: pic.pictureSetId,
     translations: {
       en: {
@@ -150,7 +138,10 @@ export default async function StyleCollectionPage({
     zh: { title: titleZh, subtitle: "", description: "" },
   }
 
-  return (
+  const initialPictureId=images.some(image=>image.id===requestedPictureId)?requestedPictureId:images.find(image=>curation.featuredIds.includes(image.id))?.id
+  const initialImage=images.find(image=>image.id===initialPictureId) || images[0]
+  return (<>
+    <ViewerPhotoPreload image={initialImage}/>
     <Suspense
       fallback={(
         <div className="min-h-screen bg-gradient-to-br from-white via-[#f8f6f1] to-[#eaf0ff]">
@@ -162,7 +153,7 @@ export default async function StyleCollectionPage({
     >
       <PortfolioDetail
         id={`style-${styleKey}`}
-        initialPictureId={images.some(image=>image.id===requestedPictureId)?requestedPictureId:images.find(image=>curation.featuredIds.includes(image.id))?.id}
+        initialPictureId={initialPictureId}
         images={images}
         translations={translations}
         locations={[]}
@@ -174,6 +165,6 @@ export default async function StyleCollectionPage({
         }}
         viewSetContext={{ type: "style", styleKey }}
       />
-    </Suspense>
+    </Suspense></>
   )
 }
