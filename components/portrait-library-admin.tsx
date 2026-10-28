@@ -83,6 +83,9 @@ export function PortraitLibraryAdmin() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
+              <Link href="/admin/curation">选片与清理</Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href="/admin">返回通用后台</Link>
             </Button>
             <Button asChild className="bg-[#20231f] text-white hover:bg-[#2b302a]">

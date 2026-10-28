@@ -117,6 +117,7 @@ Run the SQL files in `docs/` from the Supabase SQL Editor as needed:
 - `docs/add-image-variants.sql`: image variant metadata.
 - `docs/upgrade-picture-embeddings-1024.sql`: 1024-dimensional vector embeddings and matching RPC.
 - `docs/ai-tasks.sql`: private AI/work task table used by the authenticated `/ai-feed` workspace.
+- `docs/photo-curation-20261028.sql`: private photo ratings and recoverable trash; see [photo curation](docs/photo-curation-20261028.md) for the `/admin/curation` workflow (unmarked = unchanged, 0 = trash, 1 = excellent). Already applied to the linked project.
 
 The current security setup also requires `docs/supabase-security-hardening-20261028.sql` and `docs/supabase-public-budgets-20261028.sql`. These have already been applied to the linked project; review the SQL before using it on a different project. The shared budgets must exist before deploying booking and semantic search. See `docs/supabase-security-audit-20261028.md` for the original validation and rollback scripts. `docs/supabase-version-update-20261028.md` records the subsequent SDK/CLI updates, verified TOTP settings and remaining managed PostGIS/password-protection advisories.
 
@@ -131,6 +132,7 @@ pnpm start
 pnpm lint
 node scripts/check-supabase-security.cjs
 node scripts/check-portrait-book-transition.cjs
+node scripts/check-photo-curation.cjs
 node scripts/check-portfolio-assets.cjs
 pnpm exec tsc --noEmit --incremental false
 pnpm backfill:picture-embeddings -- --limit 3 --dry-run

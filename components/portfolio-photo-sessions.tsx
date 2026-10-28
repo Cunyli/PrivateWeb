@@ -1,19 +1,22 @@
 "use client"
 
-import { useLayoutEffect, useState } from "react"
+import { useLayoutEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, ArrowRight, ArrowUpRight, MoveHorizontal } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { capturePortfolioPosition } from "@/lib/portfolio-return"
-import { portraitBookPages } from "@/lib/portrait-book-content"
+import { usePhotoCuration } from "./photo-curation-provider"
+import { curatedPortraitBookPages } from "@/lib/curated-portrait-book"
 import { portraitSpreadKey, useSoftPortraitBook } from "./use-soft-portrait-book"
 import chrome from "./portfolio-chrome.module.css"
 import styles from "./portfolio-photo-sessions.module.css"
 
-const spreadCount = portraitBookPages.length / 2
 
 export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean }) {
   const { locale } = useI18n()
+  const curation = usePhotoCuration()
+  const pages = useMemo(() => curatedPortraitBookPages(curation, process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top"), [curation])
+  const spreadCount = Math.max(1,pages.length / 2)
   const zh = locale === "zh"
   const [book, setBook] = useState<HTMLDivElement | null>(null)
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
@@ -25,20 +28,21 @@ export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean })
     const saved = Number(window.sessionStorage.getItem(portraitSpreadKey))
     if (Number.isInteger(saved) && saved >= 0 && saved < spreadCount) setSpread(saved)
     setRestored(true)
-  }, [book])
+  }, [book, spreadCount])
   const advance = useSoftPortraitBook({book, canvas, spread, count: spreadCount, paused, onSpread: setSpread, onBusy: setBusy})
+  if (!pages.length) return null
   const entryLabel = zh ? "查看人像作品，了解约拍" : "View portraits and book a photo session"
   return <section className={chrome.section} data-return-section="sessions" aria-label={zh ? "人像与约拍" : "Portrait photo sessions"}>
     <div className={styles.album} data-photo-sessions-entry data-session-spread={spread + 1}>
       <div ref={setBook} className={styles.book} data-portrait-book role="group"
         data-book-restored={String(restored)} aria-busy={!restored || busy} aria-roledescription={zh ? "可拖动翻页的摄影集" : "Draggable photo book"}
         aria-label={zh ? "人像摄影集，使用左右方向键或拖动翻页" : "Portrait photo book. Drag or use the left and right arrow keys to turn pages."}>
-        {portraitBookPages.map((photos, page) => {
+        {pages.map((photos, page) => {
           const visible = page === spread * 2 || page === spread * 2 + 1
           return <Link key={page} href="/helsinki-photo-session" className={`${styles.page} ${page % 2 ? styles.right : styles.left}`}
             draggable={false} data-book-leaf={page} data-page-visible={String(visible)} aria-hidden={!visible} tabIndex={visible ? 0 : -1}
             aria-label={entryLabel} onClick={event => capturePortfolioPosition(event.currentTarget.closest<HTMLElement>("[data-return-section]"))}>
-            <span className={styles.pageContent} data-book-layout={photos[0].width < photos[0].height ? "vertical" : "horizontal"}>
+            <span className={styles.pageContent} data-book-layout={photos[0] && photos[0].width < photos[0].height ? "vertical" : "horizontal"}>
               {photos.map(photo => <span key={photo.src} className={styles.image} data-book-photo>
                 <img src={photo.src} srcSet={photo.srcSet} width={photo.width} height={photo.height} alt={photo.alt[zh ? "zh" : "en"]}
                   loading="lazy" decoding="async" draggable={false} />

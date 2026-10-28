@@ -186,7 +186,14 @@ void main(){
     bankUv.y+=.00025*gust*bankDepth*freeTips*sin(bankUv.x*111.+bankUv.y*53.-windPhase*12.);
     farMeadow=meadowAt(bankUv,0.);
   }
-  farMeadow*=1.-phase(.52,.80,p);
+  // A continuous, slower bank remains behind the seated foreground. Fade
+  // the moving plate before its source edge so camera travel never cuts grass off.
+  vec2 landscapeUv=(uv-meadowAnchor-uPointer*.65)/(1.+push*.10)+meadowAnchor;
+  vec4 landscape=vec4(0.);
+  if(landscapeUv.y>.50) landscape=meadowAt(landscapeUv,0.)*(1.-phase(.52,.80,p));
+  color=landscape.rgb+color*(1.-landscape.a);
+  float plateEdge=smoothstep(-.01,.10,bankUv.x)*(1.-smoothstep(.88,1.01,bankUv.x));
+  farMeadow*=plateEdge*(1.-phase(.52,.80,p));
   color=farMeadow.rgb+color*(1.-farMeadow.a);
   // A soft contact shadow and a few grass tips embed the weight in the bank.
   float contactShadow=region(groundUv,vec2(.487,.789),vec2(.077,.014));
