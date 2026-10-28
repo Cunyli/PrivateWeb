@@ -117,6 +117,13 @@ async function main(){
   assert.equal(covers[1].cover_image_url,'','Unrated-only collections must have no photo cover')
   assert.equal(helper.curationVisible(visibility,{id:998}),true,'Unrated photos remain available to ordinary portfolio views')
   assert.equal(catalog.selectedCollection(visibility).id,0)
+  const {initialStylePreviews}=load('lib/photography-style-previews.ts')
+  const previewPhoto={...fixturePhoto,id:1,setId:1,order:0,createdAt:stamp,booking:false,setPublished:true,tags:['Landscape'],translations:{en:{title:'Original'},zh:{title:'原文'}}}
+  const previewCatalog={ids:[4],assets:[],photos:[previewPhoto,{...previewPhoto,id:3,setPublished:false},{...previewPhoto,id:4}]}
+  const previewInitial={pictureSets:[{id:1,title:'Original',subtitle:'',cover_image_url:fixturePhoto.src}],transMap:{}}
+  const previewSeed=initialStylePreviews(previewCatalog,previewInitial,{1:['大师'],3:['大师'],4:['大师']})
+  assert.equal(previewSeed.landscape.pictures[0].id,1,'Master categories as well as tags must seed first-load previews')
+  assert.ok(!Object.values(previewSeed).flatMap(style=>style.pictures).some(photo=>[3,4].includes(photo.id)),'Private and deleted photographs cannot enter the seed')
   const series=load('lib/photo-series.ts')
   assert.equal(series.curationGroup(112,'Portrait Booking Samples','',['model:A']).id,'portrait-pool')
   assert.equal(series.curationGroup(120,'Other title','',['portrait-library','model:B']).id,'portrait-pool')

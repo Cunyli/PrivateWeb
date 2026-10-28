@@ -5,6 +5,7 @@ import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 
 import type { PanInfo } from "framer-motion"
 import { useI18n } from "@/lib/i18n"
 import { photoSource } from "@/lib/portfolio-photo-source"
+import { viewerPhotoSource } from "@/lib/viewer-photo-source"
 import { PhotoPreviewCache } from "@/lib/photo-preview-cache"
 import type { LoadedPhoto, PhotoSource } from "@/lib/photo-preview-cache"
 import styles from "./portfolio-viewer.module.css"
@@ -16,12 +17,13 @@ export { photoSource } from "@/lib/portfolio-photo-source"
 export interface CarouselImage {
   id?: number | string | null
   url: string
+  displayUrl?: string | null
   rawUrl?: string | null
   setId?: number | string | null
   translations: { en: { title?: string; subtitle?: string; description?: string }; zh: { title?: string; subtitle?: string; description?: string } }
 }
 type Slide = { serial: number; index: number; direction: number; photo: LoadedPhoto }
-type Bounds = { width: number; height: number; left: number }
+type Bounds = { width: number; height: number; left: number; density: number }
 type Navigation = { direction: number; travel: number }
 const SPRING = { type: "spring" as const, stiffness: 260, damping: 25, mass: 1.15 }
 const modulo = (n: number, total: number) => ((n % total) + total) % total
@@ -37,8 +39,8 @@ function entranceFrames(fromX: number, fromY: number, travel: number): Keyframe[
   })
 }
 
-function PhotoSlide({ slide, image, bounds, active, navigation, enhance, navigable, onNavigate, onDragState, onFinish, failed }: {
-  slide: Slide; image: CarouselImage; bounds: Bounds; active: boolean; navigation: Navigation; enhance: boolean; navigable: boolean
+function PhotoSlide({ slide, image, bounds, active, navigation, navigable, onNavigate, onDragState, onFinish, failed }: {
+  slide: Slide; image: CarouselImage; bounds: Bounds; active: boolean; navigation: Navigation; navigable: boolean
   onNavigate: (direction: number) => void; onDragState: (dragging: boolean) => void
   onFinish: (serial: number, active: boolean) => void; failed: boolean
 }) {
@@ -49,7 +51,6 @@ function PhotoSlide({ slide, image, bounds, active, navigation, enhance, navigab
   const finish = useRef(onFinish)
   finish.current = onFinish
   const entered = useRef(false)
-  const highImage = useRef<HTMLImageElement>(null)
   const x = useMotionValue(0)
   // Dragging follows the pointer; the full slide transition does not use JS RAF.
   const rotate = useTransform(x, value => reduced ? 0 : Math.max(-4, Math.min(4, value / navigation.travel * 3.5)))
@@ -57,14 +58,11 @@ function PhotoSlide({ slide, image, bounds, active, navigation, enhance, navigab
   const scaleY = useTransform(x, value => reduced ? 1 : 1 + Math.min(1, Math.abs(value) / navigation.travel) * .035)
   const [settled, setSettled] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
-  const [highSource, setHighSource] = useState<string | null>(null)
-  const [highReady, setHighReady] = useState(false)
   const ratio = slide.photo.width / slide.photo.height
   const width = Math.min(bounds.width * .97, bounds.height * .98 * ratio), height = width / ratio
   const text = image.translations[locale === "zh" ? "zh" : "en"]
   const fallback = image.translations[locale === "zh" ? "en" : "zh"]
   const alt = text.title || fallback.title || (locale === "zh" ? `照片 ${slide.index + 1}` : `Photograph ${slide.index + 1}`)
-  const canEnhance = active && settled && enhance && !isDragging
 
   useLayoutEffect(() => {
     const node = pose.current
@@ -99,16 +97,6 @@ function PhotoSlide({ slide, image, bounds, active, navigation, enhance, navigab
     if (failed && active) { animation.current?.play(); animate(x,0,reduced ? { duration:0 } : SPRING) }
   },[failed,active,reduced,x])
 
-  useEffect(() => {
-    setHighSource(null); setHighReady(false)
-    const density = window.devicePixelRatio || 1
-    if (!canEnhance || slide.photo.original === slide.photo.src ||
-      (width*density <= slide.photo.width*1.05 && height*density <= slide.photo.height*1.05)) return
-    // Wait for an actual pause in browsing. No original decode while changing slides.
-    const timer = window.setTimeout(() => setHighSource(slide.photo.original),1100)
-    return () => window.clearTimeout(timer)
-  },[canEnhance,width,height,slide.photo])
-
   const dragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     setIsDragging(false); onDragState(false)
     const predicted = info.offset.x+info.velocity.x*.16
@@ -125,8 +113,7 @@ function PhotoSlide({ slide, image, bounds, active, navigation, enhance, navigab
       onDragStart={() => {animation.current?.pause();setIsDragging(true);onDragState(true)}} onDragEnd={dragEnd}>
       <div className={styles.photoFrame} style={{width,height}}>
         <img className={styles.photo} src={slide.photo.src} alt={alt} width={slide.photo.width} height={slide.photo.height} draggable={false} decoding="async" />
-        {canEnhance && highSource && <img ref={highImage} className={styles.highPhoto} data-original-photo src={highSource} alt="" aria-hidden="true" draggable={false}
-          decoding="async" fetchPriority="low" onLoad={event => { const image = event.currentTarget; image.decode().then(() => {if (highImage.current === image) setHighReady(true)},() => {}) }} style={{opacity:highReady?1:0}} />}
+
       </div>
     </motion.div>
   </div>
@@ -148,7 +135,7 @@ export function Carousel({ images, currentIndex, onChangeImage, onDisplayImage, 
   const pointerStart = useRef<{ id:number; x:number; y:number; moved:boolean } | null>(null)
   const callbacks = useRef({ onDisplayImage, onBusyChange })
   callbacks.current = { onDisplayImage, onBusyChange }
-  const [bounds, setBounds] = useState<Bounds>({ width: 1, height: 1, left: 0 })
+  const [bounds, setBounds] = useState<Bounds>({ width: 1, height: 1, left: 0, density: 1 })
   const [view, setView] = useState<{ active: Slide | null; outgoing: Slide | null; direction: number }>({ active: null, outgoing: null, direction: 1 })
   const [pending, setPending] = useState(true)
   const [dragging, setDragging] = useState(false)
@@ -156,7 +143,7 @@ export function Carousel({ images, currentIndex, onChangeImage, onDisplayImage, 
   const [error, setError] = useState(false)
   const [retry, setRetry] = useState(0)
   const bucket = process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top"
-  const sources = useMemo(() => images.map(image => ({ preview: photoSource(image.url, bucket, 1280), original: photoSource(image.url, bucket, 1920, true) })), [images, bucket])
+  const sources = useMemo(() => images.map(image => ({ preview: viewerPhotoSource(image,bucket,bounds), original: photoSource(image.url, bucket, 1920, true) })), [images, bucket,bounds.width,bounds.height,bounds.density])
   const navigation = { direction: view.direction, travel: Math.max(1, bounds.width * 1.04) }
 
   const preload = useCallback((source: PhotoSource, priority: "high" | "low" = "low") => cache.current!.load(source,priority), [])
@@ -169,7 +156,8 @@ export function Carousel({ images, currentIndex, onChangeImage, onDisplayImage, 
       const r = node.getBoundingClientRect()
       const width = node.clientWidth, height = node.clientHeight
       const left = r.left - (width - r.width) / 2
-      setBounds(previous => previous.width === width && previous.height === height && previous.left === left ? previous : { width, height, left })
+      const density=window.devicePixelRatio || 1
+      setBounds(previous => previous.width === width && previous.height === height && previous.left === left && previous.density===density ? previous : { width, height, left, density })
     }
     const observer = new ResizeObserver(measure)
     observer.observe(node); measure()
@@ -178,7 +166,8 @@ export function Carousel({ images, currentIndex, onChangeImage, onDisplayImage, 
 
   useEffect(() => {
     if (!images.length) { setPending(false); return }
-    if (activeRef.current?.index === currentIndex) { setPending(false); setError(false); callbacks.current.onBusyChange?.(false); return }
+    if (bounds.width<=1 || bounds.height<=1) return
+    if (activeRef.current?.index === currentIndex && (activeRef.current.photo.src===sources[currentIndex].preview || Math.max(activeRef.current.photo.width,activeRef.current.photo.height)>=(sources[currentIndex].preview.includes("/w2560.webp")?2560:1280))) { setPending(false); setError(false); callbacks.current.onBusyChange?.(false); return }
     let cancelled = false
     nativeProbe.record.current?.("request", currentIndex)
     setPending(true); setError(false); callbacks.current.onBusyChange?.(true)
@@ -188,16 +177,17 @@ export function Carousel({ images, currentIndex, onChangeImage, onDisplayImage, 
       const offset = previous ? modulo(currentIndex - previous.index, images.length) : 0
       const direction = !previous ? 0 : explicitDirection.current?.target === currentIndex
         ? explicitDirection.current.direction : offset <= images.length / 2 ? 1 : -1
-      const next: Slide = { serial: ++serial.current, index: currentIndex, direction, photo }
+      const same=previous?.index===currentIndex
+      const next: Slide = { serial: same?previous.serial:++serial.current, index: currentIndex, direction:same?previous.direction:direction, photo }
       activeRef.current = next
       nativeProbe.record.current?.("presented", currentIndex)
-      setView({ active: next, outgoing: previous, direction: direction || 1 })
-      setPending(false); setMoving(true); callbacks.current.onBusyChange?.(false); callbacks.current.onDisplayImage?.(currentIndex)
+      setView({ active: next, outgoing: same?null:previous, direction: direction || 1 })
+      setPending(false); setMoving(!same); callbacks.current.onBusyChange?.(false); callbacks.current.onDisplayImage?.(currentIndex)
     }, () => {
       if (!cancelled) { setPending(false); setError(true); callbacks.current.onBusyChange?.(false) }
     })
     return () => { cancelled = true }
-  }, [currentIndex, images.length, sources, preload, retry])
+  }, [currentIndex, images.length, sources, preload, retry,bounds.width,bounds.height])
 
   useEffect(() => {
     if (pending || moving || dragging || error || !view.active || images.length < 2) return
@@ -280,7 +270,7 @@ export function Carousel({ images, currentIndex, onChangeImage, onDisplayImage, 
     }}>
     {[view.outgoing, view.active].filter((slide): slide is Slide => slide !== null).map(slide => <PhotoSlide key={slide.serial}
       slide={slide} image={images[slide.index]} bounds={bounds} active={slide.serial === view.active?.serial}
-      navigation={navigation} navigable={images.length > 1} enhance={!pending && !moving && !dragging} onNavigate={navigate} onDragState={dragState} onFinish={finish} failed={error} />)}
+      navigation={navigation} navigable={images.length > 1} onNavigate={navigate} onDragState={dragState} onFinish={finish} failed={error} />)}
     {pending && <span className={styles.loadingLine} role="status" aria-label={locale === "zh" ? "正在载入照片" : "Loading photograph"} />}
     {error && <div className={styles.loadError} role="alert"><span>{locale === "zh" ? "这张照片暂时无法载入" : "This photograph could not load"}</span><button onClick={() => setRetry(value => value + 1)}>{locale === "zh" ? "重试" : "Retry"}</button></div>}
     {nativeProbe.report && <aside className={styles.performance} data-viewer-native-report>{(() => { const { events, ...summary } = JSON.parse(nativeProbe.report); return <><pre>{JSON.stringify(summary)}</pre><pre>{JSON.stringify(events.map((event: { event: string; index: number; atMs: number }) => [event.event, event.index, event.atMs]))}</pre></> })()}</aside>}

@@ -1424,7 +1424,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
       {!loading && (
         <section data-portfolio-section="styles" data-return-section="styles">
         <Suspense fallback={<div className="py-8 text-center text-gray-500">Loading...</div>}>
-          <PhotographyStyleShowcase paused={searchOpen} />
+          <PhotographyStyleShowcase paused={searchOpen} initialData={initialData?.stylePreviews} />
         </Suspense>
         </section>
       )}
