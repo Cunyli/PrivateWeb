@@ -32,7 +32,8 @@ export function catalogVisibility(catalog: CurationCatalog): CurationVisibility 
 }
 
 export function withFeaturedCovers<T extends { id: number; cover_image_url?: string | null; cover_image_variants?: unknown }>(sets: T[], curation: CurationVisibility): T[] {
-  return sets.map(set => ({...set,cover_image_url:curation.covers[set.id]?.src || "",cover_image_variants:{}}))
+  return sets.map(set => ({...set,cover_image_url:curation.covers[set.id]?.src || "",cover_image_variants:{},
+    cover_image_width:curation.covers[set.id]?.width || undefined,cover_image_height:curation.covers[set.id]?.height || undefined}))
 }
 
 // Zero is a UI-only collection key, never a database ID.

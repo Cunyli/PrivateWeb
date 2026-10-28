@@ -56,6 +56,19 @@ function load(relative) {
 }
 const request=body=>new Request('https://portfolio.example.invalid/api/admin/photo-curation',{method:'POST',headers:{'content-type':'application/json'},body:typeof body==='string'?body:JSON.stringify(body)})
 async function main(){
+  const {DisplayFrameBudget}=load('lib/display-frame-budget.ts')
+  for(const hz of [60,90,120,144,240]){
+    const budget=new DisplayFrameBudget(); let now=100
+    for(let i=0;i<120;i++){now+=1000/hz;budget.observe(now)}
+    assert.ok(Math.abs(budget.milliseconds-1000/hz)<.01)
+    for(let i=0;i<90;i++){now+=1000/30;budget.observe(now)}
+    assert.ok(Math.abs(budget.milliseconds-1000/hz)<.01,'Overload must not lower a demonstrated display target')
+    budget.resume(); budget.observe(now+10000)
+    assert.ok(Math.abs(budget.milliseconds-1000/hz)<.01,'A hidden-tab interval is not a display sample')
+  }
+  const jitter=new DisplayFrameBudget(); let time=100
+  for(const ms of [...Array(6).fill(6),...Array.from({length:120},(_,i)=>[16.67,17,16,18][i%4])]){time+=ms;jitter.observe(time)}
+  assert.equal(jitter.milliseconds,1000/60,'Startup callback bursts must not be mistaken for a 165Hz display')
   const helper=load('lib/photo-curation.ts')
   const row={pictureId:1,decision:'keep',expectedUpdatedAt:stamp,expectedReviewedAt:null,width:640,height:960}
   assert.equal(helper.parseCurationChanges({changes:[row]})[0].expectedUpdatedAt,stamp)
@@ -99,6 +112,8 @@ async function main(){
   assert.ok(!visibility.featuredIds.includes(4))
   const covers=catalog.withFeaturedCovers([{id:1,cover_image_url:'/old.webp'},{id:8,cover_image_url:'/unrated.webp'}],visibility)
   assert.equal(covers[0].cover_image_url,fixturePhoto.src)
+  assert.equal(covers[0].cover_image_width,640,'Cover dimensions must be available before lazy image loading')
+  assert.equal(covers[0].cover_image_height,960)
   assert.equal(covers[1].cover_image_url,'','Unrated-only collections must have no photo cover')
   assert.equal(helper.curationVisible(visibility,{id:998}),true,'Unrated photos remain available to ordinary portfolio views')
   assert.equal(catalog.selectedCollection(visibility).id,0)

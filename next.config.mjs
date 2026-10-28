@@ -15,6 +15,9 @@ try {
 const nextConfig = {
   outputFileTracingRoot: __dirname,
   devIndicators: false,
+  async redirects() {
+    return [{ source: '/work/100', destination: '/work/111?pictureId=2488&returnSet=111', permanent: true }]
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

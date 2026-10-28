@@ -6,6 +6,8 @@ export interface PictureSet {
   updated_at: string; // ISO date string
   cover_image_url: string;
   cover_image_variants?: ImageVariantMap;
+  cover_image_width?: number;
+  cover_image_height?: number;
   description: string;
   title: string;
   subtitle: string;

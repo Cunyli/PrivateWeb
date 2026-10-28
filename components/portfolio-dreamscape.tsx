@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties, MutableRefObject } from "react"
 import { dreamscapeWind } from "@/lib/dreamscape-wind"
+import { DisplayFrameBudget } from "@/lib/display-frame-budget"
 
 export type DreamscapeInput = {
   position: number
@@ -263,7 +264,8 @@ export function PortfolioDreamscape({ isPlaying, className, input }: {
     const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: "high-performance" })
     if (!gl) return
     let disposed = false, frame = 0, elapsed = 0, lastTime = 0, loaded = 0
-    let flightLoaded = 0, flightUpload = 0
+    let flightLoaded = 0, flightUpload = 0, calibrationFrame = 0
+    const displayBudget = new DisplayFrameBudget()
     let cloudMix = 0, wind = 0, pointerX = 0, pointerY = 0
     let lastProgress = "", lastGust = "", resolution = 1, qualityTime = 0, qualityFrames = 0, slowFrames = 0, goodWindows = 0
     const images: HTMLImageElement[] = []
@@ -405,6 +407,7 @@ export function PortfolioDreamscape({ isPlaying, className, input }: {
     const draw = (now: number) => {
       frame = 0
       if (disposed || loaded !== 5) return
+      displayBudget.observe(now)
       const delta = lastTime ? Math.min((now - lastTime) / 1000, .08) : 1 / 60
       if (playing.current) elapsed += delta
       wind += ((input?.current.impulse || 0) - wind) * (1 - Math.exp(-delta * 12))
@@ -416,11 +419,12 @@ export function PortfolioDreamscape({ isPlaying, className, input }: {
       // not animation cadence; recover detail only after several stable windows.
       if (playing.current && lastTime) {
         qualityTime += delta; qualityFrames++
-        if (delta > .022) slowFrames++
+        if (delta * 1000 > displayBudget.milliseconds * 1.35) slowFrames++
         if (qualityTime >= 1.5) {
+          canvas.dataset.refreshHz = String(Math.round(1000 / displayBudget.milliseconds))
           const slow = slowFrames / Math.max(1, qualityFrames)
           let next = resolution
-          if (slow > .12) { next = Math.max(.72, resolution * .86); goodWindows = 0 }
+          if (slow > .12) { next = Math.max(displayBudget.milliseconds < 12 ? .60 : .72, resolution * .86); goodWindows = 0 }
           else if (slow < .02 && ++goodWindows >= 6) { next = Math.min(1, resolution / .86); goodWindows = 0 }
           if (Math.abs(next - resolution) > .01) { resolution = next; resize() }
           qualityTime = 0; qualityFrames = 0; slowFrames = 0
@@ -432,6 +436,16 @@ export function PortfolioDreamscape({ isPlaying, className, input }: {
     function start() { if (!frame && loaded === 5 && !disposed && !document.hidden) frame = requestAnimationFrame(draw) }
     startRef.current = start
     if (input) input.current.requestRender = start
+    // Calibrate while assets load, before scene rendering can hide a 120Hz
+    // display behind expensive 16ms frames. Stop this lightweight extra callback
+    // as soon as the regular animation loop takes over.
+    const calibrate = (now: number) => {
+      calibrationFrame = 0
+      if (disposed || document.hidden) return
+      displayBudget.observe(now)
+      if (loaded !== 5) calibrationFrame = requestAnimationFrame(calibrate)
+    }
+    calibrationFrame = requestAnimationFrame(calibrate)
     const sources = [
       { index: 0, src: cloudPlate }, { index: 1, src: cloudPlate },
       { index: 2, src: "/dreamcore-meadow-isolated-v2.png" }, { index: 3, src: cloudPlate },
@@ -445,7 +459,11 @@ export function PortfolioDreamscape({ isPlaying, className, input }: {
         gl.activeTexture(gl.TEXTURE0 + index); gl.bindTexture(gl.TEXTURE_2D, textures[index])
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
         loaded++
-        if (loaded === 5) { resize(); setReady(true); start() }
+        if (loaded === 5) {
+          cancelAnimationFrame(calibrationFrame); calibrationFrame = 0
+          displayBudget.resume()
+          resize(); setReady(true); start()
+        }
       }
       image.onerror = () => {
         console.error(`Depth layer could not load: ${src}`)
@@ -482,14 +500,14 @@ export function PortfolioDreamscape({ isPlaying, className, input }: {
         if (!document.hidden && playing.current && (index === loop.current.primary || loop.current.blending)) video.play().catch(error => { if (!(error instanceof DOMException && error.name === "AbortError")) console.warn("Cloud playback unavailable", error) })
         else video.pause()
       })
-      if (document.hidden) { cancelAnimationFrame(frame); frame = 0; lastTime = 0 }
+      if (document.hidden) { cancelAnimationFrame(frame); frame = 0; lastTime = 0; displayBudget.resume() }
       else start()
     }
     const observer = new ResizeObserver(resize)
     observer.observe(canvas)
     document.addEventListener("visibilitychange", visibility)
     return () => {
-      disposed = true; cancelAnimationFrame(frame); cancelAnimationFrame(flightUpload); observer.disconnect()
+      disposed = true; cancelAnimationFrame(frame); cancelAnimationFrame(flightUpload); cancelAnimationFrame(calibrationFrame); observer.disconnect()
       startRef.current = null
       if (input?.current.requestRender === start) delete input.current.requestRender
       document.removeEventListener("visibilitychange", visibility)
