@@ -46,6 +46,7 @@ export function EntryGate() {
     const hero = heroRef.current, viewport = frameRef.current
     if (!hero || !viewport) return
     const works = document.getElementById("works")
+    if(works)works.inert=true
     const written = new Map<string, string>()
     let height = 1, heroHeight = 1, heroTop = 0, distance = 1, inset = .04
     let frame = 0, smoothTravel = 0, lastScroll = window.scrollY
@@ -63,7 +64,7 @@ export function EntryGate() {
       if (target > 16) enter()
       smoothTravel = target
       const progress = Math.min(1, smoothTravel / distance)
-      const inactive = progress < .68
+      const inactive = progress < .735
       if (works && works.hasAttribute("inert") !== inactive) works.inert = inactive
       const scenePresence = 1 - phase(.50, .54, progress)
       const nameVisibility = phase(.035, .22, progress) * (1 - phase(.37, .54, progress))
@@ -73,8 +74,9 @@ export function EntryGate() {
       write("--scene-radius", (5 * (1 - phase(.40, .54, progress))).toFixed(2) + "px")
       write("--inset-duration", progress > .38 ? "0ms" : "420ms")
       write("--scene-presence", String(scenePresence))
-      write("--frame-visibility", progress >= .74 ? "hidden" : "visible")
-      write("--frame-events", progress >= .70 ? "none" : "auto")
+      write("--frame-backing-opacity",String(1-phase(.54,.585,progress)))
+      write("--frame-visibility", progress >= .735 ? "hidden" : "visible")
+      write("--frame-events", progress >= .735 ? "none" : "auto")
       write("--header-opacity", String(header))
       write("--header-visibility", header > .02 ? "visible" : "hidden")
       write("--chrome-opacity", String(chrome))
@@ -105,12 +107,14 @@ export function EntryGate() {
     sizes.observe(hero); sizes.observe(viewport)
     window.addEventListener("scroll", requestTick, { passive: true })
     window.addEventListener("resize", measure)
+    window.visualViewport?.addEventListener("resize",measure)
     measure()
     return () => {
       cancelAnimationFrame(frame); observer.disconnect(); sizes.disconnect()
       if (works) works.inert = false
       window.removeEventListener("scroll", requestTick)
       window.removeEventListener("resize", measure)
+      window.visualViewport?.removeEventListener("resize",measure)
     }
   }, [enter])
 

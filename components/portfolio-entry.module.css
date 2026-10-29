@@ -2,7 +2,7 @@
 
 .page { --paper: #ffffff; background: var(--paper); color: #19211f; overflow-x: clip; }
 .hero { --gutter: clamp(22px,3.4vw,64px); --scene-presence: 1; --chrome-opacity: 1; --header-opacity: 1; --content-opacity: 1; position: relative; height: 150svh; background: var(--paper); color: #fffdf7; font-family: "Portfolio Hanken","PingFang SC","Microsoft YaHei",sans-serif; -webkit-font-smoothing: antialiased; }
-.cinemaFrame { position: fixed; z-index: 10; inset: 0; isolation: isolate; height: 100svh; min-height: min(540px,100svh); overflow: hidden; background: rgb(255 255 255 / var(--scene-presence)); visibility: var(--frame-visibility,visible); pointer-events: var(--frame-events,auto); }
+.cinemaFrame { position: fixed; z-index: 50; inset: 0; isolation: isolate; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; background: rgb(255 255 255 / var(--frame-backing-opacity,1)); visibility: var(--frame-visibility,visible); pointer-events: var(--frame-events,auto); }
 .sceneInset { position: absolute; inset: 0; overflow: hidden; transform: scale(1); border-radius: 0; transition: transform var(--inset-duration,720ms) cubic-bezier(.22,1,.36,1),border-radius 720ms ease; }
 .hero[data-entered="true"] .sceneInset { transform: scale(var(--scene-scale,.96)); border-radius: var(--scene-radius,5px); }
 .sceneInset { will-change: transform; }

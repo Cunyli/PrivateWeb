@@ -7,7 +7,6 @@ import { PhotoCurationProvider } from "@/components/photo-curation-provider"
 import { Analytics } from '@vercel/analytics/react'
 import { I18nProvider } from "@/lib/i18n"
 import { InteractionPerformanceProbe } from "@/components/interaction-performance-probe"
-import { PortfolioLandscapeHint } from "@/components/portfolio-landscape-hint"
 
 export const metadata: Metadata = {
   title: "Lijie's Portfolio",
@@ -32,7 +31,6 @@ export default async function RootLayout({
         <I18nProvider>
           <PhotoCurationProvider value={curation}>
           {children}
-          <PortfolioLandscapeHint />
           <InteractionPerformanceProbe />
           </PhotoCurationProvider>
         </I18nProvider>
