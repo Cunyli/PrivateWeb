@@ -80,3 +80,12 @@
 .story[data-text-only="true"] .spread figcaption p { font-size:clamp(28px,4.2vw,62px); line-height:1.28; }
 .story[data-text-only="true"] .folio { display:none; }
 @media(max-height:520px) { .story[data-text-only="true"] .stage { min-height:0; } .story[data-text-only="true"] .spread figcaption p { font-size:30px; } }
+
+/* A single compositor transform follows the document's scroll timeline. */
+.story[data-story-motion="native"] { view-timeline-name: --booking-intro; view-timeline-axis: block; }
+.story[data-story-motion="native"] .track {
+  animation: introTravel 1s linear both;
+  animation-timeline: --booking-intro;
+  animation-range: contain 0% contain 100%;
+}
+@keyframes introTravel { from { transform:translate3d(0,0,0); } to { transform:translate3d(var(--intro-travel,0px),0,0); } }

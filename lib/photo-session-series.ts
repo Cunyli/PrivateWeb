@@ -7,6 +7,8 @@ export type SessionPhoto = {
   id: string
   src: string
   alt: string
+  width?: number
+  height?: number
 }
 
 export type MomentCard = SessionPhoto & {
@@ -28,12 +30,20 @@ export type MomentGroup = {
   place: string
   note: string
   featured?: boolean
+  kind?: "highlights"
   hideCaption?: boolean
   photoCount?: number
   tags: string[]
   photos: MomentCard[]
   curated?: boolean
   replaces?: string[]
+}
+
+const bookingGroupLabels:Record<string,{title:string;place:string}>={
+  "hongjia-helsinki":{title:"Hongjia",place:"Helsinki"},
+  "jianji-xinyi":{title:"Jianji & Xinyi",place:"Croatia · Florence"},
+  lijiang:{title:"Lijiang",place:""},
+  appenzell:{title:"Appenzell",place:"Switzerland"},
 }
 
 export function bookingPortraitGroups(curation: CurationVisibility, bucket: string, photos=bookingPortraits(curation)): MomentGroup[] {
@@ -46,18 +56,27 @@ export function bookingPortraitGroups(curation: CurationVisibility, bucket: stri
     const placeLabels:Record<string,string>={switzerland:"Switzerland",helsinki:"Helsinki",florence:"Florence",aalto:"Aalto"}
     const place=placeLabels[placeTag.toLowerCase()] || placeTag
     const shoot=tags.find(t=>/^series:/i.test(t)) || `set:${photo.setId}`
-    const groupId = series.portrait ? series.id : `session:${shoot}:${place.toLowerCase()}`
-    const group = groups.get(groupId) || { id:groupId,title:series.portrait?series.title:place || "Portraits",place:series.subtitle,note:"",tags:[],photos:[],curated:true }
-    group.place = series.portrait ? preferSeriesPlace(group.place,series.subtitle) : ""
+    const displayKey=tags.find(tag=>tag.startsWith("display:booking-group:"))?.slice("display:booking-group:".length)
+    const display=displayKey?bookingGroupLabels[displayKey]:undefined
+    const groupId = display ? `booking:${displayKey}` : series.portrait ? series.id : `session:${shoot}:${place.toLowerCase()}`
+    const group = groups.get(groupId) || { id:groupId,title:display?.title || (series.portrait?series.title:place || "Portraits"),place:display?.place || series.subtitle,note:"",tags:[],photos:[],curated:true }
+    group.place = display ? display.place : series.portrait ? preferSeriesPlace(group.place,series.subtitle) : ""
     group.photos.push({ id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,bucket).href,previewSrc:sessionPhotoSources({id:photo.id,src:photo.src},bucket).src,previewSrcSet:sessionPhotoSources({id:photo.id,src:photo.src},bucket).srcSet,
-      alt:photo.title || `${group.title} portrait`,title:group.title,place:group.place,note:"",tags,
+      alt:photo.title || [series.portrait?series.title:group.title,series.subtitle || place].filter(Boolean).join(" · "),title:series.portrait?series.title:group.title,place:series.subtitle || place,note:"",tags,
       width:photo.width || undefined,height:photo.height || undefined,
       sourceName:curationAssetKey(photo.src),featured:tags.includes("display:cover") })
     group.tags=[...new Set([...group.tags,...tags])]
     group.photoCount = group.photos.length
     groups.set(groupId,group)
   }
-  return [...groups.values()]
+  const shoots=[...groups.values()]
+  const series=shoots.filter(group=>group.photos.length>=2)
+  const singles=shoots.filter(group=>group.photos.length===1).flatMap(group=>group.photos)
+  // One frame cannot tell a whole shoot's story. Share single frames in one
+  // selection, preserving each photo's own person and place for the viewer.
+  if(singles.length>=2)series.push({id:"portrait-highlights",kind:"highlights",title:"Portraits",place:"",note:"",curated:true,
+    photoCount:singles.length,tags:[...new Set(singles.flatMap(photo=>photo.tags))],photos:singles})
+  return series
 }
 
 export function showcasePortraits(photos: CurationPortrait[], limit: number): CurationPortrait[] {
