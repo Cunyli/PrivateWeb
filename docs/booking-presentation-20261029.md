@@ -6,6 +6,11 @@ The opening portrait is Ziyang's DSC04154 (2830), using its existing original. Z
 
 The photographer introduction uses three explicit ordered display tags, `display:booking-intro-1` through `-3`. It displays only these approved portraits, separately from client casework. Newly supplied originals are stored with deterministic content hashes and responsive 640/1280/2560 renditions; an existing pointing portrait is reused. The intro follows a native CSS scroll timeline when supported, with one rAF transform fallback and no smoothed chase or per-frame child transforms. Reduced-motion remains a static reading layout.
 
-Authored display-group tags join the requested shoots without altering person tags or grades: Hongjia/Helsinki, Jianji & Xinyi across Croatia and Florence, the two Lijiang shoots, and an Appenzell travel story. Single-frame shoots do not get standalone headings; multiple remaining singles can share one quiet Portraits selection.
+Authored display-group tags join the requested shoots: Hongjia/Helsinki, Jianji & Xinyi across Croatia and Barcelona, the two Lijiang shoots, and David/Switzerland. Person tags are corrected only using the owner's explicit filename or identity confirmation. Single-frame shoots do not get standalone headings; multiple remaining singles can share one quiet Portraits selection.
 
-Hero, introduction, process, and gallery placements are reserved separately to avoid repeated images on the same page. The former Florence process image now belongs to Jianji & Xinyi's gallery; no empty photo column remains in the process section.
+Hero, introduction, process, and gallery placements are reserved separately to avoid repeated images on the same page. The owner corrected the former Florence and final Appenzell frames out of client casework. Why me uses explicit ordered process placements, with left-side text and a sticky image on the right. The sequence advances once through the chosen pictures rather than cycling modulo the text count; only the shown/departing/requested/next images are mounted.
+
+
+Confirmed filename corrections: DSC09457 (2385), DSC00373 (2815), and the sharper existing DSC00471 variant (2493) join Jianji & Xinyi's two confirmed frames. The duplicated, softer 00471 record is not added to this gallery. David/Switzerland contains four frames; 2881 is explicitly identified by the owner as their own portrait and moves to Why me together with 2868.
+
+Why me's ordered selection is DSC05245 (2604), DSC01164 (2530), DSC00309 (2814), DSC08848 (2523), DSC05236 (2858), DSC08353 (2868), and DSC07046 (2881). Only 2858 required a rating change: the owner explicitly approved marking it 1. All other stored ratings were preserved. Client series order stays unchanged.

@@ -41,9 +41,9 @@ export type MomentGroup = {
 
 const bookingGroupLabels:Record<string,{title:string;place:string}>={
   "hongjia-helsinki":{title:"Hongjia",place:"Helsinki"},
-  "jianji-xinyi":{title:"Jianji & Xinyi",place:"Croatia · Florence"},
+  "jianji-xinyi":{title:"Jianji & Xinyi",place:"Croatia · Barcelona"},
   lijiang:{title:"Lijiang",place:""},
-  appenzell:{title:"Appenzell",place:"Switzerland"},
+  appenzell:{title:"David",place:"Switzerland"},
 }
 
 export function bookingPortraitGroups(curation: CurationVisibility, bucket: string, photos=bookingPortraits(curation)): MomentGroup[] {
@@ -61,16 +61,18 @@ export function bookingPortraitGroups(curation: CurationVisibility, bucket: stri
     const groupId = display ? `booking:${displayKey}` : series.portrait ? series.id : `session:${shoot}:${place.toLowerCase()}`
     const group = groups.get(groupId) || { id:groupId,title:display?.title || (series.portrait?series.title:place || "Portraits"),place:display?.place || series.subtitle,note:"",tags:[],photos:[],curated:true }
     group.place = display ? display.place : series.portrait ? preferSeriesPlace(group.place,series.subtitle) : ""
-    group.photos.push({ id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,bucket).href,previewSrc:sessionPhotoSources({id:photo.id,src:photo.src},bucket).src,previewSrcSet:sessionPhotoSources({id:photo.id,src:photo.src},bucket).srcSet,
-      alt:photo.title || [series.portrait?series.title:group.title,series.subtitle || place].filter(Boolean).join(" · "),title:series.portrait?series.title:group.title,place:series.subtitle || place,note:"",tags,
-      width:photo.width || undefined,height:photo.height || undefined,
+    const displaySource=sessionPhotoSources({id:photo.id,src:photo.src},bucket)
+    group.photos.push({ id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,bucket).href,previewSrc:displaySource.src,previewSrcSet:displaySource.srcSet,
+      alt:(!display && photo.title) || [series.portrait?series.title:group.title,series.subtitle || place].filter(Boolean).join(" · "),title:series.portrait?series.title:group.title,place:series.subtitle || place,note:"",tags,
+      width:displaySource.width || photo.width || undefined,height:displaySource.height || photo.height || undefined,
       sourceName:curationAssetKey(photo.src),featured:tags.includes("display:cover") })
     group.tags=[...new Set([...group.tags,...tags])]
     group.photoCount = group.photos.length
     groups.set(groupId,group)
   }
   const shoots=[...groups.values()]
-  const series=shoots.filter(group=>group.photos.length>=2)
+  const order:Record<string,number>={Xiya:0,Hongjia:1,"Jianji & Xinyi":2,Lijiang:3,Rico:4,David:5}
+  const series=shoots.filter(group=>group.photos.length>=2).sort((a,b)=>(order[a.title]??99)-(order[b.title]??99))
   const singles=shoots.filter(group=>group.photos.length===1).flatMap(group=>group.photos)
   // One frame cannot tell a whole shoot's story. Share single frames in one
   // selection, preserving each photo's own person and place for the viewer.
