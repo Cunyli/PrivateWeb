@@ -8,7 +8,7 @@ export function photoSeries(setId: number, title: string, subtitle: string, tags
   return {
     id: models.length ? `portrait:${encodeURIComponent(`${series || "shoot"}:${models.join("+")}:${series ? "" : place}`)}` : `set:${setId}`,
     title: models.length ? models.join(" & ") : title || "未命名系列",
-    subtitle: models.length ? prettyPlaces[place] || label(place) : subtitle || "",
+    subtitle: models.length ? prettyPlaces[place.toLowerCase()] || label(place) : subtitle || "",
     portrait: models.length > 0,
   }
 }

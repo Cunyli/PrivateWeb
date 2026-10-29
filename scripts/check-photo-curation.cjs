@@ -48,7 +48,10 @@ function load(relative) {
     if(name==='@/utils/admin-auth.server')return {requireAdminRequest:async()=>auth}
     if(name==='@/utils/supabaseAdmin')return {supabaseAdmin:client}
     const base=name.startsWith('@/')?name.slice(2):name.startsWith('.')?path.join(path.dirname(relative),name):null
-    if(base){for(const ext of ['.ts','.tsx','.js'])if(fs.existsSync(path.join(root,base+ext)))return load(base+ext)}
+    if(base){
+      if(base.endsWith('.json'))return JSON.parse(fs.readFileSync(path.join(root,base),'utf8'))
+      for(const ext of ['', '.ts','.tsx','.js','.mjs'])if(fs.existsSync(path.join(root,base+ext)) && fs.statSync(path.join(root,base+ext)).isFile())return load(base+ext)
+    }
     throw new Error(`Unexpected dependency ${name}`)
   }
   vm.runInNewContext(`(function(require,module,exports){${output}\n})`,{console,process:{env:{NEXT_PUBLIC_BUCKET_URL:'https://images.example.invalid'}},URL,Request,Response,Headers,AbortSignal,fetch:async(url,options)=>{textureFetches++;assert.equal(new URL(url).origin,'https://images.example.invalid');assert.equal(options.redirect,'error');return new Response(new Uint8Array([1,2,3]),{headers:{'content-type':'image/webp',etag:'"texture-test"'}})}},{filename})(requireLocal,module,module.exports)
@@ -93,6 +96,20 @@ async function main(){
   const strictSeries=selector.selectMomentSeries([curated], 'zh', featured)
   assert.deepEqual(Array.from(strictSeries[0].photos,photo=>photo.id),['portrait-999'])
   assert.equal(selector.bookingPortraitGroups(featured,'https://images.example.invalid').flatMap(group=>group.photos).length,1)
+  const presentation=load('lib/booking-photo-presentation.ts')
+  const owner={...fixturePhoto,id:300,tags:['model:Lijie','series:personal']}
+  const withdrawn={...fixturePhoto,id:301,tags:['model:Hongjia','series:swiss','display:exclude-booking']}
+  const hero={...fixturePhoto,id:302,tags:['model:Junjie','series:travel','display:booking-hero']}
+  const process={...fixturePhoto,id:303,tags:['series:florence','display:booking-process']}
+  const remainder={...fixturePhoto,id:304,tags:['model:Xiya','series:stockholm']}
+  const placementState={...empty,featuredIds:[300,301,302,303,304],keptPortraits:[owner,withdrawn,hero,process,remainder]}
+  const placement=presentation.bookingPlacement(placementState)
+  assert.deepEqual(Array.from(placement.photos,p=>p.id),[302,303,304],'Booking samples exclude the owner and withdrawn series')
+  assert.equal(placement.hero.id,302);assert.equal(placement.process.id,303)
+  assert.deepEqual(Array.from(placement.gallery,p=>p.id),[304],'Hero and process photographs must not repeat in the gallery')
+  const source=load('lib/viewer-photo-source.ts')
+  const rendition=source.viewerPhotoDimensions({id:'portrait-2886',url:'/picture/responsive/image-1782610139773-17-f53f0e0c-9932-4fd3-8d5e-aa8d4024f76a-DSC07258/original.jpg'})
+  assert.ok(rendition && rendition.width>1280,'Booking lightbox IDs must resolve their full display rendition')
   const book=load('lib/curated-portrait-book.ts')
   assert.equal(book.curatedPortraitBookPages(empty,'https://images.example.invalid').flat().length,0,'Empty approved pool must not restore the old book')
   const preferred=book.curatedPortraitBookPages(featured,'https://images.example.invalid')

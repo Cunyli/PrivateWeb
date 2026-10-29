@@ -6,7 +6,7 @@ type Rendition={width:number;height:number;key:string}
 const renditions=renditionData as Record<string,Rendition>
 type Photo={id?:string|number|null;url:string;displayUrl?:string|null}
 export function viewerPhotoDimensions(photo:Photo): Rendition|undefined {
-  const known=renditions[String(photo.id)]
+  const known=renditions[String(photo.id || "").replace(/^portrait-/,"")]
   return known?.key===photoRenditionKey(photo.url)?known:undefined
 }
 export function viewerPhotoSource(photo:Photo,bucket:string,viewport:{width:number;height:number;density?:number}) {
