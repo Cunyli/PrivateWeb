@@ -1274,7 +1274,7 @@ export function HelsinkiPhotoSession() {
       const dot=marker.getElement()?.firstElementChild as HTMLElement|undefined
       if(dot){dot.style.background=active?"#cad8da":"#355d63";dot.style.color=active?"#20231f":"#fff";dot.dataset.active=String(active)}
       const tooltip=marker.getTooltip()
-      if(tooltip)tooltip.options.permanent=active
+      if(tooltip && tooltip.options.permanent!==active)marker.unbindTooltip().bindTooltip(tooltip,{permanent:active})
       if(active)marker.openTooltip();else marker.closeTooltip()
     }
   },[activeLocationId,mapReady])
