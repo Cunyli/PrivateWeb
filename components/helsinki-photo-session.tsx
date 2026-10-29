@@ -12,10 +12,11 @@ import sessionStyles from "./photo-session.module.css"
 import introStyles from "./photo-story.module.css"
 import { sessionImageVariants, sessionViewerSource } from "@/lib/session-image-variants"
 import { usePhotoCuration } from "./photo-curation-provider"
-import { curationFeatured } from "@/lib/photo-curation"
+import { bookingPlacement, sessionPhotoSources } from "@/lib/booking-photo-presentation"
+import { curationAssetFamily, curationFeatured } from "@/lib/photo-curation"
 import { photoSource } from "@/lib/portfolio-photo-source"
-import { selectMomentSeries, bookingPortraitGroups, showcasePortraits } from "@/lib/photo-session-series"
-import type { SessionPhoto as Photo, MomentCard, MomentGroup } from "@/lib/photo-session-series"
+import { bookingPortraitGroups } from "@/lib/photo-session-series"
+import type { SessionPhoto as Photo } from "@/lib/photo-session-series"
 import { SessionSeriesGallery } from "./session-series-gallery"
 import "leaflet/dist/leaflet.css"
 import {
@@ -500,16 +501,17 @@ const photoSessionCopy = {
   },
 } as const
 
-function SessionImage({ className = "", preview = false, sizes, src, srcSet, ...props }: ImgHTMLAttributes<HTMLImageElement> & {preview?: boolean}) {
-  const curation = usePhotoCuration()
-  if (!curationFeatured(curation, { src: typeof src === "string" ? src : "" })) return null
-  const local = typeof src === "string" ? sessionImageVariants[src] : undefined
-  const remotePreview = preview && typeof src === "string" && src.includes("/w1280.webp")
-  return <img loading="lazy" decoding="async" {...props}
-    src={local?.src || (remotePreview ? src.replace("/w1280.webp","/w640.webp") : src)}
-    srcSet={srcSet || local?.srcSet || (remotePreview ? `${src.replace("/w1280.webp","/w640.webp")} 1x, ${src} 2x` : undefined)}
-    sizes={srcSet || local ? sizes || "(max-width: 767px) 92vw, 720px" : undefined}
-    draggable={false} onContextMenu={event => event.preventDefault()} className={`${className} select-none`} />
+function SessionImage({ className = "", preview = false, fullResolution=false, sizes, src, srcSet, ...props }: ImgHTMLAttributes<HTMLImageElement> & {preview?: boolean;fullResolution?: boolean}) {
+  const curation=usePhotoCuration()
+  if(!curationFeatured(curation,{src:typeof src==="string"?src:""}))return null
+  const source=typeof src==="string"?src:""
+  const local=sessionImageVariants[source]
+  const photo=curation.keptPortraits.find(p=>curationAssetFamily(p.src)===curationAssetFamily(source))
+  const responsive=photo?sessionPhotoSources({id:photo.id,src:source},process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top"):null
+  return <img loading="lazy" decoding="async" {...props} src={fullResolution?source:local?.src || responsive?.src || source}
+    srcSet={fullResolution?undefined:srcSet || local?.srcSet || responsive?.srcSet}
+    sizes={fullResolution?undefined:sizes || "(max-width: 767px) 92vw, 720px"}
+    draggable={false} onContextMenu={event=>event.preventDefault()} className={`${className} select-none`} />
 }
 
 
@@ -861,7 +863,7 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
     window.scrollTo({ top: start + progress * distance, behavior: "instant" })
   }
 
-  return <section id="story" ref={root} className={introStyles.story} aria-labelledby="photographer-intro-heading">
+  return <section id="story" ref={root} data-text-only={photos.length===0 || undefined} className={introStyles.story} aria-labelledby="photographer-intro-heading">
     <div ref={stage} className={introStyles.stage}>
       <header className={introStyles.heading}>
         <div><p className={introStyles.eyebrow}>{eyebrow}</p><h2 id="photographer-intro-heading">{title}</h2></div>
@@ -1034,8 +1036,6 @@ export function HelsinkiPhotoSession() {
   const [isEntering, setIsEntering] = useState(true)
   const [isLeaving, setIsLeaving] = useState(false)
   const [activeLocationId, setActiveLocationId] = useState(locations[0].id)
-  const [momentGroups, setMomentGroups] = useState<MomentGroup[]>(() => bookingPortraitGroups(curation,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top"))
-  const [whyMePhotos, setWhyMePhotos] = useState<MomentCard[]>([])
   const [selectedPackageIndex, setSelectedPackageIndex] = useState(0)
   const [isEmailFormOpen, setIsEmailFormOpen] = useState(false)
   const [bookingForm, setBookingForm] = useState({
@@ -1072,19 +1072,11 @@ export function HelsinkiPhotoSession() {
   const activeLocation = locations.find((location) => location.id === activeLocationId) ?? locations[0]
   const activeDisplayLocation = displayLocations.find((location) => location.id === activeLocationId) ?? displayLocations[0]
   const selectedPackage = copy.pricing.packages[selectedPackageIndex] ?? copy.pricing.packages[0]
-  const sessionSeries = useMemo(
-    () => selectMomentSeries(momentGroups, pageLocale, curation),
-    [momentGroups, pageLocale, curation],
-  )
-  const approvedPortraits = useMemo(() => showcasePortraits(curation.keptPortraits,curation.keptPortraits.length),[curation])
-  const selectedCover = approvedPortraits.find(photo=>(photo.tags || []).includes("display:hero")) || approvedPortraits[0]
-  const approvedHero = curation.featuredAssets.find(asset=>asset.id===-1&&curationFeatured(curation,asset))
-  const displayCover: Photo | null = approvedHero ? {id:String(approvedHero.id),src:approvedHero.source,alt:approvedHero.title} : selectedCover ? { id:`portrait-${selectedCover.id}`,src:photoSource(selectedCover.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280),alt:selectedCover.title || "Portrait photograph" } : null
-  const aboutVisualPhotos = useMemo(() => {
-    const own = curation.keptPortraits.filter(photo=>(photo.tags || []).some(tag=>/^model:lijie$/i.test(tag)))
-    return own.map(photo=>({id:`portrait-${photo.id}`,src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280),alt:photo.title || "Lijie Li"}))
-  },[curation])
-  const shootVisualPhotos = useMemo(() => approvedPortraits.slice(0,shootSteps.length).map(photo=>({id:`portrait-${photo.id}`,src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280),alt:photo.title || "Portrait photograph"})),[approvedPortraits])
+  const placement=useMemo(()=>bookingPlacement(curation),[curation])
+  const sessionSeries=useMemo(()=>bookingPortraitGroups(curation,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",placement.gallery),[curation,placement])
+  const displayCover:Photo|null=placement.hero?{id:`portrait-${placement.hero.id}`,src:photoSource(placement.hero.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:placement.hero.title || "Portrait photograph"}:null
+  const aboutVisualPhotos=useMemo<Photo[]>(()=>[],[])
+  const shootVisualPhotos=useMemo<Photo[]>(()=>placement.process?[{id:`portrait-${placement.process.id}`,src:photoSource(placement.process.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:placement.process.title || "Portrait photograph"}]:[],[placement])
   const allPhotos = useMemo(() => {
     const seen = new Set<string>()
     return [...(displayCover?[displayCover]:[]), ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]
@@ -1145,116 +1137,6 @@ export function HelsinkiPhotoSession() {
       setBookingMessage(pageLocale === "en" ? copy.form.errorMessage : String((error as Error).message || copy.form.errorMessage))
     }
   }
-
-  useEffect(() => {
-    let cancelled = false
-
-    const loadTaggedMoments = async () => {
-      try {
-        const response = await fetch("/api/photo-session-moments?limit=8", { cache: "no-store" })
-        const payload = await response.json().catch(() => ({}))
-        if (!response.ok) {
-          throw new Error(String(payload.error || "Failed to load photo session moments"))
-        }
-
-        const isMomentCard = (moment: unknown): moment is MomentCard => {
-          const card = moment as Partial<MomentCard> | null
-          return Boolean(
-            card &&
-              typeof card.id === "string" &&
-              typeof card.src === "string" &&
-              typeof card.alt === "string" &&
-              typeof card.title === "string" &&
-              typeof card.place === "string" &&
-              typeof card.note === "string" &&
-              Array.isArray(card.tags),
-          )
-        }
-        const groups: MomentGroup[] = (Array.isArray(payload.groups) ? payload.groups : [])
-          .map((group: unknown): MomentGroup | null => {
-            const candidate = group as Partial<MomentGroup> | null
-            const photos = (candidate && Array.isArray(candidate.photos) ? candidate.photos : []).filter(isMomentCard)
-            if (
-              !candidate ||
-              typeof candidate.id !== "string" ||
-              typeof candidate.title !== "string" ||
-              typeof candidate.place !== "string" ||
-              typeof candidate.note !== "string" ||
-              !Array.isArray(candidate.tags) ||
-              photos.length === 0
-            ) {
-              return null
-            }
-
-            return {
-              id: candidate.id,
-              title: candidate.title,
-              place: candidate.place,
-              note: candidate.note,
-              curated: Boolean(candidate.curated),
-              replaces: Array.isArray(candidate.replaces) ? candidate.replaces.filter((value: unknown): value is string => typeof value === "string") : [],
-              featured: Boolean(candidate.featured),
-              photoCount: Number(candidate.photoCount || photos.length),
-              tags: candidate.tags.filter((tag: unknown): tag is string => typeof tag === "string"),
-              photos,
-            }
-          })
-          .filter((group: MomentGroup | null): group is MomentGroup => Boolean(group))
-
-        const aboutCard = isMomentCard(payload.aboutPhoto) ? payload.aboutPhoto : null
-        const cards: MomentCard[] = (Array.isArray(payload.moments) ? payload.moments : []).filter(isMomentCard)
-        const nextWhyMePhotos: MomentCard[] = (Array.isArray(payload.whyMePhotos) ? payload.whyMePhotos : []).filter(isMomentCard)
-
-        if (!cancelled && nextWhyMePhotos.length > 0) {
-          setWhyMePhotos(nextWhyMePhotos)
-        }
-
-        if (!cancelled && groups.length > 0) {
-          if (aboutCard && !groups.some((group) => group.id === "lijie")) {
-            setMomentGroups([
-              ...groups,
-              {
-                id: "lijie",
-                title: "Lijie",
-                place: aboutCard.place,
-                note: "About 区域使用的本人照片。",
-                featured: aboutCard.featured,
-                photoCount: 1,
-                tags: aboutCard.tags,
-                photos: [aboutCard],
-              },
-            ])
-            return
-          }
-
-          setMomentGroups(groups)
-          return
-        }
-
-        if (!cancelled && cards.length > 0) {
-          setMomentGroups([
-            {
-              id: "loaded-moments",
-              title: "People",
-              place: "Travel routes",
-              note: "按图片标签加载的人像组合。",
-              featured: cards.some((card) => card.featured),
-              photoCount: cards.length,
-              tags: Array.from(new Set(cards.flatMap((card) => card.tags))).slice(0, 4),
-              photos: cards,
-            },
-          ])
-        }
-      } catch (error) {
-        console.warn("Failed to load tagged photo session moments:", error)
-      }
-    }
-
-    loadTaggedMoments()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   useEffect(() => {
     const scroller = testimonialScrollerRef.current
@@ -1502,6 +1384,7 @@ export function HelsinkiPhotoSession() {
       <section id="session-hero" className="relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#050505] text-white">
         {displayCover&&<SessionImage
           src={displayCover.src}
+          fullResolution
           alt={displayCover.alt}
           loading="eager"
           fetchPriority="high"

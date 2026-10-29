@@ -71,3 +71,12 @@
 }
 
 .story[data-story-active="true"] .track { will-change: transform; }
+
+/* Keep the scrolling introduction, without recycling client/owner photographs. */
+.story[data-text-only="true"][data-story-enhanced="true"] { height:170svh; }
+.story[data-text-only="true"] .stage { min-height:440px; }
+.story[data-text-only="true"] .spread,.story[data-text-only="true"] .spread:nth-child(even) { grid-template-columns:minmax(0,1fr); }
+.story[data-text-only="true"] .spread figcaption,.story[data-text-only="true"] .spread:nth-child(even) figcaption { grid-column:1; max-width:1000px; padding:0; }
+.story[data-text-only="true"] .spread figcaption p { font-size:clamp(28px,4.2vw,62px); line-height:1.28; }
+.story[data-text-only="true"] .folio { display:none; }
+@media(max-height:520px) { .story[data-text-only="true"] .stage { min-height:0; } .story[data-text-only="true"] .spread figcaption p { font-size:30px; } }

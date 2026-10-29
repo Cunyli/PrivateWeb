@@ -1,5 +1,5 @@
 import { curationFeatured, curationAssetKey } from "./photo-curation"
-import { photoSource } from "./portfolio-photo-source"
+import { bookingPortraits, sessionPhotoSources } from "./booking-photo-presentation"
 import { photoSeries, preferSeriesPlace } from "./photo-series"
 import type { CurationVisibility, CurationPortrait } from "./photo-curation"
 
@@ -36,19 +36,24 @@ export type MomentGroup = {
   replaces?: string[]
 }
 
-export function bookingPortraitGroups(curation: CurationVisibility, bucket: string): MomentGroup[] {
+export function bookingPortraitGroups(curation: CurationVisibility, bucket: string, photos=bookingPortraits(curation)): MomentGroup[] {
   const groups = new Map<string,MomentGroup>()
-  for (const photo of curation.keptPortraits) {
+  for (const photo of photos) {
     if (!curationFeatured(curation,photo)) continue
     const tags = photo.tags || []
     const series = photoSeries(photo.setId || 0,"People","",tags)
-    const groupId = series.portrait ? series.id : "portrait-pool"
-    const group = groups.get(groupId) || { id:groupId,title:series.portrait?series.title:"Portraits",place:series.subtitle,note:"",tags:[],photos:[],curated:true }
+    const placeTag=tags.find(t=>/^location:/i.test(t))?.slice(9) || ""
+    const placeLabels:Record<string,string>={switzerland:"Switzerland",helsinki:"Helsinki",florence:"Florence",aalto:"Aalto"}
+    const place=placeLabels[placeTag.toLowerCase()] || placeTag
+    const shoot=tags.find(t=>/^series:/i.test(t)) || `set:${photo.setId}`
+    const groupId = series.portrait ? series.id : `session:${shoot}:${place.toLowerCase()}`
+    const group = groups.get(groupId) || { id:groupId,title:series.portrait?series.title:place || "Portraits",place:series.subtitle,note:"",tags:[],photos:[],curated:true }
     group.place = series.portrait ? preferSeriesPlace(group.place,series.subtitle) : ""
-    group.photos.push({ id:`portrait-${photo.id}`,src:photoSource(photo.src,bucket,1280),previewSrc:photoSource(photo.src,bucket,640),
+    group.photos.push({ id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,bucket).href,previewSrc:sessionPhotoSources({id:photo.id,src:photo.src},bucket).src,previewSrcSet:sessionPhotoSources({id:photo.id,src:photo.src},bucket).srcSet,
       alt:photo.title || `${group.title} portrait`,title:group.title,place:group.place,note:"",tags,
       width:photo.width || undefined,height:photo.height || undefined,
       sourceName:curationAssetKey(photo.src),featured:tags.includes("display:cover") })
+    group.tags=[...new Set([...group.tags,...tags])]
     group.photoCount = group.photos.length
     groups.set(groupId,group)
   }
