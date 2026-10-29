@@ -379,12 +379,16 @@ const Ctx = createContext<I18nCtx | null>(null)
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("zh")
   useEffect(() => {
-    const saved = typeof window !== "undefined" ? (localStorage.getItem("locale") as Locale | null) : null
-    if (saved === "en" || saved === "zh") setLocaleState(saved)
+    try {
+      const saved=localStorage.getItem("locale")
+      if(saved==="en" || saved==="zh")setLocaleState(saved)
+    } catch(error) {
+      if(!(error instanceof DOMException && error.name==="SecurityError"))throw error
+    }
   }, [])
   const setLocale = (l: Locale) => {
     setLocaleState(l)
-    try { localStorage.setItem("locale", l) } catch {}
+    try { localStorage.setItem("locale", l) } catch(error) { if(!(error instanceof DOMException && ["SecurityError","QuotaExceededError"].includes(error.name)))throw error }
   }
   useEffect(() => { document.documentElement.lang = locale === "zh" ? "zh-CN" : "en" }, [locale])
   const t = useMemo(() => {

@@ -23,10 +23,10 @@ export function PortfolioFooter() {
     <div className={styles.footerLinks}>
       <a href="https://www.instagram.com/cunyli_lijie/" target="_blank" rel="noreferrer">Instagram<ArrowUpRight size={12} aria-hidden="true" /></a>
       <a href="https://www.xiaohongshu.com/user/profile/608e62a5000000000100bc40" target="_blank" rel="noreferrer">{locale === "zh" ? "小红书" : "Xiaohongshu"}<ArrowUpRight size={12} aria-hidden="true" /></a>
-      <button type="button" onClick={copy} aria-label={locale === "zh" ? `复制微信号 ${wechat}` : `Copy WeChat ID ${wechat}`}>{copyState === "copied" ? (locale === "zh" ? "已复制" : "Copied") : "WeChat"}{copyState === "copied" ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}</button>
+      <button type="button" onClick={copy} aria-label={locale === "zh" ? `复制微信号 ${wechat}` : `Copy WeChat ID ${wechat}`}>{copyState === "copied" ? (locale === "zh" ? "已复制" : "Copied") : (locale === "zh" ? "微信" : "WeChat")}{copyState === "copied" ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}</button>
     </div>
     <div className={styles.footerAside}>
-      <span className={styles.copyStatus} role="status">{copyState === "failed" ? `WeChat · ${wechat}` : copyState === "copied" ? (locale === "zh" ? "微信号已复制" : "WeChat ID copied") : ""}</span>
+      <span className={styles.copyStatus} role="status">{copyState === "failed" ? `${locale === "zh" ? "微信" : "WeChat"} · ${wechat}` : copyState === "copied" ? (locale === "zh" ? "微信号已复制" : "WeChat ID copied") : ""}</span>
     </div>
   </footer>
 }

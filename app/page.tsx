@@ -10,7 +10,7 @@ export default async function Home() {
   const initialData = await fetchPortfolioInitialData()
   return <main className={styles.page}>
     <EntryGate />
-    <section id="works" className={styles.works} aria-label="Portfolio">
+    <section id="works" className={styles.works} aria-labelledby="portfolio-gallery-title">
       <Suspense fallback={<div className={styles.worksLoading} />}><PortfolioGrid initialData={initialData || undefined} embedded /></Suspense>
     </section>
   </main>

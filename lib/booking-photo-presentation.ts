@@ -43,3 +43,11 @@ export function sessionPhotoSources(photo:{id?:string|number;src:string},bucket:
   variants.set(dimensions.width,large)
   return {src,srcSet:[...variants].sort(([a],[b])=>a-b).map(([width,url])=>`${url} ${width}w`).join(", "),width:dimensions.width,height:dimensions.height}
 }
+
+export function portraitTitle(photo:CurationPortrait,locale:"zh"|"en",fallback:string){
+  const translated=photo.titles?.[locale]?.trim()
+  if(translated)return translated
+  const title=photo.title?.trim() || ""
+  const chinese=/[\u3400-\u9fff]/.test(title)
+  return title && (locale==="zh"?chinese:!chinese)?title:fallback
+}

@@ -1,5 +1,6 @@
 "use client"
 
+import { useDocumentTitle } from "@/lib/use-document-title"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowUpRight, Check, ChevronDown, Copy, Linkedin, Mail, MessageCircle } from "lucide-react"
@@ -466,6 +467,7 @@ const photographyPreview = [
 
 export function ResumePage() {
   const { locale } = useI18n()
+  useDocumentTitle(`${locale==="zh"?"简历":"Resume"} · Lijie Li`)
   const lang: Locale = locale === "en" ? "en" : "zh"
   const zh = lang === "zh"
   const page = useRef<HTMLDivElement>(null)
@@ -518,14 +520,14 @@ export function ResumePage() {
     </header>
 
     <section id="top" className={styles.hero} aria-labelledby="resume-heading">
-      <p className={`${styles.eyebrow} ${styles.arrive}`} style={{ animationDelay: "50ms" }}>DATA SCIENCE / APPLIED RESEARCH</p>
+      <p className={`${styles.eyebrow} ${styles.arrive}`} style={{ animationDelay: "50ms" }}>{zh ? "数据科学 / 应用研究" : "DATA SCIENCE / APPLIED RESEARCH"}</p>
       <h1 id="resume-heading" className={`${styles.heroTitle} ${styles.arrive}`} style={{ animationDelay: "120ms" }}>
         {zh ? <>让模型，<br /><span>走进真实问题。</span></> : <>Models for<br /><span>real-world questions.</span></>}
       </h1>
       <p className={`${styles.introduction} ${styles.arrive}`} style={{ animationDelay: "200ms" }}>{heroCopy.description[lang]}</p>
       <div className={`${styles.heroActions} ${styles.arrive}`} style={{ animationDelay: "280ms" }}>
         <a href="#contact" className={styles.primaryButton}>{heroCopy.primaryCta[lang]}<ArrowUpRight size={16} aria-hidden="true" /></a>
-        <Link href="/portfolio" className={styles.secondaryButton}>{zh ? "摄影 Portfolio" : "Photography portfolio"}<ArrowUpRight size={16} aria-hidden="true" /></Link>
+        <Link href="/portfolio" className={styles.secondaryButton}>{zh ? "摄影作品集" : "Photography portfolio"}<ArrowUpRight size={16} aria-hidden="true" /></Link>
       </div>
       <div className={`${styles.schools} ${styles.arrive}`} style={{ animationDelay: "360ms" }}>{heroCopy.schools[lang].map(school => <span key={school}>{school}</span>)}</div>
       <nav className={styles.sectionNav} aria-label={zh ? "简历章节" : "Resume sections"}>
@@ -539,7 +541,7 @@ export function ResumePage() {
       <div className={styles.photoWindow} data-photo-window>
         <div className={styles.photoTrack}>
           {[0, 1].map(copy => <div className={styles.photoGroup} key={copy} aria-hidden={copy === 1 ? true : undefined}>
-            {photographyPreview.map(photo => <Link href="/portfolio" className={styles.photo} key={photo.src} tabIndex={copy === 1 ? -1 : undefined} aria-label={copy === 0 ? `${zh ? "进入 Portfolio：" : "View portfolio: "}${photo.alt[lang]}` : undefined}>
+            {photographyPreview.map(photo => <Link href="/portfolio" className={styles.photo} key={photo.src} tabIndex={copy === 1 ? -1 : undefined} aria-label={copy === 0 ? `${zh ? "查看作品集：" : "View portfolio: "}${photo.alt[lang]}` : undefined}>
               <img src={photo.src} width={1280} height={853} alt={copy === 0 ? photo.alt[lang] : ""} loading="lazy" decoding="async" draggable={false} />
               <span className={styles.photoArrow} aria-hidden="true"><ArrowUpRight size={20} strokeWidth={1.4} /></span>
             </Link>)}
@@ -547,8 +549,8 @@ export function ResumePage() {
         </div>
       </div>
       <div className={`${styles.photoCaption} ${styles.shell}`}>
-        <span>PHOTOGRAPHY</span>
-        <Link href="/portfolio" className={styles.textLink}>{zh ? "打开 Portfolio" : "Explore the portfolio"}<ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <span>{zh ? "摄影" : "PHOTOGRAPHY"}</span>
+        <Link href="/portfolio" className={styles.textLink}>{zh ? "打开作品集" : "Explore the portfolio"}<ArrowUpRight size={15} aria-hidden="true" /></Link>
       </div>
     </section>
 
@@ -605,7 +607,7 @@ export function ResumePage() {
 
       <footer className={styles.footer}>
         <a href="#top" className={styles.brand}>Lijie Li<span aria-hidden="true">.</span></a>
-        <div><Link href="/portfolio">Portfolio<ArrowUpRight size={14} aria-hidden="true" /></Link><Link href="/helsinki-photo-session">{zh ? "约拍" : "Photo sessions"}<ArrowUpRight size={14} aria-hidden="true" /></Link></div>
+        <div><Link href="/portfolio">{zh ? "作品集" : "Portfolio"}<ArrowUpRight size={14} aria-hidden="true" /></Link><Link href="/helsinki-photo-session">{zh ? "约拍" : "Photo sessions"}<ArrowUpRight size={14} aria-hidden="true" /></Link></div>
       </footer>
     </div>
   </div>

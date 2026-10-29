@@ -1,3 +1,4 @@
+import { PortfolioStatus } from "@/components/portfolio-status"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import PortfolioDetail from "@/components/portfolio-detail"
@@ -281,7 +282,7 @@ export default async function WorkPage({
 
   return <>
     <ViewerPhotoPreload image={images[initialIndex]}/>
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<PortfolioStatus mode="loading" />}>
       <PortfolioDetail
         id={setId}
         initialPictureId={resolvedSearchParams?.index?null:curation.covers[Number(setId)]?.id}

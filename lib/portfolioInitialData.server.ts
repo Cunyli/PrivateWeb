@@ -39,17 +39,20 @@ export const fetchPortfolioInitialData = async (): Promise<InitialPortfolioPaylo
         .from('picture_set_translations')
         .select('picture_set_id, title, subtitle, description')
         .eq('locale', 'en')
-        .in('picture_set_id', ids),
+        .in('picture_set_id', ids)
+        .order('picture_set_id'),
       supabasePublic
         .from('picture_set_translations')
         .select('picture_set_id, title, subtitle, description')
         .eq('locale', 'zh')
-        .in('picture_set_id', ids),
+        .in('picture_set_id', ids)
+        .order('picture_set_id'),
       supabasePublic
         .from('picture_set_locations')
         .select('picture_set_id, is_primary, location:locations(name, name_en, name_zh, latitude, longitude)')
         .in('picture_set_id', ids)
-        .eq('is_primary', true),
+        .eq('is_primary', true)
+        .order('picture_set_id'),
       supabasePublic
         .from('picture_set_section_assignments')
         .select('picture_set_id, section_id')

@@ -1,0 +1,414 @@
+{
+  "date": "2026-10-30",
+  "scope": "Only fill missing translation fields; preserve existing text, photo records, marks, ordering, coordinates and publication flags.",
+  "notes": [
+    "Collection 111 subtitle uses its associated location Seurasaari; the existing Chinese subtitle stays unchanged."
+  ],
+  "updates": [
+    {
+      "table": "picture_set_translations",
+      "match": {
+        "picture_set_id": 82,
+        "locale": "zh"
+      },
+      "before": {
+        "description": null
+      },
+      "after": {
+        "description": "两个人沿着草坡走向古老石墙环绕、洒满阳光的庭院，画面安静而带有纪实感。斑驳的粉色立面、粗粝的石砌墙面，与近午的明亮光线、晴朗的蓝天、温暖的草绿色和柔和阴影相映。克制的色彩留下了结伴闲游时温柔、略带怀旧的氛围。"
+      }
+    },
+    {
+      "table": "picture_set_translations",
+      "match": {
+        "picture_set_id": 101,
+        "locale": "en"
+      },
+      "before": {
+        "description": null
+      },
+      "after": {
+        "description": "I like Paris, and I don't. Poor mobile reception and a frustrating transport app; the cinema museum, the 2025 VALORANT finals, and a La La Land jazz bar."
+      }
+    },
+    {
+      "table": "picture_set_translations",
+      "match": {
+        "picture_set_id": 110,
+        "locale": "zh"
+      },
+      "before": {
+        "subtitle": null
+      },
+      "after": {
+        "subtitle": "瑞士"
+      }
+    },
+    {
+      "table": "picture_set_translations",
+      "match": {
+        "picture_set_id": 111,
+        "locale": "en"
+      },
+      "before": {
+        "subtitle": null
+      },
+      "after": {
+        "subtitle": "Seurasaari"
+      }
+    },
+    {
+      "table": "picture_translations",
+      "match": {
+        "picture_id": 2281,
+        "locale": "zh"
+      },
+      "before": {
+        "title": "",
+        "subtitle": null,
+        "description": null
+      },
+      "after": {
+        "title": "举花的导游",
+        "subtitle": "阳光下的宫殿庭院里，一位游客把纸花举高，像一盏引路的灯。",
+        "description": "去美泉宫的路上，我看见一位年长的导游举着一朵可爱的小花，身后跟着一大群旅行团游客。这样的反差有趣又亲切。"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 34
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Annecy",
+        "name_zh": "阿讷西"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 35
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Val d’Isère",
+        "name_zh": "伊泽尔谷"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 36
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Lausanne",
+        "name_zh": "洛桑"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 37
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Stockholm",
+        "name_zh": "斯德哥尔摩"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 44
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 45
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 47
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 48
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 49
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Aalto University",
+        "name_zh": "阿尔托大学"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 50
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Aalto University",
+        "name_zh": "阿尔托大学"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 51
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Aalto University",
+        "name_zh": "阿尔托大学"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 52
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Aalto University",
+        "name_zh": "阿尔托大学"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 53
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Aalto University",
+        "name_zh": "阿尔托大学"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 54
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 55
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 56
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 57
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 58
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 59
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 60
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 61
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 62
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Helsinki",
+        "name_zh": "赫尔辛基"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 68
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Switzerland",
+        "name_zh": "瑞士"
+      }
+    },
+    {
+      "table": "locations",
+      "match": {
+        "id": 69
+      },
+      "before": {
+        "name_en": null,
+        "name_zh": null
+      },
+      "after": {
+        "name_en": "Seurasaari",
+        "name_zh": "伴侣岛"
+      }
+    }
+  ]
+}

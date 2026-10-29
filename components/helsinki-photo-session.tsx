@@ -1,5 +1,6 @@
 "use client"
 
+import { useDocumentTitle } from "@/lib/use-document-title"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { CSSProperties, FormEvent, ImgHTMLAttributes, MouseEvent } from "react"
 import { useRouter } from "next/navigation"
@@ -12,7 +13,7 @@ import sessionStyles from "./photo-session.module.css"
 import introStyles from "./photo-story.module.css"
 import { sessionImageVariants, sessionViewerSource } from "@/lib/session-image-variants"
 import { usePhotoCuration } from "./photo-curation-provider"
-import { bookingPlacement, sessionPhotoSources } from "@/lib/booking-photo-presentation"
+import { bookingPlacement, sessionPhotoSources, portraitTitle } from "@/lib/booking-photo-presentation"
 import { curationAssetFamily, curationFeatured } from "@/lib/photo-curation"
 import { photoSource } from "@/lib/portfolio-photo-source"
 import { bookingPortraitGroups } from "@/lib/photo-session-series"
@@ -87,17 +88,17 @@ const photoSessionCopy = {
       booking: "聊聊约拍",
     },
     about: {
-      eyebrow: "About me",
+      eyebrow: "关于我",
       title: "我是你的“旅游摄影搭子”",
       body: "我不是那种只在旁边按快门的人。拍摄时我会聊天、看你的节奏，也会在你紧张的时候把场面松下来。照片要好看，但那天本身也要好玩。",
       highlightLines: [
-        "Base赫尔辛基，但拍摄不只限芬兰，全欧可飞",
+        "常驻赫尔辛基，但拍摄不只限芬兰，全欧可飞",
         "我是一个有趣的人，我的责任是给你带来快乐和美丽的照片",
         "情绪稳定，懂得引导，会给情绪价值",
       ],
     },
     process: {
-      eyebrow: "Why ME",
+      eyebrow: "为什么是我",
       title: "为什么是我。",
       steps: [
         {
@@ -135,7 +136,7 @@ const photoSessionCopy = {
       ],
     },
     options: {
-      eyebrow: "Your session",
+      eyebrow: "你的拍摄",
       titleTop: "想拍什么，",
       titleBottom: "由你决定。",
       body: "不用先做好一整套计划。告诉我大概的想法，路线、时间和拍摄方式，我们一起慢慢定。",
@@ -144,24 +145,24 @@ const photoSessionCopy = {
       languagesTitle: "可以说什么",
       briefTitle: "先告诉我这些",
       serviceTypes: ["旅拍 / 游客照", "情侣拍照", "家庭拍照", "宠物照片", "毕业写真", "校园写真"],
-      languageItems: ["中文", "English", "粤语"],
+      languageItems: ["中文", "英语", "粤语"],
       briefItems: ["人数", "日期", "大概地点", "想拍的样式"],
     },
     locations: {
-      eyebrow: "Routes",
+      eyebrow: "拍摄路线",
       title: "默认赫尔辛基路线",
       body: "只是默认参考，具体路线可以按天气、时间和你想拍的感觉修改。",
       points: [
-        { place: "白教堂 / Senate Square", bestTime: "下午侧光" },
-        { place: "码头 / Market Square", bestTime: "16:00 后" },
-        { place: "咖啡店 / Jugend hall", bestTime: "阴天也稳" },
-        { place: "喷泉 / Esplanadi edge", bestTime: "下午或傍晚" },
-        { place: "Otaniemi / Aalto University", bestTime: "下午或课后" },
-        { place: "芬兰堡 / sea fortress", bestTime: "日落前" },
+        { name: "赫尔辛基主教座堂", place: "白教堂 / 参议院广场", bestTime: "下午侧光" },
+        { name: "赫尔辛基集市广场", place: "码头 / 集市广场", bestTime: "16:00 后" },
+        { name: "Robert’s Coffee Jugend", place: "咖啡店 / 尤根厅", bestTime: "阴天也稳" },
+        { name: "阿曼达喷泉", place: "喷泉 / 滨海大道公园", bestTime: "下午或傍晚" },
+        { name: "阿尔托大学", place: "奥塔涅米 / 阿尔托大学", bestTime: "下午或课后" },
+        { name: "芬兰堡", place: "芬兰堡 / 海上要塞", bestTime: "日落前" },
       ],
     },
     testimonials: {
-      eyebrow: "Shooting experience",
+      eyebrow: "拍摄体验",
       title: "拍摄体验反馈",
       items: [
         {
@@ -197,7 +198,7 @@ const photoSessionCopy = {
       ],
     },
     pricing: {
-      eyebrow: "Pricing",
+      eyebrow: "价格",
       title: "约拍价格",
       note: "具体情况会按实际拍摄安排、人数和交付需求略微调整，确认前会先说清楚。",
       packages: [
@@ -208,7 +209,7 @@ const photoSessionCopy = {
       ],
     },
     delivery: {
-      eyebrow: "Delivery / rules",
+      eyebrow: "交付与规则",
       title: "交付和边界",
       includedTitle: "交付包含",
       boundaryTitle: "费用与边界",
@@ -222,7 +223,7 @@ const photoSessionCopy = {
       ],
     },
     contact: {
-      eyebrow: "Booking",
+      eyebrow: "预约",
       title: "预约流程",
       processItems: ["私信沟通并选定套餐", "约定时间和地点，拍摄当天提前会合", "拍完后五天以内返回照片；加钱可加急"],
       xhsTitle: "小红书私信",
@@ -233,7 +234,7 @@ const photoSessionCopy = {
       emailAction: "填写信息",
     },
     form: {
-      eyebrow: "Email booking",
+      eyebrow: "邮件预约",
       title: "填写预约信息",
       packagePrefix: "当前套餐",
       close: "关闭",
@@ -261,7 +262,7 @@ const photoSessionCopy = {
       errorMessage: "发送失败，请稍后再试。",
     },
     faq: {
-      eyebrow: "FAQ",
+      eyebrow: "常见问题",
       title: "见面之前。",
       items: [
         { question: "可以拍视频吗？", answer: "目前只接照片拍摄，不接正式视频拍摄。我的重点会放在静态照片里的人物状态、地点感和旅行氛围。" },
@@ -274,7 +275,7 @@ const photoSessionCopy = {
         { question: "怎么付款和取消？", answer: "确认档期需要支付总价 50% 订金。拍摄前 24 小时外取消可退订金，24 小时内取消订金不退。支持微信、支付宝、Revolut、MobilePay。" },
         { question: "如果我迟到了怎么办？", answer: "我会在约定地点等你，但拍摄时间会从我们约定的开始时间计时，不会从你实际到达后重新开始。请尽量准时到达，这样 2 小时才会完整用在拍摄上。" },
         { question: "如果精修风格不满意呢？", answer: "可以先沟通二次后期。如果精心二次后期之后你仍然不满意，可以要求退款。" },
-        { question: "可以去赫尔辛基以外吗？", answer: "可以。Base赫尔辛基，但拍摄不只限芬兰，全欧可飞。远距离路线、欧洲其他城市或亚洲旅拍，需要你承担对应路费、住宿、门票和必要转场费用。" },
+        { question: "可以去赫尔辛基以外吗？", answer: "可以。常驻赫尔辛基，但拍摄不只限芬兰，全欧可飞。远距离路线、欧洲其他城市或亚洲旅拍，需要你承担对应路费、住宿、门票和必要转场费用。" },
         { question: "交付包含什么？", answer: "基础包含筛选后 JPG 底片、9 张精修，以及 9 张精修图对应 RAW 文件。额外精修 EUR 2 / 张，续时 EUR 40 / 小时。" },
         { question: "衣服需要提前准备吗？", answer: "建议提前看颜色和层次。赫尔辛基风大，外套、围巾或能随手搭的单品会更好拍；如果你不确定，也可以把衣服发给我一起看。" },
         { question: "照片会被公开发布吗？", answer: "不会默认公开。未经你同意，我不会把你的照片发布到网站、小红书或其他公开平台。" },
@@ -365,12 +366,12 @@ const photoSessionCopy = {
       title: "Default Helsinki Route",
       body: "This is only a default reference. The route can change with weather, time, and the mood you want in the photos.",
       points: [
-        { place: "Helsinki Cathedral / Senate Square", bestTime: "Afternoon side light" },
-        { place: "Market Square / Harbor", bestTime: "After 16:00" },
-        { place: "Robert's Coffee Jugend / Indoor backup", bestTime: "Reliable on cloudy days" },
-        { place: "Havis Amanda / Esplanadi edge", bestTime: "Afternoon or evening" },
-        { place: "Otaniemi / Aalto University", bestTime: "Afternoon or after class" },
-        { place: "Suomenlinna / Sea fortress", bestTime: "Before sunset" },
+        { name: "Helsinki Cathedral", place: "Helsinki Cathedral / Senate Square", bestTime: "Afternoon side light" },
+        { name: "Market Square", place: "Market Square / Harbor", bestTime: "After 16:00" },
+        { name: "Robert’s Coffee Jugend", place: "Robert's Coffee Jugend / Indoor backup", bestTime: "Reliable on cloudy days" },
+        { name: "Havis Amanda", place: "Havis Amanda / Esplanadi edge", bestTime: "Afternoon or evening" },
+        { name: "Aalto University", place: "Otaniemi / Aalto University", bestTime: "Afternoon or after class" },
+        { name: "Suomenlinna", place: "Suomenlinna / Sea fortress", bestTime: "Before sunset" },
       ],
     },
     testimonials: {
@@ -991,6 +992,7 @@ export function HelsinkiPhotoSession() {
   const { locale, setLocale } = useI18n()
   const pageLocale: Locale = locale === "en" ? "en" : "zh"
   const copy = photoSessionCopy[pageLocale]
+  useDocumentTitle(`${pageLocale==="zh"?"人像约拍":"Photo sessions"} · Lijie Li`)
   const [isEntering, setIsEntering] = useState(true)
   const [isLeaving, setIsLeaving] = useState(false)
   const [activeLocationId, setActiveLocationId] = useState(locations[0].id)
@@ -1005,7 +1007,8 @@ export function HelsinkiPhotoSession() {
     note: "",
   })
   const [bookingStatus, setBookingStatus] = useState<"idle" | "sending" | "sent" | "error">("idle")
-  const [bookingMessage, setBookingMessage] = useState("")
+  const [bookingMessageKey,setBookingMessageKey]=useState<"sentMessage"|"loggedMessage"|"errorMessage"|null>(null)
+  const bookingMessage=bookingMessageKey?copy.form[bookingMessageKey]:""
   const [mapReady, setMapReady] = useState(false)
   const [mapNear, setMapNear] = useState(false)
   const [lightbox, setLightbox] = useState(false)
@@ -1047,6 +1050,7 @@ export function HelsinkiPhotoSession() {
     () =>
       locations.map((location, index) => ({
         ...location,
+        name: copy.locations.points[index]?.name || location.name,
         place: copy.locations.points[index]?.place || location.place,
         bestTime: copy.locations.points[index]?.bestTime || location.bestTime,
       })),
@@ -1056,18 +1060,18 @@ export function HelsinkiPhotoSession() {
   const activeDisplayLocation = displayLocations.find((location) => location.id === activeLocationId) ?? displayLocations[0]
   const selectedPackage = copy.pricing.packages[selectedPackageIndex] ?? copy.pricing.packages[0]
   const placement=useMemo(()=>bookingPlacement(curation),[curation])
-  const sessionSeries=useMemo(()=>bookingPortraitGroups(curation,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",placement.gallery),[curation,placement])
-  const displayCover:Photo|null=placement.hero?{id:`portrait-${placement.hero.id}`,src:photoSource(placement.hero.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:placement.hero.title || "Portrait photograph"}:null
+  const sessionSeries=useMemo(()=>bookingPortraitGroups(curation,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",placement.gallery,pageLocale),[curation,placement,pageLocale])
+  const displayCover:Photo|null=placement.hero?{id:`portrait-${placement.hero.id}`,src:photoSource(placement.hero.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:portraitTitle(placement.hero,pageLocale,pageLocale==="zh"?"人像作品":"Portrait photograph")}:null
   const aboutVisualPhotos=useMemo<Photo[]>(()=>placement.intro.map(photo=>{
     const display=sessionPhotoSources(photo,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top")
     return {id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top").href,
-      alt:photo.title || "Photographer portrait",width:display.width || photo.width || undefined,height:display.height || photo.height || undefined}
-  }),[placement])
+      alt:portraitTitle(photo,pageLocale,pageLocale==="zh"?"摄影师的照片":"Photographer portrait"),width:display.width || photo.width || undefined,height:display.height || photo.height || undefined}
+  }),[placement,pageLocale])
   const shootVisualPhotos=useMemo<Photo[]>(()=>placement.processPhotos.map(photo=>{
     const display=sessionPhotoSources(photo,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top")
-    return {id:`portrait-${photo.id}`,src:photo.id<0?photo.src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:photo.title || "Photograph",
+    return {id:`portrait-${photo.id}`,src:photo.id<0?photo.src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:portraitTitle(photo,pageLocale,pageLocale==="zh"?"摄影作品":"Photograph"),
       width:display.width || photo.width || undefined,height:display.height || photo.height || undefined}
-  }),[placement])
+  }),[placement,pageLocale])
   const allPhotos = useMemo(() => {
     const seen = new Set<string>()
     return [...(displayCover?[displayCover]:[]), ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]
@@ -1094,7 +1098,7 @@ export function HelsinkiPhotoSession() {
     event.preventDefault()
     if (bookingStatus === "sending") return
     setBookingStatus("sending")
-    setBookingMessage("")
+    setBookingMessageKey(null)
 
     try {
       const response = await fetch("/api/photo-session-booking", {
@@ -1115,17 +1119,11 @@ export function HelsinkiPhotoSession() {
         throw new Error(String(payload.error || "Booking request failed"))
       }
       setBookingStatus("sent")
-      setBookingMessage(
-        pageLocale === "en"
-          ? payload.emailSent
-            ? copy.form.sentMessage
-            : copy.form.loggedMessage
-          : String(payload.message || copy.form.sentMessage),
-      )
+      setBookingMessageKey(payload.emailSent?"sentMessage":"loggedMessage")
       setIsEmailFormOpen(false)
     } catch (error) {
       setBookingStatus("error")
-      setBookingMessage(pageLocale === "en" ? copy.form.errorMessage : String((error as Error).message || copy.form.errorMessage))
+      setBookingMessageKey("errorMessage")
     }
   }
 
@@ -1259,11 +1257,13 @@ export function HelsinkiPhotoSession() {
       const active=id===activeLocationId
       const dot=marker.getElement()?.firstElementChild as HTMLElement|undefined
       if(dot){dot.style.background=active?"#cad8da":"#355d63";dot.style.color=active?"#20231f":"#fff";dot.dataset.active=String(active)}
+      const display=displayLocations.find(location=>location.id===id)
+      if(display)marker.setTooltipContent(`${locations.findIndex(location=>location.id===id)+1}. ${display.name}`)
       const tooltip=marker.getTooltip()
       if(tooltip && tooltip.options.permanent!==active)marker.unbindTooltip().bindTooltip(tooltip,{permanent:active})
       if(active)marker.openTooltip();else marker.closeTooltip()
     }
-  },[activeLocationId,mapReady])
+  },[activeLocationId,mapReady,displayLocations])
 
   useEffect(()=>{
     const map=mapRef.current
@@ -1412,7 +1412,7 @@ export function HelsinkiPhotoSession() {
                         activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#eef1f2] text-[#4e493f]"
                       }`}
                       onClick={() => focusMapLocation(location.id)}
-                      aria-label={`Focus ${location.name}`}
+                      aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}
                     >
                       {index + 1}
                     </button>

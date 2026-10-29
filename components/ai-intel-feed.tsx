@@ -1,7 +1,11 @@
 "use client"
 
+import { useDocumentTitle } from "@/lib/use-document-title"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n"
+import { feedInterfaceText } from "@/lib/feed-interface-copy"
+import { LangSwitcher } from "./lang-switcher"
 import { BriefcaseBusiness, Check, ChevronDown, ChevronUp, Copy, ExternalLink, EyeOff, MessageSquareText, Plus, RefreshCw, RotateCcw, Send, Star, Trash2 } from "lucide-react"
 import { adminFetch } from "@/utils/admin-auth-client"
 
@@ -367,6 +371,9 @@ type AiIntelFeedProps = {
 }
 
 export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
+  const {locale}=useI18n()
+  useDocumentTitle(`${publicMode?(locale==="zh"?"公开信息流":"Public feed"):(locale==="zh"?"信息流":"Feed")} · Lijie Li`)
+  const ui=(text:string)=>feedInterfaceText(text,locale)
   const [feed, setFeed] = useState<FeedPayload | null>(null)
   const [error, setError] = useState("")
   const [authNeeded, setAuthNeeded] = useState(false)
@@ -725,15 +732,15 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
         >
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <h2 className="m-0 text-xl font-semibold leading-tight tracking-normal text-[#182120]">导入 LinkedIn</h2>
-              <div className="mt-1 text-sm text-[#62706e]">写入私有信息流，不进入公开预览。</div>
+              <h2 className="m-0 text-xl font-semibold leading-tight tracking-normal text-[#182120]">{ui("导入 LinkedIn")}</h2>
+              <div className="mt-1 text-sm text-[#62706e]">{ui("写入私有信息流，不进入公开预览。")}</div>
             </div>
             <button
               type="button"
               onClick={() => setLinkedinImportOpen(false)}
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7ddda] bg-white text-[#62706e]"
-              aria-label="关闭"
-              title="关闭"
+              aria-label={ui("关闭")}
+              title={ui("关闭")}
             >
               ×
             </button>
@@ -747,9 +754,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                 isJob ? "border-[#2f6f66] bg-[#e9f2ef] text-[#2f6f66]" : "border-[#d7ddda] bg-white text-[#62706e]"
               }`}
             >
-              <BriefcaseBusiness className="h-4 w-4" />
-              职位
-            </button>
+              <BriefcaseBusiness className="h-4 w-4" />{ui("职位")}</button>
             <button
               type="button"
               onClick={() => selectLinkedInImportType("post")}
@@ -757,15 +762,11 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                 !isJob ? "border-[#2f6f66] bg-[#e9f2ef] text-[#2f6f66]" : "border-[#d7ddda] bg-white text-[#62706e]"
               }`}
             >
-              <MessageSquareText className="h-4 w-4" />
-              Post
-            </button>
+              <MessageSquareText className="h-4 w-4" />{ui("Post")}</button>
           </div>
 
           <div className="grid gap-3">
-            <label className={labelClass}>
-              URL
-              <input
+            <label className={labelClass}>{ui("URL")}<input
                 value={linkedinImportDraft.url}
                 onChange={(event) => updateLinkedInImportDraft({ url: event.target.value })}
                 placeholder={isJob ? "linkedin.com/jobs/view/..." : "linkedin.com/feed/update/activity:..."}
@@ -777,35 +778,27 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
 
             {isJob ? (
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className={labelClass}>
-                  公司
-                  <input
+                <label className={labelClass}>{ui("公司")}<input
                     value={linkedinImportDraft.company}
                     onChange={(event) => updateLinkedInImportDraft({ company: event.target.value })}
                     className={inputClass}
                     required
                   />
                 </label>
-                <label className={labelClass}>
-                  职位
-                  <input
+                <label className={labelClass}>{ui("职位")}<input
                     value={linkedinImportDraft.role}
                     onChange={(event) => updateLinkedInImportDraft({ role: event.target.value })}
                     className={inputClass}
                     required
                   />
                 </label>
-                <label className={labelClass}>
-                  地点
-                  <input
+                <label className={labelClass}>{ui("地点")}<input
                     value={linkedinImportDraft.location}
                     onChange={(event) => updateLinkedInImportDraft({ location: event.target.value })}
                     className={inputClass}
                   />
                 </label>
-                <label className={labelClass}>
-                  优先级
-                  <input
+                <label className={labelClass}>{ui("优先级")}<input
                     type="number"
                     min="0"
                     max="100"
@@ -818,27 +811,21 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className={labelClass}>
-                  作者
-                  <input
+                <label className={labelClass}>{ui("作者")}<input
                     value={linkedinImportDraft.author}
                     onChange={(event) => updateLinkedInImportDraft({ author: event.target.value })}
                     className={inputClass}
                     required
                   />
                 </label>
-                <label className={labelClass}>
-                  主题
-                  <input
+                <label className={labelClass}>{ui("主题")}<input
                     value={linkedinImportDraft.topic}
                     onChange={(event) => updateLinkedInImportDraft({ topic: event.target.value })}
                     className={inputClass}
                     required
                   />
                 </label>
-                <label className={`${labelClass} sm:col-span-2`}>
-                  优先级
-                  <input
+                <label className={`${labelClass} sm:col-span-2`}>{ui("优先级")}<input
                     type="number"
                     min="0"
                     max="100"
@@ -851,20 +838,16 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               </div>
             )}
 
-            <label className={labelClass}>
-              摘要
-              <textarea
+            <label className={labelClass}>{ui("摘要")}<textarea
                 value={linkedinImportDraft.summary}
                 onChange={(event) => updateLinkedInImportDraft({ summary: event.target.value })}
-                placeholder={isJob ? "可空；空时按公司/职位/地点生成。" : ""}
+                placeholder={isJob ? ui("可空；空时按公司/职位/地点生成。") : ""}
                 className="min-h-[86px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
                 required={!isJob}
               />
             </label>
 
-            <label className={labelClass}>
-              价值
-              <textarea
+            <label className={labelClass}>{ui("价值")}<textarea
                 value={linkedinImportDraft.why}
                 onChange={(event) => updateLinkedInImportDraft({ why: event.target.value })}
                 className="min-h-[86px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
@@ -872,9 +855,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               />
             </label>
 
-            <label className={labelClass}>
-              处理
-              <textarea
+            <label className={labelClass}>{ui("处理")}<textarea
                 value={linkedinImportDraft.thought}
                 onChange={(event) => updateLinkedInImportDraft({ thought: event.target.value })}
                 className="min-h-[74px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
@@ -882,18 +863,14 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
             </label>
 
             <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
-              <label className={labelClass}>
-                外链标签
-                <input
+              <label className={labelClass}>{ui("外链标签")}<input
                   value={linkedinImportDraft.extraLabel}
                   onChange={(event) => updateLinkedInImportDraft({ extraLabel: event.target.value })}
-                  placeholder={isJob ? "Company" : "Source"}
+                  placeholder={isJob ? ui("公司") : ui("来源")}
                   className={inputClass}
                 />
               </label>
-              <label className={labelClass}>
-                外链 URL
-                <input
+              <label className={labelClass}>{ui("外链 URL")}<input
                   value={linkedinImportDraft.extraUrl}
                   onChange={(event) => updateLinkedInImportDraft({ extraUrl: event.target.value })}
                   className={inputClass}
@@ -902,24 +879,22 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
             </div>
           </div>
 
-          {linkedinImportError ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{linkedinImportError}</div> : null}
-          {linkedinImportResult ? <div className="mt-4 rounded-lg border border-[#cfe2dd] bg-[#f3faf7] px-3 py-2 text-sm text-[#2f6f66]">{linkedinImportResult}</div> : null}
+          {linkedinImportError ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{ui(linkedinImportError)}</div> : null}
+          {linkedinImportResult ? <div className="mt-4 rounded-lg border border-[#cfe2dd] bg-[#f3faf7] px-3 py-2 text-sm text-[#2f6f66]">{ui(linkedinImportResult)}</div> : null}
 
           <div className="mt-4 flex flex-wrap justify-end gap-2">
             <button
               type="button"
               onClick={() => setLinkedinImportOpen(false)}
               className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
-            >
-              取消
-            </button>
+            >{ui("取消")}</button>
             <button
               type="submit"
               disabled={linkedinImportBusy}
               className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Send className="h-4 w-4" />
-              {linkedinImportBusy ? "导入中" : "导入"}
+              {ui(linkedinImportBusy ? "导入中" : "导入")}
             </button>
           </div>
         </form>
@@ -941,12 +916,12 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
           className="inline-flex min-h-[36px] items-center gap-2 rounded-lg border border-[#cfe2dd] bg-[#f3faf7] px-3 py-2 text-sm font-semibold text-[#2f6f66]"
         >
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          {expanded ? "收起细节" : "展开细节"}
+          {expanded ? ui("收起细节") : ui("展开细节")}
         </button>
         {expanded ? (
           <div className="mt-3 grid gap-3">
             {details.map((section) => (
-              <section key={section.title} className="m-0 rounded-lg border border-[#e4e0d8] bg-[#f8f6f0] p-3">
+              <section key={section.title} data-feed-original className="m-0 rounded-lg border border-[#e4e0d8] bg-[#f8f6f0] p-3">
                 <h4 className="m-0 mb-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#8b4b5a]">{section.title}</h4>
                 {section.body ? <p className="m-0 text-[14px] leading-7 text-[#394441]">{section.body}</p> : null}
                 {section.items?.length ? (
@@ -1006,17 +981,15 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a938f]">
-                        <span>{taskTypeLabels[task.type]}</span>
+                        <span>{ui(taskTypeLabels[task.type])}</span>
                         <span className="h-1 w-1 rounded-full bg-[#c1c9c5]" />
-                        <span className={`rounded-full px-1.5 py-0.5 ${taskStatusStyles[task.status].badge}`}>{taskStatusLabels[task.status]}</span>
+                        <span className={`rounded-full px-1.5 py-0.5 ${taskStatusStyles[task.status].badge}`}>{ui(taskStatusLabels[task.status])}</span>
                       </div>
                       <div className="text-sm font-semibold leading-5 text-[#1c2526]">{task.title}</div>
                       {task.note ? <p className="m-0 mt-1 text-xs leading-5 text-[#62706e]">{task.note}</p> : null}
-                      {task.dueAt ? <div className="mt-1 text-xs text-[#8b4b5a]">截止 {task.dueAt.slice(0, 10)}</div> : null}
+                      {task.dueAt ? <div className="mt-1 text-xs text-[#8b4b5a]">{ui("截止")}{task.dueAt.slice(0, 10)}</div> : null}
                       {task.url ? (
-                        <a href={task.url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 border-b border-[rgba(47,111,102,.35)] text-xs font-semibold text-[#2f6f66]">
-                          打开链接
-                          <ExternalLink className="h-3 w-3" />
+                        <a href={task.url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 border-b border-[rgba(47,111,102,.35)] text-xs font-semibold text-[#2f6f66]">{ui("打开链接")}<ExternalLink className="h-3 w-3" />
                         </a>
                       ) : null}
                     </div>
@@ -1024,8 +997,8 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                       type="button"
                       onClick={() => deleteTask(task)}
                       className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7ddda] bg-white text-[#62706e]"
-                      aria-label="删除待办"
-                      title="删除待办"
+                      aria-label={ui("删除待办")}
+                      title={ui("删除待办")}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1040,14 +1013,14 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                           task.status === status ? taskStatusStyles[status].active : "border-[#d7ddda] bg-white text-[#62706e]"
                         }`}
                       >
-                        {taskStatusLabels[status]}
+                        {ui(taskStatusLabels[status])}
                       </button>
                     ))}
                   </div>
                 </div>
               ))
             ) : (
-              <div className="rounded-lg border border-dashed border-[#d7ddda] px-3 py-4 text-sm leading-6 text-[#62706e]">还没有待办。</div>
+              <div className="rounded-lg border border-dashed border-[#d7ddda] px-3 py-4 text-sm leading-6 text-[#62706e]">{ui("还没有待办。")}</div>
             )}
           </div>
         </div>
@@ -1062,15 +1035,15 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
         <div className="w-full max-w-[460px] rounded-xl border border-[#d7ddda] bg-[#fffdfa] p-4 shadow-[0_24px_80px_rgba(28,37,38,0.24)]">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <h2 className="m-0 text-xl font-semibold leading-tight tracking-normal text-[#182120]">新增工作待办</h2>
-              <div className="mt-1 text-sm text-[#62706e]">只记录真正需要推进的 AI、工作、求职、论文或项目动作。</div>
+              <h2 className="m-0 text-xl font-semibold leading-tight tracking-normal text-[#182120]">{ui("新增工作待办")}</h2>
+              <div className="mt-1 text-sm text-[#62706e]">{ui("只记录真正需要推进的 AI、工作、求职、论文或项目动作。")}</div>
             </div>
             <button
               type="button"
               onClick={() => setTaskComposerOpen(false)}
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7ddda] bg-white text-[#62706e]"
-              aria-label="关闭"
-              title="关闭"
+              aria-label={ui("关闭")}
+              title={ui("关闭")}
             >
               ×
             </button>
@@ -1079,7 +1052,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
             <input
               value={taskDraft.title}
               onChange={(event) => setTaskDraft((current) => ({ ...current, title: event.target.value }))}
-              placeholder="待办标题"
+              placeholder={ui("待办标题")}
               className="min-h-[42px] rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm outline-none focus:border-[#2f6f66]"
               autoFocus
             />
@@ -1091,7 +1064,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               >
                 {Object.entries(taskTypeLabels).map(([value, label]) => (
                   <option key={value} value={value}>
-                    {label}
+                    {ui(label)}
                   </option>
                 ))}
               </select>
@@ -1105,7 +1078,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
             <textarea
               value={taskDraft.note}
               onChange={(event) => setTaskDraft((current) => ({ ...current, note: event.target.value }))}
-              placeholder="备注"
+              placeholder={ui("备注")}
               className="min-h-[96px] resize-none rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm leading-5 outline-none focus:border-[#2f6f66]"
             />
           </div>
@@ -1114,17 +1087,13 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               type="button"
               onClick={() => setTaskComposerOpen(false)}
               className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
-            >
-              取消
-            </button>
+            >{ui("取消")}</button>
             <button
               type="button"
               onClick={createDraftTask}
               className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white"
             >
-              <Plus className="h-4 w-4" />
-              添加
-            </button>
+              <Plus className="h-4 w-4" />{ui("添加")}</button>
           </div>
         </div>
       </div>
@@ -1145,12 +1114,12 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a938f]">
-              <span>{kindLabel[block.kind]}</span>
+              <span>{ui(kindLabel[block.kind])}</span>
               <span className="h-1 w-1 rounded-full bg-[#c1c9c5]" />
-              <span>{block.source}</span>
+              <span data-feed-original>{block.source}</span>
             </div>
             <h3 className={`${compact ? "text-[15px]" : "text-[21px]"} min-w-0 font-semibold leading-tight tracking-normal text-[#182120]`}>
-              {block.title}
+              <span data-feed-original>{block.title}</span>
             </h3>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -1158,8 +1127,8 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               <button
                 type="button"
                 onClick={() => togglePinned(block)}
-                aria-label={pinnedState ? "取消钉住" : "钉住待看"}
-                title={pinnedState ? "取消钉住" : "钉住待看"}
+                aria-label={pinnedState ? ui("取消钉住") : ui("钉住待看")}
+                title={pinnedState ? ui("取消钉住") : ui("钉住待看")}
                 className={`inline-flex h-8 w-8 items-center justify-center rounded-full border text-sm ${
                   pinnedState ? "border-[#d9bdc4] bg-[#fff8fa] text-[#8b4b5a]" : "border-[#d7ddda] bg-white text-[#62706e]"
                 }`}
@@ -1168,14 +1137,14 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               </button>
             ) : null}
             <span className="whitespace-nowrap rounded-full border border-[#cfe2dd] bg-[#e9f2ef] px-2.5 py-1 text-xs text-[#2f6f66]">
-              {block.sourceStatus || kindLabel[block.kind]}
+              {ui(block.sourceStatus || kindLabel[block.kind])}
             </span>
           </div>
         </div>
 
         {block.sourceWarning ? (
           <div className="mb-3 inline-flex rounded-lg border border-[#ead7a4] bg-[#fff7df] px-2 py-1 text-xs text-[#7a5b16]">
-            {block.sourceWarning}
+            {ui(block.sourceWarning)}
           </div>
         ) : null}
 
@@ -1184,12 +1153,12 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
         ) : (
           <div className="mt-4 grid gap-4 border-y border-[#e4e0d8] py-4 md:grid-cols-3">
             {readingFields.map((field) => (
-              <div key={field.label} className={`min-w-0 border-l-[3px] ${field.rule} pl-3`}>
+              <div key={ui(field.label)} className={`min-w-0 border-l-[3px] ${field.rule} pl-3`}>
                 <div className={`mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] ${field.tone}`}>
-                  {field.shortLabel}
+                  {ui(field.shortLabel)}
                 </div>
-                <strong className="mb-2 block text-[15px] font-semibold leading-tight text-[#1c2526]">{field.label}</strong>
-                <p className="m-0 text-justify text-[14px] leading-7 text-[#394441] [text-align-last:left]">{field.getValue(block)}</p>
+                <strong className="mb-2 block text-[15px] font-semibold leading-tight text-[#1c2526]">{ui(field.label)}</strong>
+                <p data-feed-original className="m-0 text-justify text-[14px] leading-7 text-[#394441] [text-align-last:left]">{field.getValue(block)}</p>
               </div>
             ))}
           </div>
@@ -1207,7 +1176,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                 rel={linkIsObsidian(link.url) ? undefined : "noreferrer"}
                 className="inline-flex items-center gap-1.5 border-b border-[rgba(47,111,102,.35)] text-sm font-semibold text-[#2f6f66]"
               >
-                {link.label}
+                {ui(link.label)}
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             ))}
@@ -1220,34 +1189,26 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               type="button"
               onClick={() => restoreBlock(block)}
               className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
-            >
-              恢复
-            </button>
+            >{ui("恢复")}</button>
           ) : (
             <button
               type="button"
               onClick={() => dismissBlock(block)}
               className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white"
-            >
-              丢弃
-            </button>
+            >{ui("丢弃")}</button>
           )}
           <button
             type="button"
             onClick={() => copyBlock(block)}
             className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
           >
-            {copiedId === key ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            复制给 Codex 讨论
-          </button>
+            {copiedId === key ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{ui("复制给 Codex 讨论")}</button>
           <button
             type="button"
             onClick={() => addBlockToTasks(block)}
             className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
           >
-            <Plus className="h-4 w-4" />
-            加入待办
-          </button>
+            <Plus className="h-4 w-4" />{ui("加入待办")}</button>
         </div> : null}
       </article>
     )
@@ -1266,10 +1227,8 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
       <section className="rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="mb-1 text-lg font-semibold tracking-normal">候选池</h2>
-            <p className="m-0 text-sm leading-6 text-[#62706e]">
-              主信息流只保留最高价值块；这里记录被压下去但仍值得知道的候选。
-            </p>
+            <h2 className="mb-1 text-lg font-semibold tracking-normal">{ui("候选池")}</h2>
+            <p className="m-0 text-sm leading-6 text-[#62706e]">{ui("主信息流只保留最高价值块；这里记录被压下去但仍值得知道的候选。")}</p>
           </div>
           {candidatePool.length ? (
             <span className="rounded-full border border-[#cfe2dd] bg-[#f3faf7] px-2.5 py-1 text-xs font-semibold text-[#2f6f66]">
@@ -1292,12 +1251,12 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
 
         {overflow?.themes?.length ? (
           <div className="mt-3 border-t border-[#e4e0d8] pt-3">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b4b5a]">过载主题</div>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b4b5a]">{ui("过载主题")}</div>
             <ul className="m-0 grid gap-2 p-0">
               {overflow.themes.slice(0, 4).map((theme) => (
                 <li key={`${theme.title}-${theme.count || 0}`} className="list-none text-sm leading-5 text-[#394441]">
                   <span className="font-semibold text-[#1c2526]">{theme.title}</span>
-                  {typeof theme.count === "number" ? <span className="text-[#62706e]"> · {theme.count} 条</span> : null}
+                  {typeof theme.count === "number" ? <span className="text-[#62706e]"> · {theme.count} {ui("条")}</span> : null}
                   {theme.note ? <div className="mt-0.5 text-[#62706e]">{theme.note}</div> : null}
                 </li>
               ))}
@@ -1309,14 +1268,14 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
           <ol className="mt-3 grid gap-0 border-t border-[#e4e0d8] p-0">
             {visibleCandidates.map((candidate, index) => {
               const firstLink = candidate.links?.find((link) => link.url)
-              const status = candidate.status ? candidateStatusLabel[candidate.status] || candidate.status : "候选"
+              const status = ui(candidate.status ? candidateStatusLabel[candidate.status] || candidate.status : "候选")
               return (
                 <li key={`${candidate.title}-${index}`} className="list-none border-b border-[#e4e0d8] py-3 last:border-b-0">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-sm font-semibold leading-5 text-[#1c2526]">{candidate.title}</div>
                       <div className="mt-1 text-xs text-[#62706e]">
-                        {candidate.source || "来源未标注"} · {status}
+                        {candidate.source || ui("来源未标注")} · {status}
                         {typeof candidate.priority === "number" ? ` · P${candidate.priority}` : ""}
                       </div>
                     </div>
@@ -1326,8 +1285,8 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#d7ddda] text-[#2f6f66]"
-                        aria-label={`打开 ${candidate.title}`}
-                        title={firstLink.label || "打开链接"}
+                        aria-label={`${ui("打开")} ${candidate.title}`}
+                        title={ui(firstLink.label || "打开链接")}
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
@@ -1341,9 +1300,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
         ) : null}
 
         {candidatePool.length > visibleCandidates.length ? (
-          <div className="mt-3 text-xs text-[#62706e]">
-            还有 {candidatePool.length - visibleCandidates.length} 个候选保留在 JSON 中。
-          </div>
+          <div className="mt-3 text-xs text-[#62706e]">{ui("还有")} {candidatePool.length - visibleCandidates.length} {ui("个候选保留在 JSON 中。")}</div>
         ) : null}
       </section>
     )
@@ -1355,22 +1312,19 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
         <header className="mb-6 overflow-hidden rounded-xl border border-[#d7ddda] bg-[#fffdfa] shadow-[0_18px_46px_rgba(41,50,48,0.08)]">
           <div className="grid gap-5 p-5 sm:p-6 md:grid-cols-[1fr_auto] md:items-end">
             <div>
-              <h1 className="m-0 text-[clamp(38px,6vw,72px)] font-semibold leading-[0.92] tracking-normal text-[#182120]">
-                信息流
-              </h1>
+              <h1 className="m-0 text-[clamp(38px,6vw,72px)] font-semibold leading-[0.92] tracking-normal text-[#182120]">{ui("信息流")}</h1>
               <div className="mt-3 text-sm text-[#62706e]">
                 {feed
                   ? publicMode
-                    ? `公开预览 · 更新于 ${feed.generatedAt || feed.date}`
-                    : `生成于 ${feed.generatedAt || feed.date} · 每次同步后线上更新 · 来源 本地数据`
-                  : "正在读取 feed..."}
+                    ? `${ui("公开预览 · 更新于")} ${feed.generatedAt || feed.date}`
+                    : `${ui("生成于")} ${feed.generatedAt || feed.date} · ${ui("每次同步后线上更新")} · ${ui("来源 本地数据")}`
+                  : authNeeded ? ui("私有信息流") : error ? ui("信息流暂时无法读取") : ui("正在载入信息流…")}
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 md:justify-end">
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+              <LangSwitcher />
               {publicMode ? (
-                <Link href="/resume?from=portfolio" className="inline-flex min-h-11 items-center rounded-sm border border-[#657b6b] px-3 py-2 text-sm text-[#516c5a] transition-colors hover:bg-[#e7ecdf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
-                  ← 返回简历
-                </Link>
+                <Link href="/resume?from=portfolio" className="inline-flex min-h-11 items-center rounded-sm border border-[#657b6b] px-3 py-2 text-sm text-[#516c5a] transition-colors hover:bg-[#e7ecdf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">{ui("← 返回简历")}</Link>
               ) : null}
               {!publicMode ? (
                 <>
@@ -1383,28 +1337,22 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
                 }}
                 className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white"
               >
-                <BriefcaseBusiness className="h-4 w-4" />
-                导入 LinkedIn
-              </button>
-              <span className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#62706e]">
-                Admin only
-              </span>
+                <BriefcaseBusiness className="h-4 w-4" />{ui("导入 LinkedIn")}</button>
+              <span className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#62706e]">{ui("Admin only")}</span>
               <button
                 type="button"
                 onClick={() => setShowDiscarded((value) => !value)}
                 className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
               >
                 <EyeOff className="h-4 w-4" />
-                {showDiscarded ? "隐藏已丢弃" : "查看已丢弃"}
+                {showDiscarded ? ui("隐藏已丢弃") : ui("查看已丢弃")}
               </button>
               <button
                 type="button"
                 onClick={clearRoundDismissed}
                 className="inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
               >
-                <RotateCcw className="h-4 w-4" />
-                清空本轮丢弃
-              </button>
+                <RotateCcw className="h-4 w-4" />{ui("清空本轮丢弃")}</button>
                 </>
               ) : null}
             </div>
@@ -1413,9 +1361,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
             <div className="max-w-4xl text-[13px] leading-6 text-[#62706e]">
               {feed?.sourceStatusLine ? (
                 <>
-                  <span className="mr-2 rounded-full bg-white px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8b4b5a]">
-                    采集状态
-                  </span>
+                  <span className="mr-2 rounded-full bg-white px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8b4b5a]">{ui("采集状态")}</span>
                   {feed.sourceStatusLine}
                 </>
               ) : null}
@@ -1425,48 +1371,46 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
 
         {authNeeded ? (
           <div className="mb-4 rounded-lg border border-[#d7ddda] bg-white px-4 py-5 text-sm text-[#1c2526]">
-            <div className="mb-2 font-semibold">需要登录后查看信息流。</div>
-            <p className="mb-4 text-[#62706e]">这页现在通过 admin API 读取，不再暴露公开 JSON。登录后会回到当前信息流页面。</p>
-            <Link href="/login?next=/ai-feed" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white">
-              去登录
-            </Link>
+            <div className="mb-2 font-semibold">{ui("需要登录后查看信息流。")}</div>
+            <p className="mb-4 text-[#62706e]">{ui("这页现在通过 admin API 读取，不再暴露公开 JSON。登录后会回到当前信息流页面。")}</p>
+            <Link href="/login?next=/ai-feed" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] px-3 py-2 text-sm text-white">{ui("去登录")}</Link>
           </div>
         ) : null}
-        {error ? <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
+        {error ? <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{ui("信息流暂时无法读取，请稍后重试。")}</div> : null}
 
         <div className={`grid items-start gap-5 ${publicMode ? "" : "lg:grid-cols-[minmax(0,1fr)_320px]"}`}>
           <div className="grid gap-5">
             {!publicMode ? <section>
-              <h2 className="mb-2 text-lg font-semibold tracking-normal">钉住待看</h2>
+              <h2 className="mb-2 text-lg font-semibold tracking-normal">{ui("钉住待看")}</h2>
               <div className="grid gap-3">
-                {pinnedBlocks.length ? pinnedBlocks.map((block) => renderBlock(block)) : <div className="text-[15px] text-[#62706e]">还没有钉住的块。遇到想看但没时间看的内容，可以点星标。</div>}
+                {pinnedBlocks.length ? pinnedBlocks.map((block) => renderBlock(block)) : <div className="text-[15px] text-[#62706e]">{ui("还没有钉住的块。遇到想看但没时间看的内容，可以点星标。")}</div>}
               </div>
             </section> : null}
 
             <section>
-              <h2 className="mb-2 text-lg font-semibold tracking-normal">现在最值得看</h2>
-              {topBlock ? renderBlock(topBlock) : <div className="text-[15px] text-[#62706e]">现在没有新的高优先级块。</div>}
+              <h2 className="mb-2 text-lg font-semibold tracking-normal">{ui("现在最值得看")}</h2>
+              {topBlock ? renderBlock(topBlock) : <div className="text-[15px] text-[#62706e]">{ui("现在没有新的高优先级块。")}</div>}
             </section>
 
             <section>
-              <h2 className="mb-2 text-lg font-semibold tracking-normal">今日信息流</h2>
+              <h2 className="mb-2 text-lg font-semibold tracking-normal">{ui("今日信息流")}</h2>
               <div className="grid gap-3">
-                {feedBlocks.length ? feedBlocks.map((block) => renderBlock(block)) : <div className="text-[15px] text-[#62706e]">今日信息流已经被你接收得差不多了。</div>}
+                {feedBlocks.length ? feedBlocks.map((block) => renderBlock(block)) : <div className="text-[15px] text-[#62706e]">{ui("今日信息流已经被你接收得差不多了。")}</div>}
               </div>
             </section>
 
             {!publicMode ? <section>
-              <h2 className="mb-2 text-lg font-semibold tracking-normal">待处理</h2>
+              <h2 className="mb-2 text-lg font-semibold tracking-normal">{ui("待处理")}</h2>
               <div className="grid gap-3">
-                {actionBlocks.length ? actionBlocks.map((block) => renderBlock(block)) : <div className="text-[15px] text-[#62706e]">没有必须处理的行动项。</div>}
+                {actionBlocks.length ? actionBlocks.map((block) => renderBlock(block)) : <div className="text-[15px] text-[#62706e]">{ui("没有必须处理的行动项。")}</div>}
               </div>
             </section> : null}
 
             {!publicMode && showDiscarded ? (
               <section className="border-t border-[#d7ddda] pt-5">
-                <h2 className="mb-2 text-lg font-semibold tracking-normal">本轮已丢弃</h2>
+                <h2 className="mb-2 text-lg font-semibold tracking-normal">{ui("本轮已丢弃")}</h2>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {dismissedBlocks.length ? dismissedBlocks.map((block) => renderBlock(block, true)) : <div className="text-[15px] text-[#62706e]">本轮已丢弃列表为空；跨轮丢弃仍会通过指纹池隐藏。</div>}
+                  {dismissedBlocks.length ? dismissedBlocks.map((block) => renderBlock(block, true)) : <div className="text-[15px] text-[#62706e]">{ui("本轮已丢弃列表为空；跨轮丢弃仍会通过指纹池隐藏。")}</div>}
                 </div>
               </section>
             ) : null}
@@ -1475,40 +1419,36 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
           {!publicMode ? <aside className="grid min-h-0 gap-4 lg:sticky lg:top-5 lg:max-h-[calc(100vh-40px)] lg:grid-rows-[auto_minmax(0,1fr)] lg:overflow-hidden">
             <div className="grid shrink-0 gap-4">
               <section className="rounded-lg border border-[#d7ddda] bg-white p-4 shadow-[0_14px_36px_rgba(41,50,48,0.10)]">
-                <h2 className="mb-2 text-lg font-semibold tracking-normal">阅读状态</h2>
-                <div className="text-sm text-[#62706e]">{handled} / {roundTotal} 个本轮已处理 · 剩余 {activeBlocks.length}</div>
+                <h2 className="mb-2 text-lg font-semibold tracking-normal">{ui("阅读状态")}</h2>
+                <div className="text-sm text-[#62706e]">{handled} / {roundTotal} {ui("个本轮已处理 · 剩余")} {activeBlocks.length}</div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e5e1d7]">
                   <div className="h-full bg-gradient-to-r from-[#2f6f66] to-[#8b4b5a] transition-[width]" style={{ width: `${progress}%` }} />
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-[#e4e0d8] bg-[#fffdfa] px-3 py-2">
                   <div>
-                    <div className="text-sm font-semibold text-[#1c2526]">工作待办</div>
-                    <div className="mt-0.5 text-xs text-[#62706e]">{openTaskCount} 个未完成</div>
+                    <div className="text-sm font-semibold text-[#1c2526]">{ui("工作待办")}</div>
+                    <div className="mt-0.5 text-xs text-[#62706e]">{openTaskCount} {ui("个未完成")}</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setTaskComposerOpen(true)}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2f6f66] bg-[#2f6f66] text-white"
-                    aria-label="新增待办"
-                    title="新增待办"
+                    aria-label={ui("新增待办")}
+                    title={ui("新增待办")}
                   >
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
                 <div className="mt-4 border-t border-[#d7ddda] pt-3 text-[13px] leading-5 text-[#62706e]">
-                  <div className="mb-1 font-semibold">状态同步</div>
-                  <p className="m-0">
-                    当前页会导入随 feed 同步来的共享状态快照，再用本浏览器状态继续记录新的丢弃/钉住。页头的 Gmail/OpenAI 文字是本轮采集状态，不代表网页连接失败。
-                  </p>
+                  <div className="mb-1 font-semibold">{ui("状态同步")}</div>
+                  <p className="m-0">{ui("当前页会导入随 feed 同步来的共享状态快照，再用本浏览器状态继续记录新的丢弃/钉住。页头的 Gmail/OpenAI 文字是本轮采集状态，不代表网页连接失败。")}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => window.location.reload()}
                   className="mt-4 inline-flex min-h-[38px] items-center gap-2 rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]"
                 >
-                  <RefreshCw className="h-4 w-4" />
-                  重新读取
-                </button>
+                  <RefreshCw className="h-4 w-4" />{ui("重新读取")}</button>
               </section>
               {renderCandidatePool()}
             </div>
@@ -1522,7 +1462,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
           toast ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
-        {toast}
+        {ui(toast)}
       </div>
       {!publicMode ? renderTaskComposer() : null}
       {!publicMode ? renderLinkedInImporter() : null}

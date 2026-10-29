@@ -1,5 +1,6 @@
 "use client"
 
+import { useDocumentTitle } from "@/lib/use-document-title"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { I18nProvider, useI18n } from "@/lib/i18n"
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label"
 
 function LoginInner() {
   const { t, locale, setLocale } = useI18n()
+  useDocumentTitle(`${locale==="zh"?"登录":"Sign in"} · Lijie Li`)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [nextPath, setNextPath] = useState("/admin")

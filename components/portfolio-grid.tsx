@@ -1,6 +1,7 @@
 // components/PortfolioGrid.tsx
 "use client"
 
+import { useDocumentTitle } from "@/lib/use-document-title"
 import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
 import type { CSSProperties, MouseEvent, WheelEvent } from "react"
 import { useI18n } from "@/lib/i18n"
@@ -179,6 +180,7 @@ interface PortfolioGridProps {
 
 export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridProps) {
   const { locale, t } = useI18n()
+  useDocumentTitle(`${locale==="zh"?"摄影作品集":"Photography"} · Lijie Li`)
   const curation = usePhotoCuration()
   const searchParams = useSearchParams()
   const entryReturnHref = searchParams.get("from") === "photo-session" ? "/helsinki-photo-session" : "/"
@@ -1175,7 +1177,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
         <header className={chrome.header}>
           <div className={chrome.headingGroup}>
             {!embedded && <Link href={entryReturnHref} className={chrome.control} aria-label={entryReturnHref === "/helsinki-photo-session" ? (locale === "zh" ? "返回约拍" : "Back to photo sessions") : (locale === "zh" ? "返回首页" : "Back to home")}><ArrowLeft size={18} strokeWidth={1.4} /></Link>}
-            {embedded ? <h2 className="sr-only">{t('galleriesTitle')}</h2> : <h1 className="sr-only">{t('galleriesTitle')}</h1>}
+            {embedded ? <h2 id="portfolio-gallery-title" className="sr-only">{t('galleriesTitle')}</h2> : <h1 className="sr-only">{t('galleriesTitle')}</h1>}
           </div>
           <div className={chrome.controls}>
             <LangSwitcher />
@@ -1423,7 +1425,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
 
       {!loading && (
         <section data-portfolio-section="styles" data-return-section="styles">
-        <Suspense fallback={<div className="py-8 text-center text-gray-500">Loading...</div>}>
+        <Suspense fallback={<div className="py-8 text-center text-gray-500">{t("loadingGalleries")}</div>}>
           <PhotographyStyleShowcase paused={searchOpen} initialData={initialData?.stylePreviews} />
         </Suspense>
         </section>
