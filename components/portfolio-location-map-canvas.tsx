@@ -37,6 +37,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
   const mapRootRef = useRef<HTMLDivElement | null>(null)
   const leafletMapRef = useRef<any>(null)
   const markersLayerRef = useRef<any>(null)
+  const markerCacheRef=useRef(new Map<string,{marker:any;active:boolean;lat:number;lng:number}>())
   const latestActiveKeyRef = useRef<string | null>(null)
   const [mapReady, setMapReady] = useState(false)
   const [embedded, setEmbedded] = useState(false)
@@ -138,6 +139,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
         })
         .addTo(map)
 
+      markerCacheRef.current.clear()
       const markersLayer = leaflet.layerGroup().addTo(map)
       leafletMapRef.current = map
       releaseWheelGestures = bindMapWheelGestures(map, root.parentElement || root)
@@ -168,6 +170,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
         leafletMapRef.current.remove()
         leafletMapRef.current = null
         markersLayerRef.current = null
+        markerCacheRef.current.clear()
       }
     }
   }, [mapKey])
@@ -190,7 +193,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
       const paddedWest = west - span
       const paddedEast = east + span
 
-      markersLayerRef.current.clearLayers()
+      const needed=new Set<string>()
 
       for (const loc of locations) {
         const isActive = (latestActiveKeyRef.current ?? activeKey) === loc.key
@@ -201,20 +204,20 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
         const safeMaxCopy = Math.min(maxCopy, centerCopy + 4)
 
         for (let copy = safeMinCopy; copy <= safeMaxCopy; copy += 1) {
-          leaflet
-            .circleMarker([loc.latitude, loc.longitude + copy * 360], {
-            radius: isActive ? 10 : 6,
-            weight: 2,
-            opacity: 0.9,
-            fillOpacity: 0.65,
-            color: isActive ? "#f3f0e9" : "#eef0df",
-            fillColor: isActive ? "#334d3f" : "#657b6b",
-          })
-            .on("click", () => setActiveKey(loc.key))
-            .on("mouseover", () => setActiveKey(loc.key))
-            .addTo(markersLayerRef.current)
+          const key=`${loc.key}:${copy}`,lng=loc.longitude+copy*360
+          needed.add(key)
+          const existing=markerCacheRef.current.get(key)
+          if(existing){
+            if(existing.active!==isActive){existing.marker.setStyle({radius:isActive?10:6,color:isActive?"#f3f0e9":"#eef0df",fillColor:isActive?"#334d3f":"#657b6b"});existing.active=isActive}
+            if(existing.lat!==loc.latitude || existing.lng!==lng){existing.marker.setLatLng([loc.latitude,lng]);existing.lat=loc.latitude;existing.lng=lng}
+          }else{
+            const marker=leaflet.circleMarker([loc.latitude,lng],{radius:isActive?10:6,weight:2,opacity:.9,fillOpacity:.65,color:isActive?"#f3f0e9":"#eef0df",fillColor:isActive?"#334d3f":"#657b6b"})
+              .on("click",()=>setActiveKey(loc.key)).on("mouseover",()=>setActiveKey(loc.key)).addTo(markersLayerRef.current)
+            markerCacheRef.current.set(key,{marker,active:isActive,lat:loc.latitude,lng})
+          }
         }
       }
+      for(const [key,item]of markerCacheRef.current)if(!needed.has(key)){markersLayerRef.current.removeLayer(item.marker);markerCacheRef.current.delete(key)}
     }
 
     const scheduleMarkerSync = () => {
@@ -266,6 +269,7 @@ export function PortfolioLocationMapCanvas({ locations, heading, subheading, emp
                   const location = locations.find(item => item.key === event.target.value)
                   if (!location) return
                   setActiveKey(location.key)
+                  leafletMapRef.current?.stop()
                   leafletMapRef.current?.panTo([location.latitude, location.longitude], {animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches, duration: .45})
                 }}>
                 {locations.map(location => <option key={location.key} value={location.key}>{location.name}</option>)}

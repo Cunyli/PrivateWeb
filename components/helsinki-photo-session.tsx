@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { CSSProperties, Dispatch, FormEvent, ImgHTMLAttributes, MouseEvent, RefObject, SetStateAction } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
@@ -782,17 +782,18 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
     const section=root.current,sticky=stage.current,windowElement=viewport.current,strip=track.current
     if(!section || !sticky || !windowElement || !strip)return
     const motion=window.matchMedia("(prefers-reduced-motion: reduce)")
+    const portrait=window.matchMedia("(max-width:767px) and (orientation:portrait)")
     const native=CSS.supports("animation-timeline","view()") && CSS.supports("animation-range","contain 0% contain 100%")
     let visible=false,frame=0,start=0,distance=1,travel=0,lastWidth=0
     // Older browsers use one transform write at the display's own rAF cadence.
     // Native scroll timelines avoid a JavaScript animation loop entirely.
     const update=()=>{
       frame=0
-      if(!visible || motion.matches || document.hidden)return
+      if(!visible || motion.matches || portrait.matches || document.hidden)return
       const progress=Math.max(0,Math.min(1,(window.scrollY-start)/distance))
       strip.style.transform=`translate3d(${-travel*progress}px,0,0)`
     }
-    const schedule=()=>{if(!native && visible && !motion.matches && !document.hidden && !frame)frame=requestAnimationFrame(update)}
+    const schedule=()=>{if(!native && visible && !motion.matches && !portrait.matches && !document.hidden && !frame)frame=requestAnimationFrame(update)}
     const measure=()=>{
       start=section.getBoundingClientRect().top+window.scrollY
       distance=Math.max(1,section.offsetHeight-sticky.offsetHeight)
@@ -803,7 +804,7 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
       schedule()
     }
     const configure=()=>{
-      if(motion.matches){
+      if(motion.matches || portrait.matches){
         delete section.dataset.storyEnhanced
         delete section.dataset.storyMotion
         strip.style.removeProperty("transform")
@@ -828,10 +829,11 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
     window.addEventListener("resize",measure)
     document.addEventListener("visibilitychange",schedule)
     motion.addEventListener("change",configure)
+    portrait.addEventListener("change",configure)
     return ()=>{
       cancelAnimationFrame(frame);visibility.disconnect();resize.disconnect()
       window.removeEventListener("scroll",schedule);window.removeEventListener("resize",measure)
-      document.removeEventListener("visibilitychange",schedule);motion.removeEventListener("change",configure)
+      document.removeEventListener("visibilitychange",schedule);motion.removeEventListener("change",configure);portrait.removeEventListener("change",configure)
     }
   },[photos,lines,locale])
 
@@ -1042,6 +1044,19 @@ export function HelsinkiPhotoSession() {
   const photoTriggerRef = useRef<HTMLButtonElement | null>(null)
   const mapRef = useRef<any>(null)
   const markersLayerRef = useRef<any>(null)
+  const locationMarkersRef=useRef<Record<string,any>>({})
+  const lastMapFocusRef=useRef<string|null>(null)
+  const hoverLocationTimer=useRef<number|null>(null)
+  useEffect(()=>()=>{if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current)},[])
+  const focusMapLocation=useCallback((id:string)=>{
+    if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}
+    setActiveLocationId(id)
+    const map=mapRef.current,location=locations.find(item=>item.id===id)
+    if(map && location && lastMapFocusRef.current===id){
+      map.stop()
+      map.setView([location.lat,location.lng],Math.max(map.getZoom(),13),{animate:!window.matchMedia("(prefers-reduced-motion: reduce)").matches,pan:{duration:.28,easeLinearity:.5}})
+    }
+  },[])
   const displayLocations = useMemo(
     () =>
       locations.map((location, index) => ({
@@ -1214,9 +1229,18 @@ export function HelsinkiPhotoSession() {
       mapRef.current = map
       releaseWheelGestures = bindMapWheelGestures(map, root.parentElement || root)
       markersLayerRef.current = leaflet.layerGroup().addTo(map)
+      locationMarkersRef.current={}
+      lastMapFocusRef.current=null
+      leaflet.polyline(locations.map(location=>[location.lat,location.lng]),{color:"#355d63",weight:2,opacity:.56,dashArray:"6 10"}).addTo(markersLayerRef.current)
+      locations.forEach((location,index)=>{
+        const marker=leaflet.marker([location.lat,location.lng],{icon:leaflet.divIcon({className:"",iconSize:[34,34],iconAnchor:[17,17],
+          html:`<span data-route-marker="${location.id}" style="display:flex;height:34px;width:34px;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #20231f;background:#355d63;color:#fff;font-size:14px;font-weight:700;box-shadow:0 14px 34px -18px rgba(32,35,31,.9);">${index+1}</span>`})})
+          .on("click",()=>focusMapLocation(location.id)).addTo(markersLayerRef.current)
+        marker.bindTooltip(`${index+1}. ${location.name}`,{direction:"top",offset:[0,-10],opacity:.96,className:"photo-session-map-tooltip"})
+        locationMarkersRef.current[location.id]=marker
+      })
       window.requestAnimationFrame(() => {
         map.invalidateSize()
-        map.fitBounds(bounds.pad(0.18), { animate: false })
       })
       setMapReady(true)
     }
@@ -1236,68 +1260,34 @@ export function HelsinkiPhotoSession() {
         mapRef.current.remove()
         mapRef.current = null
         markersLayerRef.current = null
+        locationMarkersRef.current={}
+        lastMapFocusRef.current=null
       }
       setMapReady(false)
     }
-  }, [mapNear])
+  }, [mapNear,focusMapLocation])
 
-  useEffect(() => {
-    let cancelled = false
-
-    const syncMarkers = async () => {
-      if (!mapReady || !mapRef.current || !markersLayerRef.current) return
-      const leaflet = await import("leaflet")
-      if (cancelled || !mapRef.current || !markersLayerRef.current) return
-
-      markersLayerRef.current.clearLayers()
-      leaflet
-        .polyline(
-          locations.map((location) => [location.lat, location.lng]),
-          {
-            color: "#355d63",
-            weight: 2,
-            opacity: 0.56,
-            dashArray: "6 10",
-          },
-        )
-        .addTo(markersLayerRef.current)
-
-      locations.forEach((location, index) => {
-        const isActive = location.id === activeLocationId
-        const marker = leaflet.marker([location.lat, location.lng], {
-            icon: leaflet.divIcon({
-              className: "",
-              iconSize: [34, 34],
-              iconAnchor: [17, 17],
-              html: `<span style="display:flex;height:34px;width:34px;align-items:center;justify-content:center;border-radius:9999px;border:2px solid #20231f;background:${isActive ? "#cad8da" : "#355d63"};color:${isActive ? "#20231f" : "#fff"};font-size:14px;font-weight:700;box-shadow:0 14px 34px -18px rgba(32,35,31,.9);">${index + 1}</span>`,
-            }),
-          })
-          .on("click", () => {
-            setActiveLocationId(location.id)
-            mapRef.current?.setView([location.lat, location.lng], Math.max(mapRef.current.getZoom(), 13), { animate: true })
-          })
-          .addTo(markersLayerRef.current)
-
-        marker.bindTooltip(`${index + 1}. ${location.name}`, {
-          permanent: isActive,
-          direction: "top",
-          offset: [0, -10],
-          opacity: 0.96,
-          className: "photo-session-map-tooltip",
-        })
-      })
+  useEffect(()=>{
+    if(!mapReady)return
+    for(const [id,marker]of Object.entries(locationMarkersRef.current)){
+      const active=id===activeLocationId
+      const dot=marker.getElement()?.firstElementChild as HTMLElement|undefined
+      if(dot){dot.style.background=active?"#cad8da":"#355d63";dot.style.color=active?"#20231f":"#fff";dot.dataset.active=String(active)}
+      const tooltip=marker.getTooltip()
+      if(tooltip)tooltip.options.permanent=active
+      if(active)marker.openTooltip();else marker.closeTooltip()
     }
+  },[activeLocationId,mapReady])
 
-    void syncMarkers()
-    return () => {
-      cancelled = true
-    }
-  }, [activeLocationId, mapReady])
-
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) return
-    mapRef.current.setView([activeLocation.lat, activeLocation.lng], Math.max(mapRef.current.getZoom(), 13), { animate: true })
-  }, [activeLocation.lat, activeLocation.lng, mapReady])
+  useEffect(()=>{
+    const map=mapRef.current
+    if(!mapReady || !map)return
+    if(lastMapFocusRef.current===null){lastMapFocusRef.current=activeLocationId;return}
+    if(lastMapFocusRef.current===activeLocationId)return
+    lastMapFocusRef.current=activeLocationId
+    map.stop()
+    map.setView([activeLocation.lat,activeLocation.lng],Math.max(map.getZoom(),13),{animate:!window.matchMedia("(prefers-reduced-motion: reduce)").matches,pan:{duration:.28,easeLinearity:.5}})
+  },[activeLocationId,activeLocation.lat,activeLocation.lng,mapReady])
 
 
   useEffect(() => {
@@ -1436,12 +1426,13 @@ export function HelsinkiPhotoSession() {
                     locationRefs.current[index] = node
                   }}
                   data-location-id={location.id}
-                  className={`rounded-md border p-5 transition duration-500 ${
+                  className={`rounded-md border p-5 transition-colors duration-200 ${
                     activeLocationId === location.id
                       ? "border-[#20231f] bg-white shadow-[0_24px_70px_-48px_rgba(32,35,31,0.7)]"
                       : "border-[#d9dfe0] bg-white/60 text-[#7a6f62]"
                   }`}
-                  onMouseEnter={() => setActiveLocationId(location.id)}
+                  onMouseEnter={()=>{if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=window.setTimeout(()=>focusMapLocation(location.id),120)}}
+                  onMouseLeave={()=>{if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}}}
                 >
                   <div className="flex items-start gap-4">
                     <button
@@ -1449,7 +1440,7 @@ export function HelsinkiPhotoSession() {
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
                         activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#eef1f2] text-[#4e493f]"
                       }`}
-                      onClick={() => setActiveLocationId(location.id)}
+                      onClick={() => focusMapLocation(location.id)}
                       aria-label={`Focus ${location.name}`}
                     >
                       {index + 1}
