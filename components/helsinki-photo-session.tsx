@@ -1064,7 +1064,7 @@ export function HelsinkiPhotoSession() {
   }),[placement])
   const shootVisualPhotos=useMemo<Photo[]>(()=>placement.processPhotos.map(photo=>{
     const display=sessionPhotoSources(photo,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top")
-    return {id:`portrait-${photo.id}`,src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:photo.title || "Photograph",
+    return {id:`portrait-${photo.id}`,src:photo.id<0?photo.src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:photo.title || "Photograph",
       width:display.width || photo.width || undefined,height:display.height || photo.height || undefined}
   }),[placement])
   const allPhotos = useMemo(() => {

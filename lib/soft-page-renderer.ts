@@ -1,5 +1,6 @@
 import { paperIndices, writePaperMesh } from "./soft-page-geometry"
 import { createFrameTaskQueue } from "./frame-task-queue"
+import { paperPixelRatio } from "./soft-page-resolution"
 
 export interface SoftPageRenderer {
   warm(): Promise<void>
@@ -37,7 +38,7 @@ void main() {
 
 export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElement): SoftPageRenderer | null {
   const setupStarted = performance.now()
-  const gl = canvas.getContext("webgl", {alpha: true, antialias: true, depth: true, preserveDrawingBuffer: true})
+  const gl = canvas.getContext("webgl", {alpha: true, antialias: (window.devicePixelRatio || 1)<1.5, depth: true, preserveDrawingBuffer: true})
   if (!gl) return null
   const compile = (type: number, source: string) => {
     const shader = gl.createShader(type)
@@ -118,13 +119,13 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
     const overscanX = Math.max(0, Math.min(Math.ceil(width * .24), available - 1))
     const overscanY = Math.ceil(width * .24)
     viewportWidth = width * 2 + overscanX * 2; viewportHeight = height + overscanY * 2
-    // Bound the complete offscreen surface, including the curling-page overscan.
-    // Small screens retain their pixel density; large Retina books avoid a
-    // multi-million-pixel multisampled buffer for every display frame.
-    ratio = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(2_000_000 / Math.max(1,viewportWidth*viewportHeight)))
-    canvas.width = Math.round(viewportWidth * ratio); canvas.height = Math.round(viewportHeight * ratio)
+    // Dense screens already provide edge samples. Avoid adding 4x MSAA on
+    // top of Retina pixels, then keep the sheet itself sharp at native density.
+    ratio = paperPixelRatio(viewportWidth,viewportHeight,window.devicePixelRatio,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE))
+    canvas.width = Math.max(1,Math.floor(viewportWidth * ratio)); canvas.height = Math.max(1,Math.floor(viewportHeight * ratio))
     book.dataset.paperCanvasPixels=String(canvas.width*canvas.height)
     book.dataset.paperPixelRatio=ratio.toFixed(2)
+    book.dataset.paperAntialias=String(gl.getContextAttributes()?.antialias || false)
     Object.assign(canvas.style, {left: `${-overscanX}px`, top: `${-overscanY}px`, width: `${viewportWidth}px`, height: `${viewportHeight}px`})
     for (const [plane, direction] of [[leftPlane, -1], [rightPlane, 1]] as const) {
       writePaperMesh(planeVertices, 1, 1, width, height, 0, 0, .75, direction)
@@ -164,6 +165,7 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
         const sheet = document.createElement("canvas")
         sheet.width = Math.round(width * ratio); sheet.height = Math.round(height * ratio)
         const paint = sheet.getContext("2d")!
+        paint.imageSmoothingQuality="high"
         paint.scale(sheet.width / width, sheet.height / height)
         paint.fillStyle = "#fff"; paint.fillRect(0, 0, width, height)
         frames.forEach((frame, i) => {

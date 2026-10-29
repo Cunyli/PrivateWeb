@@ -24,6 +24,8 @@ export function bookingPlacement(curation:CurationVisibility){
   const processOrder=(photo:CurationPortrait)=>Number(photo.tags?.find(tag=>/^display:booking-process-\d+$/.test(tag))?.slice("display:booking-process-".length) || 9999)
   const processPhotos=curation.keptPortraits.filter(p=>p.tags?.includes("display:booking-process") && curationFeatured(curation,p) && p.id!==hero?.id && !intro.some(photo=>photo.id===p.id))
     .sort((a,b)=>processOrder(a)-processOrder(b) || a.id-b.id)
+  const master1=curation.featuredAssets.find(photo=>photo.id===-2 && curationFeatured(curation,photo))
+  if(master1)processPhotos.push(master1)
   const gallery=photos.filter(p=>p.id!==hero?.id && !processPhotos.some(photo=>photo.id===p.id) && !p.tags?.includes("display:exclude-booking-gallery"))
   return {photos,hero,process:processPhotos[0],processPhotos,intro,gallery}
 }

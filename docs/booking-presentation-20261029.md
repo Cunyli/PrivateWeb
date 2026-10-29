@@ -14,3 +14,8 @@ Hero, introduction, process, and gallery placements are reserved separately to a
 Confirmed filename corrections: DSC09457 (2385), DSC00373 (2815), and the sharper existing DSC00471 variant (2493) join Jianji & Xinyi's two confirmed frames. The duplicated, softer 00471 record is not added to this gallery. David/Switzerland contains four frames; 2881 is explicitly identified by the owner as their own portrait and moves to Why me together with 2868.
 
 Why me's ordered selection is DSC05245 (2604), DSC01164 (2530), DSC00309 (2814), DSC08848 (2523), DSC05236 (2858), DSC08353 (2868), and DSC07046 (2881). Only 2858 required a rating change: the owner explicitly approved marking it 1. All other stored ratings were preserved. Client series order stays unchanged.
+
+
+The selected fixed asset master1 (-2) closes the Why me sequence as its eighth image. Its existing public 1280×1920 display file is used directly; the private original remains undeployed and no duplicate database record or rating is created.
+
+Portrait book quality: retain device density up to 3x within a 6 MP / GPU-dimension bound, including curling-page overscan. Dense displays avoid redundant multisample antialiasing; low-density displays retain it. The same higher-density page texture and surface render the resting spread and moving leaf, so there is no content-owner handoff or change to turn geometry/state. Existing responsive source pixels already exceed the displayed photo areas.

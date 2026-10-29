@@ -125,6 +125,15 @@ async function main(){
   const orderedProcess=presentation.bookingPlacement({...placementState,featuredIds:[...placementState.featuredIds,305],keptPortraits:[...placementState.keptPortraits,ownProcess]})
   assert.deepEqual(Array.from(orderedProcess.processPhotos,p=>p.id),[305,303],'Explicit Why me placements must allow the owner without entering client casework')
   assert.deepEqual(Array.from(orderedProcess.gallery,p=>p.id),[304])
+  const master1={id:-2,src:'/photo-session/optimized/master1-1280.webp',source:'/private/master1.jpg',previewUrl:'/photo-session/optimized/master1-640.webp',title:'master1',width:640,height:960}
+  const withMaster={...placementState,featuredIds:[...placementState.featuredIds,-2],featuredAssets:[master1]}
+  assert.deepEqual(Array.from(presentation.bookingPlacement(withMaster).processPhotos,p=>p.id),[303,-2],'The selected fixed asset must keep its identity and follow the chosen Why me sequence')
+  assert.deepEqual(Array.from(presentation.bookingPlacement({...withMaster,ids:[-2]}).processPhotos,p=>p.id),[303],'Removed master1 must never return through a fixed placement')
+  const {paperPixelRatio}=load('lib/soft-page-resolution.ts')
+  assert.equal(paperPixelRatio(1379,808,2,8192),2,'A Retina book must retain native density')
+  assert.equal(paperPixelRatio(700,420,3,4096),3,'A small phone book must retain 3x density')
+  const largeRatio=paperPixelRatio(4000,1800,2,4096)
+  assert.ok(4000*1800*largeRatio*largeRatio<=6_000_001 && 4000*largeRatio<=4096,'Large canvases must stay within pixel and GPU limits')
   assert.deepEqual(Array.from(placement.intro,p=>p.id),[300],'Only explicitly chosen, approved intro portraits may appear in the introduction')
   const hiddenGallery={...placementState,keptPortraits:placementState.keptPortraits.map(p=>p.id===304?{...p,tags:[...p.tags,'display:exclude-booking-gallery']}:p)}
   assert.equal(presentation.bookingPlacement(hiddenGallery).gallery.length,0,'A withdrawn series must stay out of gallery without hiding its hero')
