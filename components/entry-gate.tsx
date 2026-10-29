@@ -1,5 +1,6 @@
 "use client"
 
+import { useDocumentTitle } from "@/lib/use-document-title"
 import Link from "next/link"
 import { ArrowDown } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -16,6 +17,7 @@ const phase = (start: number, end: number, value: number) => {
 
 export function EntryGate() {
   const { locale } = useI18n()
+  useDocumentTitle(`${locale==="zh"?"摄影作品集":"Photography"} · Lijie Li`)
   const heroRef = useRef<HTMLElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const pointerBounds = useRef({ width: 1, height: 1 })

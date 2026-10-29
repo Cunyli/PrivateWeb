@@ -25,7 +25,7 @@ export function catalogVisibility(catalog: CurationCatalog): CurationVisibility 
   for (const photo of [...photos].sort((a,b) => rank(a)-rank(b) || a.order-b.order || a.id-b.id)) {
     if (photo.setPublished && !covers[photo.setId]) covers[photo.setId] = { id: photo.id, src: photo.src, width: photo.width, height: photo.height }
   }
-  const portrait = photos.filter(photo => photo.booking).map(({id,src,title,width,height,setId,tags,order}) => ({id,src,title,width,height,setId,tags,order}))
+  const portrait = photos.filter(photo => photo.booking).map(({id,src,title,width,height,setId,tags,order,translations}) => ({id,src,title,width,height,setId,tags,order,titles:{en:translations?.en?.title || undefined,zh:translations?.zh?.title || undefined}}))
   const selected = photos.find(photo => photo.setPublished) || portrait[0] || assets[0]
   return { ids: catalog.ids, featuredIds: [...photos,...assets].map(photo=>photo.id), covers, keptPortraits: portrait, featuredAssets: assets,
     selectedCover: selected ? {id:selected.id,src:selected.src,width:selected.width,height:selected.height} : null }

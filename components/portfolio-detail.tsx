@@ -1,10 +1,12 @@
 "use client"
 
+import { useDocumentTitle } from "@/lib/use-document-title"
 import { ArrowLeft, ArrowRight, ArrowUpRight, Grid2X2, Info, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { Carousel, photoSource } from "@/components/carousel"
 import type { CarouselImage } from "@/components/carousel"
+import { portfolioLocationLabel } from "@/lib/portfolio-location-label"
 import { useI18n } from "@/lib/i18n"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
@@ -68,13 +70,14 @@ export default function PortfolioDetail({ images, initialPictureId, translations
   const set = locale === "zh" ? translations.zh : translations.en
   const otherSet = locale === "zh" ? translations.en : translations.zh
   const displayTitle = set.title || otherSet.title || ""
+  useDocumentTitle(`${displayTitle || (locale==="zh"?"摄影作品":"Photographs")} · Lijie Li`)
   const displaySubtitle = set.subtitle || otherSet.subtitle || ""
   const displayDescription = set.description || otherSet.description || ""
   const image = currentImage?.translations[locale === "zh" ? "zh" : "en"]
   const otherImage = currentImage?.translations[locale === "zh" ? "en" : "zh"]
   const displayImageTitle = image?.title || otherImage?.title || ""
   const displayImageDescription = image?.description || otherImage?.description || ""
-  const locationNames = locations.map((location: any) => locale === "zh" ? location?.name_zh || location?.name || location?.name_en : location?.name_en || location?.name || location?.name_zh).filter(Boolean)
+  const locationNames = locations.map((location:any)=>portfolioLocationLabel(location,locale,"")).filter(Boolean)
 
   const resolveHomeHref = useCallback(() => {
     if (returnContext?.type === "style" && returnContext.styleKey) {

@@ -1,3 +1,4 @@
+import { PortfolioStatus } from "@/components/portfolio-status"
 import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
 import { curationVisible } from "@/lib/photo-curation"
 import { notFound } from "next/navigation"
@@ -135,7 +136,7 @@ export default async function SearchWorkPage({
   const zhSubtitle = query ? `“${query}”` : `${images.length} 张图片`
 
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<PortfolioStatus mode="loading" />}>
       <PortfolioDetail
         id="search"
         images={images}

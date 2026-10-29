@@ -1,3 +1,4 @@
+import { PortfolioStatus } from "@/components/portfolio-status"
 import { ViewerPhotoPreload } from "@/components/viewer-photo-preload"
 import { getPhotoCurationVisibility } from "@/lib/photo-curation.server"
 import { notFound } from "next/navigation"
@@ -91,21 +92,7 @@ export default async function StyleCollectionPage({
   const pictures = (stylePayload?.pictures || []) as StylePicture[]
 
   if (!pictures.length) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-[#f8f6f1] to-[#eaf0ff] text-gray-900">
-        <div className="max-w-md text-center px-6 py-12">
-          <p className="text-xs uppercase tracking-[0.35em] text-gray-500">
-            {styleConfig.labels?.en || styleConfig.tagName}
-          </p>
-          <h1 className="mt-3 text-2xl font-light text-gray-900">
-            {styleConfig.labels?.zh || styleConfig.tagName}
-          </h1>
-          <p className="mt-4 text-sm text-gray-600">
-            {styleKey === "travel" ? "No recent uploads yet." : "This style collection is still building."}
-          </p>
-        </div>
-      </div>
-    )
+    return <PortfolioStatus mode="empty" />
   }
 
   const dayKey = new Date().toISOString().slice(0, 10)

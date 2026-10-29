@@ -33,7 +33,7 @@ export type CurationChange = {
   width?: number
   height?: number
 }
-export type CurationPortrait = { id: number; src: string; title: string; width: number | null; height: number | null; setId?: number; tags?: string[]; order?: number }
+export type CurationPortrait = { id: number; src: string; title: string; titles?: { en?: string; zh?: string }; width: number | null; height: number | null; setId?: number; tags?: string[]; order?: number }
 export type CurationAsset = CurationPortrait & { source: string; previewUrl: string }
 export type CurationCover = { id: number; src: string; width: number | null; height: number | null }
 export type CurationVisibility = {

@@ -1,5 +1,6 @@
 import { curationFeatured, curationAssetKey } from "./photo-curation"
-import { bookingPortraits, sessionPhotoSources } from "./booking-photo-presentation"
+import { bookingPortraits, sessionPhotoSources, portraitTitle } from "./booking-photo-presentation"
+import { localizePlaceText } from "./portfolio-location-label"
 import { photoSeries, preferSeriesPlace } from "./photo-series"
 import type { CurationVisibility, CurationPortrait } from "./photo-curation"
 
@@ -46,7 +47,7 @@ const bookingGroupLabels:Record<string,{title:string;place:string}>={
   appenzell:{title:"David",place:"Switzerland"},
 }
 
-export function bookingPortraitGroups(curation: CurationVisibility, bucket: string, photos=bookingPortraits(curation)): MomentGroup[] {
+export function bookingPortraitGroups(curation: CurationVisibility, bucket: string, photos=bookingPortraits(curation),locale:"zh"|"en"="en"): MomentGroup[] {
   const groups = new Map<string,MomentGroup>()
   for (const photo of photos) {
     if (!curationFeatured(curation,photo)) continue
@@ -63,7 +64,7 @@ export function bookingPortraitGroups(curation: CurationVisibility, bucket: stri
     group.place = display ? display.place : series.portrait ? preferSeriesPlace(group.place,series.subtitle) : ""
     const displaySource=sessionPhotoSources({id:photo.id,src:photo.src},bucket)
     group.photos.push({ id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,bucket).href,previewSrc:displaySource.src,previewSrcSet:displaySource.srcSet,
-      alt:(!display && photo.title) || [series.portrait?series.title:group.title,series.subtitle || place].filter(Boolean).join(" · "),title:series.portrait?series.title:group.title,place:series.subtitle || place,note:"",tags,
+      alt:portraitTitle(photo,locale,[series.portrait?series.title:group.title,localizePlaceText(series.subtitle || place,locale)].filter(Boolean).join(" · ")),title:series.portrait?series.title:group.title,place:series.subtitle || place,note:"",tags,
       width:displaySource.width || photo.width || undefined,height:displaySource.height || photo.height || undefined,
       sourceName:curationAssetKey(photo.src),featured:tags.includes("display:cover") })
     group.tags=[...new Set([...group.tags,...tags])]
@@ -78,7 +79,7 @@ export function bookingPortraitGroups(curation: CurationVisibility, bucket: stri
   // selection, preserving each photo's own person and place for the viewer.
   if(singles.length>=2)series.push({id:"portrait-highlights",kind:"highlights",title:"Portraits",place:"",note:"",curated:true,
     photoCount:singles.length,tags:[...new Set(singles.flatMap(photo=>photo.tags))],photos:singles})
-  return series
+  return series.map(group=>({...group,title:localizePlaceText(group.title,locale),place:localizePlaceText(group.place,locale)}))
 }
 
 export function showcasePortraits(photos: CurationPortrait[], limit: number): CurationPortrait[] {

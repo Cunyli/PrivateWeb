@@ -29,7 +29,7 @@ export function LangSwitcher({ className }: LangSwitcherProps) {
       <span aria-hidden="true" className="text-[11px] font-medium leading-none tracking-[-.02em]">
         {nextLocale === "en" ? "EN" : "中"}
       </span>
-      <span className="sr-only">{nextLocale === "en" ? "Switch to English" : "切换到中文"}</span>
+      <span className="sr-only">{locale === "en" ? "Switch to Chinese" : "切换到英文"}</span>
     </button>
   )
 }
