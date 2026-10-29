@@ -763,95 +763,61 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
   const [photoRatios, setPhotoRatios] = useState<Record<string, number>>({})
 
   useEffect(() => {
-    const section = root.current
-    const sticky = stage.current
-    const windowElement = viewport.current
-    const strip = track.current
-    if (!section || !sticky || !windowElement || !strip) return
-
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)")
-    const panels = Array.from(strip.querySelectorAll<HTMLElement>("[data-personal-spread]"))
-    const compositions = panels.map(panel => ({
-      panel,
-      photo: panel.querySelector<HTMLElement>("[data-intro-photo]"),
-      caption: panel.querySelector<HTMLElement>("figcaption"),
-      left: 0,
-      width: 0,
-    }))
-    let visible = false, frame = 0, start = 0, distance = 1, travel = 0, windowWidth = 1
-    let position = 0, previous = 0, initialized = false
-    const update = (now: number) => {
-      frame = 0
-      if (!visible || motion.matches || document.hidden) return
-      const target = travel * Math.max(0,Math.min(1,(window.scrollY-start)/distance))
-      const dt = Math.min(.06,previous ? (now-previous)/1000 : 1/60)
-      previous = now
-      position = initialized ? position+(target-position)*(1-Math.exp(-dt/.055)) : target
-      initialized = true
-      if(Math.abs(target-position)<.06)position=target
-      strip.style.transform=`translate3d(${(-position).toFixed(2)}px,0,0)`
-      compositions.forEach(({photo,caption,left,width}) => {
-        const relative=Math.max(-1,Math.min(1,(left+width/2-position-windowWidth/2)/windowWidth))
-        if(photo)photo.style.transform=`translate3d(0,${(relative*18).toFixed(2)}px,0) rotate(${(relative*-2.4).toFixed(2)}deg)`
-        if(caption)caption.style.transform=`translate3d(${(relative*-22).toFixed(2)}px,${(relative*-24).toFixed(2)}px,0)`
-      })
-      section.dataset.storyProgress=(travel ? position/travel : 0).toFixed(3)
-      if(Math.abs(target-position)>.06)frame=requestAnimationFrame(update)
-      else previous=0
+    const section=root.current,sticky=stage.current,windowElement=viewport.current,strip=track.current
+    if(!section || !sticky || !windowElement || !strip)return
+    const motion=window.matchMedia("(prefers-reduced-motion: reduce)")
+    const native=CSS.supports("animation-timeline","view()") && CSS.supports("animation-range","contain 0% contain 100%")
+    let visible=false,frame=0,start=0,distance=1,travel=0,lastWidth=0
+    // Older browsers use one transform write at the display's own rAF cadence.
+    // Native scroll timelines avoid a JavaScript animation loop entirely.
+    const update=()=>{
+      frame=0
+      if(!visible || motion.matches || document.hidden)return
+      const progress=Math.max(0,Math.min(1,(window.scrollY-start)/distance))
+      strip.style.transform=`translate3d(${-travel*progress}px,0,0)`
     }
-    const schedule = () => {if(visible && !motion.matches && !document.hidden && !frame)frame=requestAnimationFrame(update)}
-    const measure = () => {
-      start = section.getBoundingClientRect().top + window.scrollY
-      distance = Math.max(1, section.offsetHeight - sticky.offsetHeight)
-      windowWidth = windowElement.clientWidth
-      strip.style.setProperty("--spread-width", `${windowWidth}px`)
-      travel = Math.max(0, strip.scrollWidth - windowWidth)
-      compositions.forEach(composition => {
-        composition.left = composition.panel.offsetLeft
-        composition.width = composition.panel.offsetWidth
-      })
+    const schedule=()=>{if(!native && visible && !motion.matches && !document.hidden && !frame)frame=requestAnimationFrame(update)}
+    const measure=()=>{
+      start=section.getBoundingClientRect().top+window.scrollY
+      distance=Math.max(1,section.offsetHeight-sticky.offsetHeight)
+      const width=windowElement.clientWidth
+      if(width!==lastWidth){strip.style.setProperty("--spread-width",`${width}px`);lastWidth=width}
+      travel=Math.max(0,strip.scrollWidth-width)
+      strip.style.setProperty("--intro-travel",`${-travel}px`)
       schedule()
     }
-    const configure = () => {
-      if (motion.matches) {
+    const configure=()=>{
+      if(motion.matches){
         delete section.dataset.storyEnhanced
+        delete section.dataset.storyMotion
         strip.style.removeProperty("transform")
-        compositions.forEach(({ photo, caption }) => {
-          photo?.style.removeProperty("transform")
-          caption?.style.removeProperty("transform")
-        })
-      } else {
-        section.dataset.storyEnhanced = "true"
+        cancelAnimationFrame(frame);frame=0
+      }else{
+        section.dataset.storyEnhanced="true"
+        section.dataset.storyMotion=native?"native":"script"
+        if(native)strip.style.removeProperty("transform")
       }
       measure()
     }
-    const visibility = new IntersectionObserver(entries => {
-      visible = entries[0].isIntersecting
-      section.dataset.storyActive = String(visible)
-      if (visible) measure()
-      else { cancelAnimationFrame(frame); frame = 0; previous = 0; initialized = false }
-    }, { rootMargin: "100px" })
-    const resize = new ResizeObserver(measure)
-    configure()
-    visibility.observe(section)
-    resize.observe(sticky)
-    resize.observe(windowElement)
-    resize.observe(strip)
-    window.addEventListener("scroll", schedule, { passive: true })
-    window.addEventListener("resize", measure)
-    document.addEventListener("visibilitychange", schedule)
-    motion.addEventListener("change", configure)
-
-    return () => {
-      cancelAnimationFrame(frame)
-      visibility.disconnect()
-      resize.disconnect()
-      window.removeEventListener("scroll", schedule)
-      window.removeEventListener("resize", measure)
-      document.removeEventListener("visibilitychange", schedule)
-      motion.removeEventListener("change", configure)
+    const visibility=new IntersectionObserver(entries=>{
+      visible=entries[0].isIntersecting
+      section.dataset.storyActive=String(visible)
+      if(visible)measure()
+      else {cancelAnimationFrame(frame);frame=0}
+    },{rootMargin:"100px"})
+    const resize=new ResizeObserver(measure)
+    configure();visibility.observe(section)
+    resize.observe(sticky);resize.observe(windowElement);resize.observe(strip)
+    if(!native)window.addEventListener("scroll",schedule,{passive:true})
+    window.addEventListener("resize",measure)
+    document.addEventListener("visibilitychange",schedule)
+    motion.addEventListener("change",configure)
+    return ()=>{
+      cancelAnimationFrame(frame);visibility.disconnect();resize.disconnect()
+      window.removeEventListener("scroll",schedule);window.removeEventListener("resize",measure)
+      document.removeEventListener("visibilitychange",schedule);motion.removeEventListener("change",configure)
     }
-  }, [photos, lines, locale])
+  },[photos,lines,locale])
 
   const focusSpread = (index: number, button: HTMLButtonElement) => {
     if (!button.matches(":focus-visible") || !root.current?.dataset.storyEnhanced || !viewport.current || !track.current || !stage.current) return
@@ -872,10 +838,10 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
       <div ref={viewport} className={introStyles.viewport}>
         <div ref={track} className={introStyles.track}>
           {lines.map((line, index) => {
-            const photo = photos.length ? photos[index % photos.length] : null
+            const photo = photos[index] || null
             return <figure key={index} className={introStyles.spread} data-personal-spread>
-              {photo&&<button type="button" className={introStyles.photograph} style={{ "--intro-ratio": photoRatios[photo.src] || 1.5 } as CSSProperties} data-intro-photo onClick={() => onOpen(photo)} onFocus={event => focusSpread(index, event.currentTarget)} aria-label={photo.alt}>
-                <SessionImage src={photo.src} alt={photo.alt} onLoad={({ currentTarget }) => {
+              {photo&&<button type="button" className={introStyles.photograph} style={{ "--intro-ratio": photoRatios[photo.src] || (photo.width && photo.height ? photo.width/photo.height : 1.5) } as CSSProperties} data-intro-photo onClick={() => onOpen(photo)} onFocus={event => focusSpread(index, event.currentTarget)} aria-label={photo.alt}>
+                <SessionImage src={photo.src} alt={photo.alt} width={photo.width} height={photo.height} loading="eager" fetchPriority="low" onLoad={({ currentTarget }) => {
                   const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
                   if (Number.isFinite(ratio) && ratio > 0) setPhotoRatios(previous => previous[photo.src] === ratio ? previous : { ...previous, [photo.src]: ratio })
                 }} />
@@ -905,7 +871,7 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
   return (
       <section id="process" className="bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 lg:grid-cols-[0.46fr_0.54fr]">
+          <div className={`grid gap-10 ${activeShootPhoto ? "lg:grid-cols-[0.46fr_0.54fr]" : "mx-auto max-w-4xl"}`}>
             <div className="space-y-8">
               <div>
                 <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-tight sm:text-6xl">
@@ -959,9 +925,9 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
               </div>
             </div>
 
-          <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-8rem)] flex items-center justify-center">
-            {activeShootPhoto&&<ScrollPhoto photos={photos} activePhoto={activeShootPhoto} onOpen={onOpen} />}
-          </div>
+          {activeShootPhoto&&<div className="lg:sticky lg:top-16 lg:h-[calc(100svh-8rem)] flex items-center justify-center">
+            <ScrollPhoto photos={photos} activePhoto={activeShootPhoto} onOpen={onOpen} />
+          </div>}
           </div>
         </div>
       </section>
@@ -1075,7 +1041,11 @@ export function HelsinkiPhotoSession() {
   const placement=useMemo(()=>bookingPlacement(curation),[curation])
   const sessionSeries=useMemo(()=>bookingPortraitGroups(curation,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",placement.gallery),[curation,placement])
   const displayCover:Photo|null=placement.hero?{id:`portrait-${placement.hero.id}`,src:photoSource(placement.hero.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:placement.hero.title || "Portrait photograph"}:null
-  const aboutVisualPhotos=useMemo<Photo[]>(()=>[],[])
+  const aboutVisualPhotos=useMemo<Photo[]>(()=>placement.intro.map(photo=>{
+    const display=sessionPhotoSources(photo,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top")
+    return {id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top").href,
+      alt:photo.title || "Photographer portrait",width:display.width || photo.width || undefined,height:display.height || photo.height || undefined}
+  }),[placement])
   const shootVisualPhotos=useMemo<Photo[]>(()=>placement.process?[{id:`portrait-${placement.process.id}`,src:photoSource(placement.process.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:placement.process.title || "Portrait photograph"}]:[],[placement])
   const allPhotos = useMemo(() => {
     const seen = new Set<string>()
@@ -1411,7 +1381,7 @@ export function HelsinkiPhotoSession() {
       <PhotographerIntro photos={aboutVisualPhotos} title={copy.about.title} body={copy.about.body}
         lines={copy.about.highlightLines} eyebrow={copy.about.eyebrow} locale={pageLocale} onOpen={openPhoto} />
 
-      <SessionSeriesGallery series={sessionSeries} onOpen={openPhoto} label={pageLocale === "zh" ? "人像系列" : "Portrait series"} />
+      <SessionSeriesGallery series={sessionSeries} onOpen={openPhoto} locale={pageLocale} label={pageLocale === "zh" ? "人像系列" : "Portrait series"} />
 
       <WhyMeSection copy={copy} photos={shootVisualPhotos} locale={pageLocale} onOpen={openPhoto} />
 

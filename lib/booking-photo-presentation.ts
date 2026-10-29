@@ -10,7 +10,7 @@ export function bookingPortraits(curation:CurationVisibility): CurationPortrait[
     // The old generic master-photo pool is not a client shoot. Session/model
     // metadata gives the booking page a real story instead of a mixed grab bag.
     const session=tags.some(tag=>/^series:|^model:/i.test(tag))
-    return curationFeatured(curation,photo) && !personal && session && !tags.includes("display:exclude-booking")
+    return curationFeatured(curation,photo) && !personal && session && !tags.some(tag=>/^display:booking-intro-[123]$/.test(tag)) && !tags.includes("display:exclude-booking")
   })
 }
 
@@ -18,8 +18,12 @@ export function bookingPlacement(curation:CurationVisibility){
   const photos=bookingPortraits(curation)
   const hero=photos.find(p=>p.tags?.includes("display:booking-hero")) || photos.find(p=>p.tags?.some(t=>/^model:/i.test(t)))
   const process=photos.find(p=>p.id!==hero?.id && p.tags?.includes("display:booking-process"))
-  const gallery=photos.filter(p=>p.id!==hero?.id && p.id!==process?.id)
-  return {photos,hero,process,gallery}
+  const intro=[1,2,3].flatMap(index=>{
+    const photo=curation.keptPortraits.find(p=>p.tags?.includes(`display:booking-intro-${index}`) && curationFeatured(curation,p))
+    return photo?[photo]:[]
+  })
+  const gallery=photos.filter(p=>p.id!==hero?.id && p.id!==process?.id && !p.tags?.includes("display:exclude-booking-gallery"))
+  return {photos,hero,process,intro,gallery}
 }
 
 export function sessionPhotoSources(photo:{id?:string|number;src:string},bucket:string){

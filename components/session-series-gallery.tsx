@@ -19,18 +19,21 @@ type PhotoSeries = {
   id: string
   title: string
   place: string
+  kind?: "highlights"
   photos: SeriesPhoto[]
 }
 
 // Keep a shoot together, with a quieter second row for longer stories.
-function spreadRows(photos: SeriesPhoto[]) {
+function spreadRows(photos: SeriesPhoto[], highlights = false) {
   if (photos.length <= 3) return [photos]
+  if (highlights && photos.length > 6) return Array.from({length:Math.ceil(photos.length/3)},(_,i)=>photos.slice(i*3,i*3+3))
   const split = Math.ceil(photos.length / 2)
   return [photos.slice(0, split), photos.slice(split)]
 }
 
-export function SessionSeriesGallery({ series, onOpen, label }: {
+export function SessionSeriesGallery({ series, onOpen, label, locale }: {
   label: string
+  locale: "zh" | "en"
   series: PhotoSeries[]
   onOpen: (photo: SeriesPhoto, trigger: HTMLButtonElement) => void
 }) {
@@ -65,11 +68,11 @@ export function SessionSeriesGallery({ series, onOpen, label }: {
       {series.map(group => <article key={group.id} data-photo-series={group.id} className={styles.series}
         aria-labelledby={`series-${group.id}`}>
         <header className={styles.heading}>
-          <h2 id={`series-${group.id}`}>{group.title}</h2>
+          <h2 id={`series-${group.id}`}>{group.kind==="highlights" && locale==="zh" ? "人像精选" : group.title}</h2>
           <p>{group.place}</p>
         </header>
         <div className={styles.spread}>
-          {spreadRows(group.photos).map((row, rowIndex) => <div key={rowIndex} data-photo-row data-count={row.length} className={styles.row}>
+          {spreadRows(group.photos,group.kind==="highlights").map((row, rowIndex) => <div key={rowIndex} data-photo-row data-count={row.length} className={styles.row}>
             {row.map((photo, index) => {
               const ratio = ratios[photo.id] || (photo.width || 3) / (photo.height || 2)
               return <figure key={photo.id} data-series-source={photo.sourceName} data-portrait={ratio < 1} className={styles.figure}

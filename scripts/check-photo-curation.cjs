@@ -95,9 +95,24 @@ async function main(){
   assert.equal(selector.selectMomentSeries([], 'zh', empty).length,0,'No old static booking series may be resurrected')
   const strictSeries=selector.selectMomentSeries([curated], 'zh', featured)
   assert.deepEqual(Array.from(strictSeries[0].photos,photo=>photo.id),['portrait-999'])
-  assert.equal(selector.bookingPortraitGroups(featured,'https://images.example.invalid').flatMap(group=>group.photos).length,1)
+  assert.equal(selector.bookingPortraitGroups(featured,'https://images.example.invalid').length,0,'One lone frame must not become a standalone shoot')
+  const shootPhotos=[
+    {...fixturePhoto,id:910,tags:['model:A','series:full','location:stockholm']},
+    {...fixturePhoto,id:911,tags:['model:A','series:full','location:stockholm']},
+    {...fixturePhoto,id:912,tags:['model:B','series:single-b','location:helsinki']},
+    {...fixturePhoto,id:913,tags:['model:C','series:single-c','location:appenzell']},
+    {...fixturePhoto,id:914,tags:['model:D','series:unrated']},
+  ]
+  const groupedState={...empty,featuredIds:[910,911,912,913],keptPortraits:shootPhotos}
+  const grouped=selector.bookingPortraitGroups(groupedState,'https://images.example.invalid')
+  assert.deepEqual(Array.from(grouped,group=>group.photos.length),[2,2],'Complete shoots stay together and single frames share one selection')
+  assert.equal(grouped[1].kind,'highlights')
+  assert.deepEqual(Array.from(grouped[1].photos,photo=>[photo.id,photo.title,photo.place]),[['portrait-912','B','Helsinki'],['portrait-913','C','Appenzell']],'Mixed selection must preserve per-photo person and place')
+  assert.equal(new Set(grouped.flatMap(group=>group.photos.map(photo=>photo.id))).size,4,'Selections must not duplicate a frame')
+  const recull=selector.bookingPortraitGroups({...groupedState,ids:[913]},'https://images.example.invalid')
+  assert.deepEqual(Array.from(recull,group=>Array.from(group.photos,photo=>photo.id)),[['portrait-910','portrait-911']],'After a cull, neither removed frames nor a single-photo heading may return')
   const presentation=load('lib/booking-photo-presentation.ts')
-  const owner={...fixturePhoto,id:300,tags:['model:Lijie','series:personal']}
+  const owner={...fixturePhoto,id:300,tags:['model:Lijie','series:personal','display:booking-intro-2']}
   const withdrawn={...fixturePhoto,id:301,tags:['model:Hongjia','series:swiss','display:exclude-booking']}
   const hero={...fixturePhoto,id:302,tags:['model:Junjie','series:travel','display:booking-hero']}
   const process={...fixturePhoto,id:303,tags:['series:florence','display:booking-process']}
@@ -106,6 +121,15 @@ async function main(){
   const placement=presentation.bookingPlacement(placementState)
   assert.deepEqual(Array.from(placement.photos,p=>p.id),[302,303,304],'Booking samples exclude the owner and withdrawn series')
   assert.equal(placement.hero.id,302);assert.equal(placement.process.id,303)
+  assert.deepEqual(Array.from(placement.intro,p=>p.id),[300],'Only explicitly chosen, approved intro portraits may appear in the introduction')
+  const hiddenGallery={...placementState,keptPortraits:placementState.keptPortraits.map(p=>p.id===304?{...p,tags:[...p.tags,'display:exclude-booking-gallery']}:p)}
+  assert.equal(presentation.bookingPlacement(hiddenGallery).gallery.length,0,'A withdrawn series must stay out of gallery without hiding its hero')
+  const joined=selector.bookingPortraitGroups({...empty,featuredIds:[920,921],keptPortraits:[
+    {...fixturePhoto,id:920,tags:['model:Burong','model:Yujun','series:one','display:booking-group:lijiang']},
+    {...fixturePhoto,id:921,tags:['model:Junjie','series:two','display:booking-group:lijiang']},
+  ]},'https://images.example.invalid')
+  assert.equal(joined.length,1);assert.equal(joined[0].title,'Lijiang')
+  assert.deepEqual(Array.from(joined[0].photos,p=>p.title),['Burong & Yujun','Junjie'],'Authored groupings must retain original person metadata')
   assert.deepEqual(Array.from(placement.gallery,p=>p.id),[304],'Hero and process photographs must not repeat in the gallery')
   const source=load('lib/viewer-photo-source.ts')
   const rendition=source.viewerPhotoDimensions({id:'portrait-2886',url:'/picture/responsive/image-1782610139773-17-f53f0e0c-9932-4fd3-8d5e-aa8d4024f76a-DSC07258/original.jpg'})
