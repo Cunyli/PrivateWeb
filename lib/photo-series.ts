@@ -1,4 +1,4 @@
-const prettyPlaces: Record<string, string> = { aalto: "Aalto", helsinki: "Helsinki", stockholm: "Stockholm", switzerland: "Switzerland", zermatt: "Zermatt", oeschinen: "Oeschinen", appenzell: "Appenzell", spiz: "Spiez", lijiang: "Lijiang", italy: "Italy" }
+const prettyPlaces: Record<string, string> = { "巴塞罗那":"Barcelona", aalto: "Aalto", helsinki: "Helsinki", stockholm: "Stockholm", switzerland: "Switzerland", zermatt: "Zermatt", oeschinen: "Oeschinen", appenzell: "Appenzell", spiz: "Spiez", lijiang: "Lijiang", italy: "Italy" }
 const label = (value: string) => value.replace(/^location:|^model:|^series:/, "").replace(/-/g, " ")
 export function photoSeries(setId: number, title: string, subtitle: string, tags: string[]) {
   const models = tags.filter(tag => tag.startsWith("model:")).map(label).sort()

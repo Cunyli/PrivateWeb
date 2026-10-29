@@ -732,16 +732,32 @@ function ScrollPhoto({ photos, activePhoto, about = false, onOpen }: {
   about?: boolean
   onOpen: (photo: Photo) => void
 }) {
-  const [ratios, setRatios] = useState<Record<string, number>>({})
-  const ratio = ratios[activePhoto.src] || 1.5
+  const frameRef=useRef<HTMLButtonElement>(null)
+  const requested=useRef(activePhoto.src)
+  requested.current=activePhoto.src
+  const [presentation,setPresentation]=useState<{current:string;previous:string|null}>({current:activePhoto.src,previous:null})
+  const [ratios,setRatios]=useState<Record<string,number>>({})
+  const showPhoto=(src:string)=>setPresentation(previous=>previous.current===src?previous:{current:src,previous:previous.current})
+  useEffect(()=>{
+    const image=Array.from(frameRef.current?.querySelectorAll<HTMLImageElement>("img") || []).find(image=>image.dataset.processSource===activePhoto.src)
+    if(image?.complete && image.naturalWidth>0)showPhoto(activePhoto.src)
+  },[activePhoto.src,photos])
+  const presented=photos.find(photo=>photo.src===presentation.current) || activePhoto
+  const index=photos.findIndex(photo=>photo.src===activePhoto.src)
+  // Keep the departing frame, requested frame and next frame. A fast jump
+  // retains the visible photo until the requested resource has loaded.
+  const sources=new Set([presented.src,presentation.previous,activePhoto.src,photos[index+1]?.src])
+  const ratio=ratios[presented.src] || (presented.width && presented.height ? presented.width/presented.height : 1.5)
   return <div className={about ? sessionStyles.aboutVisual : sessionStyles.processVisual}>
-    <button type="button" className={sessionStyles.naturalFrame} style={{ "--frame-ratio": ratio } as CSSProperties}
-      onClick={() => onOpen(activePhoto)} aria-label={activePhoto.alt}>
-      {photos.map(photo => <SessionImage key={photo.src} src={photo.src} alt={photo.src === activePhoto.src ? photo.alt : ""}
-        aria-hidden={photo.src !== activePhoto.src} className={sessionStyles.naturalPhoto} data-active={photo.src === activePhoto.src}
-        onLoad={({currentTarget}) => {
-          const next = currentTarget.naturalWidth / currentTarget.naturalHeight
-          if (Number.isFinite(next) && next > 0) setRatios(previous => previous[photo.src] === next ? previous : {...previous, [photo.src]: next})
+    <button ref={frameRef} type="button" className={sessionStyles.naturalFrame} style={{"--frame-ratio":ratio} as CSSProperties}
+      onClick={()=>onOpen(presented)} aria-label={presented.alt}>
+      {photos.filter(photo=>sources.has(photo.src)).map(photo=><SessionImage key={photo.src} src={photo.src} alt={photo.src===presented.src?photo.alt:""}
+        width={photo.width} height={photo.height} loading="eager" fetchPriority={photo.src===activePhoto.src?"auto":"low"} data-process-source={photo.src} aria-hidden={photo.src!==presented.src}
+        className={sessionStyles.naturalPhoto} data-active={photo.src===presented.src}
+        onLoad={({currentTarget})=>{
+          const next=currentTarget.naturalWidth/currentTarget.naturalHeight
+          if(Number.isFinite(next)&&next>0)setRatios(previous=>previous[photo.src]===next?previous:{...previous,[photo.src]:next})
+          if(requested.current===photo.src)showPhoto(photo.src)
         }} />)}
     </button>
   </div>
@@ -867,7 +883,7 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
   useScrollFocus("process",stepRefs,setActiveStepIndex,locale,.42)
   const displayShootSteps = shootSteps.map((step,index) => ({...step,title:copy.process.steps[index]?.title || step.title,body:copy.process.steps[index]?.body || step.body}))
   const activeStep = displayShootSteps[activeStepIndex] || displayShootSteps[0]
-  const activeShootPhoto = photos.length ? photos[activeStepIndex % photos.length] : null
+  const activeShootPhoto = photos.length ? photos[Math.min(photos.length-1,Math.floor(activeStepIndex*photos.length/displayShootSteps.length))] : null
   return (
       <section id="process" className="bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
         <div className="mx-auto max-w-7xl">
@@ -1046,7 +1062,11 @@ export function HelsinkiPhotoSession() {
     return {id:`portrait-${photo.id}`,src:photo.src.startsWith("http")?photo.src:new URL(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top").href,
       alt:photo.title || "Photographer portrait",width:display.width || photo.width || undefined,height:display.height || photo.height || undefined}
   }),[placement])
-  const shootVisualPhotos=useMemo<Photo[]>(()=>placement.process?[{id:`portrait-${placement.process.id}`,src:photoSource(placement.process.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:placement.process.title || "Portrait photograph"}]:[],[placement])
+  const shootVisualPhotos=useMemo<Photo[]>(()=>placement.processPhotos.map(photo=>{
+    const display=sessionPhotoSources(photo,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top")
+    return {id:`portrait-${photo.id}`,src:photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:photo.title || "Photograph",
+      width:display.width || photo.width || undefined,height:display.height || photo.height || undefined}
+  }),[placement])
   const allPhotos = useMemo(() => {
     const seen = new Set<string>()
     return [...(displayCover?[displayCover]:[]), ...sessionSeries.flatMap(group => group.photos), ...aboutVisualPhotos, ...shootVisualPhotos]

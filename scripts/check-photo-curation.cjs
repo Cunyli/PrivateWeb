@@ -119,8 +119,12 @@ async function main(){
   const remainder={...fixturePhoto,id:304,tags:['model:Xiya','series:stockholm']}
   const placementState={...empty,featuredIds:[300,301,302,303,304],keptPortraits:[owner,withdrawn,hero,process,remainder]}
   const placement=presentation.bookingPlacement(placementState)
-  assert.deepEqual(Array.from(placement.photos,p=>p.id),[302,303,304],'Booking samples exclude the owner and withdrawn series')
+  assert.deepEqual(Array.from(placement.photos,p=>p.id),[302,304],'Booking samples exclude the owner and withdrawn series')
   assert.equal(placement.hero.id,302);assert.equal(placement.process.id,303)
+  const ownProcess={...fixturePhoto,id:305,tags:['model:Lijie','display:booking-process','display:booking-process-1']}
+  const orderedProcess=presentation.bookingPlacement({...placementState,featuredIds:[...placementState.featuredIds,305],keptPortraits:[...placementState.keptPortraits,ownProcess]})
+  assert.deepEqual(Array.from(orderedProcess.processPhotos,p=>p.id),[305,303],'Explicit Why me placements must allow the owner without entering client casework')
+  assert.deepEqual(Array.from(orderedProcess.gallery,p=>p.id),[304])
   assert.deepEqual(Array.from(placement.intro,p=>p.id),[300],'Only explicitly chosen, approved intro portraits may appear in the introduction')
   const hiddenGallery={...placementState,keptPortraits:placementState.keptPortraits.map(p=>p.id===304?{...p,tags:[...p.tags,'display:exclude-booking-gallery']}:p)}
   assert.equal(presentation.bookingPlacement(hiddenGallery).gallery.length,0,'A withdrawn series must stay out of gallery without hiding its hero')
