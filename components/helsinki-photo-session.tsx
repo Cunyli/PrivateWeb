@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { CSSProperties, Dispatch, FormEvent, ImgHTMLAttributes, MouseEvent, RefObject, SetStateAction } from "react"
+import type { CSSProperties, FormEvent, ImgHTMLAttributes, MouseEvent } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import * as Dialog from "@radix-ui/react-dialog"
@@ -39,6 +39,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n"
 import { bindMapWheelGestures } from "@/lib/map-wheel-gestures"
+import { useBookingScrollFocus } from "./use-booking-scroll-focus"
 
 type Locale = "zh" | "en"
 
@@ -699,33 +700,6 @@ const faqs = [
   },
 ]
 
-function useScrollFocus<T extends HTMLElement>(sectionId: string, refs: RefObject<Array<T | null>>, setActive: Dispatch<SetStateAction<number>>, locale: Locale, itemAnchor = .5) {
-  useEffect(() => {
-    const section = document.getElementById(sectionId)
-    if (!section) return
-    let visible = false, frame = 0
-    let anchors: Array<{index:number;top:number}> = []
-    const update = () => {
-      frame = 0
-      if (!visible || document.hidden) return
-      const point = window.scrollY + window.innerHeight * .46
-      let nearest = 0, distance = Infinity
-      for (const anchor of anchors) {const next=Math.abs(anchor.top-point);if(next<distance){nearest=anchor.index;distance=next}}
-      setActive(current => current === nearest ? current : nearest)
-    }
-    const schedule = () => {if(visible && !frame)frame=requestAnimationFrame(update)}
-    const measure = () => {
-      anchors = (refs.current || []).flatMap((node,index) => {if(!node)return [];const rect=node.getBoundingClientRect();return [{index,top:rect.top+window.scrollY+rect.height*itemAnchor}]})
-      schedule()
-    }
-    const observer = new IntersectionObserver(([entry]) => {visible=entry.isIntersecting;if(visible)measure()}, {rootMargin:"100px"})
-    const resize = new ResizeObserver(measure)
-    observer.observe(section);resize.observe(section);measure()
-    window.addEventListener("scroll",schedule,{passive:true});window.addEventListener("resize",measure)
-    return () => {observer.disconnect();resize.disconnect();cancelAnimationFrame(frame);window.removeEventListener("scroll",schedule);window.removeEventListener("resize",measure)}
-  }, [sectionId,refs,setActive,locale,itemAnchor])
-}
-
 function ScrollPhoto({ photos, activePhoto, about = false, onOpen }: {
   photos: Photo[]
   activePhoto: Photo
@@ -882,22 +856,21 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
 }) {
   const [activeStepIndex,setActiveStepIndex] = useState(0)
   const stepRefs = useRef<Array<HTMLElement | null>>([])
-  useScrollFocus("process",stepRefs,setActiveStepIndex,locale,.42)
+  useBookingScrollFocus("process",stepRefs,setActiveStepIndex,locale,{itemAnchor:0,anchorSelector:"h3",follow:"passed",visualSelector:"[data-process-visual]",visualAnchor:.4})
   const displayShootSteps = shootSteps.map((step,index) => ({...step,title:copy.process.steps[index]?.title || step.title,body:copy.process.steps[index]?.body || step.body}))
-  const activeStep = displayShootSteps[activeStepIndex] || displayShootSteps[0]
   const activeShootPhoto = photos.length ? photos[Math.min(photos.length-1,Math.floor(activeStepIndex*photos.length/displayShootSteps.length))] : null
   return (
       <section id="process" className="bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className={`grid gap-10 ${activeShootPhoto ? "lg:grid-cols-[0.46fr_0.54fr]" : "mx-auto max-w-4xl"}`}>
-            <div className="space-y-8">
-              <div>
+          <div className={`grid gap-10 ${sessionStyles.processLayout} ${activeShootPhoto ? "lg:grid-cols-[0.46fr_0.54fr]" : "mx-auto max-w-4xl"}`}>
+            <div className={sessionStyles.processCopy}>
+              <div className={sessionStyles.processHeading}>
                 <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-tight sm:text-6xl">
                   {copy.process.title}
                 </h2>
               </div>
 
-              <div className="relative pb-[10svh] pt-4">
+              <div className={`relative pb-[10svh] pt-4 ${sessionStyles.processSteps}`}>
                 <div className="pointer-events-none absolute bottom-0 left-[1.1rem] top-4 hidden w-px bg-white/12 sm:block" />
                 {displayShootSteps.map((step, index) => (
                   <article
@@ -906,6 +879,7 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
                       stepRefs.current[index] = node
                     }}
                     data-step-index={index}
+                    aria-current={activeStepIndex===index?"step":undefined}
                     className={`group relative grid min-h-[36svh] gap-5 border-t border-white/12 py-8 transition duration-500 sm:grid-cols-[3.25rem_minmax(0,1fr)] sm:border-t-0 sm:py-10 ${
                       activeStepIndex === index ? "text-white" : "text-white/35"
                     }`}
@@ -943,7 +917,7 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
               </div>
             </div>
 
-          {activeShootPhoto&&<div className="lg:sticky lg:top-16 lg:h-[calc(100svh-8rem)] flex items-center justify-center">
+          {activeShootPhoto&&<div data-process-visual className={`lg:sticky lg:top-16 lg:h-[calc(100svh-8rem)] flex items-center justify-center ${sessionStyles.processPhotos}`}>
             <ScrollPhoto photos={photos} activePhoto={activeShootPhoto} onOpen={onOpen} />
           </div>}
           </div>
@@ -1038,6 +1012,7 @@ export function HelsinkiPhotoSession() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [presentedIndex, setPresentedIndex] = useState(0)
   const locationRefs = useRef<Array<HTMLElement | null>>([])
+  const locationListRef=useRef<HTMLDivElement>(null)
   const testimonialScrollerRef = useRef<HTMLDivElement | null>(null)
   const mapRootRef = useRef<HTMLDivElement | null>(null)
   const bookingTriggerRef = useRef<HTMLButtonElement | null>(null)
@@ -1048,6 +1023,15 @@ export function HelsinkiPhotoSession() {
   const lastMapFocusRef=useRef<string|null>(null)
   const manualMapFocusRef=useRef(false)
   const hoverLocationTimer=useRef<number|null>(null)
+  const resumeMapTracking=useCallback(()=>{
+    manualMapFocusRef.current=false
+    if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}
+  },[])
+  const focusScrolledLocation=useCallback((index:number)=>{
+    const location=locations[index]
+    if(location)setActiveLocationId(location.id)
+  },[])
+  useBookingScrollFocus("locations",locationRefs,focusScrolledLocation,locale,{visualSelector:"[data-location-map]",visualAnchor:.2,scroller:locationListRef,manualFocus:manualMapFocusRef})
   useEffect(()=>()=>{if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current)},[])
   const focusMapLocation=useCallback((id:string)=>{
     manualMapFocusRef.current=true
@@ -1056,7 +1040,7 @@ export function HelsinkiPhotoSession() {
     const map=mapRef.current,location=locations.find(item=>item.id===id)
     if(map && location && lastMapFocusRef.current===id){
       map.stop()
-      map.setView([location.lat,location.lng],Math.max(map.getZoom(),13),{animate:!window.matchMedia("(prefers-reduced-motion: reduce)").matches,pan:{duration:.28,easeLinearity:.5}})
+      map.flyTo([location.lat,location.lng],Math.max(map.getZoom(),13),{animate:!window.matchMedia("(prefers-reduced-motion: reduce)").matches,duration:.32})
     }
   },[])
   const displayLocations = useMemo(
@@ -1288,28 +1272,8 @@ export function HelsinkiPhotoSession() {
     if(lastMapFocusRef.current===activeLocationId)return
     lastMapFocusRef.current=activeLocationId
     map.stop()
-    map.setView([activeLocation.lat,activeLocation.lng],Math.max(map.getZoom(),13),{animate:!window.matchMedia("(prefers-reduced-motion: reduce)").matches,pan:{duration:.28,easeLinearity:.5}})
+    map.flyTo([activeLocation.lat,activeLocation.lng],Math.max(map.getZoom(),13),{animate:!window.matchMedia("(prefers-reduced-motion: reduce)").matches,duration:.32})
   },[activeLocationId,activeLocation.lat,activeLocation.lng,mapReady])
-
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0]
-        const id = visibleEntry?.target.getAttribute("data-location-id")
-        if (id && !manualMapFocusRef.current) setActiveLocationId(id)
-      },
-      { rootMargin: "-36% 0px -42% 0px", threshold: [0.2, 0.45, 0.7] },
-    )
-
-    locationRefs.current.forEach((node) => {
-      if (node) observer.observe(node)
-    })
-
-    return () => observer.disconnect()
-  }, [])
 
 
   const handleSectionLink = (sectionId: string) => (event: MouseEvent<HTMLButtonElement>) => {
@@ -1419,12 +1383,12 @@ export function HelsinkiPhotoSession() {
             </p>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-[0.58fr_0.42fr]">
-            <div className="grid gap-3 lg:order-2 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto lg:pr-1"
-              onWheel={()=>{manualMapFocusRef.current=false}}
-              onTouchMove={()=>{manualMapFocusRef.current=false}}
-              onPointerDown={()=>{manualMapFocusRef.current=false}}
-              onKeyDown={event=>{if(["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(event.key))manualMapFocusRef.current=false}}>
+          <div className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
+            <div ref={locationListRef} className={`grid gap-3 lg:order-2 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto lg:pr-1 ${sessionStyles.locationList}`}
+              onWheel={resumeMapTracking}
+              onTouchMove={resumeMapTracking}
+              onPointerDown={resumeMapTracking}
+              onKeyDown={event=>{if(["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(event.key))resumeMapTracking()}}>
               {displayLocations.map((location, index) => (
                 <article
                   key={location.id}
@@ -1432,13 +1396,14 @@ export function HelsinkiPhotoSession() {
                     locationRefs.current[index] = node
                   }}
                   data-location-id={location.id}
+                  aria-current={activeLocationId===location.id?"location":undefined}
                   className={`rounded-md border p-5 transition-colors duration-200 ${
                     activeLocationId === location.id
                       ? "border-[#20231f] bg-white shadow-[0_24px_70px_-48px_rgba(32,35,31,0.7)]"
                       : "border-[#d9dfe0] bg-white/60 text-[#7a6f62]"
                   }`}
-                  onMouseEnter={()=>{if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=window.setTimeout(()=>focusMapLocation(location.id),120)}}
-                  onMouseLeave={()=>{if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}}}
+                  onPointerEnter={event=>{if(event.pointerType!=="mouse" || !window.matchMedia("(hover:hover) and (pointer:fine)").matches)return;if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=window.setTimeout(()=>focusMapLocation(location.id),120)}}
+                  onPointerLeave={()=>{if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}}}
                 >
                   <div className="flex items-start gap-4">
                     <button
@@ -1464,8 +1429,8 @@ export function HelsinkiPhotoSession() {
               ))}
             </div>
 
-            <div className="lg:sticky lg:top-16 lg:order-1 lg:h-[calc(100svh-8rem)]">
-              <div className="relative h-[70svh] min-h-[540px] overflow-hidden rounded-md border border-[#d9dfe0] bg-[#dfe9ea] shadow-[0_24px_70px_-58px_rgba(32,35,31,0.55)] lg:h-full">
+            <div data-location-map className={`lg:sticky lg:top-16 lg:order-1 lg:h-[calc(100svh-8rem)] ${sessionStyles.locationMap}`}>
+              <div className={`relative h-[70svh] min-h-[540px] overflow-hidden rounded-md border border-[#d9dfe0] bg-[#dfe9ea] shadow-[0_24px_70px_-58px_rgba(32,35,31,0.55)] lg:h-full ${sessionStyles.locationMapSurface}`}>
                 <div ref={mapRootRef} className="absolute inset-0 z-0 h-full w-full [&_.leaflet-tooltip.photo-session-map-tooltip]:rounded-md [&_.leaflet-tooltip.photo-session-map-tooltip]:border-[#d9dfe0] [&_.leaflet-tooltip.photo-session-map-tooltip]:bg-white/95 [&_.leaflet-tooltip.photo-session-map-tooltip]:px-2.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:py-1.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:text-xs [&_.leaflet-tooltip.photo-session-map-tooltip]:font-semibold [&_.leaflet-tooltip.photo-session-map-tooltip]:text-[#20231f] [&_.leaflet-tooltip.photo-session-map-tooltip]:shadow-sm" />
                 <div
                   className={`pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#dfe9ea] transition duration-500 ${

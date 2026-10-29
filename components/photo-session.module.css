@@ -4,6 +4,7 @@
 .homeLink { position: absolute; z-index: 30; top: 20px; left: max(20px,calc((100% - 1216px)/2)); display: flex; min-height: 44px; align-items: center; color: white; font-size: 18px; font-weight: 600; letter-spacing: -.055em; }
 .aboutVisual,.processVisual { display: flex; width: 100%; justify-content: center; align-items: center; --frame-height: min(42svh,430px); }
 .processVisual { --frame-height: min(72svh,740px); padding-inline: 12px; }
+.processHeading { margin-bottom:32px; }
 .naturalFrame { position: relative; display: block; width: min(100%, calc(var(--frame-ratio) * var(--frame-height))); aspect-ratio: var(--frame-ratio); overflow: hidden; border-radius: 6px; background: transparent; }
 .naturalPhoto { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 500ms ease; pointer-events: none; }
 .naturalPhoto[data-active="true"] { opacity: 1; }
@@ -135,3 +136,29 @@
 @media (max-width: 767px) { .page :global(#session-hero) > img { object-position: 82% center; } }
 
 @media (max-width: 479px) { .heroActions { gap: 6px; } .heroActions > button { padding-inline: 12px; } .heroActions > button:not(:first-child) svg { display: none; } }
+
+/* A portrait phone keeps the visual beside the reading experience in time:
+   the single photo/map stays above, while its associated copy scrolls below. */
+@media (max-width:1023px) and (orientation:portrait), (max-width:640px) {
+  .page .processLayout { display:flex; flex-direction:column; gap:0; }
+  .processCopy { display:contents; }
+  .processHeading { order:0; margin-bottom:24px; }
+  .processCopy > .processSteps { order:2; margin-top:0; padding-top:0; }
+  .processPhotos { order:1; position:sticky; top:64px; z-index:20; flex:none; width:100%; height:min(36svh,320px); margin-bottom:16px; background:#0b0c0a; }
+  .processVisual { height:100%; --frame-height:min(32svh,290px); padding:12px 0; }
+  .processPhotos .naturalPhoto { transition-duration:240ms; }
+  .processSteps :global([data-step-index]) { min-height:52svh; }
+  .page .locationLayout { display:flex; flex-direction:column; gap:24px; }
+  .locationList { order:1; }
+  .locationMap { order:0; position:sticky; top:64px; z-index:20; flex:none; width:100%; height:min(38svh,340px); background:white; }
+  .page .locationMapSurface { height:100%; min-height:0; }
+}
+@media (max-height:520px) and (min-width:641px) and (max-width:1023px) {
+  .locationLayout { grid-template-columns:minmax(0,.58fr) minmax(0,.42fr); gap:24px; }
+  .locationList { order:2; max-height:calc(100svh - 40px); overflow-y:auto; }
+  .locationMap { order:1; position:sticky; top:20px; height:calc(100svh - 40px); }
+  .page .locationMapSurface { height:100%; min-height:0; }
+}
+@media (max-height:600px) and (max-width:640px) {
+  .processPhotos,.locationMap { top:12px; }
+}
