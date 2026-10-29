@@ -4,7 +4,7 @@
 
 - Remove the global phone landscape hint. Phone portrait now reads the booking introduction as a normal vertical sequence with all three existing photographs; desktop retains the horizontal scroll sequence.
 - Give each desktop introduction spread a separate paint/compositing boundary, remove its large moving shadow, and increase the scroll distance from 235svh to 315svh. Do not run horizontal animation or promote its long strip in phone portrait.
-- Preserve booking route geometry, marker nodes and tooltips across selection changes. Cancel pending hover selection on click, debounce hover for 120ms, and stop the previous camera animation before a new destination.
+- Preserve booking route geometry, marker nodes and tooltips across selection changes. Cancel pending hover selection on click, debounce hover for 120ms, and stop the previous camera animation before a new destination. Manual selection stays in control until the visitor deliberately interacts with the location list again, so page visibility changes cannot pull the camera back to a different location.
 - Reuse Portfolio map markers by location/world-copy key instead of removing and rebuilding all copies on every movement.
 - Size the fixed entry frame with the dynamic viewport, retain an opaque backing until the scene has expanded, and synchronize frame visibility, pointer interception and Portfolio inert state with the cloud shader endpoint at progress 0.735.
 

@@ -1046,9 +1046,11 @@ export function HelsinkiPhotoSession() {
   const markersLayerRef = useRef<any>(null)
   const locationMarkersRef=useRef<Record<string,any>>({})
   const lastMapFocusRef=useRef<string|null>(null)
+  const manualMapFocusRef=useRef(false)
   const hoverLocationTimer=useRef<number|null>(null)
   useEffect(()=>()=>{if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current)},[])
   const focusMapLocation=useCallback((id:string)=>{
+    manualMapFocusRef.current=true
     if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}
     setActiveLocationId(id)
     const map=mapRef.current,location=locations.find(item=>item.id===id)
@@ -1297,7 +1299,7 @@ export function HelsinkiPhotoSession() {
           .filter((entry) => entry.isIntersecting)
           .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0]
         const id = visibleEntry?.target.getAttribute("data-location-id")
-        if (id) setActiveLocationId(id)
+        if (id && !manualMapFocusRef.current) setActiveLocationId(id)
       },
       { rootMargin: "-36% 0px -42% 0px", threshold: [0.2, 0.45, 0.7] },
     )
@@ -1418,7 +1420,11 @@ export function HelsinkiPhotoSession() {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[0.58fr_0.42fr]">
-            <div className="grid gap-3 lg:order-2 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto lg:pr-1">
+            <div className="grid gap-3 lg:order-2 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto lg:pr-1"
+              onWheel={()=>{manualMapFocusRef.current=false}}
+              onTouchMove={()=>{manualMapFocusRef.current=false}}
+              onPointerDown={()=>{manualMapFocusRef.current=false}}
+              onKeyDown={event=>{if(["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(event.key))manualMapFocusRef.current=false}}>
               {displayLocations.map((location, index) => (
                 <article
                   key={location.id}
