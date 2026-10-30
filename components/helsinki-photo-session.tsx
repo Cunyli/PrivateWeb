@@ -23,19 +23,7 @@ import "leaflet/dist/leaflet.css"
 import {
   ArrowDown,
   ArrowRight,
-  CalendarDays,
-  Check,
-  Clock,
-  GraduationCap,
-  Heart,
-  Images,
-  Languages,
   Mail,
-  MapPin,
-  MessageCircle,
-  PawPrint,
-  Star,
-  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n"
@@ -56,19 +44,9 @@ type Location = {
   href: string
 }
 
-type ShootStep = {
-  eyebrow: string
-  title: string
-  body: string
-}
 
 
 
-type Testimonial = {
-  quote: string
-  name: string
-  context: string
-}
 
 const LazyCarousel = dynamic(() => import("./carousel").then(module => module.Carousel), { ssr: false })
 
@@ -79,79 +57,35 @@ const photoSessionCopy = {
     languageButton: "EN",
     languageLabel: "切换到英文",
     momentTypeCouple: "情侣拍摄",
-    hero: {
-      title: "一起，\n拍下你的这一刻。",
-      eyebrow: "与 Lijie 一起拍照",
-      description: "常驻赫尔辛基 · 接受欧洲旅拍",
-      samples: "样片",
-      portfolio: "摄影集",
-      booking: "聊聊约拍",
-    },
+    hero: { title: "一起拍照。", eyebrow: "", description: "赫尔辛基 · 欧洲与亚洲旅拍", samples: "看照片", portfolio: "摄影集", booking: "约拍" },
     about: {
-      eyebrow: "关于我",
-      title: "我是你的“旅游摄影搭子”",
-      body: "我不是那种只在旁边按快门的人。拍摄时我会聊天、看你的节奏，也会在你紧张的时候把场面松下来。照片要好看，但那天本身也要好玩。",
-      highlightLines: [
-        "常驻赫尔辛基，但拍摄不只限芬兰，全欧可飞",
-        "我是一个有趣的人，我的责任是给你带来快乐和美丽的照片",
-        "情绪稳定，懂得引导，会给情绪价值",
-      ],
+      eyebrow: "",
+      title: "我是 Lijie。",
+      body: "",
+      highlightLines: ["住在赫尔辛基。\n欧洲、亚洲也可以约。", "我会引导动作，\n你按自己的节奏来。", "中文、英语、粤语，\n都可以。"],
     },
     process: {
       eyebrow: "为什么是我",
-      title: "为什么是我。",
+      title: "和我拍照。",
       steps: [
-        {
-          title: "路线可以我定，也可以你定",
-          body: "路线优先选，不让转场吃掉拍摄时间。我会按时间、光线和转场安排路线，你也可以提供自己的路线。",
-        },
-        {
-          title: "不要求你本来就是模特",
-          body: "现场会给动作指导。走路、坐下、不看镜头、大头照、游客照，都可以自然完成。",
-        },
-        {
-          title: "设备可以很自由",
-          body: "我会用自己的设备，也可以用你的设备拍。数码、胶片、CCD、拍立得都可以提前沟通。",
-        },
-        {
-          title: "熟悉赫尔辛基现场",
-          body: "我在这里生活两年，也是在校学生，更清楚该去哪拍、怎么走、哪段路更适合你。",
-        },
-        {
-          title: "稳定、耐心，也好相处",
-          body: "拍摄过程会轻松一点。我可以帮你扛东西和器材，也可以像摄影搭子一样一起行动。",
-        },
-        {
-          title: "可以像地陪一样带你玩",
-          body: "如果你愿意，我也可以顺路带你吃吃喝喝，把拍摄变成半天城市散步。",
-        },
-        {
-          title: "规则提前写清楚",
-          body: "价格、交付、取消和额外费用都会提前确认，网站和小红书也会持续写清楚。",
-        },
-        {
-          title: "全欧可飞，也接受亚洲旅拍",
-          body: "你承担对应路费、住宿、门票等成本，我就可以配合远距离路线和旅拍计划。",
-        },
+        { title: "路线一起定", body: "你选地方，或交给我安排。" },
+        { title: "动作我来带", body: "走路、坐下、看向别处，都可以。" },
+        { title: "设备都好商量", body: "数码、胶片、CCD、拍立得，可以提前聊。" },
+        { title: "我住在这里", body: "在赫尔辛基生活两年，也是在校学生。" },
+        { title: "按你的节奏来", body: "我会耐心引导，也能帮你照看包和器材。" },
+        { title: "边拍边逛", body: "顺路喝杯咖啡、吃点东西也好。" },
+        { title: "提前说清楚", body: "价格、交付和取消条件，拍之前确认。" },
+        { title: "不止赫尔辛基", body: "欧洲、亚洲可约；路费和住宿另计。" },
       ],
     },
     options: {
-      eyebrow: "你的拍摄",
-      titleTop: "想拍什么，",
-      titleBottom: "由你决定。",
-      body: "不用先做好一整套计划。告诉我大概的想法，路线、时间和拍摄方式，我们一起慢慢定。",
-      action: "从这里开始约拍",
-      typesTitle: "可以拍什么",
-      languagesTitle: "可以说什么",
-      briefTitle: "先告诉我这些",
+      typesTitle: "想拍什么",
       serviceTypes: ["旅拍 / 游客照", "情侣拍照", "家庭拍照", "宠物照片", "毕业写真", "校园写真"],
-      languageItems: ["中文", "英语", "粤语"],
-      briefItems: ["人数", "日期", "大概地点", "想拍的样式"],
     },
     locations: {
       eyebrow: "拍摄路线",
-      title: "默认赫尔辛基路线",
-      body: "只是默认参考，具体路线可以按天气、时间和你想拍的感觉修改。",
+      title: "赫尔辛基",
+      body: "路线按天气和你的计划调整。",
       points: [
         { name: "赫尔辛基主教座堂", place: "白教堂 / 参议院广场", bestTime: "下午侧光" },
         { name: "赫尔辛基集市广场", place: "码头 / 集市广场", bestTime: "16:00 后" },
@@ -161,46 +95,10 @@ const photoSessionCopy = {
         { name: "芬兰堡", place: "芬兰堡 / 海上要塞", bestTime: "日落前" },
       ],
     },
-    testimonials: {
-      eyebrow: "拍摄体验",
-      title: "拍摄体验反馈",
-      items: [
-        {
-          quote: "一开始其实很担心自己不会拍照，但现场不是那种被命令摆姿势的感觉。会边走边调整动作，也会告诉我手放哪里、看哪里，最后照片比我平时自拍自然很多。",
-          name: "Z. Li",
-          context: "第一次单人约拍",
-        },
-        {
-          quote: "路线不是把景点一个个打卡，而是会看光线和我们当时的状态。拍完有一些远景，也有很多聊天走路时抓到的瞬间，比较像真的旅行记忆。",
-          name: "Rico",
-          context: "瑞士旅拍",
-        },
-        {
-          quote: "我不太喜欢太正式的毕业照，所以重点放在校园、衣服和当天的情绪上。成片没有很僵，也保留了学校环境，发给家里人和朋友都很合适。",
-          name: "H. Jia",
-          context: "校园 / 毕业记录",
-        },
-        {
-          quote: "沟通的时候会把价格、加钱项和交付讲清楚，所以拍之前没有那种不确定感。现场也会帮忙看包、看衣服，整体更像有人一起把这件事照顾好。",
-          name: "D. Wang",
-          context: "旅行人像",
-        },
-        {
-          quote: "我只给了大概想去的地点，最后路线被重新排过，基本没有把时间浪费在乱走上。照片里既有地点，也有人在里面的状态。",
-          name: "Junjie",
-          context: "旅途中记录",
-        },
-        {
-          quote: "收到图以后最喜欢的是那些没有刻意看镜头的照片。它们不是模板照，更像那天真的发生过的片段，这一点对我来说很重要。",
-          name: "M. Chen",
-          context: "自然街拍",
-        },
-      ],
-    },
     pricing: {
       eyebrow: "价格",
-      title: "约拍价格",
-      note: "具体情况会按实际拍摄安排、人数和交付需求略微调整，确认前会先说清楚。",
+      title: "约拍",
+      note: "具体价格按人数、路线和交付要求确认。",
       packages: [
         { name: "单人", price: "EUR 99", note: "2 小时" },
         { name: "双人 / 情侣", price: "EUR 139", note: "2 小时" },
@@ -210,27 +108,21 @@ const photoSessionCopy = {
     },
     delivery: {
       eyebrow: "交付与规则",
-      title: "交付和边界",
+      title: "交付与费用",
       includedTitle: "交付包含",
       boundaryTitle: "费用与边界",
       includedItems: ["拍摄前路线和风格沟通", "2 小时拍摄与动作引导", "筛选后 JPG 底片", "9 张精修", "9 张精修图对应 RAW 文件"],
-      boundaryItems: [
-        "续时 EUR 40 / 小时；额外精修 EUR 2 / 张",
-        "下雪或小雨如确认继续拍摄，加 EUR 5 / 小时",
-        "旅拍、远距离地点、门票和交通费需实报实销",
-        "精心二次后期后仍不满意，可以要求退款",
-        "妆发需自理；未经同意不会公开发布照片",
-      ],
+      boundaryItems: ["续时 EUR 40 / 小时；额外精修 EUR 2 / 张", "下雪或小雨如确认继续拍摄，加 EUR 5 / 小时", "旅拍、远距离地点、门票和交通费需实报实销", "精心二次后期后仍不满意，可以要求退款", "妆发需自理；未经同意不会公开发布照片"],
     },
     contact: {
       eyebrow: "预约",
-      title: "预约流程",
+      title: "告诉我日期和人数。",
       processItems: ["私信沟通并选定套餐", "约定时间和地点，拍摄当天提前会合", "拍完后五天以内返回照片；加钱可加急"],
-      xhsTitle: "小红书私信",
-      xhsBody: "适合先发样片参考、截图和大概日期。点击后跳转到小红书。",
+      xhsTitle: "小红书",
+      xhsBody: "",
       xhsAction: "打开私信",
       emailTitle: "邮件预约",
-      emailBody: "适合一次性把人数、日期、路线和想法写清楚。点击后填写表单。",
+      emailBody: "",
       emailAction: "填写信息",
     },
     form: {
@@ -258,113 +150,58 @@ const photoSessionCopy = {
       sending: "发送中",
       submit: "发送预约信息",
       sentMessage: "预约信息已发送。",
-      loggedMessage: "预约信息已记录；邮件暂时没有发送成功，我会从后台日志处理。",
+      loggedMessage: "预约信息已记录。也可以通过小红书联系我。",
       errorMessage: "发送失败，请稍后再试。",
     },
     faq: {
       eyebrow: "常见问题",
-      title: "见面之前。",
+      title: "预约须知",
       items: [
-        { question: "可以拍视频吗？", answer: "目前只接照片拍摄，不接正式视频拍摄。我的重点会放在静态照片里的人物状态、地点感和旅行氛围。" },
-        { question: "预约之后会发生什么？", answer: "确认预约后，我会和你对齐套餐、集合点、拍摄时间、穿搭和想要的感觉。拍摄前可以继续私信沟通，把不确定的地方先处理掉。" },
-        { question: "需要提前多久预约？", answer: "建议至少提前一周来问，旺季或旅行日期比较固定时最好提前四周。临时约也可以问，但不保证一定能接；如果是求婚、惊喜或需要隐藏安排的拍摄，建议至少提前两周。" },
-        { question: "赫尔辛基约拍多少钱？", answer: "基础价格按上面的套餐走：单人 EUR 99 / 2 小时起，双人 / 情侣 EUR 139 / 2 小时起。具体情况会按实际拍摄安排、人数和交付需求略微调整，确认前会先说清楚。" },
-        { question: "在赫尔辛基找摄影师值得吗？", answer: "如果你希望把旅行、毕业、纪念日或普通的一天留下来，是值得的。当地摄影师会更熟悉光线、天气、适合走路的区域和不太挤的角度，照片会比单纯打卡更像你那天真实的状态。" },
-        { question: "拍摄当天和交付时间是怎样的？", answer: "拍摄当天建议提前 10 分钟到集合点，先确认当天目标和节奏。拍完后一般五天以内返回照片；如果你需要更快拿到图，可以提前说，加急会单独加钱。" },
-        { question: "阴天还能拍吗？", answer: "阴天可以正常拍，柔光反而适合人像。下雪或小雨也可以拍，但会加 EUR 5 / 小时；恶劣天气可以免费改期或取消。" },
-        { question: "怎么付款和取消？", answer: "确认档期需要支付总价 50% 订金。拍摄前 24 小时外取消可退订金，24 小时内取消订金不退。支持微信、支付宝、Revolut、MobilePay。" },
-        { question: "如果我迟到了怎么办？", answer: "我会在约定地点等你，但拍摄时间会从我们约定的开始时间计时，不会从你实际到达后重新开始。请尽量准时到达，这样 2 小时才会完整用在拍摄上。" },
-        { question: "如果精修风格不满意呢？", answer: "可以先沟通二次后期。如果精心二次后期之后你仍然不满意，可以要求退款。" },
-        { question: "可以去赫尔辛基以外吗？", answer: "可以。常驻赫尔辛基，但拍摄不只限芬兰，全欧可飞。远距离路线、欧洲其他城市或亚洲旅拍，需要你承担对应路费、住宿、门票和必要转场费用。" },
-        { question: "交付包含什么？", answer: "基础包含筛选后 JPG 底片、9 张精修，以及 9 张精修图对应 RAW 文件。额外精修 EUR 2 / 张，续时 EUR 40 / 小时。" },
-        { question: "衣服需要提前准备吗？", answer: "建议提前看颜色和层次。赫尔辛基风大，外套、围巾或能随手搭的单品会更好拍；如果你不确定，也可以把衣服发给我一起看。" },
-        { question: "照片会被公开发布吗？", answer: "不会默认公开。未经你同意，我不会把你的照片发布到网站、小红书或其他公开平台。" },
+        { question: "提前多久约？", answer: "建议提前一周；旺季或固定旅行日期提前四周，求婚和惊喜拍摄提前两周。临时约也可以问。" },
+        { question: "拍视频吗？", answer: "目前只接照片拍摄。" },
+        { question: "多久收到照片？", answer: "通常五天以内；加急另计。拍摄当天请提前 10 分钟到集合点。" },
+        { question: "天气不好怎么办？", answer: "阴天照常拍。下雪或小雨如确认继续拍摄，加 EUR 5 / 小时；恶劣天气免费改期或取消。" },
+        { question: "付款和取消", answer: "50% 订金确认档期。拍摄前 24 小时外取消可退，24 小时内不退。支持微信、支付宝、Revolut、MobilePay。" },
+        { question: "迟到了怎么办？", answer: "拍摄从约定时间开始计时，不从实际到达时间重新计算。" },
+        { question: "穿什么？", answer: "建议提前看颜色和层次，风大的时候带件外套或围巾。不确定可以把衣服发给我。" },
+        { question: "照片会公开吗？", answer: "未经你同意，不会发布在网站、小红书或其他公开平台。" },
       ],
     },
-    footer: {
-      title: "人像约拍 / 常驻赫尔辛基",
-      notice: "本站图片未经许可禁止使用、复制、下载、转载或用于训练/商业用途。预约沟通请通过上方入口进入。",
-      booking: "预约方式",
-      top: "回到顶部",
-    },
+    footer: { notice: "图片未经许可，不得使用、复制、下载、转载，或用于训练及商业用途。", top: "回到顶部" },
   },
   en: {
     languageButton: "中",
     languageLabel: "Switch to Chinese",
     momentTypeCouple: "Couple session",
-    hero: {
-      title: "Portraits,\nmade with you.",
-      eyebrow: "Photo sessions with Lijie",
-      description: "Helsinki based · Available across Europe",
-      samples: "Samples",
-      portfolio: "Portfolio",
-      booking: "Plan a session",
-    },
+    hero: { title: "Your portrait.", eyebrow: "", description: "Helsinki · Europe & Asia", samples: "Photographs", portfolio: "Portfolio", booking: "Book a session" },
     about: {
-      eyebrow: "About me",
-      title: "I am your travel photo buddy",
-      body: "I am not only the person pressing the shutter. During the shoot, I talk with you, read your pace, and help the day feel lighter when you get nervous. The photos should look good, but the day itself should also feel good.",
-      highlightLines: [
-        "Based in Helsinki, available across Finland, Europe, and Asia travel sessions",
-        "I am a fun person, and my job is to bring you joy and beautiful photos",
-        "Calm, patient, good at guiding, and generous with emotional support",
-      ],
+      eyebrow: "",
+      title: "I'm Lijie.",
+      body: "",
+      highlightLines: ["Based in Helsinki.\nAvailable in Europe and Asia.", "I’ll guide you\nas we go.", "Mandarin, English\nand Cantonese."],
     },
     process: {
       eyebrow: "Why me",
-      title: "Why me.",
+      title: "With me.",
       steps: [
-        {
-          title: "I can plan the route, or we can use yours",
-          body: "The route is planned so that transfers do not eat the session. I arrange it around time, light, and walking distance, and you can also bring your own route ideas.",
-        },
-        {
-          title: "You do not need to be a model",
-          body: "I will guide you on the spot. Walking, sitting, looking away, close portraits, and tourist-style photos can all feel natural.",
-        },
-        {
-          title: "The camera setup can be flexible",
-          body: "I can shoot with my own gear, and we can also include yours. Digital, film, CCD, and instant cameras can all be discussed in advance.",
-        },
-        {
-          title: "I know Helsinki on the ground",
-          body: "I have lived here for two years and study here, so I know where to go, how to walk, and which parts of the route fit different people.",
-        },
-        {
-          title: "Stable, patient, easy to be around",
-          body: "The shoot should feel relaxed. I can help with bags and gear, and move through the city like a photo companion rather than a distant vendor.",
-        },
-        {
-          title: "It can feel like a city walk",
-          body: "If you want, I can also take you for food, coffee, and small local stops, turning the shoot into a half-day city walk.",
-        },
-        {
-          title: "Rules are clear before we shoot",
-          body: "Price, delivery, cancellation, and extra fees are confirmed in advance. The website and Xiaohongshu will keep these details visible.",
-        },
-        {
-          title: "Europe-wide, and Asia travel sessions are possible",
-          body: "If travel, accommodation, tickets, and transfer costs are covered, I can work with longer routes and travel-session plans.",
-        },
+        { title: "A route together", body: "Bring a place in mind, or let me plan the walk." },
+        { title: "I’ll guide you", body: "Walk, sit, look away. We’ll try things as we go." },
+        { title: "Your camera, too", body: "Digital, film, CCD or instant — ask me beforehand." },
+        { title: "At home here", body: "Two years living in Helsinki, and a student here." },
+        { title: "At your pace", body: "Patient guidance, and a hand with bags and gear." },
+        { title: "A stop along the way", body: "Coffee or a bite to eat can be part of the walk." },
+        { title: "Agreed beforehand", body: "Price, delivery and cancellation, before we shoot." },
+        { title: "Further afield", body: "Europe and Asia, with travel and accommodation covered." },
       ],
     },
     options: {
-      eyebrow: "Your session",
-      titleTop: "Make it",
-      titleBottom: "yours.",
-      body: "You do not need a finished plan. Bring a rough idea; we will work out the route, timing and photographs together.",
-      action: "Plan this session",
-      typesTitle: "What we can shoot",
-      languagesTitle: "Languages",
-      briefTitle: "Just the essentials",
+      typesTitle: "What would you like to shoot?",
       serviceTypes: ["Travel photos", "Couple photos", "Family photos", "Pet photos", "Graduation portraits", "Campus portraits"],
-      languageItems: ["Chinese", "English", "Cantonese"],
-      briefItems: ["People", "Date", "Rough location", "Visual style"],
     },
     locations: {
       eyebrow: "Routes",
-      title: "Default Helsinki Route",
-      body: "This is only a default reference. The route can change with weather, time, and the mood you want in the photos.",
+      title: "Helsinki",
+      body: "A starting route. We can change it.",
       points: [
         { name: "Helsinki Cathedral", place: "Helsinki Cathedral / Senate Square", bestTime: "Afternoon side light" },
         { name: "Market Square", place: "Market Square / Harbor", bestTime: "After 16:00" },
@@ -374,46 +211,10 @@ const photoSessionCopy = {
         { name: "Suomenlinna", place: "Suomenlinna / Sea fortress", bestTime: "Before sunset" },
       ],
     },
-    testimonials: {
-      eyebrow: "Shooting experience",
-      title: "Client feedback",
-      items: [
-        {
-          quote: "I was worried that I would not know how to pose, but it did not feel like being ordered around. We adjusted while walking, and I was told where to put my hands and where to look. The final photos felt much more natural than my selfies.",
-          name: "Z. Li",
-          context: "First solo portrait session",
-        },
-        {
-          quote: "The route was not just a checklist of landmarks. It followed the light and our state that day. The photos included wide scenes and small walking moments, more like real travel memories.",
-          name: "Rico",
-          context: "Switzerland travel session",
-        },
-        {
-          quote: "I did not want formal graduation photos, so we focused on the campus, clothes, and the feeling of the day. The images were not stiff and still kept the school environment.",
-          name: "H. Jia",
-          context: "Campus / graduation record",
-        },
-        {
-          quote: "The price, add-ons, and delivery were explained clearly, so there was much less uncertainty before the shoot. On the day, there was also help with bags and clothes.",
-          name: "D. Wang",
-          context: "Travel portraits",
-        },
-        {
-          quote: "I only gave a rough location idea, and the route was rearranged so we did not waste time walking randomly. The photos kept both the place and the person inside it.",
-          name: "Junjie",
-          context: "Travel record",
-        },
-        {
-          quote: "My favorites were the photos where I was not deliberately looking at the camera. They were not template shots. They felt like something that really happened that day.",
-          name: "M. Chen",
-          context: "Natural street portraits",
-        },
-      ],
-    },
     pricing: {
       eyebrow: "Pricing",
-      title: "Session pricing",
-      note: "Final details may be adjusted slightly based on the actual plan, group size, and delivery needs. Everything will be confirmed before booking.",
+      title: "Book a session.",
+      note: "The final quote depends on the group, route and delivery.",
       packages: [
         { name: "Solo", price: "EUR 99", note: "2 hours" },
         { name: "Two people / couple", price: "EUR 139", note: "2 hours" },
@@ -423,27 +224,21 @@ const photoSessionCopy = {
     },
     delivery: {
       eyebrow: "Delivery / rules",
-      title: "Delivery and boundaries",
+      title: "Delivery & fees",
       includedTitle: "Included",
       boundaryTitle: "Fees and boundaries",
       includedItems: ["Pre-shoot route and style discussion", "2-hour shoot with posing guidance", "Selected JPG originals", "9 retouched photos", "RAW files for the 9 retouched photos"],
-      boundaryItems: [
-        "Extra time EUR 40 / hour; extra retouching EUR 2 / photo",
-        "If we confirm shooting in snow or light rain, add EUR 5 / hour",
-        "Travel sessions, distant locations, tickets, and transport are reimbursed at actual cost",
-        "If you are still unhappy after careful second-round editing, you can request a refund",
-        "Makeup and hair are self-arranged; photos will not be published without consent",
-      ],
+      boundaryItems: ["Extra time EUR 40 / hour; extra retouching EUR 2 / photo", "If we confirm shooting in snow or light rain, add EUR 5 / hour", "Travel sessions, distant locations, tickets, and transport are reimbursed at actual cost", "If you are still unhappy after careful second-round editing, you can request a refund", "Makeup and hair are self-arranged; photos will not be published without consent"],
     },
     contact: {
       eyebrow: "Booking",
-      title: "Booking process",
+      title: "A date. A few details.",
       processItems: ["Message me and choose a package", "Agree on time and meeting point, then meet before the shoot", "Photos are delivered within about five days; rush delivery is available for an extra fee"],
-      xhsTitle: "Xiaohongshu message",
-      xhsBody: "Best for sending sample references, screenshots, and rough dates first. Click to open Xiaohongshu.",
+      xhsTitle: "Xiaohongshu",
+      xhsBody: "",
       xhsAction: "Open message",
-      emailTitle: "Email booking",
-      emailBody: "Best when you want to write the group size, date, route, and ideas in one place. Click to fill the form.",
+      emailTitle: "Email me",
+      emailBody: "",
       emailAction: "Fill form",
     },
     form: {
@@ -471,37 +266,36 @@ const photoSessionCopy = {
       sending: "Sending",
       submit: "Send booking request",
       sentMessage: "Your booking request has been sent.",
-      loggedMessage: "Your request was logged; the email could not be sent yet, so I will handle it from the admin log.",
+      loggedMessage: "Your request is saved. You can also reach me on Xiaohongshu.",
       errorMessage: "Sending failed. Please try again later.",
     },
     faq: {
       eyebrow: "FAQ",
-      title: "Before we meet.",
+      title: "Before booking",
       items: [
-        { question: "Do you offer Helsinki videographers?", answer: "At the moment, I focus on photography only. The goal is to capture people, place, and travel atmosphere through still images." },
-        { question: "What happens after I book a Helsinki photo session?", answer: "After confirmation, we align on the package, meeting point, time, outfits, and the mood you want. You can keep messaging me before the shoot to clear up details." },
-        { question: "How far in advance should I book?", answer: "At least one week is recommended. For fixed travel dates or busy seasons, four weeks is better. Last-minute requests are welcome but not guaranteed. For proposals or surprise plans, at least two weeks is recommended." },
-        { question: "How much does a photographer cost in Helsinki?", answer: "The base packages start from EUR 99 / 2 hours for solo sessions and EUR 139 / 2 hours for two people or couples. Final details may shift slightly with the actual plan, group size, and delivery needs." },
-        { question: "Is it worth hiring a photographer in Helsinki?", answer: "If you want to keep a trip, graduation, anniversary, or even an ordinary day, yes. A local photographer knows the light, weather, walkable areas, and quieter angles, so the photos can feel more like your real day than simple check-in shots." },
-        { question: "What happens on the shoot day and when do I receive photos?", answer: "Please arrive about 10 minutes early so we can confirm the goal and rhythm. Photos are usually delivered within five days. Rush delivery can be discussed for an extra fee." },
-        { question: "Can we shoot on cloudy days?", answer: "Yes. Cloudy light is often good for portraits. Snow or light rain can also work with an extra EUR 5 / hour. For bad weather, we can reschedule or cancel for free." },
-        { question: "How do payment and cancellation work?", answer: "A 50% deposit confirms the slot. If you cancel more than 24 hours before the shoot, the deposit is refundable. Within 24 hours, it is not refundable. WeChat, Alipay, Revolut, and MobilePay are supported." },
-        { question: "What if I am late?", answer: "I will wait at the agreed place, but the session time starts from the agreed start time rather than your actual arrival time. Please arrive on time so the full two hours can be used for shooting." },
-        { question: "What if I do not like the retouching style?", answer: "We can first discuss a second editing round. If you are still unhappy after careful second-round editing, you can request a refund." },
-        { question: "Can we shoot outside Helsinki?", answer: "Yes. I am based in Helsinki, but sessions are not limited to Finland. For other European cities or Asia travel sessions, travel, accommodation, tickets, and necessary transfer costs need to be covered." },
-        { question: "What is included in delivery?", answer: "The base package includes selected JPG originals, 9 retouched photos, and RAW files for those 9 retouched photos. Extra retouching is EUR 2 / photo, and extra time is EUR 40 / hour." },
-        { question: "Should I prepare outfits in advance?", answer: "It helps to think about color and layers ahead of time. Helsinki can be windy, so coats, scarves, or easy layering pieces often work well. If you are unsure, you can send me options to discuss." },
-        { question: "Will my photos be published?", answer: "Not by default. Without your consent, I will not post your photos on the website, Xiaohongshu, or other public platforms." },
+        {
+          question: "How far ahead?",
+          answer: "Ideally one week; four weeks for busy seasons or fixed travel dates, and two for proposals or surprises. You can also ask about last-minute availability.",
+        },
+        { question: "Do you shoot video?", answer: "Photography only for now." },
+        { question: "When do I get the photos?", answer: "Usually within five days. Rush delivery costs extra. Please arrive 10 minutes before the shoot." },
+        {
+          question: "What about the weather?",
+          answer: "Cloudy days are fine. If we agree to shoot in snow or light rain, add EUR 5 / hour. Severe weather means a free reschedule or cancellation.",
+        },
+        {
+          question: "Payment & cancellation",
+          answer: "A 50% deposit holds the date. It is refundable more than 24 hours before the shoot, and non-refundable within 24 hours. WeChat, Alipay, Revolut and MobilePay are accepted.",
+        },
+        { question: "What if I’m late?", answer: "The session starts at the agreed time, rather than your arrival time." },
+        { question: "What should I wear?", answer: "Think about colours and layers. Bring a coat or scarf for windy days. Send me options if you’d like a second opinion." },
+        { question: "Will you publish my photos?", answer: "Only with your permission — on this site, Xiaohongshu or anywhere else." },
       ],
     },
-    footer: {
-      title: "Portrait sessions / Based in Helsinki",
-      notice: "Images on this site may not be used, copied, downloaded, reposted, used for training, or used commercially without permission. Please use the booking entry above for inquiries.",
-      booking: "Booking",
-      top: "Back to top",
-    },
+    footer: { notice: "Images may not be used, copied, downloaded, reposted, used for training or used commercially without permission.", top: "Back to top" },
   },
 } as const
+
 
 function SessionImage({ className = "", preview = false, fullResolution=false, sizes, src, srcSet, ...props }: ImgHTMLAttributes<HTMLImageElement> & {preview?: boolean;fullResolution?: boolean}) {
   const curation=usePhotoCuration()
@@ -586,120 +380,6 @@ const locations: Location[] = [
   },
 ]
 
-const shootSteps: ShootStep[] = [
-  {
-    eyebrow: "01 / Route",
-    title: "路线可以我定，也可以你定",
-    body: "路线优先选，不让转场吃掉拍摄时间。我会按时间、光线和转场安排路线，你也可以提供自己的路线。",
-  },
-  {
-    eyebrow: "02 / Direction",
-    title: "不要求你本来就是模特",
-    body: "现场会给动作指导。走路、坐下、不看镜头、大头照、游客照，都可以自然完成。",
-  },
-  {
-    eyebrow: "03 / Device",
-    title: "设备可以很自由",
-    body: "我会用自己的设备，也可以用你的设备拍。数码、胶片、CCD、拍立得都可以提前沟通。",
-  },
-  {
-    eyebrow: "04 / Local",
-    title: "熟悉赫尔辛基现场",
-    body: "我在这里生活两年，也是在校学生，更清楚该去哪拍、怎么走、哪段路更适合你。",
-  },
-  {
-    eyebrow: "05 / Mood",
-    title: "稳定、耐心，也好相处",
-    body: "拍摄过程会轻松一点。我可以帮你扛东西和器材，也可以像摄影搭子一样一起行动。",
-  },
-  {
-    eyebrow: "06 / Companion",
-    title: "可以像地陪一样带你玩",
-    body: "如果你愿意，我也可以顺路带你吃吃喝喝，把拍摄变成半天城市散步。",
-  },
-  {
-    eyebrow: "07 / Clear rules",
-    title: "规则提前写清楚",
-    body: "价格、交付、取消和额外费用都会提前确认，网站和小红书也会持续写清楚。",
-  },
-  {
-    eyebrow: "08 / Travel",
-    title: "全欧可飞，也接受亚洲旅拍",
-    body: "你承担对应路费、住宿、门票等成本，我就可以配合远距离路线和旅拍计划。",
-  },
-]
-
-const serviceTypes = [
-  { label: "旅拍 / 游客照", icon: MapPin },
-  { label: "情侣拍照", icon: Heart },
-  { label: "家庭拍照", icon: Users },
-  { label: "宠物照片", icon: PawPrint },
-  { label: "毕业写真", icon: GraduationCap },
-  { label: "校园写真", icon: GraduationCap },
-]
-
-const languageItems = ["中文", "English", "粤语"]
-
-const briefItems = ["人数", "日期", "大概地点", "想拍的样式"]
-
-const faqs = [
-  {
-    question: "可以拍视频吗？",
-    answer: "目前只接照片拍摄，不接正式视频拍摄。我的重点会放在静态照片里的人物状态、地点感和旅行氛围。",
-  },
-  {
-    question: "预约之后会发生什么？",
-    answer: "确认预约后，我会和你对齐套餐、集合点、拍摄时间、穿搭和想要的感觉。拍摄前可以继续私信沟通，把不确定的地方先处理掉。",
-  },
-  {
-    question: "需要提前多久预约？",
-    answer: "建议至少提前一周来问，旺季或旅行日期比较固定时最好提前四周。临时约也可以问，但不保证一定能接；如果是求婚、惊喜或需要隐藏安排的拍摄，建议至少提前两周。",
-  },
-  {
-    question: "赫尔辛基约拍多少钱？",
-    answer: "基础价格按上面的套餐走：单人 EUR 99 / 2 小时起，双人 / 情侣 EUR 139 / 2 小时起。具体情况会按实际拍摄安排、人数和交付需求略微调整，确认前会先说清楚。",
-  },
-  {
-    question: "在赫尔辛基找摄影师值得吗？",
-    answer: "如果你希望把旅行、毕业、纪念日或普通的一天留下来，是值得的。当地摄影师会更熟悉光线、天气、适合走路的区域和不太挤的角度，照片会比单纯打卡更像你那天真实的状态。",
-  },
-  {
-    question: "拍摄当天和交付时间是怎样的？",
-    answer: "拍摄当天建议提前 10 分钟到集合点，先确认当天目标和节奏。拍完后一般五天以内返回照片；如果你需要更快拿到图，可以提前说，加急会单独加钱。",
-  },
-  {
-    question: "阴天还能拍吗？",
-    answer: "阴天可以正常拍，柔光反而适合人像。下雪或小雨也可以拍，但会加 EUR 5 / 小时；恶劣天气可以免费改期或取消。",
-  },
-  {
-    question: "怎么付款和取消？",
-    answer: "确认档期需要支付总价 50% 订金。拍摄前 24 小时外取消可退订金，24 小时内取消订金不退。支持微信、支付宝、Revolut、MobilePay。",
-  },
-  {
-    question: "如果我迟到了怎么办？",
-    answer: "我会在约定地点等你，但拍摄时间会从我们约定的开始时间计时，不会从你实际到达后重新开始。请尽量准时到达，这样 2 小时才会完整用在拍摄上。",
-  },
-  {
-    question: "如果精修风格不满意呢？",
-    answer: "可以先沟通二次后期。如果精心二次后期之后你仍然不满意，可以要求退款。",
-  },
-  {
-    question: "可以去赫尔辛基以外吗？",
-    answer: "可以。Base赫尔辛基，但拍摄不只限芬兰，全欧可飞。远距离路线、欧洲其他城市或亚洲旅拍，需要你承担对应路费、住宿、门票和必要转场费用。",
-  },
-  {
-    question: "交付包含什么？",
-    answer: "基础包含筛选后 JPG 底片、9 张精修，以及 9 张精修图对应 RAW 文件。额外精修 EUR 2 / 张，续时 EUR 40 / 小时。",
-  },
-  {
-    question: "衣服需要提前准备吗？",
-    answer: "建议提前看颜色和层次。赫尔辛基风大，外套、围巾或能随手搭的单品会更好拍；如果你不确定，也可以把衣服发给我一起看。",
-  },
-  {
-    question: "照片会被公开发布吗？",
-    answer: "不会默认公开。未经你同意，我不会把你的照片发布到网站、小红书或其他公开平台。",
-  },
-]
 
 function ScrollPhoto({ photos, activePhoto, about = false, onOpen }: {
   photos: Photo[]
@@ -825,8 +505,8 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
   return <section id="story" ref={root} data-text-only={photos.length===0 || undefined} className={introStyles.story} aria-labelledby="photographer-intro-heading">
     <div ref={stage} className={introStyles.stage}>
       <header className={introStyles.heading}>
-        <div><p className={introStyles.eyebrow}>{eyebrow}</p><h2 id="photographer-intro-heading">{title}</h2></div>
-        <p className={introStyles.body}>{body}</p>
+        <div>{eyebrow && <p className={introStyles.eyebrow}>{eyebrow}</p>}<h2 id="photographer-intro-heading">{title}</h2></div>
+        {body && <p className={introStyles.body}>{body}</p>}
       </header>
       <div ref={viewport} className={introStyles.viewport}>
         <div ref={track} className={introStyles.track}>
@@ -839,7 +519,7 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
                   if (Number.isFinite(ratio) && ratio > 0) setPhotoRatios(previous => previous[photo.src] === ratio ? previous : { ...previous, [photo.src]: ratio })
                 }} />
               </button>}
-              <figcaption><span className={introStyles.folio} aria-hidden="true">{String(index + 1).padStart(2, "0")} / {String(lines.length).padStart(2, "0")}</span><p>{line}</p></figcaption>
+              <figcaption><p>{line}</p></figcaption>
             </figure>
           })}
         </div>
@@ -858,21 +538,20 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
   const [activeStepIndex,setActiveStepIndex] = useState(0)
   const stepRefs = useRef<Array<HTMLElement | null>>([])
   useBookingScrollFocus("process",stepRefs,setActiveStepIndex,locale,{itemAnchor:0,anchorSelector:"h3",follow:"passed",visualSelector:"[data-process-visual]",visualAnchor:.4})
-  const displayShootSteps = shootSteps.map((step,index) => ({...step,title:copy.process.steps[index]?.title || step.title,body:copy.process.steps[index]?.body || step.body}))
+  const displayShootSteps = copy.process.steps
   const activeShootPhoto = photos.length ? photos[Math.min(photos.length-1,Math.floor(activeStepIndex*photos.length/displayShootSteps.length))] : null
   return (
-      <section id="process" className="bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
+      <section id="process" className={sessionStyles.processSection}>
         <div className="mx-auto max-w-7xl">
           <div className={`grid gap-10 ${sessionStyles.processLayout} ${activeShootPhoto ? "lg:grid-cols-[0.46fr_0.54fr]" : "mx-auto max-w-4xl"}`}>
             <div className={sessionStyles.processCopy}>
               <div className={sessionStyles.processHeading}>
-                <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-tight sm:text-6xl">
+                <h2 className={sessionStyles.processTitle}>
                   {copy.process.title}
                 </h2>
               </div>
 
               <div className={`relative pb-[10svh] pt-4 ${sessionStyles.processSteps}`}>
-                <div className="pointer-events-none absolute bottom-0 left-[1.1rem] top-4 hidden w-px bg-white/12 sm:block" />
                 {displayShootSteps.map((step, index) => (
                   <article
                     key={step.title}
@@ -881,35 +560,13 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
                     }}
                     data-step-index={index}
                     aria-current={activeStepIndex===index?"step":undefined}
-                    className={`group relative grid min-h-[36svh] gap-5 border-t border-white/12 py-8 transition duration-500 sm:grid-cols-[3.25rem_minmax(0,1fr)] sm:border-t-0 sm:py-10 ${
-                      activeStepIndex === index ? "text-white" : "text-white/35"
-                    }`}
+                    className={sessionStyles.processStep}
                   >
-                    <div className="relative flex items-start gap-3 sm:block">
-                      <span
-                        className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition duration-500 ${
-                          activeStepIndex === index
-                            ? "border-white bg-white text-[#151612]"
-                            : "border-white/20 bg-[#0b0c0a] text-white/42"
-                        }`}
-                      >
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    </div>
-
-                    <div className="max-w-2xl sm:pt-6">
-                      <h3
-                        className={`text-3xl font-semibold leading-tight transition duration-500 sm:text-4xl ${
-                          activeStepIndex === index ? "translate-x-0 opacity-100" : "translate-x-0 opacity-62"
-                        }`}
-                      >
+                    <div>
+                      <h3>
                         {step.title}
                       </h3>
-                      <p
-                        className={`mt-5 max-w-xl text-lg leading-8 transition duration-500 ${
-                          activeStepIndex === index ? "text-white/74" : "text-white/38"
-                        }`}
-                      >
+                      <p>
                         {step.body}
                       </p>
                     </div>
@@ -928,61 +585,16 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
   )
 }
 
-function SessionPlanning({ copy, onPlan }: {
-  copy: (typeof photoSessionCopy)[Locale]["options"]
-  onPlan: (type: string, trigger: HTMLButtonElement) => void
-}) {
-  const [selected, setSelected] = useState(0)
-  return <section id="options" className={sessionStyles.planning} aria-labelledby="session-planning-title">
-    <div className={sessionStyles.sectionInner}>
-      <header className={sessionStyles.planningHeader}>
-        <div><p className={sessionStyles.sectionKicker}>{copy.eyebrow}</p><h2 id="session-planning-title">{copy.titleTop} {copy.titleBottom}</h2></div>
-        <div className={sessionStyles.planningLanguages} aria-label={copy.languagesTitle}>{copy.languageItems.map(item => <span key={item}>{item}</span>)}</div>
-      </header>
-      <div className={sessionStyles.planningLayout}>
-        <fieldset className={sessionStyles.servicePicker}>
-          <legend>{copy.typesTitle}</legend>
-          <div className={sessionStyles.serviceChoices}>
-            {copy.serviceTypes.map((label,index) => <label key={label} className={sessionStyles.serviceChoice} data-selected={selected === index}>
-              <input type="radio" name="session-type" checked={selected === index} onChange={() => setSelected(index)} className={sessionStyles.serviceRadio} />
-              <span className={sessionStyles.serviceLabel}><span className={sessionStyles.serviceDot} aria-hidden="true" /><span>{label}</span><ArrowRight size={18} strokeWidth={1.3} aria-hidden="true" /></span>
-            </label>)}
-          </div>
-        </fieldset>
-        <div className={sessionStyles.sessionBrief}>
-          <p className={sessionStyles.briefSelection}>{copy.serviceTypes[selected]}</p>
-          <h3>{copy.briefTitle}</h3>
-          <div className={sessionStyles.briefEssentials}>{copy.briefItems.map(item => <span key={item}>{item}</span>)}</div>
-          <p className={sessionStyles.briefBody}>{copy.body}</p>
-          <button type="button" onClick={event => onPlan(copy.serviceTypes[selected],event.currentTarget)} className={sessionStyles.planButton}>
-            {copy.action}<ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" />
-          </button>
-        </div>
-      </div>
+function BookingQuestions({ copy }: {copy: (typeof photoSessionCopy)[Locale]["faq"]}) {
+  return <details id="faq" className={sessionStyles.disclosure}>
+    <summary><span>{copy.title}</span><span className={sessionStyles.questionToggle} aria-hidden="true" /></summary>
+    <div className={sessionStyles.questionColumns}>
+      {copy.items.map((item,index) => <details key={index} className={sessionStyles.question} data-booking-question={index}>
+        <summary><span>{item.question}</span><span className={sessionStyles.questionToggle} aria-hidden="true" /></summary>
+        <p>{item.answer}</p>
+      </details>)}
     </div>
-  </section>
-}
-
-function BookingQuestions({ copy, locale }: {copy: (typeof photoSessionCopy)[Locale]["faq"]; locale: Locale}) {
-  const groups = [
-    {label: locale === "zh" ? "预约安排" : "Making a plan", questions: [2,1,3,7,10]},
-    {label: locale === "zh" ? "拍摄当天" : "The experience", questions: [4,0,6,8,12]},
-    {label: locale === "zh" ? "照片交付" : "Your photographs", questions: [5,11,9,13]},
-  ]
-  return <section id="faq" className={sessionStyles.questions} aria-labelledby="booking-questions-title">
-    <div className={sessionStyles.sectionInner}>
-      <header className={sessionStyles.questionsHeader}><p className={sessionStyles.sectionKicker}>{copy.eyebrow}</p><h2 id="booking-questions-title">{copy.title}</h2></header>
-      <div className={sessionStyles.questionColumns}>
-        {groups.map(group => <div key={group.label} className={sessionStyles.questionGroup}>
-          <h3>{group.label}</h3>
-          {group.questions.map(index => {const item=copy.items[index]; return <details key={index} className={sessionStyles.question} data-booking-question={index}>
-            <summary><span>{item.question}</span><span className={sessionStyles.questionToggle} aria-hidden="true" /></summary>
-            <p>{item.answer}</p>
-          </details>})}
-        </div>)}
-      </div>
-    </div>
-  </section>
+  </details>
 }
 
 
@@ -1016,7 +628,6 @@ export function HelsinkiPhotoSession() {
   const [presentedIndex, setPresentedIndex] = useState(0)
   const locationRefs = useRef<Array<HTMLElement | null>>([])
   const locationListRef=useRef<HTMLDivElement>(null)
-  const testimonialScrollerRef = useRef<HTMLDivElement | null>(null)
   const mapRootRef = useRef<HTMLDivElement | null>(null)
   const bookingTriggerRef = useRef<HTMLButtonElement | null>(null)
   const photoTriggerRef = useRef<HTMLButtonElement | null>(null)
@@ -1126,25 +737,6 @@ export function HelsinkiPhotoSession() {
       setBookingMessageKey("errorMessage")
     }
   }
-
-  useEffect(() => {
-    const scroller = testimonialScrollerRef.current
-    if (!scroller) return
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
-    let visible = false
-    const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting })
-    observer.observe(scroller)
-    const timer = window.setInterval(() => {
-      if (!visible || document.hidden || reduced.matches || scroller.matches(":hover") || scroller.contains(document.activeElement)) return
-      const step = Math.max(280, Math.round(scroller.clientWidth * 0.72))
-      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth
-      const nextLeft = scroller.scrollLeft + step >= maxScrollLeft - 8 ? 0 : scroller.scrollLeft + step
-      scroller.scrollTo({ left: nextLeft, behavior: "smooth" })
-    }, 4200)
-
-    return () => { window.clearInterval(timer); observer.disconnect() }
-  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsEntering(false), 80)
@@ -1294,7 +886,10 @@ export function HelsinkiPhotoSession() {
 
   const handleLanguageToggle = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
-    setLocale(pageLocale === "zh" ? "en" : "zh")
+    const nextLocale:Locale=pageLocale === "zh" ? "en" : "zh"
+    const styleIndex=copy.options.serviceTypes.findIndex(type=>type===bookingForm.style)
+    if(styleIndex>=0)setBookingForm(current=>({...current,style:photoSessionCopy[nextLocale].options.serviceTypes[styleIndex]}))
+    setLocale(nextLocale)
   }
 
   const handleScrollTop = (event: MouseEvent<HTMLButtonElement>) => {
@@ -1323,7 +918,6 @@ export function HelsinkiPhotoSession() {
         aria-label={copy.languageLabel}
         title={copy.languageLabel}
       >
-        <Languages className="h-4 w-4" />
         {copy.languageButton}
       </button>
 
@@ -1335,20 +929,18 @@ export function HelsinkiPhotoSession() {
           loading="eager"
           fetchPriority="high"
           sizes="100vw"
-          className="absolute inset-0 h-full w-full object-cover opacity-75"
+          className="absolute inset-0 h-full w-full object-cover"
         />}
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.86)_0%,rgba(0,0,0,0.48)_48%,rgba(0,0,0,0.14)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.92))]" />
+        <div className={sessionStyles.heroShade} aria-hidden="true" />
 
         <div className={sessionStyles.heroContent}>
           <div className="max-w-6xl">
-            <p className={sessionStyles.heroKicker}>{copy.hero.eyebrow}</p>
+
             <h1 className={sessionStyles.heroTitle}>{copy.hero.title}</h1>
             <p className={sessionStyles.heroDescription}>{copy.hero.description}</p>
             <div className={sessionStyles.heroActions}>
-              <Button type="button" className="h-11 rounded-md bg-white px-5 text-[#151612] hover:bg-white/90" onClick={handleSectionLink("contact")}><MessageCircle className="h-4 w-4" />{copy.hero.booking}</Button>
-              <Button type="button" variant="secondary" className="h-11 rounded-md bg-white/12 px-5 text-white hover:bg-white/20" onClick={handleSectionLink("moments")}><ArrowDown className="h-4 w-4" />{copy.hero.samples}</Button>
-              <Button type="button" variant="secondary" className="h-11 rounded-md bg-white/12 px-5 text-white hover:bg-white/20" onClick={handlePortfolioLink}><Images className="h-4 w-4" />{copy.hero.portfolio}</Button>
+              <button type="button" onClick={handleSectionLink("moments")}>{copy.hero.samples}<ArrowDown size={18} strokeWidth={1.3} aria-hidden="true" /></button>
+              <button type="button" onClick={handleSectionLink("contact")}>{copy.hero.booking}<ArrowRight size={18} strokeWidth={1.3} aria-hidden="true" /></button>
             </div>
           </div>
         </div>
@@ -1361,27 +953,11 @@ export function HelsinkiPhotoSession() {
 
       <WhyMeSection copy={copy} photos={shootVisualPhotos} locale={pageLocale} onOpen={openPhoto} />
 
-      <SessionPlanning copy={copy.options} onPlan={(type,trigger) => {
-        const couple = type === copy.options.serviceTypes[1]
-        if (couple) setSelectedPackageIndex(1)
-        setBookingForm(current => ({...current,style:type,...(couple ? {people:"2"} : {})}))
-        bookingTriggerRef.current = trigger
-        setIsEmailFormOpen(true)
-      }} />
-
       <section id="locations" className="bg-[#ffffff] px-5 py-20 sm:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 grid gap-4 lg:grid-cols-[0.38fr_0.62fr] lg:items-end">
-            <div>
-              <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.locations.eyebrow}</p>
-              <h2 className="mt-3 max-w-md text-4xl font-semibold leading-tight sm:text-5xl">
-                {copy.locations.title}
-              </h2>
-            </div>
-            <p className="max-w-xl leading-7 text-[#676256]">
-              {copy.locations.body}
-            </p>
-          </div>
+          <header className={sessionStyles.locationHeading}>
+            <h2>{copy.locations.title}</h2><p>{copy.locations.body}</p>
+          </header>
 
           <div className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
             <div ref={locationListRef} className={`grid gap-3 lg:order-2 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto lg:pr-1 ${sessionStyles.locationList}`}
@@ -1397,34 +973,14 @@ export function HelsinkiPhotoSession() {
                   }}
                   data-location-id={location.id}
                   aria-current={activeLocationId===location.id?"location":undefined}
-                  className={`rounded-md border p-5 transition-colors duration-200 ${
-                    activeLocationId === location.id
-                      ? "border-[#20231f] bg-white shadow-[0_24px_70px_-48px_rgba(32,35,31,0.7)]"
-                      : "border-[#d9dfe0] bg-white/60 text-[#7a6f62]"
-                  }`}
+                  className={sessionStyles.locationItem}
                   onPointerEnter={event=>{if(event.pointerType!=="mouse" || !window.matchMedia("(hover:hover) and (pointer:fine)").matches)return;if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=window.setTimeout(()=>focusMapLocation(location.id),120)}}
                   onPointerLeave={()=>{if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}}}
                 >
-                  <div className="flex items-start gap-4">
-                    <button
-                      type="button"
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
-                        activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#eef1f2] text-[#4e493f]"
-                      }`}
-                      onClick={() => focusMapLocation(location.id)}
-                      aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}
-                    >
-                      {index + 1}
-                    </button>
-                    <div>
-                      <h3 className="text-xl font-semibold leading-tight text-[#20231f]">
-                        <a href={location.href} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
-                          {location.name}
-                        </a>
-                      </h3>
-                      <p className="mt-2 text-sm text-[#7a6f62]">{location.place}</p>
-                    </div>
-                  </div>
+                  <button type="button" className={sessionStyles.locationFocus} onClick={() => focusMapLocation(location.id)} aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}>
+                    <span>{location.name}</span><span className={sessionStyles.locationDot} aria-hidden="true" />
+                  </button>
+                  <a href={location.href} target="_blank" rel="noreferrer" className={sessionStyles.locationLink} aria-label={pageLocale==="zh"?`在地图中打开${location.name}`:`Open ${location.name} in maps`}><ArrowRight size={17} strokeWidth={1.3} aria-hidden="true" /></a>
                 </article>
               ))}
             </div>
@@ -1459,186 +1015,49 @@ export function HelsinkiPhotoSession() {
         </div>
       </section>
 
-      <section className="bg-[#050505] px-5 py-24 text-white sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-9 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase text-white/40">{copy.testimonials.eyebrow}</p>
-              <h2 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
-                {copy.testimonials.title}
-              </h2>
+      <section id="contact" className={sessionStyles.booking} aria-labelledby="session-booking-title">
+        <div className={sessionStyles.sectionInner}>
+          <h2 id="session-booking-title" className={sessionStyles.bookingTitle}>{copy.pricing.title}</h2>
+          <div className={sessionStyles.bookingLayout}>
+            <div id="pricing">
+              <div className={sessionStyles.packageList} role="group" aria-label={copy.form.packagePrefix}>
+                {copy.pricing.packages.map((item,index) => <button key={item.name} type="button" className={sessionStyles.package} aria-pressed={selectedPackageIndex===index} onClick={() => {
+                  setSelectedPackageIndex(index)
+                  setBookingForm(current => ({...current,people:index<3?String(index+1):""}))
+                }}>
+                  <span className={sessionStyles.packageDot} aria-hidden="true" /><span>{item.name}</span><span className={sessionStyles.packagePrice}>{item.price}</span>
+                </button>)}
+              </div>
+              <p className={sessionStyles.deliverySummary}>{selectedPackageIndex<3?(pageLocale==="zh"?"2 小时 · 9 张精修 · 5 日内交付":"2 hours · 9 retouched photos · Within 5 days"):(pageLocale==="zh"?"人数、路线与交付另议":"Group, route and delivery by arrangement")}</p>
+              <fieldset id="options" className={sessionStyles.shootTypes}>
+                <legend>{copy.options.typesTitle}</legend>
+                {copy.options.serviceTypes.map((type,index) => <button key={type} type="button" aria-pressed={bookingForm.style===type} onClick={() => {
+                  setBookingForm(current => ({...current,style:current.style===type?"":type,...(index===1?{people:"2"}:{})}))
+                  if(index===1)setSelectedPackageIndex(1)
+                }}>{type}</button>)}
+              </fieldset>
+            </div>
+            <div className={sessionStyles.contactActions}>
+              <h3>{copy.contact.title}</h3>
+              <button type="button" ref={bookingTriggerRef} onClick={event=>{bookingTriggerRef.current=event.currentTarget;setIsEmailFormOpen(true)}} className={sessionStyles.contactAction}>
+                <span>{copy.contact.emailTitle}</span><span className={sessionStyles.contactArrow}><ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" /></span>
+              </button>
+              <a href={xhsHref} target="_blank" rel="noreferrer" className={sessionStyles.contactAction}>
+                <span>{copy.contact.xhsTitle}</span><span className={sessionStyles.contactArrow}><ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" /></span>
+              </a>
+              {bookingMessage && <p className={sessionStyles.bookingFeedback} role="status" data-error={bookingStatus==="error"}>{bookingMessage}</p>}
             </div>
           </div>
-
-          <div
-            ref={testimonialScrollerRef}
-            className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-5 [scrollbar-width:none] sm:-mx-8 sm:px-8 [&::-webkit-scrollbar]:hidden"
-          >
-            {copy.testimonials.items.map((item) => (
-              <article
-                key={`${item.name}-${item.context}`}
-                className="min-w-[82vw] snap-start rounded-md border border-white/10 bg-white/[0.06] p-5 shadow-[0_24px_80px_-70px_rgba(255,255,255,0.45)] sm:min-w-[420px] lg:min-w-[470px]"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#cad8da] text-sm font-bold text-[#151612]">
-                      {item.name.slice(0, 1)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">{item.name}</p>
-                      <p className="mt-0.5 text-xs font-semibold uppercase text-white/38">{item.context}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-0.5 text-[#cad8da]">
-                    {[0, 1, 2, 3, 4].map((star) => (
-                      <Star key={star} className="h-3.5 w-3.5 fill-current" />
-                    ))}
-                  </div>
-                </div>
-
-                <p className="mt-6 text-[1.05rem] font-semibold leading-8 text-white/88">“{item.quote}”</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" className="border-y border-[#d9dfe0] bg-[#ffffff] px-5 py-20 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.32fr_0.68fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.pricing.eyebrow}</p>
-            <h2 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
-              {copy.pricing.title}
-            </h2>
-          </div>
-              <div>
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {copy.pricing.packages.map((item, index) => {
-                    const isSelected = selectedPackageIndex === index
-                    return (
-                <button
-                  key={item.name}
-                  type="button"
-                  className={`rounded-md border p-5 text-left transition ${
-                    isSelected
-                      ? "border-[#20231f] bg-[#20231f] text-white shadow-[0_24px_70px_-50px_rgba(32,35,31,0.82)]"
-                      : "border-[#d9dfe0] bg-white hover:border-[#9cb4b7]"
-                  }`}
-                  onClick={() => setSelectedPackageIndex(index)}
-                  aria-pressed={isSelected}
-                >
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="mt-4 text-3xl font-semibold">{item.price}</p>
-                  <p className={`mt-2 flex items-center gap-2 text-sm ${isSelected ? "text-white/62" : "text-[#676256]"}`}>
-                    <Clock className="h-4 w-4" />
-                    {item.note}
-                  </p>
-                </button>
-                    )
-                  })}
-                </div>
-                <p className="mt-4 text-sm leading-7 text-[#676256]">
-                  {copy.pricing.note}
-                </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-[#ffffff] px-5 py-20 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.34fr_0.66fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.delivery.eyebrow}</p>
-            <h2 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
-              {copy.delivery.title}
-            </h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <article className="rounded-md border border-[#d9dfe0] bg-white p-5">
-              <h3 className="font-semibold">{copy.delivery.includedTitle}</h3>
-              <ul className="mt-4 grid gap-2 text-sm leading-6 text-[#676256]">
-                {copy.delivery.includedItems.map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <Check className="mt-1 h-4 w-4 shrink-0 text-[#355d63]" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </article>
-            <article className="rounded-md border border-[#d9dfe0] bg-white p-5">
-              <h3 className="font-semibold">{copy.delivery.boundaryTitle}</h3>
-              <ul className="mt-4 grid gap-2 text-sm leading-6 text-[#676256]">
-                {copy.delivery.boundaryItems.map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <Check className="mt-1 h-4 w-4 shrink-0 text-[#355d63]" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" className="bg-[#ffffff] px-5 py-20 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.34fr_0.66fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.contact.eyebrow}</p>
-            <h2 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
-              {copy.contact.title}
-            </h2>
-            <ol className="mt-6 grid gap-3 text-sm leading-6 text-[#676256]">
-              {copy.contact.processItems.map((item, index) => (
-                <li key={item} className="flex gap-3 rounded-md border border-[#d9dfe0] bg-white px-4 py-3">
-                  <span className="font-mono text-xs font-semibold text-[#355d63]">0{index + 1}</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <a
-              href={xhsHref}
-              target="_blank"
-              rel="noreferrer"
-              className="group flex min-h-[220px] flex-col justify-between rounded-md border border-[#20231f] bg-[#20231f] p-5 text-white transition hover:bg-[#2b302a]"
-            >
-              <div>
-                <MessageCircle className="h-6 w-6" />
-                <h3 className="mt-5 text-2xl font-semibold">{copy.contact.xhsTitle}</h3>
-                <p className="mt-3 text-sm leading-6 text-white/62">{copy.contact.xhsBody}</p>
+          <div className={sessionStyles.bookingDetails}>
+            <details id="delivery" className={sessionStyles.disclosure}>
+              <summary><span>{copy.delivery.title}</span><span className={sessionStyles.questionToggle} aria-hidden="true" /></summary>
+              <div className={sessionStyles.conditionGrid}>
+                <div><h3>{copy.delivery.includedTitle}</h3><ul>{copy.delivery.includedItems.map(item=><li key={item}>{item}</li>)}</ul></div>
+                <div><h3>{copy.delivery.boundaryTitle}</h3><ul>{copy.delivery.boundaryItems.map(item=><li key={item}>{item}</li>)}</ul></div>
               </div>
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold">
-                {copy.contact.xhsAction}
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-              </span>
-            </a>
-
-            <button
-              type="button"
-              className="group flex min-h-[220px] flex-col justify-between rounded-md border border-[#d9dfe0] bg-white p-5 text-left transition hover:border-[#20231f]"
-              ref={bookingTriggerRef}
-              onClick={event => { bookingTriggerRef.current = event.currentTarget; setIsEmailFormOpen(true) }}
-            >
-              <div>
-                <Mail className="h-6 w-6 text-[#355d63]" />
-                <h3 className="mt-5 text-2xl font-semibold text-[#20231f]">{copy.contact.emailTitle}</h3>
-                <p className="mt-3 text-sm leading-6 text-[#676256]">{copy.contact.emailBody}</p>
-              </div>
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#20231f]">
-                {copy.contact.emailAction}
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-              </span>
-            </button>
-
-            {bookingMessage && (
-              <p className={`md:col-span-2 rounded-md border px-4 py-3 text-sm font-semibold ${
-                bookingStatus === "error"
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-[#c9ddd9] bg-[#edf4f2] text-[#355d63]"
-              }`}>
-                {bookingMessage}
-              </p>
-            )}
+              <p className={sessionStyles.pricingNote}>{copy.pricing.note}</p>
+            </details>
+            <BookingQuestions copy={copy.faq} />
           </div>
         </div>
       </section>
@@ -1756,30 +1175,10 @@ export function HelsinkiPhotoSession() {
         </Dialog.Content>
       </Dialog.Portal></Dialog.Root>
 
-      <BookingQuestions copy={copy.faq} locale={pageLocale} />
-
-      <footer className="border-t border-[#d9dfe0] bg-[#20231f] px-5 py-8 text-white sm:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-semibold">{copy.footer.title}</p>
-            <p className="mt-1 max-w-xl text-sm leading-6 text-white/60">{copy.footer.notice}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" className="h-10 rounded-md bg-[#f2eadb] text-[#20231f] hover:bg-[#e7dcc9]" onClick={handleSectionLink("contact")}>
-              {copy.footer.booking}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-10 rounded-md border border-white/20 bg-white/10 px-4 text-white hover:bg-white/16"
-              onClick={handleScrollTop}
-            >
-              <ArrowDown className="h-4 w-4 rotate-180" />
-              {copy.footer.top}
-            </Button>
-          </div>
-        </div>
+      <footer className={sessionStyles.footer}>
+        <details className={sessionStyles.imageRights}><summary>© Lijie Li</summary><p>{copy.footer.notice}</p></details>
+        <div><button type="button" onClick={handlePortfolioLink}>{copy.hero.portfolio}<ArrowRight size={14} strokeWidth={1.3} aria-hidden="true" /></button>
+          <button type="button" onClick={handleScrollTop} className={sessionStyles.backToTop} aria-label={copy.footer.top}><ArrowDown size={18} strokeWidth={1.3} aria-hidden="true" /></button></div>
       </footer>
 
       <Dialog.Root open={lightbox} onOpenChange={setLightbox}><Dialog.Portal>
