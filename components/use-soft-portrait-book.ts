@@ -36,6 +36,7 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
     let progress = 0, velocity = 0, target = 0, bend = 0, bendVelocity = 0, grip = .75
     let ready = false, curved = false, settling = false, suppressClick = false, disposed = false, near = false
     let width = book.clientWidth, height = book.clientHeight, pixelRatio = window.devicePixelRatio
+    let warmTimer = 0, neighborTimer = 0, warming = false
     const frameTimes: number[] = []
     const show = (left: number, right: number) => pages.forEach((page, index) => {
       const visible = index === left || index === right
@@ -52,11 +53,26 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
       }
       return renderer
     }
+    // Texture upload and shader setup must not compete with a finger scroll.
+    // Warm only the resting spread after scrolling has been quiet for a moment.
     const warm = () => {
-      pages.forEach(page => page.querySelectorAll("img").forEach(image => {image.loading = "eager"}))
-      if (motion.matches) return
-      const paper = ensureRenderer()
-      if (paper) void paper.warm().then(() => {if (!disposed && !turn) void paper.showSpread(current)})
+      window.clearTimeout(warmTimer); window.clearTimeout(neighborTimer)
+      warmTimer = window.setTimeout(() => {
+        if (disposed || document.hidden || turn || !near || motion.matches || warming) return
+        const paper = ensureRenderer()
+        if (!paper) return
+        warming = true
+        const resting = current
+        void paper.warm(resting).then(async () => {
+          if (disposed || turn || !near) return
+          await paper.showSpread(resting)
+          // Prepare the next spread only after another quiet window, so the
+          // first turn has decoded photographs without a whole-book burst.
+          neighborTimer = window.setTimeout(() => {
+            if (!disposed && !turn && near && current === resting) void paper.warm((resting + 1) % count)
+          }, 300)
+        }).finally(() => {warming = false})
+      }, 180)
     }
     const isNear = () => {
       const rect = book.getBoundingClientRect()
@@ -87,6 +103,7 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
       progress = 0; velocity = 0; bend = 0; bendVelocity = 0; last = 0
       delete book.dataset.turnProgress; delete book.dataset.paperBend
       busy(false); onSpread(next)
+      if (near) warm()
     }
     const tick = (now: number) => {
       frame = 0
@@ -196,7 +213,8 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return
       event.preventDefault(); advance.current(event.key === "ArrowRight" ? 1 : -1)
     }
-    const visibility = () => {if (document.hidden) cancel()}
+    const visibility = () => {if (document.hidden) {window.clearTimeout(warmTimer); window.clearTimeout(neighborTimer); cancel()} else if (near) warm()}
+    const scrolling = () => {if (near && !turn) warm()}
     const resizeBook = () => {
       if (width === book.clientWidth && height === book.clientHeight && pixelRatio === window.devicePixelRatio) return
       width = book.clientWidth; height = book.clientHeight; pixelRatio = window.devicePixelRatio
@@ -231,6 +249,7 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
     showSpread(current); busy(false); onSpread(current)
     resize.observe(book); visible.observe(book)
     scroller.addEventListener("scroll", scheduleInitialCheck, {passive: true})
+    scroller.addEventListener("scroll", scrolling, {passive: true})
     window.addEventListener("resize", scheduleInitialCheck)
     scheduleInitialCheck()
     content.observe(book, {subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "sizes", "width", "height", "data-book-layout"]})
@@ -241,7 +260,7 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
     window.addEventListener("blur", cancel); window.addEventListener("resize", resizeBook)
     document.addEventListener("visibilitychange", visibility); motion.addEventListener("change", cancel)
     return () => {
-      disposed = true; token++; cancelAnimationFrame(frame); cancelAnimationFrame(visibilityFrame); stopFallback()
+      disposed = true; window.clearTimeout(warmTimer); window.clearTimeout(neighborTimer); scroller.removeEventListener("scroll", scrolling); token++; cancelAnimationFrame(frame); cancelAnimationFrame(visibilityFrame); stopFallback()
       stopInitialCheck()
       advance.current = () => {}; resize.disconnect(); visible.disconnect(); content.disconnect()
       renderer?.dispose(); showSpread(current); delete book.dataset.dragging

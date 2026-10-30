@@ -16,9 +16,9 @@
 .spread:nth-child(even) .photograph { grid-column: 1; }
 .spread:nth-child(even) figcaption { grid-column: 2; padding-left: 0; padding-right: 14px; }
 .story[data-story-enhanced="true"] { height: 255svh; }
-.story[data-story-enhanced="true"] .stage { position: sticky; top: 0; display: flex; height: 100svh; min-height: 580px; flex-direction: column; justify-content: center; overflow: clip; padding-top: 46px; padding-bottom: 36px; }
+.story[data-story-enhanced="true"] .stage { position: sticky; top: 0; display: flex; height: 100svh; min-height: 580px; flex-direction: column; justify-content: center; overflow: hidden; padding-top: 46px; padding-bottom: 36px; }
 .story[data-story-enhanced="true"] .heading { width: 100%; flex-shrink: 0; }
-.story[data-story-enhanced="true"] .viewport { display: flex; width: 100%; min-height: 0; flex: 1; align-items: center; overflow: clip; }
+.story[data-story-enhanced="true"] .viewport { display: flex; width: 100%; min-height: 0; flex: 1; align-items: center; overflow: hidden; }
 .story[data-story-enhanced="true"] .track { display: flex; width: max-content; flex-shrink: 0; gap: 80px; }
 .story[data-story-enhanced="true"] .spread { width: var(--spread-width,calc(100vw - 48px)); flex-shrink: 0; }
 @media (max-width: 1023px) {
@@ -98,4 +98,16 @@
   .stage { padding-inline:20px; }
   .track { gap:64px; }
   .spread figcaption,.spread:nth-child(even) figcaption { padding:0; max-width:34ch; }
+}
+
+/* Each introduction spread occupies the phone viewport too. The document
+   advances the strip; the three spreads never become a side-by-side page. */
+.story[data-story-enhanced="true"] .stage { background:#fff; z-index:20; }
+@media (max-width:767px) {
+  .story[data-story-enhanced="true"] { height:280svh; }
+  .story[data-story-enhanced="true"] .stage { height:100svh; min-height:0; padding:28px 20px; }
+  .story[data-story-enhanced="true"] .viewport { margin-top:20px; }
+  .story[data-story-enhanced="true"] .spread { height:100%; }
+  .story[data-story-enhanced="true"] .photograph { --intro-photo-height:min(49svh,440px); }
+  .story[data-story-enhanced="true"] .spread figcaption p { font-size:clamp(24px,6.6vw,30px); }
 }

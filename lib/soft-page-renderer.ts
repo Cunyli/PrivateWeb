@@ -3,7 +3,7 @@ import { createFrameTaskQueue } from "./frame-task-queue"
 import { paperPixelRatio } from "./soft-page-resolution"
 
 export interface SoftPageRenderer {
-  warm(): Promise<void>
+  warm(spread: number): Promise<void>
   prepare(front: number, back: number): Promise<boolean>
   draw(turn: number, bend: number, grip: number, direction: number): void
   showSpread(index: number): Promise<boolean>
@@ -38,7 +38,7 @@ void main() {
 
 export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElement): SoftPageRenderer | null {
   const setupStarted = performance.now()
-  const gl = canvas.getContext("webgl", {alpha: true, antialias: (window.devicePixelRatio || 1)<1.5, depth: true, preserveDrawingBuffer: false})
+  const gl = canvas.getContext("webgl", {alpha: true, antialias: (window.devicePixelRatio || 1)<1.5, depth: true, preserveDrawingBuffer: false, powerPreference: "high-performance"})
   if (!gl) return null
   const compile = (type: number, source: string) => {
     const shader = gl.createShader(type)
@@ -219,7 +219,7 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
   resize()
   book.dataset.paperSetupMs=(performance.now()-setupStarted).toFixed(2)
   return {
-    async warm() {await Promise.all(pages.map((_, index) => textureFor(index)))},
+    async warm(spread) {await Promise.all([textureFor(spread * 2), textureFor(spread * 2 + 1)])},
     async showSpread(index) {
       const sequence = ++request, version = generation
       const pair = await Promise.all([textureFor(index * 2), textureFor(index * 2 + 1)])
