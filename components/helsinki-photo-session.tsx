@@ -13,6 +13,7 @@ import sessionStyles from "./photo-session.module.css"
 import introStyles from "./photo-story.module.css"
 import { sessionImageVariants, sessionViewerSource } from "@/lib/session-image-variants"
 import { usePhotoCuration } from "./photo-curation-provider"
+import { portfolioEntryPhotos } from "@/lib/portfolio-entry-preview"
 import { bookingPlacement, sessionPhotoSources, portraitTitle } from "@/lib/booking-photo-presentation"
 import { curationAssetFamily, curationFeatured } from "@/lib/photo-curation"
 import { photoSource } from "@/lib/portfolio-photo-source"
@@ -57,7 +58,7 @@ const photoSessionCopy = {
     languageButton: "EN",
     languageLabel: "切换到英文",
     momentTypeCouple: "情侣拍摄",
-    hero: { title: "一起拍照。", eyebrow: "", description: "赫尔辛基 · 欧洲与亚洲旅拍", samples: "看照片", portfolio: "摄影集", booking: "约拍" },
+    hero: { title: "我的约拍", portfolio: "摄影集" },
     about: {
       eyebrow: "",
       title: "我是 Lijie。",
@@ -79,7 +80,7 @@ const photoSessionCopy = {
       ],
     },
     options: {
-      typesTitle: "想拍什么",
+      typesTitle: "拍摄类型",
       serviceTypes: ["旅拍 / 游客照", "情侣拍照", "家庭拍照", "宠物照片", "毕业写真", "校园写真"],
     },
     locations: {
@@ -173,7 +174,7 @@ const photoSessionCopy = {
     languageButton: "中",
     languageLabel: "Switch to Chinese",
     momentTypeCouple: "Couple session",
-    hero: { title: "Your portrait.", eyebrow: "", description: "Helsinki · Europe & Asia", samples: "Photographs", portfolio: "Portfolio", booking: "Book a session" },
+    hero: { title: "Your portrait.", portfolio: "Portfolio" },
     about: {
       eyebrow: "",
       title: "I'm Lijie.",
@@ -195,7 +196,7 @@ const photoSessionCopy = {
       ],
     },
     options: {
-      typesTitle: "What would you like to shoot?",
+      typesTitle: "The shoot",
       serviceTypes: ["Travel photos", "Couple photos", "Family photos", "Pet photos", "Graduation portraits", "Campus portraits"],
     },
     locations: {
@@ -627,7 +628,6 @@ export function HelsinkiPhotoSession() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [presentedIndex, setPresentedIndex] = useState(0)
   const locationRefs = useRef<Array<HTMLElement | null>>([])
-  const locationListRef=useRef<HTMLDivElement>(null)
   const mapRootRef = useRef<HTMLDivElement | null>(null)
   const bookingTriggerRef = useRef<HTMLButtonElement | null>(null)
   const photoTriggerRef = useRef<HTMLButtonElement | null>(null)
@@ -636,20 +636,13 @@ export function HelsinkiPhotoSession() {
   const locationMarkersRef=useRef<Record<string,any>>({})
   const lastMapFocusRef=useRef<string|null>(null)
   const manualMapFocusRef=useRef(false)
-  const hoverLocationTimer=useRef<number|null>(null)
-  const resumeMapTracking=useCallback(()=>{
-    manualMapFocusRef.current=false
-    if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}
-  },[])
   const focusScrolledLocation=useCallback((index:number)=>{
     const location=locations[index]
     if(location)setActiveLocationId(location.id)
   },[])
-  useBookingScrollFocus("locations",locationRefs,focusScrolledLocation,locale,{visualSelector:"[data-location-map]",visualAnchor:.2,scroller:locationListRef,manualFocus:manualMapFocusRef})
-  useEffect(()=>()=>{if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current)},[])
+  useBookingScrollFocus("locations",locationRefs,focusScrolledLocation,locale,{visualSelector:"[data-location-map]",visualAnchor:.2,manualFocus:manualMapFocusRef})
   const focusMapLocation=useCallback((id:string)=>{
     manualMapFocusRef.current=true
-    if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}
     setActiveLocationId(id)
     const map=mapRef.current,location=locations.find(item=>item.id===id)
     if(map && location && lastMapFocusRef.current===id){
@@ -668,9 +661,9 @@ export function HelsinkiPhotoSession() {
     [copy],
   )
   const activeLocation = locations.find((location) => location.id === activeLocationId) ?? locations[0]
-  const activeDisplayLocation = displayLocations.find((location) => location.id === activeLocationId) ?? displayLocations[0]
   const selectedPackage = copy.pricing.packages[selectedPackageIndex] ?? copy.pricing.packages[0]
   const placement=useMemo(()=>bookingPlacement(curation),[curation])
+  const portfolioPreviews=useMemo(()=>portfolioEntryPhotos(curation),[curation])
   const sessionSeries=useMemo(()=>bookingPortraitGroups(curation,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",placement.gallery,pageLocale),[curation,placement,pageLocale])
   const displayCover:Photo|null=placement.hero?{id:`portrait-${placement.hero.id}`,src:photoSource(placement.hero.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1920,true),alt:portraitTitle(placement.hero,pageLocale,pageLocale==="zh"?"人像作品":"Portrait photograph")}:null
   const aboutVisualPhotos=useMemo<Photo[]>(()=>placement.intro.map(photo=>{
@@ -868,15 +861,8 @@ export function HelsinkiPhotoSession() {
   },[activeLocationId,activeLocation.lat,activeLocation.lng,mapReady])
 
 
-  const handleSectionLink = (sectionId: string) => (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-    const target = document.getElementById(sectionId)
-    if (!target) return
-    target.scrollIntoView({block:"start",behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"})
-    window.history.replaceState(null,"",`#${sectionId}`)
-  }
-
-  const handlePortfolioLink = (event: MouseEvent<HTMLButtonElement>) => {
+  const handlePortfolioLink = (event: MouseEvent<HTMLElement>) => {
+    if(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button!==0)return
     event.preventDefault()
     setIsLeaving(true)
     window.setTimeout(() => {
@@ -910,18 +896,18 @@ export function HelsinkiPhotoSession() {
         aria-hidden="true"
       />
 
-      <a href="/" className={sessionStyles.homeLink} aria-label={pageLocale === "zh" ? "返回首页" : "Back to home"}>LIJIE LI</a>
-      <button
-        type="button"
-        className={sessionStyles.languageSwitch}
-        onClick={handleLanguageToggle}
-        aria-label={copy.languageLabel}
-        title={copy.languageLabel}
-      >
-        {copy.languageButton}
-      </button>
-
       <section id="session-hero" className="relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#050505] text-white">
+        <a href="/" className={sessionStyles.homeLink} aria-label={pageLocale === "zh" ? "返回首页" : "Back to home"}>LIJIE LI</a>
+        <button
+          type="button"
+          className={sessionStyles.languageSwitch}
+          onClick={handleLanguageToggle}
+          aria-label={copy.languageLabel}
+          title={copy.languageLabel}
+        >
+          {copy.languageButton}
+        </button>
+
         {displayCover&&<SessionImage
           src={displayCover.src}
           fullResolution
@@ -935,13 +921,7 @@ export function HelsinkiPhotoSession() {
 
         <div className={sessionStyles.heroContent}>
           <div className="max-w-6xl">
-
             <h1 className={sessionStyles.heroTitle}>{copy.hero.title}</h1>
-            <p className={sessionStyles.heroDescription}>{copy.hero.description}</p>
-            <div className={sessionStyles.heroActions}>
-              <button type="button" onClick={handleSectionLink("moments")}>{copy.hero.samples}<ArrowDown size={18} strokeWidth={1.3} aria-hidden="true" /></button>
-              <button type="button" onClick={handleSectionLink("contact")}>{copy.hero.booking}<ArrowRight size={18} strokeWidth={1.3} aria-hidden="true" /></button>
-            </div>
           </div>
         </div>
       </section>
@@ -960,11 +940,7 @@ export function HelsinkiPhotoSession() {
           </header>
 
           <div className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
-            <div ref={locationListRef} className={`grid gap-3 lg:order-2 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto lg:pr-1 ${sessionStyles.locationList}`}
-              onWheel={resumeMapTracking}
-              onTouchMove={resumeMapTracking}
-              onPointerDown={resumeMapTracking}
-              onKeyDown={event=>{if(["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(event.key))resumeMapTracking()}}>
+            <div className={sessionStyles.locationList}>
               {displayLocations.map((location, index) => (
                 <article
                   key={location.id}
@@ -974,8 +950,7 @@ export function HelsinkiPhotoSession() {
                   data-location-id={location.id}
                   aria-current={activeLocationId===location.id?"location":undefined}
                   className={sessionStyles.locationItem}
-                  onPointerEnter={event=>{if(event.pointerType!=="mouse" || !window.matchMedia("(hover:hover) and (pointer:fine)").matches)return;if(hoverLocationTimer.current!==null)window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=window.setTimeout(()=>focusMapLocation(location.id),120)}}
-                  onPointerLeave={()=>{if(hoverLocationTimer.current!==null){window.clearTimeout(hoverLocationTimer.current);hoverLocationTimer.current=null}}}
+
                 >
                   <button type="button" className={sessionStyles.locationFocus} onClick={() => focusMapLocation(location.id)} aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}>
                     <span>{location.name}</span><span className={sessionStyles.locationDot} aria-hidden="true" />
@@ -993,22 +968,10 @@ export function HelsinkiPhotoSession() {
                     mapReady ? "opacity-0" : "opacity-100"
                   }`}
                 >
-                  <div className="flex items-center gap-2 text-sm font-semibold text-[#355d63]">
-                    {locations.slice(0, 6).map((location, index) => (
-                      <span
-                        key={location.id}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border border-[#355d63]/30 bg-white/72"
-                      >
-                        {index + 1}
-                      </span>
-                    ))}
-                  </div>
+
                 </div>
                 <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(255,250,242,0.05),rgba(32,35,31,0.08))]" />
-                <div className="pointer-events-none absolute bottom-5 left-5 right-5 z-20 rounded-md bg-white/92 px-4 py-3 text-sm text-[#20231f] shadow-sm backdrop-blur">
-                  <p className="font-semibold">{activeDisplayLocation.name}</p>
-                  <p className="mt-1 text-xs text-[#676256]">{activeDisplayLocation.place} · {activeDisplayLocation.bestTime}</p>
-                </div>
+
               </div>
             </div>
           </div>
@@ -1028,7 +991,12 @@ export function HelsinkiPhotoSession() {
                   <span className={sessionStyles.packageDot} aria-hidden="true" /><span>{item.name}</span><span className={sessionStyles.packagePrice}>{item.price}</span>
                 </button>)}
               </div>
-              <p className={sessionStyles.deliverySummary}>{selectedPackageIndex<3?(pageLocale==="zh"?"2 小时 · 9 张精修 · 5 日内交付":"2 hours · 9 retouched photos · Within 5 days"):(pageLocale==="zh"?"人数、路线与交付另议":"Group, route and delivery by arrangement")}</p>
+              {selectedPackageIndex<3?<dl className={sessionStyles.sessionFacts}>
+                <div><dt>{pageLocale==="zh"?"拍摄时长":"Session"}</dt><dd>2<span>{pageLocale==="zh"?"小时":"hours"}</span></dd></div>
+                <div><dt>{pageLocale==="zh"?"精修照片":"Retouched"}</dt><dd>9<span>{pageLocale==="zh"?"张":"photos"}</span></dd></div>
+                <div><dt>{pageLocale==="zh"?"交付时间":"Delivery"}</dt><dd>5<span>{pageLocale==="zh"?"日内":"days max."}</span></dd></div>
+              </dl>:<p className={sessionStyles.customQuote}>{pageLocale==="zh"?"人数、路线与交付另议":"Group, route and delivery by arrangement"}</p>}
+
               <fieldset id="options" className={sessionStyles.shootTypes}>
                 <legend>{copy.options.typesTitle}</legend>
                 {copy.options.serviceTypes.map((type,index) => <button key={type} type="button" aria-pressed={bookingForm.style===type} onClick={() => {
@@ -1175,10 +1143,23 @@ export function HelsinkiPhotoSession() {
         </Dialog.Content>
       </Dialog.Portal></Dialog.Root>
 
+      <section className={sessionStyles.portfolioDoor} aria-label={pageLocale==="zh"?"摄影作品集":"Photography portfolio"}>
+        <a href="/portfolio?from=photo-session" onClick={handlePortfolioLink} className={sessionStyles.portfolioDoorLink} data-portfolio-entry>
+          {portfolioPreviews.length>0&&<div className={sessionStyles.portfolioPreviewImages}>
+            {portfolioPreviews.map((photo,index)=><div key={photo.id} data-preview-picture={photo.id}>
+              <img src={photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",1280)}
+                srcSet={[640,1280,2560].map(width=>`${photoSource(photo.src,process.env.NEXT_PUBLIC_BUCKET_URL || "https://s3.cunyli.top",width)} ${width}w`).join(", ")}
+                alt="" width={photo.width || undefined} height={photo.height || undefined} loading="lazy" decoding="async" draggable={false}
+                sizes={index===0?"(max-width:767px) calc(100vw - 40px), (min-width:1280px) 396px, 30vw":"(max-width:767px) calc(50vw - 25px), (min-width:1280px) 396px, 30vw"} />
+            </div>)}
+          </div>}
+          <div className={sessionStyles.portfolioDoorCaption}><h2>Portfolio</h2><span>{pageLocale==="zh"?"浏览摄影作品":"Explore the photographs"}<span className={sessionStyles.contactArrow}><ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" /></span></span></div>
+        </a>
+      </section>
+
       <footer className={sessionStyles.footer}>
         <details className={sessionStyles.imageRights}><summary>© Lijie Li</summary><p>{copy.footer.notice}</p></details>
-        <div><button type="button" onClick={handlePortfolioLink}>{copy.hero.portfolio}<ArrowRight size={14} strokeWidth={1.3} aria-hidden="true" /></button>
-          <button type="button" onClick={handleScrollTop} className={sessionStyles.backToTop} aria-label={copy.footer.top}><ArrowDown size={18} strokeWidth={1.3} aria-hidden="true" /></button></div>
+        <div><button type="button" onClick={handleScrollTop} className={sessionStyles.backToTop} aria-label={copy.footer.top}><ArrowDown size={18} strokeWidth={1.3} aria-hidden="true" /></button></div>
       </footer>
 
       <Dialog.Root open={lightbox} onOpenChange={setLightbox}><Dialog.Portal>

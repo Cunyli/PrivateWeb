@@ -55,9 +55,9 @@ export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean })
         <span className={styles.dragCue} aria-hidden="true"><MoveHorizontal size={18} strokeWidth={1.2} /></span>
       </div>
       <div className={styles.caption}>
-        <Link href="/helsinki-photo-session" aria-label={entryLabel} onClick={event => capturePortfolioPosition(event.currentTarget.closest<HTMLElement>("[data-return-section]"))}>
+        <Link href="/helsinki-photo-session" data-session-booking-link aria-label={entryLabel} onClick={event => capturePortfolioPosition(event.currentTarget.closest<HTMLElement>("[data-return-section]"))}>
           <h2 className={styles.entryTitle}>{zh ? "人像作品" : "Portraits"}</h2>
-          <span className={styles.entryAction}>{zh ? "查看作品与约拍" : "View portraits & book a shoot"}<ArrowUpRight size={16} strokeWidth={1.4} aria-hidden="true" /></span>
+          <span className={styles.entryAction}>{zh ? "约拍详情" : "Book a shoot"}<ArrowUpRight size={16} strokeWidth={1.4} aria-hidden="true" /></span>
         </Link>
         <div className={styles.pagination}>
           <button type="button" onClick={() => advance.current(-1)} disabled={busy || paused} aria-label={zh ? "上一组人像" : "Previous portraits"}><ArrowLeft size={18} strokeWidth={1.3} /></button>

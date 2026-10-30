@@ -1179,7 +1179,7 @@ export function PortfolioGrid({ initialData, embedded = false }: PortfolioGridPr
             {!embedded && <Link href={entryReturnHref} className={chrome.control} aria-label={entryReturnHref === "/helsinki-photo-session" ? (locale === "zh" ? "返回约拍" : "Back to photo sessions") : (locale === "zh" ? "返回首页" : "Back to home")}><ArrowLeft size={18} strokeWidth={1.4} /></Link>}
             {embedded ? <h2 id="portfolio-gallery-title" className="sr-only">{t('galleriesTitle')}</h2> : <h1 className="sr-only">{t('galleriesTitle')}</h1>}
           </div>
-          <div className={`${chrome.controls} ${!embedded ? chrome.fixedControls : ""}`}>
+          <div className={chrome.controls}>
             <LangSwitcher />
             <button ref={searchTriggerRef} type="button" onClick={() => setSearchOpen(true)} className={chrome.control} aria-label={t('openSearch')} title={t('search')}>
               <Search size={18} strokeWidth={1.4} aria-hidden="true" />
