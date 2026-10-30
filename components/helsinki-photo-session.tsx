@@ -64,7 +64,7 @@ const photoSessionCopy = {
       eyebrow: "",
       title: "我是 Lijie。",
       body: "",
-      highlightLines: ["常驻赫尔辛基，\n斯德哥尔摩", "引导，\n我是专业的", "样样行"],
+      highlightLines: ["常驻赫尔辛基，\n斯德哥尔摩", "引导，\n我是专业的", "中文英语粤语，\n样样行"],
     },
     process: {
       eyebrow: "为什么是我",
@@ -204,7 +204,7 @@ const photoSessionCopy = {
       eyebrow: "",
       title: "I'm Lijie.",
       body: "",
-      highlightLines: ["Based in Helsinki\nand Stockholm.", "Professional\nposing guidance.", "All-rounder."],
+      highlightLines: ["Based in Helsinki\nand Stockholm.", "Professional\nposing guidance.", "Mandarin, English, Cantonese.\nAll good."],
     },
     process: {
       eyebrow: "Why me",
