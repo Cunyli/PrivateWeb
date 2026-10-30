@@ -11,7 +11,7 @@ The booking page uses the photography portfolio’s typography and image space, 
 - End with three approved portfolio covers forming one linked preview, followed by the small signature and back-to-top control. Image-use terms remain accessible from the signature.
 - Keep language controls in the first section/header rather than globally floating. The Portfolio book itself opens the session page; a pointer and a subtle corner mark indicate the link. There is no separate Book a shoot button, and dragging still turns pages.
 
-Detailed conditions remain available on demand. Package rows, the three included facts and the shoot-type pills use distinct formats. Portfolio preview images come from current rated-1 covers, exclude the portrait pool, and deduplicate asset families; no static fallback can restore removed photographs.
+Detailed conditions remain available on demand. The rate selector, included facts and shoot-type text controls use distinct formats. Portfolio preview images come from current rated-1 covers, exclude the portrait pool, and deduplicate asset families; no static fallback can restore removed photographs.
 
 The original map cards, heading and map information panel are restored without a nested scrollbar. On desktop, the compact two-column stage stays in view while document progress advances through the six places. On phones, the original map-above-cards layout follows each card position. Scrolling selects places in order by default. Clicking a location or map marker takes control for the remainder of that visit; further page scroll does not change the chosen place. Hover and wheel events do not silently resume automatic selection.
 
@@ -52,3 +52,11 @@ Photo-book preparation starts earlier, cached turns no longer read layout, the m
 Local verification covered Chinese and English at 1440×900, 1280×720, 1024×768, 1280×600, 1024×520 and a 390×844 portrait phone. All six map stops were traversed forward and backward with the map actually inside the viewport; pinned columns aligned, manual selection persisted, and the following booking heading remained reachable. Real wheel input kept the desktop stage at 24px, and a mid-turn screenshot retained the curved sheet. Both booking entrances and desktop drag navigation passed. Build, TypeScript, bilingual coverage, curation and the asynchronous book-transition regression passed. No live booking was submitted.
 
 In 24 WebKit turns, preparation took 0–1ms versus 2–3ms in the original desktop sample. Frame-time p95 was 17–18ms; 5 of 1009 sampled intervals exceeded 25ms, with a 40ms maximum. This runner operates around 60Hz, so these measurements do not establish 120Hz hardware performance. Desktop density remained 2× and phone density 3×; no frame-rate limiter was introduced.
+
+## Editorial booking rates
+
+Remove the map disclaimer in both languages and let the route heading use the available width. Keep its scroll track and map interaction intact.
+
+Present the four prices in a horizontal type-led selector, with a quiet underline for the selected package. On phones it becomes two columns. The standard shoot promise sits beside the heading, while shoot types are plain text controls and contact uses “约个时间。” / “Let’s find a day.” with two direct links. Four-plus-person quotes continue to omit the standard duration/delivery promise.
+
+TypeScript, production build and bilingual coverage passed. The existing prices, delivery, extra fees and shoot-type arrays were compared directly with the previous version. WebKit checks passed in Chinese and English at 1440×1000, 1280×600, 390×844 and 320×740: layout fit, four package choices, form package/people values, custom-quote handling, couple-type binding, close/focus return and map visibility after simplifying its heading. No real booking was submitted.

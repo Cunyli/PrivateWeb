@@ -105,13 +105,13 @@ const photoSessionCopy = {
       ],
     },
     options: {
-      typesTitle: "拍摄类型",
+      typesTitle: "想拍",
       serviceTypes: ["旅拍 / 游客照", "情侣拍照", "家庭拍照", "宠物照片", "毕业写真", "校园写真"],
     },
     locations: {
       eyebrow: "拍摄路线",
       title: "默认赫尔辛基路线",
-      body: "只是默认参考，具体路线可以按天气、时间和你想拍的感觉修改。",
+      body: "",
       points: [
         { name: "赫尔辛基主教座堂", place: "白教堂 / 参议院广场", bestTime: "下午侧光" },
         { name: "赫尔辛基集市广场", place: "码头 / 集市广场", bestTime: "16:00 后" },
@@ -142,7 +142,7 @@ const photoSessionCopy = {
     },
     contact: {
       eyebrow: "预约",
-      title: "告诉我日期和人数。",
+      title: "约个时间。",
       processItems: ["私信沟通并选定套餐", "约定时间和地点，拍摄当天提前会合", "拍完后五天以内返回照片；加钱可加急"],
       xhsTitle: "小红书",
       xhsBody: "",
@@ -251,7 +251,7 @@ const photoSessionCopy = {
     locations: {
       eyebrow: "Routes",
       title: "Default Helsinki Route",
-      body: "This is only a default reference. The route can change with weather, time, and the mood you want in the photos.",
+      body: "",
       points: [
         { name: "Helsinki Cathedral", place: "Helsinki Cathedral / Senate Square", bestTime: "Afternoon side light" },
         { name: "Market Square", place: "Market Square / Harbor", bestTime: "After 16:00" },
@@ -282,7 +282,7 @@ const photoSessionCopy = {
     },
     contact: {
       eyebrow: "Booking",
-      title: "A date. A few details.",
+      title: "Let’s find a day.",
       processItems: ["Message me and choose a package", "Agree on time and meeting point, then meet before the shoot", "Photos are delivered within about five days; rush delivery is available for an extra fee"],
       xhsTitle: "Xiaohongshu",
       xhsBody: "",
@@ -1010,16 +1010,13 @@ export function HelsinkiPhotoSession() {
         <div className={`mx-auto max-w-7xl ${sessionStyles.locationTrack}`} data-map-tour-track>
           <div data-map-tour-start aria-hidden="true" />
           <div className={sessionStyles.locationStage} data-map-tour-stage>
-            <div className={`mb-10 grid gap-4 lg:grid-cols-[0.38fr_0.62fr] lg:items-end ${sessionStyles.locationHeader}`}>
+            <div className={`mb-10 ${sessionStyles.locationHeader}`}>
               <div>
                 <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.locations.eyebrow}</p>
-                <h2 className="mt-3 max-w-md text-4xl font-semibold leading-tight sm:text-5xl">
+                <h2 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
                   {copy.locations.title}
                 </h2>
               </div>
-              <p className="max-w-xl leading-7 text-[#676256]">
-                {copy.locations.body}
-              </p>
             </div>
 
             <div className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
@@ -1088,39 +1085,46 @@ export function HelsinkiPhotoSession() {
 
       <section id="contact" className={sessionStyles.booking} aria-labelledby="session-booking-title">
         <div className={sessionStyles.sectionInner}>
-          <h2 id="session-booking-title" className={sessionStyles.bookingTitle}>{copy.pricing.title}</h2>
-          <div className={sessionStyles.bookingLayout}>
-            <div id="pricing">
-              <div className={sessionStyles.packageList} role="group" aria-label={copy.form.packagePrefix}>
-                {copy.pricing.packages.map((item,index) => <button key={item.name} type="button" className={sessionStyles.package} aria-pressed={selectedPackageIndex===index} onClick={() => {
-                  setSelectedPackageIndex(index)
-                  setBookingForm(current => ({...current,people:index<3?String(index+1):""}))
-                }}>
-                  <span className={sessionStyles.packageDot} aria-hidden="true" /><span>{item.name}</span><span className={sessionStyles.packagePrice}>{item.price}</span>
-                </button>)}
-              </div>
+          <div className={sessionStyles.bookingHeader}>
+            <h2 id="session-booking-title" className={sessionStyles.bookingTitle}>{copy.pricing.title}</h2>
+            <div className={sessionStyles.bookingPromise} aria-live="polite" aria-atomic="true">
               {selectedPackageIndex<3?<dl className={sessionStyles.sessionFacts}>
-                <div><dt>{pageLocale==="zh"?"拍摄时长":"Session"}</dt><dd>2<span>{pageLocale==="zh"?"小时":"hours"}</span></dd></div>
-                <div><dt>{pageLocale==="zh"?"精修照片":"Retouched"}</dt><dd>9<span>{pageLocale==="zh"?"张":"photos"}</span></dd></div>
-                <div><dt>{pageLocale==="zh"?"交付时间":"Delivery"}</dt><dd>5<span>{pageLocale==="zh"?"日内":"days max."}</span></dd></div>
+                <div><dt className="sr-only">{pageLocale==="zh"?"拍摄时长":"Session"}</dt><dd>2<span>{pageLocale==="zh"?"小时拍摄":"hours"}</span></dd></div>
+                <div><dt className="sr-only">{pageLocale==="zh"?"精修照片":"Retouched"}</dt><dd>9<span>{pageLocale==="zh"?"张精修":"retouched photos"}</span></dd></div>
+                <div><dt className="sr-only">{pageLocale==="zh"?"交付时间":"Delivery"}</dt><dd>5<span>{pageLocale==="zh"?"日内交付":"days max."}</span></dd></div>
               </dl>:<p className={sessionStyles.customQuote}>{pageLocale==="zh"?"人数、路线与交付另议":"Group, route and delivery by arrangement"}</p>}
-
-              <fieldset id="options" className={sessionStyles.shootTypes}>
-                <legend>{copy.options.typesTitle}</legend>
-                {copy.options.serviceTypes.map((type,index) => <button key={type} type="button" aria-pressed={bookingForm.style===type} onClick={() => {
-                  setBookingForm(current => ({...current,style:current.style===type?"":type,...(index===1?{people:"2"}:{})}))
-                  if(index===1)setSelectedPackageIndex(1)
-                }}>{type}</button>)}
-              </fieldset>
             </div>
+          </div>
+
+          <div id="pricing" className={sessionStyles.packageList} role="group" aria-label={copy.form.packagePrefix}>
+            {copy.pricing.packages.map((item,index) => <button key={item.name} type="button" className={sessionStyles.package}
+              data-custom={index===3?"true":undefined} aria-label={`${item.name} · ${item.price}`} aria-pressed={selectedPackageIndex===index} onClick={() => {
+                setSelectedPackageIndex(index)
+                setBookingForm(current => ({...current,people:index<3?String(index+1):""}))
+              }}>
+              <span className={sessionStyles.packageName}>{item.name}</span>
+              <span className={sessionStyles.packagePrice}>{index<3?<><span className={sessionStyles.packageCurrency}>€</span>{item.price.replace("EUR ","")}</>:item.price}</span>
+            </button>)}
+          </div>
+
+          <div className={sessionStyles.bookingLayout}>
+            <fieldset id="options" className={sessionStyles.shootTypes}>
+              <legend>{copy.options.typesTitle}</legend>
+              {copy.options.serviceTypes.map((type,index) => <button key={type} type="button" aria-pressed={bookingForm.style===type} onClick={() => {
+                setBookingForm(current => ({...current,style:current.style===type?"":type,...(index===1?{people:"2"}:{})}))
+                if(index===1)setSelectedPackageIndex(1)
+              }}>{type}</button>)}
+            </fieldset>
             <div className={sessionStyles.contactActions}>
               <h3>{copy.contact.title}</h3>
-              <button type="button" ref={bookingTriggerRef} onClick={event=>{bookingTriggerRef.current=event.currentTarget;setIsEmailFormOpen(true)}} className={sessionStyles.contactAction}>
-                <span>{copy.contact.emailTitle}</span><span className={sessionStyles.contactArrow}><ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" /></span>
-              </button>
-              <a href={xhsHref} target="_blank" rel="noreferrer" className={sessionStyles.contactAction}>
-                <span>{copy.contact.xhsTitle}</span><span className={sessionStyles.contactArrow}><ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" /></span>
-              </a>
+              <div className={sessionStyles.contactLinks}>
+                <button type="button" ref={bookingTriggerRef} onClick={event=>{bookingTriggerRef.current=event.currentTarget;setIsEmailFormOpen(true)}} className={sessionStyles.contactAction}>
+                  <span>{copy.contact.emailTitle}</span><span className={sessionStyles.contactArrow}><ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" /></span>
+                </button>
+                <a href={xhsHref} target="_blank" rel="noreferrer" className={sessionStyles.contactAction}>
+                  <span>{copy.contact.xhsTitle}</span><span className={sessionStyles.contactArrow}><ArrowRight size={19} strokeWidth={1.3} aria-hidden="true" /></span>
+                </a>
+              </div>
               {bookingMessage && <p className={sessionStyles.bookingFeedback} role="status" data-error={bookingStatus==="error"}>{bookingMessage}</p>}
             </div>
           </div>
