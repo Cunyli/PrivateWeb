@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n"
 import { bindMapWheelGestures } from "@/lib/map-wheel-gestures"
 import { useBookingScrollFocus } from "./use-booking-scroll-focus"
+import { useBookingMapTour } from "./use-booking-map-tour"
 
 type Locale = "zh" | "en"
 
@@ -67,16 +68,40 @@ const photoSessionCopy = {
     },
     process: {
       eyebrow: "为什么是我",
-      title: "和我拍照。",
+      title: "为什么是我。",
       steps: [
-        { title: "路线一起定", body: "你选地方，或交给我安排。" },
-        { title: "动作我来带", body: "走路、坐下、看向别处，都可以。" },
-        { title: "设备都好商量", body: "数码、胶片、CCD、拍立得，可以提前聊。" },
-        { title: "我住在这里", body: "在赫尔辛基生活两年，也是在校学生。" },
-        { title: "按你的节奏来", body: "我会耐心引导，也能帮你照看包和器材。" },
-        { title: "边拍边逛", body: "顺路喝杯咖啡、吃点东西也好。" },
-        { title: "提前说清楚", body: "价格、交付和取消条件，拍之前确认。" },
-        { title: "不止赫尔辛基", body: "欧洲、亚洲可约；路费和住宿另计。" },
+        {
+          title: "路线可以我定，也可以你定",
+          body: "路线优先选，不让转场吃掉拍摄时间。我会按时间、光线和转场安排路线，你也可以提供自己的路线。",
+        },
+        {
+          title: "不要求你本来就是模特",
+          body: "现场会给动作指导。走路、坐下、不看镜头、大头照、游客照，都可以自然完成。",
+        },
+        {
+          title: "设备可以很自由",
+          body: "我会用自己的设备，也可以用你的设备拍。数码、胶片、CCD、拍立得都可以提前沟通。",
+        },
+        {
+          title: "熟悉赫尔辛基现场",
+          body: "我在这里生活两年，也是在校学生，更清楚该去哪拍、怎么走、哪段路更适合你。",
+        },
+        {
+          title: "稳定、耐心，也好相处",
+          body: "拍摄过程会轻松一点。我可以帮你扛东西和器材，也可以像摄影搭子一样一起行动。",
+        },
+        {
+          title: "可以像地陪一样带你玩",
+          body: "如果你愿意，我也可以顺路带你吃吃喝喝，把拍摄变成半天城市散步。",
+        },
+        {
+          title: "规则提前写清楚",
+          body: "价格、交付、取消和额外费用都会提前确认，网站和小红书也会持续写清楚。",
+        },
+        {
+          title: "全欧可飞，也接受亚洲旅拍",
+          body: "你承担对应路费、住宿、门票等成本，我就可以配合远距离路线和旅拍计划。",
+        },
       ],
     },
     options: {
@@ -85,8 +110,8 @@ const photoSessionCopy = {
     },
     locations: {
       eyebrow: "拍摄路线",
-      title: "赫尔辛基",
-      body: "路线按天气和你的计划调整。",
+      title: "默认赫尔辛基路线",
+      body: "只是默认参考，具体路线可以按天气、时间和你想拍的感觉修改。",
       points: [
         { name: "赫尔辛基主教座堂", place: "白教堂 / 参议院广场", bestTime: "下午侧光" },
         { name: "赫尔辛基集市广场", place: "码头 / 集市广场", bestTime: "16:00 后" },
@@ -183,16 +208,40 @@ const photoSessionCopy = {
     },
     process: {
       eyebrow: "Why me",
-      title: "With me.",
+      title: "Why me.",
       steps: [
-        { title: "A route together", body: "Bring a place in mind, or let me plan the walk." },
-        { title: "I’ll guide you", body: "Walk, sit, look away. We’ll try things as we go." },
-        { title: "Your camera, too", body: "Digital, film, CCD or instant — ask me beforehand." },
-        { title: "At home here", body: "Two years living in Helsinki, and a student here." },
-        { title: "At your pace", body: "Patient guidance, and a hand with bags and gear." },
-        { title: "A stop along the way", body: "Coffee or a bite to eat can be part of the walk." },
-        { title: "Agreed beforehand", body: "Price, delivery and cancellation, before we shoot." },
-        { title: "Further afield", body: "Europe and Asia, with travel and accommodation covered." },
+        {
+          title: "I can plan the route, or we can use yours",
+          body: "The route is planned so that transfers do not eat the session. I arrange it around time, light, and walking distance, and you can also bring your own route ideas.",
+        },
+        {
+          title: "You do not need to be a model",
+          body: "I will guide you on the spot. Walking, sitting, looking away, close portraits, and tourist-style photos can all feel natural.",
+        },
+        {
+          title: "The camera setup can be flexible",
+          body: "I can shoot with my own gear, and we can also include yours. Digital, film, CCD, and instant cameras can all be discussed in advance.",
+        },
+        {
+          title: "I know Helsinki on the ground",
+          body: "I have lived here for two years and study here, so I know where to go, how to walk, and which parts of the route fit different people.",
+        },
+        {
+          title: "Stable, patient, easy to be around",
+          body: "The shoot should feel relaxed. I can help with bags and gear, and move through the city like a photo companion rather than a distant vendor.",
+        },
+        {
+          title: "It can feel like a city walk",
+          body: "If you want, I can also take you for food, coffee, and small local stops, turning the shoot into a half-day city walk.",
+        },
+        {
+          title: "Rules are clear before we shoot",
+          body: "Price, delivery, cancellation, and extra fees are confirmed in advance. The website and Xiaohongshu will keep these details visible.",
+        },
+        {
+          title: "Europe-wide, and Asia travel sessions are possible",
+          body: "If travel, accommodation, tickets, and transfer costs are covered, I can work with longer routes and travel-session plans.",
+        },
       ],
     },
     options: {
@@ -201,8 +250,8 @@ const photoSessionCopy = {
     },
     locations: {
       eyebrow: "Routes",
-      title: "Helsinki",
-      body: "A starting route. We can change it.",
+      title: "Default Helsinki Route",
+      body: "This is only a default reference. The route can change with weather, time, and the mood you want in the photos.",
       points: [
         { name: "Helsinki Cathedral", place: "Helsinki Cathedral / Senate Square", bestTime: "Afternoon side light" },
         { name: "Market Square", place: "Market Square / Harbor", bestTime: "After 16:00" },
@@ -542,17 +591,18 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
   const displayShootSteps = copy.process.steps
   const activeShootPhoto = photos.length ? photos[Math.min(photos.length-1,Math.floor(activeStepIndex*photos.length/displayShootSteps.length))] : null
   return (
-      <section id="process" className={sessionStyles.processSection}>
+      <section id="process" className="bg-[#0b0c0a] px-5 py-20 text-white sm:px-8">
         <div className="mx-auto max-w-7xl">
           <div className={`grid gap-10 ${sessionStyles.processLayout} ${activeShootPhoto ? "lg:grid-cols-[0.46fr_0.54fr]" : "mx-auto max-w-4xl"}`}>
             <div className={sessionStyles.processCopy}>
               <div className={sessionStyles.processHeading}>
-                <h2 className={sessionStyles.processTitle}>
+                <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-tight sm:text-6xl">
                   {copy.process.title}
                 </h2>
               </div>
 
               <div className={`relative pb-[10svh] pt-4 ${sessionStyles.processSteps}`}>
+                <div className="pointer-events-none absolute bottom-0 left-[1.1rem] top-4 hidden w-px bg-white/12 sm:block" />
                 {displayShootSteps.map((step, index) => (
                   <article
                     key={step.title}
@@ -561,13 +611,35 @@ function WhyMeSection({ copy, photos, locale, onOpen }: {
                     }}
                     data-step-index={index}
                     aria-current={activeStepIndex===index?"step":undefined}
-                    className={sessionStyles.processStep}
+                    className={`group relative grid min-h-[36svh] gap-5 border-t border-white/12 py-8 transition duration-500 sm:grid-cols-[3.25rem_minmax(0,1fr)] sm:border-t-0 sm:py-10 ${
+                      activeStepIndex === index ? "text-white" : "text-white/35"
+                    }`}
                   >
-                    <div>
-                      <h3>
+                    <div className="relative flex items-start gap-3 sm:block">
+                      <span
+                        className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition duration-500 ${
+                          activeStepIndex === index
+                            ? "border-white bg-white text-[#151612]"
+                            : "border-white/20 bg-[#0b0c0a] text-white/42"
+                        }`}
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+
+                    <div className="max-w-2xl sm:pt-6">
+                      <h3
+                        className={`text-3xl font-semibold leading-tight transition duration-500 sm:text-4xl ${
+                          activeStepIndex === index ? "translate-x-0 opacity-100" : "translate-x-0 opacity-62"
+                        }`}
+                      >
                         {step.title}
                       </h3>
-                      <p>
+                      <p
+                        className={`mt-5 max-w-xl text-lg leading-8 transition duration-500 ${
+                          activeStepIndex === index ? "text-white/74" : "text-white/38"
+                        }`}
+                      >
                         {step.body}
                       </p>
                     </div>
@@ -640,7 +712,7 @@ export function HelsinkiPhotoSession() {
     const location=locations[index]
     if(location)setActiveLocationId(location.id)
   },[])
-  useBookingScrollFocus("locations",locationRefs,focusScrolledLocation,locale,{visualSelector:"[data-location-map]",visualAnchor:.2,manualFocus:manualMapFocusRef})
+  useBookingMapTour(locationRefs,focusScrolledLocation,locale,manualMapFocusRef)
   const focusMapLocation=useCallback((id:string)=>{
     manualMapFocusRef.current=true
     setActiveLocationId(id)
@@ -661,6 +733,7 @@ export function HelsinkiPhotoSession() {
     [copy],
   )
   const activeLocation = locations.find((location) => location.id === activeLocationId) ?? locations[0]
+  const activeDisplayLocation=displayLocations.find(location=>location.id===activeLocationId) ?? displayLocations[0]
   const selectedPackage = copy.pricing.packages[selectedPackageIndex] ?? copy.pricing.packages[0]
   const placement=useMemo(()=>bookingPlacement(curation),[curation])
   const portfolioPreviews=useMemo(()=>portfolioEntryPhotos(curation),[curation])
@@ -933,14 +1006,24 @@ export function HelsinkiPhotoSession() {
 
       <WhyMeSection copy={copy} photos={shootVisualPhotos} locale={pageLocale} onOpen={openPhoto} />
 
-      <section id="locations" className="bg-[#ffffff] px-5 py-20 sm:px-8">
+      <section id="locations" className={`${sessionStyles.locationSection} bg-[#ffffff] px-5 py-20 sm:px-8`}>
         <div className="mx-auto max-w-7xl">
-          <header className={sessionStyles.locationHeading}>
-            <h2>{copy.locations.title}</h2><p>{copy.locations.body}</p>
-          </header>
+          <div className="mb-10 grid gap-4 lg:grid-cols-[0.38fr_0.62fr] lg:items-end">
+            <div>
+              <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.locations.eyebrow}</p>
+              <h2 className="mt-3 max-w-md text-4xl font-semibold leading-tight sm:text-5xl">
+                {copy.locations.title}
+              </h2>
+            </div>
+            <p className="max-w-xl leading-7 text-[#676256]">
+              {copy.locations.body}
+            </p>
+          </div>
 
-          <div className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
-            <div className={sessionStyles.locationList}>
+          <div data-map-tour-start aria-hidden="true" />
+          <div data-map-tour-stage className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
+            <div className={`grid gap-3 lg:order-2 lg:pr-1 ${sessionStyles.locationList}`}>
+
               {displayLocations.map((location, index) => (
                 <article
                   key={location.id}
@@ -949,13 +1032,32 @@ export function HelsinkiPhotoSession() {
                   }}
                   data-location-id={location.id}
                   aria-current={activeLocationId===location.id?"location":undefined}
-                  className={sessionStyles.locationItem}
-
+                  className={`rounded-md border p-5 transition-colors duration-200 ${
+                    activeLocationId === location.id
+                      ? "border-[#20231f] bg-white shadow-[0_24px_70px_-48px_rgba(32,35,31,0.7)]"
+                      : "border-[#d9dfe0] bg-white/60 text-[#7a6f62]"
+                  }`}
                 >
-                  <button type="button" className={sessionStyles.locationFocus} onClick={() => focusMapLocation(location.id)} aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}>
-                    <span>{location.name}</span><span className={sessionStyles.locationDot} aria-hidden="true" />
-                  </button>
-                  <a href={location.href} target="_blank" rel="noreferrer" className={sessionStyles.locationLink} aria-label={pageLocale==="zh"?`在地图中打开${location.name}`:`Open ${location.name} in maps`}><ArrowRight size={17} strokeWidth={1.3} aria-hidden="true" /></a>
+                  <div className="flex items-start gap-4">
+                    <button
+                      type="button"
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
+                        activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#eef1f2] text-[#4e493f]"
+                      }`}
+                      onClick={() => focusMapLocation(location.id)}
+                      aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}
+                    >
+                      {index + 1}
+                    </button>
+                    <div>
+                      <h3 className="text-xl font-semibold leading-tight text-[#20231f]">
+                        <a href={location.href} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
+                          {location.name}
+                        </a>
+                      </h3>
+                      <p className="mt-2 text-sm text-[#7a6f62]">{location.place}</p>
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>
@@ -971,12 +1073,16 @@ export function HelsinkiPhotoSession() {
 
                 </div>
                 <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(255,250,242,0.05),rgba(32,35,31,0.08))]" />
-
+                <div className="pointer-events-none absolute bottom-5 left-5 right-5 z-20 rounded-md bg-white/92 px-4 py-3 text-sm text-[#20231f] shadow-sm backdrop-blur">
+                  <p className="font-semibold">{activeDisplayLocation.name}</p>
+                  <p className="mt-1 text-xs text-[#676256]">{activeDisplayLocation.place} · {activeDisplayLocation.bestTime}</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       <section id="contact" className={sessionStyles.booking} aria-labelledby="session-booking-title">
         <div className={sessionStyles.sectionInner}>

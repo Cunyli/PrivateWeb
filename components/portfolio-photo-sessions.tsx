@@ -36,7 +36,7 @@ export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean })
     <div className={styles.album} data-photo-sessions-entry data-session-spread={spread + 1}>
       <div ref={setBook} className={styles.book} data-portrait-book role="group"
         data-book-restored={String(restored)} aria-busy={!restored || busy} aria-roledescription={zh ? "可拖动翻页的摄影集" : "Draggable photo book"}
-        aria-label={zh ? "人像摄影集，使用左右方向键或拖动翻页" : "Portrait photo book. Drag or use the left and right arrow keys to turn pages."}>
+        aria-label={zh ? "人像摄影集，点击查看约拍，拖动或使用左右方向键翻页" : "Portrait photo book. Click for photo sessions; drag or use arrow keys to turn pages."}>
         {pages.map((photos, page) => {
           const visible = page === spread * 2 || page === spread * 2 + 1
           return <Link key={page} href="/helsinki-photo-session" className={`${styles.page} ${page % 2 ? styles.right : styles.left}`}
@@ -52,12 +52,12 @@ export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean })
         })}
         <canvas key="continuous-paper" ref={setCanvas} className={styles.paperCanvas} aria-hidden="true" />
         <span className={styles.spine} aria-hidden="true" />
+        <span className={styles.openCue} aria-hidden="true"><ArrowUpRight size={19} strokeWidth={1.3} /></span>
         <span className={styles.dragCue} aria-hidden="true"><MoveHorizontal size={18} strokeWidth={1.2} /></span>
       </div>
       <div className={styles.caption}>
         <Link href="/helsinki-photo-session" data-session-booking-link aria-label={entryLabel} onClick={event => capturePortfolioPosition(event.currentTarget.closest<HTMLElement>("[data-return-section]"))}>
-          <h2 className={styles.entryTitle}>{zh ? "人像作品" : "Portraits"}</h2>
-          <span className={styles.entryAction}>{zh ? "约拍详情" : "Book a shoot"}<ArrowUpRight size={16} strokeWidth={1.4} aria-hidden="true" /></span>
+          <h2 className={styles.entryTitle}>{zh ? "人像与约拍" : "Portrait sessions"}</h2>
         </Link>
         <div className={styles.pagination}>
           <button type="button" onClick={() => advance.current(-1)} disabled={busy || paused} aria-label={zh ? "上一组人像" : "Previous portraits"}><ArrowLeft size={18} strokeWidth={1.3} /></button>

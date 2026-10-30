@@ -182,3 +182,26 @@
   .portfolioDoorCaption > span { gap:12px; font-size:11px; }
 }
 @media (prefers-reduced-motion:reduce) { .portfolioPreviewImages img { transition:none; } }
+
+/* Restore the original dark introduction and compact route cards. */
+.processVisual { --frame-height:min(72svh,740px); }
+.processHeading { margin-bottom:32px; }
+.locationSection { position:relative; }
+.locationList { align-content:stretch; }
+@media (min-width:1024px) and (min-height:700px) {
+  .locationSection { min-height:250svh; }
+  .page .locationLayout { position:sticky; top:64px; align-items:start; }
+  .page .locationMap { position:relative; top:auto; }
+}
+@media (max-width:1023px) and (orientation:portrait), (max-width:640px) {
+  .processPhotos { top:64px; background:#0b0c0a; }
+  .processSteps :global([data-step-index]) { min-height:52svh; }
+  .locationMap { top:64px; }
+}
+@media (max-height:700px) and (min-width:1024px) { .page .locationMapSurface { min-height:0; height:100%; } }
+@media (max-height:520px) and (min-width:641px) {
+  .page :global(#process) { padding-block:32px; }
+  .page :global(#process) h2 { font-size:30px; }
+  .page :global(#process) h3 { font-size:24px; line-height:1.2; }
+  .page :global(#process) :global([data-step-index]) p { font-size:14px; line-height:1.7; }
+}
