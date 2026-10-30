@@ -1,5 +1,5 @@
 .album { color: var(--ink,#232724); }
-.book { position: relative; isolation: isolate; width: 100%; height: clamp(360px,40vw,540px); perspective: 2200px; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: transparent; }
+.book { position: relative; isolation: isolate; width: 100%; height: clamp(360px,40vw,540px); perspective: 2200px; touch-action: pan-y; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: transparent; }
 .page { position: absolute; top: 0; display: block; width: 50%; height: 100%; color: inherit; text-decoration: none; background: #fff; box-shadow: 0 1px 0 rgb(35 39 36 / .08),0 13px 22px -21px rgb(35 39 36 / .25); }
 .page[data-page-visible="false"] { visibility: hidden; pointer-events: none; }
 .book[data-book-restored="false"] .page { visibility: hidden; }
@@ -26,8 +26,6 @@
 .caption { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 27px; }
 .caption > a { display: flex; min-height: 44px; min-width: 0; flex-direction: column; align-items: flex-start; gap: 7px; color: inherit; text-decoration: none; }
 .entryTitle { margin: 0; font-size: clamp(21px,2.2vw,27px); line-height: 1.15; font-weight: 450; letter-spacing: -.045em; }
-.entryAction { display:inline-flex; min-height:40px; align-items:center; gap:12px; padding:8px 14px; border:1px solid rgb(35 39 36 / .18); border-radius:24px; color:#232724; background:white; font-size:12px; line-height:1.45; letter-spacing:-.015em; transition:background 180ms,border-color 180ms; }
-.entryAction svg { flex-shrink: 0; }
 .caption > a svg { color: #657b6b; transition: transform 250ms cubic-bezier(.22,1,.36,1); }
 .pagination { display: flex; align-items: center; gap: 13px; }
 .pagination button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; background: transparent; color: var(--ink,#232724); cursor: pointer; transition: transform 180ms,opacity 180ms; }
@@ -37,7 +35,6 @@
 .pagination button:focus-visible,.caption > a:focus-visible { outline: 2px solid #657b6b; outline-offset: 3px; }
 @media (hover: hover) {
   .book:hover .dragCue { opacity: 1; }
-  .caption > a:hover .entryAction { background:#f0f2f4; border-color:rgb(35 39 36 / .3); }
   .caption > a:hover svg { transform: translate(3px,-3px); }
   .pagination button:not(:disabled):hover { transform: translateX(3px); }
   .pagination button:first-child:not(:disabled):hover { transform: translateX(-3px); }
@@ -56,8 +53,6 @@
   .book { height: clamp(240px,65vw,290px); }
   .pageContent { padding: 7px; gap: 6px; }
   .entryTitle { font-size: 20px; }
-  .entryAction { gap: 5px; font-size: 12px; }
-  .entryAction svg { width: 14px; height: 14px; }
   .pagination button { width: 40px; }
 }
 @media (max-height: 520px) and (min-width: 641px) {
@@ -66,6 +61,13 @@
   .caption { padding-top: 16px; padding-right: 52px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .caption > a svg,.entryAction,.pagination button,.dragCue { transition: none; }
+  .caption > a svg,.pagination button,.dragCue { transition: none; }
 
 }
+
+/* The book itself is the entrance; the corner mark is a cue, not a button. */
+.openCue { position:absolute; z-index:5; top:9px; right:9px; display:grid; width:30px; height:30px; place-items:center; color:#232724; pointer-events:none; opacity:0; transform:translate(-3px,3px); transition:opacity 180ms,transform 180ms; }
+.book:is(:hover,:focus-within) .openCue { opacity:.8; transform:none; }
+.book[data-dragging="true"] .openCue,.book[data-turning="true"] .openCue { opacity:0; }
+@media (hover:none) { .openCue { opacity:.55; transform:none; top:0; right:0; } }
+@media (prefers-reduced-motion:reduce) { .openCue { transition:none; } }
