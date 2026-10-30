@@ -45,6 +45,7 @@ export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean })
             <span className={styles.pageContent} data-book-layout={photos[0] && photos[0].width < photos[0].height ? "vertical" : "horizontal"}>
               {photos.map(photo => <span key={photo.src} className={styles.image} data-book-photo>
                 <img src={photo.src} srcSet={photo.srcSet} width={photo.width} height={photo.height} alt={photo.alt[zh ? "zh" : "en"]}
+                  sizes={photo === photos[0] && photos[0].width >= photos[0].height ? "(max-width: 767px) 42vw, (max-width: 1220px) 43vw, 500px" : "(max-width: 767px) 21vw, (max-width: 1220px) 22vw, 250px"}
                   loading="lazy" decoding="async" draggable={false} />
               </span>)}
             </span>

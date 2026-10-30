@@ -18,3 +18,14 @@ Booking map movements cancel the prior flight. Mouse-only hover is disabled on t
 - No photo identities, ratings, covers, groupings, or booking copy changed.
 
 Local evidence: `/private/tmp/portfolio-mobile-readers-20261029/outputs/` and `logs/`. Browser timings are not a physical 120Hz guarantee.
+
+
+## Follow-up: opaque sticky visuals and phone series
+
+Phone sticky visuals used a 64px top offset and an inset background. Step numbers could pass through the uncovered top/side area. A later global frame-height rule also overrode the phone portrait limit. Both the Why me shelf and map shelf now pin at zero with an opaque background extending across the viewport; the photograph itself is contained inside a bounded height. The desktop map stage also pins at zero with a full-width white background. Background extension uses paint-only shadows, avoiding scrollbar-width horizontal overflow.
+
+The introduction now keeps its document-driven, clipped spread presentation on portrait phones as well as desktop. Reduced-motion preferences retain the static reading layout. Mixed Jianji/Xinyi and Lijiang shoots use readable full-width landscapes and centred portraits; David uses a large frame, a pair and a final large frame. Hongjia and Xiya keep their existing layouts. No photo records or order changed.
+
+The portfolio book now selects responsive textures by each photograph's displayed width, with width descriptors adjusted for portrait proportions. GPU warming waits for a 180ms quiet window, warms the resting spread, then prepares the next spread after another 300ms quiet window. Further scrolling cancels that scheduled work. Curved geometry and native canvas pixel density are unchanged.
+
+Validation: production build, independent TypeScript check, bilingual coverage, curation regression and asynchronous portrait-transition regression passed. Browser checks covered desktop 1440x900 and phone widths 390 and 320, introduction travel, portrait height containment, full-width top occlusion, no horizontal overflow, and forward/reverse book turns. One production 390x844 browser sample at DPR 1 recorded 98 turn frames, median 8.3ms, p95 9.0ms, maximum 16.7ms; first preparation took 52.9ms and the next cached preparation 0.4ms. This is a bounded browser observation, not a controlled before/after benchmark or physical-phone performance guarantee.

@@ -244,3 +244,20 @@
   .locationList h3 { font-size:16px; }
   .locationList p { margin-top:4px; font-size:11px; line-height:1.4; }
 }
+
+/* Sticky visuals are opaque, full-width shelves. Their content keeps its
+   natural ratio inside the shelf, including tall portrait photographs. */
+@media (max-width:1023px) and (orientation:portrait), (max-width:640px) {
+  .page .processPhotos,.page .locationMap { top:0; width:calc(100% + 40px); margin-inline:-20px; padding:16px 20px; z-index:30; isolation:isolate; }
+  .page .processPhotos { height:clamp(220px,42svh,400px); margin-bottom:0; background:#0b0c0a; }
+  .page .processPhotos .processVisual { height:100%; --frame-height:calc(clamp(220px,42svh,400px) - 32px); padding:0; }
+  .page .processPhotos .naturalFrame { max-height:100%; }
+  .page .locationMap { height:clamp(240px,42svh,400px); background:#fff; }
+  .page .locationMapSurface { height:100%; min-height:0; }
+  .page .locationMap::before { box-shadow:0 0 0 100vmax #fff; }
+  .processPhotos::before,.locationMap::before { content:""; position:absolute; inset:0; z-index:-1; background:inherit; box-shadow:0 0 0 100vmax #0b0c0a; clip-path:inset(0 -100vmax); pointer-events:none; }
+}
+@media (min-width:1024px) and (min-height:520px) {
+  .page .locationStage { top:0; height:100svh; padding-block:24px; z-index:30; isolation:isolate; background:#fff; }
+  .locationStage::before { content:""; position:absolute; inset:0; z-index:-1; background:#fff; box-shadow:0 0 0 100vmax #fff; clip-path:inset(0 -100vmax); pointer-events:none; }
+}

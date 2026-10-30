@@ -487,18 +487,17 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
     const section=root.current,sticky=stage.current,windowElement=viewport.current,strip=track.current
     if(!section || !sticky || !windowElement || !strip)return
     const motion=window.matchMedia("(prefers-reduced-motion: reduce)")
-    const portrait=window.matchMedia("(max-width:767px) and (orientation:portrait)")
     const native=CSS.supports("animation-timeline","view()") && CSS.supports("animation-range","contain 0% contain 100%")
     let visible=false,frame=0,start=0,distance=1,travel=0,lastWidth=0
     // Older browsers use one transform write at the display's own rAF cadence.
     // Native scroll timelines avoid a JavaScript animation loop entirely.
     const update=()=>{
       frame=0
-      if(!visible || motion.matches || portrait.matches || document.hidden)return
+      if(!visible || motion.matches || document.hidden)return
       const progress=Math.max(0,Math.min(1,(window.scrollY-start)/distance))
       strip.style.transform=`translate3d(${-travel*progress}px,0,0)`
     }
-    const schedule=()=>{if(!native && visible && !motion.matches && !portrait.matches && !document.hidden && !frame)frame=requestAnimationFrame(update)}
+    const schedule=()=>{if(!native && visible && !motion.matches && !document.hidden && !frame)frame=requestAnimationFrame(update)}
     const measure=()=>{
       start=section.getBoundingClientRect().top+window.scrollY
       distance=Math.max(1,section.offsetHeight-sticky.offsetHeight)
@@ -509,7 +508,7 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
       schedule()
     }
     const configure=()=>{
-      if(motion.matches || portrait.matches){
+      if(motion.matches){
         delete section.dataset.storyEnhanced
         delete section.dataset.storyMotion
         strip.style.removeProperty("transform")
@@ -534,11 +533,10 @@ function PhotographerIntro({ photos, title, body, lines, eyebrow, locale, onOpen
     window.addEventListener("resize",measure)
     document.addEventListener("visibilitychange",schedule)
     motion.addEventListener("change",configure)
-    portrait.addEventListener("change",configure)
     return ()=>{
       cancelAnimationFrame(frame);visibility.disconnect();resize.disconnect()
       window.removeEventListener("scroll",schedule);window.removeEventListener("resize",measure)
-      document.removeEventListener("visibilitychange",schedule);motion.removeEventListener("change",configure);portrait.removeEventListener("change",configure)
+      document.removeEventListener("visibilitychange",schedule);motion.removeEventListener("change",configure)
     }
   },[photos,lines,locale])
 

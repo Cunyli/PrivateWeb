@@ -12,9 +12,9 @@ const source = ts.transpileModule(fs.readFileSync(sourcePath, "utf8"), {
 }).outputText
 
 function mountBook() {
-  const frames = new Map(), events = new Map(), storage = new Map()
+  const frames = new Map(), events = new Map(), storage = new Map(), timers = new Map()
   const cleanup = [], paints = [], deferred = []
-  let frameId = 0, now = 0, spread = 0, busy = false
+  let frameId = 0, timerId = 0, now = 0, spread = 0, busy = false
   const pages = Array.from({length: 4}, () => ({
     dataset: {}, tabIndex: -1,
     setAttribute() {}, querySelectorAll() {return []},
@@ -33,7 +33,7 @@ function mountBook() {
     hasPointerCapture: () => false,
   }
   const renderer = {
-    warm: () => Promise.resolve(),
+    warm(index) {paints.push({kind: "warm", index}); return Promise.resolve()},
     showSpread(index) {paints.push({kind: "rest", index, links: visible()}); return Promise.resolve(true)},
     prepare(front, back) {return new Promise(resolve => deferred.push({front, back, resolve}))},
     draw(progress) {paints.push({kind: "turn", progress, links: visible()})},
@@ -42,6 +42,8 @@ function mountBook() {
   const observer = class {observe() {} disconnect() {}}
   const windowMock = {
     requestAnimationFrame: raf, cancelAnimationFrame: cancelRaf,
+    setTimeout(callback) {timers.set(++timerId, callback); return timerId},
+    clearTimeout(id) {timers.delete(id)},
     matchMedia: () => motion, innerHeight: 900, devicePixelRatio: 1,
     sessionStorage: {getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value)},
     addEventListener: listen, removeEventListener() {},
@@ -84,6 +86,9 @@ function mountBook() {
   return {advance, book, visible, paints, deferred, microtasks, settle,
     get spread() {return spread}, get busy() {return busy},
     blur: () => events.get("blur")(),
+    scroll: () => events.get("scroll")(),
+    get pendingTimers() {return timers.size},
+    async flushTimers() {const pending = [...timers.values()]; timers.clear(); pending.forEach(run => run()); await microtasks()},
     dispose: () => cleanup.forEach(run => run?.()),
   }
 }
@@ -109,6 +114,15 @@ function checkGeometryEndpoints() {
 
 async function main() {
   checkGeometryEndpoints()
+  const quiet = mountBook()
+  await quiet.settle()
+  assert.equal(quiet.paints.filter(paint => paint.kind === "warm").length, 0, "texture work ran during the scroll frame")
+  quiet.scroll(); quiet.scroll()
+  assert.equal(quiet.pendingTimers, 1, "scrolling must replace the quiet-window timer")
+  await quiet.flushTimers()
+  assert.equal(quiet.paints.filter(paint => paint.kind === "warm").length, 1, "the quiet window should warm just the resting spread")
+  quiet.dispose()
+  assert.equal(quiet.pendingTimers, 0, "unmount retained pending texture work")
   const test = mountBook()
   assert.deepEqual(test.visible(), [0, 1])
   test.advance.current(1)
@@ -133,7 +147,7 @@ async function main() {
   assert.equal(test.busy, false); assert.equal(test.spread, 0)
   assert.deepEqual(test.visible(), [0, 1], "stale asynchronous preparation changed a cancelled spread")
   test.dispose()
-  console.log("PASS: spring endpoints cannot cross resting layers; forward/reverse retain outgoing photos until commit; cancellation cannot replace the spread.")
+  console.log("PASS: spring endpoints cannot cross resting layers; forward/reverse retain outgoing photos until commit; cancellation cannot replace the spread; texture warming waits for quiet scrolling and is cancelled on unmount.")
 }
 
 main().catch(error => {console.error(error); process.exitCode = 1})
