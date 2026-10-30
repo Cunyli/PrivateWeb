@@ -40,3 +40,15 @@ Both page entrances were followed as actual links. The portfolio preview display
 ## Restored sections and direct book entry
 
 Both original section styles were taken from the bilingual version before the quiet-layout redesign. Desktop and phone checks in both languages confirmed the dark introduction, eight steps, compact 95px route cards and original map panel. All six places followed scrolling in both directions; manual selection remained locked. Clicking/tapping the physical book opened the session page, while desktop dragging changed its spread without navigation. No live booking was submitted.
+
+## Pinned route scene and explicit booking entrance
+
+The sticky map stage previously sat inside an auto-height wrapper while the extra scroll height belonged to the outer section. The stage could not remain pinned: at the fifth stop the map was already above the viewport. Put the title, map and compact cards in one sticky stage inside its own scroll track. Measure progress against that containing track, fit both columns to the viewport, and release the stage after all six stops. Short desktop windows use smaller card spacing; portrait phones keep the map visible above the ordered cards. Manual selection still stops automatic location changes.
+
+The Portfolio entrance now reads “预约拍” / “Book a session”, with a fine underline and a persistent link arrow. Both that label and the book open the session page; dragging retains page turning.
+
+Photo-book preparation starts earlier, cached turns no longer read layout, the mesh reuses its allocated GPU buffer, and the renderer avoids preserving a duplicate drawing buffer or rewriting its ready attributes every frame. Native texture density, image selection and curved geometry are unchanged.
+
+Local verification covered Chinese and English at 1440×900, 1280×720, 1024×768, 1280×600, 1024×520 and a 390×844 portrait phone. All six map stops were traversed forward and backward with the map actually inside the viewport; pinned columns aligned, manual selection persisted, and the following booking heading remained reachable. Real wheel input kept the desktop stage at 24px, and a mid-turn screenshot retained the curved sheet. Both booking entrances and desktop drag navigation passed. Build, TypeScript, bilingual coverage, curation and the asynchronous book-transition regression passed. No live booking was submitted.
+
+In 24 WebKit turns, preparation took 0–1ms versus 2–3ms in the original desktop sample. Frame-time p95 was 17–18ms; 5 of 1009 sampled intervals exceeded 25ms, with a 40ms maximum. This runner operates around 60Hz, so these measurements do not establish 120Hz hardware performance. Desktop density remained 2× and phone density 3×; no frame-rate limiter was introduced.

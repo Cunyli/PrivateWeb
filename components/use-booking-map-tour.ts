@@ -15,8 +15,9 @@ export function useBookingMapTour(
     const section=document.getElementById("locations")
     const stage=section?.querySelector<HTMLElement>("[data-map-tour-stage]")
     const origin=section?.querySelector<HTMLElement>("[data-map-tour-start]")
+    const track=section?.querySelector<HTMLElement>("[data-map-tour-track]")
     const visual=section?.querySelector<HTMLElement>("[data-location-map]")
-    if(!section || !stage || !origin || !visual)return
+    if(!section || !stage || !origin || !track || !visual)return
     let visible=false,disposed=false,frame=0,pinned=false,start=0,distance=1,focus=0
     let anchors:Array<{index:number;top:number}>=[]
     const update=()=>{
@@ -39,7 +40,7 @@ export function useBookingMapTour(
       section.dataset.mapTourMode=pinned?"progress":"cards"
       const top=parseFloat(getComputedStyle(stage).top)||0
       start=origin.getBoundingClientRect().top+window.scrollY-top
-      const bottom=section.getBoundingClientRect().bottom+window.scrollY-(parseFloat(getComputedStyle(section).paddingBottom)||0)
+      const bottom=track.getBoundingClientRect().bottom+window.scrollY
       distance=Math.max(1,bottom-stage.offsetHeight-top-start)
       anchors=(refs.current || []).flatMap((node,index)=>{if(!node)return [];const r=node.getBoundingClientRect();return [{index,top:r.top+window.scrollY+r.height*.5}]})
       focus=window.innerHeight*.46
@@ -53,7 +54,7 @@ export function useBookingMapTour(
     const intersection=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;if(visible)measure();else{cancelAnimationFrame(frame);frame=0}},{rootMargin:"100px"})
     const resize=new ResizeObserver(measure)
     intersection.observe(section)
-    for(const element of [section,stage,visual])resize.observe(element)
+    for(const element of [section,track,stage,visual])resize.observe(element)
     measure()
     void document.fonts.ready.then(()=>{if(!disposed)measure()})
     window.addEventListener("scroll",schedule,{passive:true})

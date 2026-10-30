@@ -1007,75 +1007,77 @@ export function HelsinkiPhotoSession() {
       <WhyMeSection copy={copy} photos={shootVisualPhotos} locale={pageLocale} onOpen={openPhoto} />
 
       <section id="locations" className={`${sessionStyles.locationSection} bg-[#ffffff] px-5 py-20 sm:px-8`}>
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 grid gap-4 lg:grid-cols-[0.38fr_0.62fr] lg:items-end">
-            <div>
-              <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.locations.eyebrow}</p>
-              <h2 className="mt-3 max-w-md text-4xl font-semibold leading-tight sm:text-5xl">
-                {copy.locations.title}
-              </h2>
-            </div>
-            <p className="max-w-xl leading-7 text-[#676256]">
-              {copy.locations.body}
-            </p>
-          </div>
-
+        <div className={`mx-auto max-w-7xl ${sessionStyles.locationTrack}`} data-map-tour-track>
           <div data-map-tour-start aria-hidden="true" />
-          <div data-map-tour-stage className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
-            <div className={`grid gap-3 lg:order-2 lg:pr-1 ${sessionStyles.locationList}`}>
-
-              {displayLocations.map((location, index) => (
-                <article
-                  key={location.id}
-                  ref={(node) => {
-                    locationRefs.current[index] = node
-                  }}
-                  data-location-id={location.id}
-                  aria-current={activeLocationId===location.id?"location":undefined}
-                  className={`rounded-md border p-5 transition-colors duration-200 ${
-                    activeLocationId === location.id
-                      ? "border-[#20231f] bg-white shadow-[0_24px_70px_-48px_rgba(32,35,31,0.7)]"
-                      : "border-[#d9dfe0] bg-white/60 text-[#7a6f62]"
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <button
-                      type="button"
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
-                        activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#eef1f2] text-[#4e493f]"
-                      }`}
-                      onClick={() => focusMapLocation(location.id)}
-                      aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}
-                    >
-                      {index + 1}
-                    </button>
-                    <div>
-                      <h3 className="text-xl font-semibold leading-tight text-[#20231f]">
-                        <a href={location.href} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
-                          {location.name}
-                        </a>
-                      </h3>
-                      <p className="mt-2 text-sm text-[#7a6f62]">{location.place}</p>
-                    </div>
-                  </div>
-                </article>
-              ))}
+          <div className={sessionStyles.locationStage} data-map-tour-stage>
+            <div className={`mb-10 grid gap-4 lg:grid-cols-[0.38fr_0.62fr] lg:items-end ${sessionStyles.locationHeader}`}>
+              <div>
+                <p className="text-sm font-semibold uppercase text-[#7a6f62]">{copy.locations.eyebrow}</p>
+                <h2 className="mt-3 max-w-md text-4xl font-semibold leading-tight sm:text-5xl">
+                  {copy.locations.title}
+                </h2>
+              </div>
+              <p className="max-w-xl leading-7 text-[#676256]">
+                {copy.locations.body}
+              </p>
             </div>
 
-            <div data-location-map className={`lg:sticky lg:top-16 lg:order-1 lg:h-[calc(100svh-8rem)] ${sessionStyles.locationMap}`}>
-              <div className={`relative h-[70svh] min-h-[540px] overflow-hidden rounded-md border border-[#d9dfe0] bg-[#dfe9ea] shadow-[0_24px_70px_-58px_rgba(32,35,31,0.55)] lg:h-full ${sessionStyles.locationMapSurface}`}>
-                <div ref={mapRootRef} className="absolute inset-0 z-0 h-full w-full [&_.leaflet-tooltip.photo-session-map-tooltip]:rounded-md [&_.leaflet-tooltip.photo-session-map-tooltip]:border-[#d9dfe0] [&_.leaflet-tooltip.photo-session-map-tooltip]:bg-white/95 [&_.leaflet-tooltip.photo-session-map-tooltip]:px-2.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:py-1.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:text-xs [&_.leaflet-tooltip.photo-session-map-tooltip]:font-semibold [&_.leaflet-tooltip.photo-session-map-tooltip]:text-[#20231f] [&_.leaflet-tooltip.photo-session-map-tooltip]:shadow-sm" />
-                <div
-                  className={`pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#dfe9ea] transition duration-500 ${
-                    mapReady ? "opacity-0" : "opacity-100"
-                  }`}
-                >
+            <div className={`grid gap-8 lg:grid-cols-[0.58fr_0.42fr] ${sessionStyles.locationLayout}`}>
+              <div className={`grid gap-3 lg:order-2 lg:pr-1 ${sessionStyles.locationList}`}>
 
-                </div>
-                <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(255,250,242,0.05),rgba(32,35,31,0.08))]" />
-                <div className="pointer-events-none absolute bottom-5 left-5 right-5 z-20 rounded-md bg-white/92 px-4 py-3 text-sm text-[#20231f] shadow-sm backdrop-blur">
-                  <p className="font-semibold">{activeDisplayLocation.name}</p>
-                  <p className="mt-1 text-xs text-[#676256]">{activeDisplayLocation.place} · {activeDisplayLocation.bestTime}</p>
+                {displayLocations.map((location, index) => (
+                  <article
+                    key={location.id}
+                    ref={(node) => {
+                      locationRefs.current[index] = node
+                    }}
+                    data-location-id={location.id}
+                    aria-current={activeLocationId===location.id?"location":undefined}
+                    className={`rounded-md border p-5 transition-colors duration-200 ${
+                      activeLocationId === location.id
+                        ? "border-[#20231f] bg-white shadow-[0_24px_70px_-48px_rgba(32,35,31,0.7)]"
+                        : "border-[#d9dfe0] bg-white/60 text-[#7a6f62]"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <button
+                        type="button"
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
+                          activeLocationId === location.id ? "bg-[#20231f] text-white" : "bg-[#eef1f2] text-[#4e493f]"
+                        }`}
+                        onClick={() => focusMapLocation(location.id)}
+                        aria-label={pageLocale==="zh"?`定位到${location.name}`:`Focus on ${location.name}`}
+                      >
+                        {index + 1}
+                      </button>
+                      <div>
+                        <h3 className="text-xl font-semibold leading-tight text-[#20231f]">
+                          <a href={location.href} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">
+                            {location.name}
+                          </a>
+                        </h3>
+                        <p className="mt-2 text-sm text-[#7a6f62]">{location.place}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div data-location-map className={`lg:sticky lg:top-16 lg:order-1 lg:h-[calc(100svh-8rem)] ${sessionStyles.locationMap}`}>
+                <div className={`relative h-[70svh] min-h-[540px] overflow-hidden rounded-md border border-[#d9dfe0] bg-[#dfe9ea] shadow-[0_24px_70px_-58px_rgba(32,35,31,0.55)] lg:h-full ${sessionStyles.locationMapSurface}`}>
+                  <div ref={mapRootRef} className="absolute inset-0 z-0 h-full w-full [&_.leaflet-tooltip.photo-session-map-tooltip]:rounded-md [&_.leaflet-tooltip.photo-session-map-tooltip]:border-[#d9dfe0] [&_.leaflet-tooltip.photo-session-map-tooltip]:bg-white/95 [&_.leaflet-tooltip.photo-session-map-tooltip]:px-2.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:py-1.5 [&_.leaflet-tooltip.photo-session-map-tooltip]:text-xs [&_.leaflet-tooltip.photo-session-map-tooltip]:font-semibold [&_.leaflet-tooltip.photo-session-map-tooltip]:text-[#20231f] [&_.leaflet-tooltip.photo-session-map-tooltip]:shadow-sm" />
+                  <div
+                    className={`pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#dfe9ea] transition duration-500 ${
+                      mapReady ? "opacity-0" : "opacity-100"
+                    }`}
+                  >
+
+                  </div>
+                  <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(180deg,rgba(255,250,242,0.05),rgba(32,35,31,0.08))]" />
+                  <div className="pointer-events-none absolute bottom-5 left-5 right-5 z-20 rounded-md bg-white/92 px-4 py-3 text-sm text-[#20231f] shadow-sm backdrop-blur">
+                    <p className="font-semibold">{activeDisplayLocation.name}</p>
+                    <p className="mt-1 text-xs text-[#676256]">{activeDisplayLocation.place} · {activeDisplayLocation.bestTime}</p>
+                  </div>
                 </div>
               </div>
             </div>
