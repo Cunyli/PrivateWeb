@@ -1,3 +1,4 @@
+import { enforceBotProtection } from "@/utils/bot-protection.server"
 import { enforcePublicRequestBudget } from "@/utils/public-request-budget.server"
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/utils/supabaseAdmin"
@@ -218,7 +219,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    const budgetError = await enforcePublicRequestBudget("semantic-search")
+    const botError = await enforceBotProtection()
+    if (botError) return botError
+    const budgetError = await enforcePublicRequestBudget("semantic-search", request)
     if (budgetError) return budgetError
 
     const embeddingPayload = await embedQuery(query)

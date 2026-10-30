@@ -1,3 +1,5 @@
+import { readJsonObject, RequestBodyError } from "@/utils/request-json.server"
+import { enforceBotProtection } from "@/utils/bot-protection.server"
 import { enforcePublicRequestBudget } from "@/utils/public-request-budget.server"
 import { mkdir, appendFile, readFile } from "node:fs/promises"
 import path from "node:path"
@@ -190,17 +192,21 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null)
-  if (!body || typeof body !== "object") {
-    return NextResponse.json({ error: "Invalid booking request" }, { status: 400 })
+  let body: Record<string, unknown>
+  try { body = await readJsonObject(request) }
+  catch (error) {
+    if (error instanceof RequestBodyError) return NextResponse.json({ error: error.message }, { status: error.status })
+    throw error
   }
 
-  const record = buildBookingRecord(body as Record<string, unknown>, request)
+  const record = buildBookingRecord(body, request)
   if (!record.name || !record.contact || !record.date) {
     return NextResponse.json({ error: "Name, contact and date are required" }, { status: 400 })
   }
 
-  const budgetError = await enforcePublicRequestBudget("booking")
+  const botError = await enforceBotProtection()
+  if (botError) return botError
+  const budgetError = await enforcePublicRequestBudget("booking", request)
   if (budgetError) return budgetError
 
   const apiKey = process.env.RESEND_API_KEY
@@ -212,7 +218,7 @@ export async function POST(request: Request) {
   } else if (!recipientEmail) {
     emailError = "BOOKING_RECIPIENT_EMAIL is not configured"
   } else {
-    const content = linesFromBooking(body as Record<string, unknown>).join("\n")
+    const content = linesFromBooking(body).join("\n")
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
