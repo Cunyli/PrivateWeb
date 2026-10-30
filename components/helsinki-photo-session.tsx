@@ -28,7 +28,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n"
-import { bindMapWheelGestures } from "@/lib/map-wheel-gestures"
 import { useBookingScrollFocus } from "./use-booking-scroll-focus"
 import { useBookingMapTour } from "./use-booking-map-tour"
 
@@ -821,7 +820,6 @@ export function HelsinkiPhotoSession() {
 
   useEffect(() => {
     let cancelled = false
-    let releaseWheelGestures: (() => void) | undefined
 
     if (!mapNear) return
     const mountMap = async () => {
@@ -847,6 +845,7 @@ export function HelsinkiPhotoSession() {
         zoom: 12,
         minZoom: 10,
         maxZoom: 17,
+        // Wheel and trackpad scrolling belong to the page, even over the map.
         scrollWheelZoom: false,
         dragging: true,
         touchZoom: true,
@@ -867,7 +866,6 @@ export function HelsinkiPhotoSession() {
       const bounds = leaflet.latLngBounds(locations.map((location) => [location.lat, location.lng]))
       map.fitBounds(bounds.pad(0.18), { animate: false })
       mapRef.current = map
-      releaseWheelGestures = bindMapWheelGestures(map, root.parentElement || root)
       markersLayerRef.current = leaflet.layerGroup().addTo(map)
       locationMarkersRef.current={}
       lastMapFocusRef.current=null
@@ -894,7 +892,6 @@ export function HelsinkiPhotoSession() {
 
     return () => {
       cancelled = true
-      releaseWheelGestures?.()
       window.removeEventListener("resize", handleResize)
       if (mapRef.current) {
         mapRef.current.remove()

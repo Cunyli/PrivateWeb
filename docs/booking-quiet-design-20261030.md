@@ -60,3 +60,10 @@ Remove the map disclaimer in both languages and let the route heading use the av
 Present the four prices in a horizontal type-led selector, with a quiet underline for the selected package. On phones it becomes two columns. The standard shoot promise sits beside the heading, while shoot types are plain text controls and contact uses “约个时间。” / “Let’s find a day.” with two direct links. Four-plus-person quotes continue to omit the standard duration/delivery promise.
 
 TypeScript, production build and bilingual coverage passed. The existing prices, delivery, extra fees and shoot-type arrays were compared directly with the previous version. WebKit checks passed in Chinese and English at 1440×1000, 1280×600, 390×844 and 320×740: layout fit, four package choices, form package/people values, custom-quote handling, couple-type binding, close/focus return and map visibility after simplifying its heading. No real booking was submitted.
+
+
+## Route-map wheel input follows the page
+
+The booking route map no longer binds the shared map-wheel handler. Ordinary wheel and trackpad scrolling over the map belongs to the document, so it advances the pinned route scene and continues into booking. Leaflet wheel zoom remains disabled. Marker/card selection, map dragging and the explicit zoom controls remain available; manual location selection still persists through later page scrolling. The portfolio map retains its existing interaction.
+
+This supersedes the earlier wheel-inside-the-map behavior recorded in the historical checks above. Local desktop verification at 1440×900 used real wheel input over the map in both directions. With Market Square manually selected, the page moved 90px while the map pane transform and selected place stayed unchanged. Further scrolling over the map brought the booking heading into the viewport.
