@@ -43,7 +43,7 @@ export type MomentGroup = {
 const bookingGroupLabels:Record<string,{title:string;place:string}>={
   "hongjia-helsinki":{title:"Hongjia",place:"Helsinki"},
   "jianji-xinyi":{title:"Jianji & Xinyi",place:"Croatia · Barcelona"},
-  lijiang:{title:"Lijiang",place:""},
+  lijiang:{title:"Junjie, Burong, Yujun",place:"Lijiang"},
   appenzell:{title:"David",place:"Switzerland"},
 }
 
@@ -72,7 +72,7 @@ export function bookingPortraitGroups(curation: CurationVisibility, bucket: stri
     groups.set(groupId,group)
   }
   const shoots=[...groups.values()]
-  const order:Record<string,number>={Xiya:0,Hongjia:1,"Jianji & Xinyi":2,Lijiang:3,Rico:4,David:5}
+  const order:Record<string,number>={Xiya:0,Hongjia:1,"Jianji & Xinyi":2,[bookingGroupLabels.lijiang.title]:3,Rico:4,David:5}
   const series=shoots.filter(group=>group.photos.length>=2).sort((a,b)=>(order[a.title]??99)-(order[b.title]??99))
   const singles=shoots.filter(group=>group.photos.length===1).flatMap(group=>group.photos)
   // One frame cannot tell a whole shoot's story. Share single frames in one

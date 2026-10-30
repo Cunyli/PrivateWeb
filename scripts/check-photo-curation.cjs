@@ -141,7 +141,7 @@ async function main(){
     {...fixturePhoto,id:920,tags:['model:Burong','model:Yujun','series:one','display:booking-group:lijiang']},
     {...fixturePhoto,id:921,tags:['model:Junjie','series:two','display:booking-group:lijiang']},
   ]},'https://images.example.invalid')
-  assert.equal(joined.length,1);assert.equal(joined[0].title,'Lijiang')
+  assert.equal(joined.length,1);assert.equal(joined[0].title,'Junjie, Burong, Yujun');assert.equal(joined[0].place,'Lijiang')
   assert.deepEqual(Array.from(joined[0].photos,p=>p.title),['Burong & Yujun','Junjie'],'Authored groupings must retain original person metadata')
   assert.deepEqual(Array.from(placement.gallery,p=>p.id),[304],'Hero and process photographs must not repeat in the gallery')
   const source=load('lib/viewer-photo-source.ts')
