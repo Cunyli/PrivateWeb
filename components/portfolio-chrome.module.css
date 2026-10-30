@@ -189,3 +189,9 @@
 .collectionIndex a { display:inline-flex; align-items:center; gap:12px; min-height:44px; }
 .collectionIndex a:hover { color:var(--ink); }
 .collectionIndex a:focus-visible { outline:2px solid #657b6b; outline-offset:4px; }
+
+/* The standalone gallery keeps its language and search controls in reach.
+   Embedded controls stay in flow until the homepage scene is complete. */
+.fixedControls { position:fixed; z-index:1000; top:max(24px,env(safe-area-inset-top)); right:max(24px,env(safe-area-inset-right)); }
+.fixedControls > button { background:#fff; }
+@media (max-width:767px) { .fixedControls { top:max(16px,env(safe-area-inset-top)); right:max(16px,env(safe-area-inset-right)); } }

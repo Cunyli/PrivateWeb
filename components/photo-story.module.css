@@ -1,21 +1,21 @@
-.story { position: relative; background: #050505; color: #fff; }
+.story { position: relative; background: #fff; color: #232724; }
 .stage { padding: 70px max(24px,calc((100% - 1248px)/2)) 50px; }
-.heading { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1fr); align-items: end; gap: 70px; max-width: 1200px; margin-inline: auto; }
+.heading { display: grid; grid-template-columns: minmax(0,1fr); align-items: end; gap: 24px; max-width: 1200px; margin-inline: auto; }
 .eyebrow { margin: 0 0 14px; color: #858884; font-size: 10px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
-.heading h2 { max-width: 480px; margin: 0; font-size: clamp(28px,3vw,40px); font-weight: 500; line-height: 1.17; letter-spacing: -.04em; text-wrap: balance; }
+.heading h2 { max-width: 480px; margin: 0; font-size: 24px; font-weight: 500; line-height: 1.17; letter-spacing: -.04em; text-wrap: balance; }
 .body { max-width: 530px; margin: 0; padding-bottom: 2px; color: #a3a6a0; font-size: 13px; line-height: 1.95; }
 .viewport { max-width: 1200px; margin: 38px auto 0; }
 .track { position: relative; display: grid; gap: 80px; }
 .spread { display: grid; grid-template-columns: minmax(0,.38fr) minmax(0,.62fr); align-items: center; gap: clamp(28px,4vw,65px); min-width: 0; margin: 0; }
 .photograph { --intro-photo-height: min(54svh,500px); grid-column: 2; grid-row: 1; justify-self: center; display: flex; width: min(100%,calc(var(--intro-ratio,1.5) * var(--intro-photo-height))); aspect-ratio: var(--intro-ratio,1.5); align-items: center; justify-content: center; padding: 0; background: transparent; cursor: zoom-in; transform-origin: 50% 50%; }
-.photograph img { display: block; width: 100%; height: 100%; border-radius: 3px; object-fit: contain; box-shadow: 0 18px 45px rgb(0 0 0 / .2); -webkit-user-drag: none; }
+.photograph img { display: block; width: 100%; height: 100%; border-radius: 3px; object-fit: contain; box-shadow: none; -webkit-user-drag: none; }
 .spread figcaption { grid-column: 1; grid-row: 1; max-width: 390px; padding: 12px 0 12px 14px; }
 .folio { display: block; margin-bottom: 25px; color: #777c75; font-size: 10px; font-variant-numeric: tabular-nums; letter-spacing: .1em; }
-.spread figcaption p { margin: 0; font-size: clamp(25px,3vw,42px); font-weight: 450; line-height: 1.32; letter-spacing: -.04em; text-wrap: pretty; }
+.spread figcaption p { margin: 0; font-size: clamp(24px,2.6vw,36px); font-weight: 450; line-height: 1.32; letter-spacing: -.04em; text-wrap: pretty; white-space:pre-line; }
 .spread:nth-child(even) { grid-template-columns: minmax(0,.6fr) minmax(0,.4fr); }
 .spread:nth-child(even) .photograph { grid-column: 1; }
 .spread:nth-child(even) figcaption { grid-column: 2; padding-left: 0; padding-right: 14px; }
-.story[data-story-enhanced="true"] { height: 315svh; }
+.story[data-story-enhanced="true"] { height: 255svh; }
 .story[data-story-enhanced="true"] .stage { position: sticky; top: 0; display: flex; height: 100svh; min-height: 580px; flex-direction: column; justify-content: center; overflow: clip; padding-top: 46px; padding-bottom: 36px; }
 .story[data-story-enhanced="true"] .heading { width: 100%; flex-shrink: 0; }
 .story[data-story-enhanced="true"] .viewport { display: flex; width: 100%; min-height: 0; flex: 1; align-items: center; overflow: clip; }
