@@ -32,7 +32,7 @@ export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean })
   const advance = useSoftPortraitBook({book, canvas, spread, count: spreadCount, paused, onSpread: setSpread, onBusy: setBusy})
   if (!pages.length) return null
   const entryLabel = zh ? "查看人像作品，了解约拍" : "View portraits and book a photo session"
-  return <section className={chrome.section} data-return-section="sessions" aria-label={zh ? "人像与约拍" : "Portrait photo sessions"}>
+  return <section className={chrome.section} data-return-section="sessions" aria-label={zh ? "预约拍" : "Book a photo session"}>
     <div className={styles.album} data-photo-sessions-entry data-session-spread={spread + 1}>
       <div ref={setBook} className={styles.book} data-portrait-book role="group"
         data-book-restored={String(restored)} aria-busy={!restored || busy} aria-roledescription={zh ? "可拖动翻页的摄影集" : "Draggable photo book"}
@@ -56,8 +56,9 @@ export function PortfolioPhotoSessions({ paused = false }: { paused?: boolean })
         <span className={styles.dragCue} aria-hidden="true"><MoveHorizontal size={18} strokeWidth={1.2} /></span>
       </div>
       <div className={styles.caption}>
-        <Link href="/helsinki-photo-session" data-session-booking-link aria-label={entryLabel} onClick={event => capturePortfolioPosition(event.currentTarget.closest<HTMLElement>("[data-return-section]"))}>
-          <h2 className={styles.entryTitle}>{zh ? "人像与约拍" : "Portrait sessions"}</h2>
+        <Link href="/helsinki-photo-session" className={styles.entryLink} data-session-booking-link aria-label={entryLabel} onClick={event => capturePortfolioPosition(event.currentTarget.closest<HTMLElement>("[data-return-section]"))}>
+          <h2 className={styles.entryTitle}>{zh ? "预约拍" : "Book a session"}</h2>
+          <ArrowUpRight size={24} strokeWidth={1.4} aria-hidden="true" />
         </Link>
         <div className={styles.pagination}>
           <button type="button" onClick={() => advance.current(-1)} disabled={busy || paused} aria-label={zh ? "上一组人像" : "Previous portraits"}><ArrowLeft size={18} strokeWidth={1.3} /></button>

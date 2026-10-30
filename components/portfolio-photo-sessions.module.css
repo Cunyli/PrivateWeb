@@ -24,8 +24,8 @@
 .book[data-turning="true"] .dragCue { opacity: 0; }
 .book:not([data-turning="true"]) .page:focus-visible { outline: 2px solid #657b6b; outline-offset: 4px; }
 .caption { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 27px; }
-.caption > a { display: flex; min-height: 44px; min-width: 0; flex-direction: column; align-items: flex-start; gap: 7px; color: inherit; text-decoration: none; }
-.entryTitle { margin: 0; font-size: clamp(21px,2.2vw,27px); line-height: 1.15; font-weight: 450; letter-spacing: -.045em; }
+.entryLink { display: flex; min-height: 44px; min-width: 0; flex-direction: row; align-items: center; gap: 15px; color: inherit; text-decoration: none; }
+.entryTitle { margin: 0; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:7px; text-decoration-color:rgb(35 39 36 / .32); font-size: clamp(21px,2.2vw,27px); line-height: 1.15; font-weight: 450; letter-spacing: -.045em; }
 .caption > a svg { color: #657b6b; transition: transform 250ms cubic-bezier(.22,1,.36,1); }
 .pagination { display: flex; align-items: center; gap: 13px; }
 .pagination button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; background: transparent; color: var(--ink,#232724); cursor: pointer; transition: transform 180ms,opacity 180ms; }
@@ -43,7 +43,7 @@
   .book { height: clamp(250px,56vw,380px); perspective: 1400px; }
   .pageContent { padding: 10px; gap: 8px; }
   .caption { gap: 8px; padding-top: 18px; }
-  .caption > a { gap: 6px; }
+  .caption > a { gap: 12px; }
   .entryTitle { font-size: 22px; }
   .pagination { gap: 2px; }
   .pagination > span { min-width: 40px; font-size: 10px; }

@@ -38,7 +38,7 @@ void main() {
 
 export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElement): SoftPageRenderer | null {
   const setupStarted = performance.now()
-  const gl = canvas.getContext("webgl", {alpha: true, antialias: (window.devicePixelRatio || 1)<1.5, depth: true, preserveDrawingBuffer: true})
+  const gl = canvas.getContext("webgl", {alpha: true, antialias: (window.devicePixelRatio || 1)<1.5, depth: true, preserveDrawingBuffer: false})
   if (!gl) return null
   const compile = (type: number, source: string) => {
     const shader = gl.createShader(type)
@@ -80,6 +80,8 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
   }
   const leftPlane = geometry(paperIndices(1, 1)), rightPlane = geometry(paperIndices(1, 1))
   const movingPage = geometry(paperIndices(columns, rows))
+  gl.bindBuffer(gl.ARRAY_BUFFER,movingPage.buffer)
+  gl.bufferData(gl.ARRAY_BUFFER,movingVertices.byteLength,gl.DYNAMIC_DRAW)
   let width = 0, height = 0, viewportWidth = 0, viewportHeight = 0, ratio = 1, perspective = 2200
   let generation = 0, request = 0, disposed = false, lost = false
   let frontTexture: PageTexture | null = null, backTexture: PageTexture | null = null
@@ -106,7 +108,10 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.useProgram(program); gl.uniform2f(viewport, viewportWidth, viewportHeight); gl.uniform1f(camera, perspective)
   }
-  const reveal = () => {canvas.style.opacity = "1"; book.dataset.paperReady = "true"; book.dataset.paperRenderer = "webgl-mesh"}
+  const reveal = () => {
+    if(book.dataset.paperReady === "true")return
+    canvas.style.opacity = "1"; book.dataset.paperReady = "true"; book.dataset.paperRenderer = "webgl-mesh"
+  }
   const resize = () => {
     if (disposed || lost) return
     generation++; request++; releaseTextures(); hide()
@@ -137,8 +142,9 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
     const page = pages[index]
     return [width, height, ratio, ...[...page.querySelectorAll<HTMLElement>("[data-book-photo]")].map(frame => {
       const image = frame.querySelector("img")!
-      return [image.src, image.srcset, image.currentSrc, image.naturalWidth, image.naturalHeight,
-        frame.offsetLeft, frame.offsetTop, getComputedStyle(frame).width, getComputedStyle(frame).height].join(":")
+      // Size and photo-layout mutations invalidate textures through resize().
+      // Cached turns only compare sources, avoiding synchronous layout reads.
+      return [image.src, image.srcset, image.currentSrc].join(":")
     })].join("|")
   }
   const textureFor = (index: number): Promise<PageTexture | null> => {
@@ -241,7 +247,7 @@ export function createSoftPageRenderer(book: HTMLElement, canvas: HTMLCanvasElem
       // old resting sheet cover it as the spring approaches its end pose.
       gl.clear(gl.DEPTH_BUFFER_BIT)
       writePaperMesh(movingVertices, columns, rows, width, height, turn, bend, grip, direction)
-      gl.bindBuffer(gl.ARRAY_BUFFER, movingPage.buffer); gl.bufferData(gl.ARRAY_BUFFER, movingVertices, gl.DYNAMIC_DRAW)
+      gl.bindBuffer(gl.ARRAY_BUFFER, movingPage.buffer); gl.bufferSubData(gl.ARRAY_BUFFER, 0, movingVertices)
       drawPage(movingPage, frontTexture, backTexture, direction)
       reveal()
     },

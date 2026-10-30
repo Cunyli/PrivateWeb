@@ -60,7 +60,7 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
     }
     const isNear = () => {
       const rect = book.getBoundingClientRect()
-      return rect.top < window.innerHeight + 200 && rect.bottom > -200
+      return rect.top < window.innerHeight + 800 && rect.bottom > -800
     }
     const stopFallback = () => {
       fallbackAnimations.forEach(animation => {animation.onfinish = null; animation.cancel()})
@@ -227,7 +227,7 @@ export function useSoftPortraitBook({book, canvas, spread, count, paused, onSpre
     const visible = new IntersectionObserver(([entry]) => {
       near = entry.isIntersecting
       if (near) {warm(); stopInitialCheck()} else cancel()
-    }, {rootMargin: "200px"})
+    }, {rootMargin: "800px"})
     showSpread(current); busy(false); onSpread(current)
     resize.observe(book); visible.observe(book)
     scroller.addEventListener("scroll", scheduleInitialCheck, {passive: true})
