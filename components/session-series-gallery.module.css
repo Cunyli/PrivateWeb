@@ -62,8 +62,7 @@
 /* A cull can leave one frame in a shoot. Keep its ratio without blowing it up to the full row. */
 .row[data-count="1"] .figure{flex:0 1 auto;width:min(100%,calc(62svh * var(--photo-ratio)))}
 
-/* Give mixed shoots a readable phone sequence instead of shrinking every
-   second frame to 78% or squeezing three different ratios into one row. */
+/* Flatten desktop rows so each shoot can have its own phone composition. */
 @media (max-width:640px) {
   .heading { flex-wrap:wrap; gap:8px 14px; }
   .series[data-mobile-layout] .spread { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px 14px; }
@@ -72,4 +71,13 @@
   .series[data-mobile-layout] .figure[data-portrait="true"] { width:82%; justify-self:center; }
   .series[data-mobile-layout] .figure .photo { width:100%; }
   .series[data-mobile-layout="landscapes"] .figure:is([data-photo-index="1"],[data-photo-index="2"]) { grid-column:auto; }
+}
+
+@media (max-width: 640px) {
+  /* A full-width opening, then two balanced pairs. Keep every frame intact. */
+  .series:is([data-mobile-layout="couple"], [data-mobile-layout="diptych"]) .heading { display: block; }
+  .series:is([data-mobile-layout="couple"], [data-mobile-layout="diptych"]) .heading p { margin-top: 6px; }
+  .series:is([data-mobile-layout="couple"], [data-mobile-layout="diptych"]) .spread { align-items: center; gap: 20px 14px; }
+  .series:is([data-mobile-layout="couple"], [data-mobile-layout="diptych"]) .figure[data-photo-index] { grid-column: auto; width: 100%; justify-self: stretch; }
+  .series[data-mobile-layout="couple"] .figure[data-photo-index="0"] { grid-column: 1 / -1; }
 }
