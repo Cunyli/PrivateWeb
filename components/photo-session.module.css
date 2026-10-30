@@ -59,7 +59,7 @@
 .shootTypes button::before { content:""; width:4px; height:4px; flex-shrink:0; border-radius:50%; background:currentColor; opacity:0; transform:scale(.5); transition:opacity 180ms,transform 180ms; }
 .shootTypes button[aria-pressed="true"] { color:var(--session-ink); }
 .shootTypes button[aria-pressed="true"]::before { opacity:1; transform:none; }
-.contactActions { align-self:start; padding:0; }
+.contactActions { align-self:center; padding:0; }
 .contactActions h3 { max-width:20ch; margin:0 0 22px; font-size:clamp(28px,2.6vw,36px); font-weight:450; line-height:1.2; letter-spacing:-.045em; }
 .contactLinks { display:flex; flex-wrap:wrap; gap:8px 30px; }
 .contactAction { display:inline-flex; min-height:44px; align-items:center; gap:14px; padding:0; color:var(--session-ink); text-align:left; text-decoration:none; font-size:14px; cursor:pointer; }
@@ -223,7 +223,7 @@
 }
 @media (max-width:1023px) and (orientation:portrait), (max-width:640px) {
   .processPhotos { top:64px; background:#0b0c0a; }
-  .processSteps :global([data-step-index]) { min-height:52svh; }
+  .processSteps :global([data-step-index]) { min-height:44svh; align-content:center; }
   .locationMap { top:64px; }
 }
 @media (max-height:700px) and (min-width:1024px) { .page .locationMapSurface { min-height:0; height:100%; } }
