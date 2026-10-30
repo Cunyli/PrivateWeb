@@ -178,6 +178,13 @@ async function main(){
   const previewSeed=initialStylePreviews(previewCatalog,previewInitial,{1:['大师'],3:['大师'],4:['大师']})
   assert.equal(previewSeed.landscape.pictures[0].id,1,'Master categories as well as tags must seed first-load previews')
   assert.ok(!Object.values(previewSeed).flatMap(style=>style.pictures).some(photo=>[3,4].includes(photo.id)),'Private and deleted photographs cannot enter the seed')
+  const {portfolioEntryPhotos}=load('lib/portfolio-entry-preview.ts')
+  const entryCover=(id,frame)=>({id,src:`/picture/responsive/${frame}/original.webp`,width:2400,height:1600})
+  const entryVisibility={...helper.emptyCuration,ids:[3],featuredIds:[1,2,3,5,6],keptPortraits:[{id:2}],covers:{
+    110:entryCover(1,'scenery-a'),98:entryCover(2,'client'),95:entryCover(3,'removed'),101:entryCover(4,'unrated'),108:entryCover(5,'scenery-b'),107:{...entryCover(6,'scenery-a'),src:'/picture/responsive/scenery-a/w1280.webp'},
+  }}
+  assert.deepEqual(Array.from(portfolioEntryPhotos(entryVisibility),photo=>photo.id),[1,5],'The portfolio doorway must exclude removed, unrated, portrait and duplicate frames')
+  assert.equal(portfolioEntryPhotos({...entryVisibility,ids:[1,2,3,4,5,6]}).length,0,'An empty approved pool must not restore static images')
   const series=load('lib/photo-series.ts')
   assert.equal(series.curationGroup(112,'Portrait Booking Samples','',['model:A']).id,'portrait-pool')
   assert.equal(series.curationGroup(120,'Other title','',['portrait-library','model:B']).id,'portrait-pool')
@@ -220,6 +227,6 @@ async function main(){
   const image=await texture.GET(textureRequest('pictureId=1&width=640&src=http://127.0.0.1/private'))
   assert.equal(image.status,200);assert.equal(image.headers.get('content-type'),'image/webp')
   assert.equal(image.headers.get('cross-origin-resource-policy'),'same-origin');assert.equal(textureFetches,1)
-  console.log(JSON.stringify({authenticatedOnly:true,invalidBatchesRejected:true,unmarkedIdsUntouched:true,zeroTrashOneExcellent:true,staticCopiesBoundToExactRecords:true,libraryPagination:'1001 DB + 1 static',tagPagination:true,bookingOnlyRatedOne:true,noStaticFallback:true,coversOnlyRatedOne:true,unratedArchivePreserved:true,pooledPortraitLibrary:true,balancedShowcase:true,sameOriginTexturesApprovedOnly:true,textureProxyCannotFetchArbitraryUrls:true,concurrentChangeConflict:409,publicCacheInvalidation:true},null,2))
+  console.log(JSON.stringify({authenticatedOnly:true,invalidBatchesRejected:true,unmarkedIdsUntouched:true,zeroTrashOneExcellent:true,staticCopiesBoundToExactRecords:true,libraryPagination:'1001 DB + 1 static',tagPagination:true,bookingOnlyRatedOne:true,noStaticFallback:true,coversOnlyRatedOne:true,portfolioEntryApprovedOnly:true,unratedArchivePreserved:true,pooledPortraitLibrary:true,balancedShowcase:true,sameOriginTexturesApprovedOnly:true,textureProxyCannotFetchArbitraryUrls:true,concurrentChangeConflict:409,publicCacheInvalidation:true},null,2))
 }
 main().catch(error=>{console.error(error);process.exitCode=1})
