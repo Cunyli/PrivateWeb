@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+/node_modules
 
 # Next.js
 .next/
@@ -32,6 +33,9 @@ playwright-report/
 # Logs
 logs/
 *.log
+/outputs/shopping-watch/
+/tmp/
+/data/shopping-watch/*.private.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

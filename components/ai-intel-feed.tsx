@@ -1328,6 +1328,7 @@ export function AiIntelFeed({ publicMode = false }: AiIntelFeedProps = {}) {
               ) : null}
               {!publicMode ? (
                 <>
+              <Link href="/shopping" className="inline-flex min-h-[38px] items-center rounded-lg border border-[#d7ddda] bg-white px-3 py-2 text-sm text-[#1c2526]">黑五采购</Link>
               <button
                 type="button"
                 onClick={() => {

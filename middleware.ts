@@ -4,7 +4,7 @@ import { contentSecurityPolicy } from "@/lib/security-policy"
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
-  const privatePage = path === "/login" || path === "/admin" || path.startsWith("/admin/") || (path.startsWith("/ai-feed") && !path.startsWith("/ai-feed/public"))
+  const privatePage = path === "/login" || path === "/shopping" || path === "/admin" || path.startsWith("/admin/") || (path.startsWith("/ai-feed") && !path.startsWith("/ai-feed/public"))
   const nonce = privatePage ? btoa(crypto.randomUUID()) : undefined
   const policy = contentSecurityPolicy(nonce)
   const headers = new Headers(request.headers)
