@@ -8,11 +8,11 @@ import { useDocumentTitle } from "@/lib/use-document-title"
 import { campaignStatus, itemJudgment, verifiedSaving } from "@/lib/shopping-watch"
 import type { ShoppingCatalog, ShoppingItem } from "@/lib/shopping-watch"
 import styles from "./shopping-watch.module.css"
+import { ShoppingMemos } from "./shopping-memos"
 
 type LocalState = { saved: string[]; purchased: string[]; targets: Record<string, number | null>; notes: Record<string, string> }
 const initialLocal: LocalState = { saved: [], purchased: [], targets: {}, notes: {} }
 const storageKey = "lijie-shopping-watch-v1"
-const categories = ["全部", "椅子", "电视", "餐桌椅", "沙发", "窗帘", "灯泡", "加湿器", "微波炉", "冲锋衣", "冲锋裤", "滑雪服", "帐篷"]
 const verdicts = { consider: "值得考虑", wait: "继续等", skip: "先跳过" }
 const statusLabels = { active: "进行中", upcoming: "即将开始", ended: "已结束", unknown: "待复核" }
 const money = (value: number | null) => value === null ? "待报价" : new Intl.NumberFormat("fi-FI", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(value)
@@ -96,6 +96,7 @@ export function ShoppingWatch() {
 
   const toggle = (field: "saved" | "purchased", id: string) => setLocal(state => ({ ...state, [field]: state[field].includes(id) ? state[field].filter(value => value !== id) : [...state[field], id] }))
   const items = catalog?.items || []
+  const categories = ["全部", ...Array.from(new Set([...(catalog?.requirements || []).map(item => item.category), ...items.map(item => item.category)]))]
   const saved = items.filter(item => local.saved.includes(item.id) && !local.purchased.includes(item.id))
   const sum = saved.reduce((value, item) => value + (item.price || 0), 0)
   const findings = items.filter(item => verifiedSaving(item, now) !== null && item.stockStatus !== "out_of_stock").slice(0, 3)
@@ -124,9 +125,10 @@ export function ShoppingWatch() {
     const failed = item.observation?.status === "error"
     const reached = target !== null && item.price !== null && item.shipping !== null && item.price + item.shipping <= target && !stale && !failed
     return <article className={styles.card} key={item.id}>
-      <div className={styles.cardTop}><span className={styles.categoryTag}>{item.category} <span> / {item.brand}</span></span><button type="button" className={styles.heart} aria-label={`${isSaved ? "移出" : "加入"}采购篮 ${item.name}`} aria-pressed={isSaved} onClick={() => toggle("saved", item.id)}><Heart size={18} fill={isSaved ? "currentColor" : "none"} /></button></div>
+      <div className={styles.cardTop}><span className={styles.categoryTag}>{item.category} <span> / {item.brand}{item.purchaseRegion ? ` · ${item.purchaseRegion}` : ""}</span></span><button type="button" className={styles.heart} aria-label={`${isSaved ? "移出" : "加入"}采购篮 ${item.name}`} aria-pressed={isSaved} onClick={() => toggle("saved", item.id)}><Heart size={18} fill={isSaved ? "currentColor" : "none"} /></button></div>
       <div className={styles.productHead}><div className={styles.productMark} aria-hidden="true">{item.brand.slice(0, 2).toUpperCase()}</div><div><h3>{item.name}</h3><p>{item.variant}</p></div></div>
       <div className={styles.priceRow}><strong>{money(item.price)}</strong><span className={`${styles.verdict} ${styles[verdict]}`}>{verdicts[verdict]}</span></div>
+      {item.foreignQuote && <p className={styles.foreignQuote}>{new Intl.NumberFormat("zh-CN", {style:"currency", currency:item.foreignQuote.currency}).format(item.foreignQuote.amount)} · {item.foreignQuote.note}</p>}
       <div className={styles.delivery}>{item.shipping === null ? "到手价待运费确认" : `已知到手价 ${money(item.price === null ? null : item.price + item.shipping)}`}<span>{item.shippingNote}</span></div>
       <div className={styles.badges}>{saving !== null && <span className={styles.saving}>较所示30天低价低 {saving}%</span>}{item.low30 !== null && saving === null && <span>所示30天低价 {money(item.low30)} · {stamp(item.low30VerifiedAt)}</span>}{reached && <span className={styles.saving}>已知到手价达到目标</span>}{failed && <span className={styles.caution}>本轮未核实</span>}{stale && <span className={styles.caution}>报价待更新</span>}</div>
       <p className={styles.reason}>{item.reason}</p>
@@ -152,6 +154,7 @@ export function ShoppingWatch() {
       <div className={styles.statusbar}><div><span className={styles.liveDot} /><b>最近采集 {age(catalog?.lastAttemptAt, now)}</b><span>· 成功核实 {catalog?.run?.succeeded ?? "—"}/{catalog?.run?.attempted ?? "—"} 项</span><span>· 采集计划每10分钟，页面每分钟读取</span></div><button type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={14} className={loading ? styles.spinning : ""} />读取最新</button></div>
       {(warning || error || notice) && <div className={styles.notice} role="status">{[warning, error, notice].filter(Boolean).join(" ")}{notice && <button type="button" aria-label="关闭提示" onClick={() => setNotice("")}><X size={14} /></button>}</div>}
       {authNeeded ? <section className={styles.auth}><ShoppingBag size={32} /><h2>登录后查看采购清单</h2><p>使用个人网站已有账号与两步验证。</p><Link href="/login?next=/shopping">登录并返回采购页 <ArrowUpRight size={16} /></Link></section> : !catalog ? <div className={styles.empty}>{loading ? "正在读取采购清单…" : "暂时无法读取清单，请重试。"}</div> : <>
+      <ShoppingMemos memos={catalog.memos || []} categories={categories.filter(value => value !== "全部")} onChange={next => setCatalog(next)} />
       {findings.length > 0 && <section className={styles.findings} aria-label="已核查的降价"><div className={styles.sectionTitle}><h2>这一轮值得看</h2><span>同款与商家所示30天最低价比较</span></div><div className={styles.findingGrid}>{findings.map(item => <button type="button" key={item.id} onClick={() => { setQuery(item.name); setCategory("全部"); setView("all"); document.getElementById("shopping-products")?.scrollIntoView({ behavior: "smooth" }) }}><div><span>{item.category}</span><h3>{item.name}</h3></div><strong>{money(item.price)}<small><ArrowDown size={12} />{verifiedSaving(item, now)}%</small></strong></button>)}</div></section>}
       <section className={styles.campaignSection}><div className={styles.sectionTitle}><h2>品牌与活动日历</h2><span>开始时间、有效期和待核实的预告</span></div><div className={styles.campaigns}>{catalog.campaigns.map(campaign => { const state = campaignStatus(campaign, now, items); return <a key={campaign.id} href={campaign.url} target="_blank" rel="noopener noreferrer" className={styles.campaign}><div><b>{campaign.brand}</b><span className={`${styles.campaignStatus} ${styles[state]}`}>{statusLabels[state]}</span></div><h3>{campaign.title}</h3><p>{campaign.note}</p><footer>{campaign.startsAt ? stamp(campaign.startsAt) : "活动入口"}<ExternalLink size={13} /></footer></a> })}</div></section>
       <section className={styles.products} id="shopping-products"><aside className={styles.sidebar}><span className={styles.overline}>采购分类</span><div>{categories.map(value => <button type="button" key={value} className={value === category ? styles.selectedCategory : ""} onClick={() => setCategory(value)}>{value}<span>{value === "全部" ? items.length : items.filter(item => item.category === value).length}</span></button>)}</div><div className={styles.sidebarNote}><Clock3 size={18} /><b>真正值得买，再出手。</b><p>运费、库存、尺码和过期活动，会一起影响判断。</p>{catalog.preferences?.logisticsNote && <p>{catalog.preferences.logisticsNote}</p>}</div></aside>

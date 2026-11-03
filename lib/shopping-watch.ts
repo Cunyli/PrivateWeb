@@ -1,4 +1,6 @@
 export type ShoppingItem = {
+  purchaseRegion?: string
+  foreignQuote?: { amount: number; currency: string; checkedAt: string; note: string }
   id: string
   category: string
   brand: string
@@ -43,7 +45,20 @@ export type ShoppingCampaign = {
   observation?: { attemptedAt: string; status: string; changed?: boolean; hash?: string; error?: string; version?: number }
 }
 
+export type ShoppingMemo = {
+  id: string
+  title: string
+  category: string
+  budget: string
+  details: string
+  url: string
+  status: "wanted" | "researching" | "bought" | "archived"
+  createdAt: string
+  updatedAt: string
+}
+
 export type ShoppingCatalog = {
+  memos?: ShoppingMemo[]
   preferences?: {
     locationLabel?: string
     seasonLabel?: string
