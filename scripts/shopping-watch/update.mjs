@@ -30,7 +30,19 @@ function validate(catalog) {
 const campaignHosts = new Set(["eu.sihoo.com", "www.hbada.eu", "hbada.eu", "www.masku.com", "www.ikea.com", "www.verkkokauppa.com", "www.prisma.fi", "www.helsinkioutlet.fi", "scandinavianoutdoor.fi", "www.haglofs.com", "www.norrona.com", "eu.patagonia.com", "arcteryx.com", "varuste.net", "www.varuste.net"])
 async function campaignObservation(campaign) {
   if (!campaignHosts.has(new URL(campaign.url).hostname)) throw new Error("活动来源需人工复核")
-  const response = await fetch(campaign.url, { redirect: "manual", signal: AbortSignal.timeout(10000), headers: { "User-Agent": "PersonalShoppingWatch/1.0" } })
+  const signal = AbortSignal.timeout(10000)
+  let currentUrl = new URL(campaign.url), response
+  for (let redirects = 0; redirects <= 3; redirects++) {
+    response = await fetch(currentUrl, { redirect: "manual", signal, headers: { "User-Agent": "PersonalShoppingWatch/1.0" } })
+    if (![301, 302, 303, 307, 308].includes(response.status)) break
+    await response.body?.cancel()
+    if (redirects === 3) throw new Error("活动页面跳转过多，需复核")
+    const location = response.headers.get("location")
+    if (!location) throw new Error("活动跳转缺少目标地址")
+    const next = new URL(location, currentUrl)
+    if (next.protocol !== "https:" || next.username || next.password || next.hostname.replace(/^www\./, "") !== currentUrl.hostname.replace(/^www\./, "")) throw new Error("活动跳转至不同商家，需人工复核")
+    currentUrl = next
+  }
   if (!response.ok) { await response.body?.cancel(); throw new Error(`HTTP ${response.status}，未绕过访问限制`) }
   const reader = response.body.getReader(), chunks = []
   let size = 0
