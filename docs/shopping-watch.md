@@ -6,6 +6,8 @@ The checked-in `data/shopping-watch/catalog.json` is an empty template. Personal
 
 ## Update and review
 
+The “我的生活清单” memo form saves titles, categories, free-text budgets, size/use notes, HTTPS product links and progress to the same encrypted catalog. These memos sync across devices after login. `PATCH /api/shopping` validates a bounded JSON body and requires the existing verified AAL2 admin session. Each edit checks the memo revision and the catalog ETag. Conflicts preserve the draft and require reloading and reviewing before saving again; price collection never overwrites memos. Archiving is reversible. The basket and individual product notes remain browser-local.
+
 Run from the portfolio checkout with Node 22 or newer and its existing environment:
 
 ```sh
@@ -19,13 +21,14 @@ node scripts/shopping-watch/update.mjs --apply-curation tmp/shopping-current.jso
 
 The local Codex heartbeat is intended to run every ten minutes while the Mac and Codex are available. The page polls its authenticated API every minute while visible. Polling does not itself fetch merchants. Every item has its own successful price check time; the run time is not substituted for it. Failed and manual sources keep their prior quotation and are shown as requiring review. HTTP 403/429/challenges get a six-hour backoff, without bypasses. A late or unavailable run remains visible in the status line.
 
-`outputs/shopping-watch/latest-catalog.json` contains private local working data; `logs/shopping-watch/` holds bounded run summaries. These files are ignored by Git. They contain public merchant data, not tokens or browser notes.
+`outputs/shopping-watch/latest-catalog.json` contains private local working data, including cloud memos; `logs/shopping-watch/` holds bounded run summaries. These files are ignored by Git. Never publish decrypted working data or credentials.
 
 ## Evidence rules
 
 - Keep exact model, color, size and membership terms with the quote. A cheapest collection price is not the price of every size. Shopify checks require an exact variant and an explicitly configured EUR storefront. General product checks accept one matching Product with one EUR Offer.
 - IKEA Family offers remain manual when structured data only exposes the ordinary price. A national catalog availability flag is not stock at the delivery address or local shop.
 - Missing shipping stays `null`, and the basket lists how many fees remain unknown. Do not infer a final delivered total from a starting delivery price.
+- Compare total cost and suitability across Finland, other EU shops and China, including freight or carrying, applicable taxes/fees, consumables, regional compatibility and warranty. A China-only quotation belongs in `foreignQuote` with its own currency and check time; leave the EUR price `null` until a real delivered EUR quotation is verified. Never put a bare foreign-currency amount into the EUR basket.
 - The merchant's 30-day low has a separate check time. It cannot become fresh when only the current price is fetched. Its discount badge expires after a day until reviewed. Never use crossed-out MSRP as an actual historical transaction price.
 - Price changes return the item to review. An expired sale, failed price observation or stale quote cannot retain a current purchase endorsement. Linked campaign prices must match their candidate; campaign failures and stale reviews become unknown.
 - Personal shopping requirements and budgets belong in the encrypted live catalog. Preserve previous candidates and historical baselines during updates. Compare actual model identities rather than similar marketing labels.
