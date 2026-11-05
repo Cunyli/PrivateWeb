@@ -57,7 +57,14 @@ export type ShoppingMemo = {
   updatedAt: string
 }
 
+export type ShoppingDismissal = {
+  itemId: string
+  quote: { amount: number; currency: string; basis: "item" | "delivered" | "foreign" } | null
+  dismissedAt: string
+}
+
 export type ShoppingCatalog = {
+  dismissals?: ShoppingDismissal[]
   memos?: ShoppingMemo[]
   preferences?: {
     locationLabel?: string

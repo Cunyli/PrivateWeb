@@ -74,6 +74,9 @@ try {
     if (curation) {
       catalog = JSON.parse(await readFile(resolve(curation), "utf8")); validate(catalog)
       if (current.catalog?.updatedAt && catalog.updatedAt !== current.catalog.updatedAt) throw new Error("Catalog advanced; export current state and reconcile before applying curation")
+      // Visibility is user-owned state. Curation can only change shopping evidence.
+      if (current.catalog?.dismissals) catalog.dismissals = current.catalog.dismissals
+      else delete catalog.dismissals
       catalog.curatedAt = now
     } else {
       const results = [], pending = [...catalog.items]

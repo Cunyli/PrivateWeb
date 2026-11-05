@@ -6,3 +6,5 @@
 @media(prefers-reduced-motion:reduce){.page *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
 .foreignQuote{font-size:11px;line-height:1.7;color:#8e7139;background:#faf1db;border-radius:4px;padding:7px 9px;margin:9px 0}
+
+.cardTools{display:flex;align-items:center;gap:2px;flex-shrink:0}.cardTools .heart,.dismissButton{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:0;border-radius:5px;background:transparent;color:#7f8c6f}.dismissButton:hover{background:#eee9df;color:#805f49}.dismissButton[aria-busy=true]{color:var(--green)}@media(max-width:760px){.cardTools{gap:0}.cardTools .heart,.dismissButton{width:44px;height:44px}.cardTop{gap:3px}.categoryTag{min-width:0}}
