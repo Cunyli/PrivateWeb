@@ -64,6 +64,10 @@ export type ShoppingDismissal = {
 }
 
 export type ShoppingCatalog = {
+  discovery?: {
+    sources?: { id: string; merchant: string; category: string; url: string; observation?: { status: string; attemptedAt: string; found?: number } }[]
+    leads?: { id: string; merchant: string; category: string; title: string; url: string; listingPrice: number | null; observedAt: string; note: string }[]
+  }
   dismissals?: ShoppingDismissal[]
   memos?: ShoppingMemo[]
   preferences?: {

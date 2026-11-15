@@ -15,6 +15,7 @@ try {
   console.log(JSON.stringify({ status: "ok", at: catalog.updatedAt, cloudReadbackVerified: true,
     attempted: catalog.run.attempted, succeeded: catalog.run.succeeded, failed: catalog.run.failed,
     changedCount: catalog.run.changed.length, campaignChangeCount: catalog.run.campaignChanges.length,
+    discovery: catalog.run.discovery,
     scriptedSources: catalog.items.filter(item => item.monitor?.kind && item.monitor.kind !== "manual").length }))
 } catch {
   console.error(JSON.stringify({ status: "error", error: "Collection or cloud readback failed; private diagnostic output withheld." }))
