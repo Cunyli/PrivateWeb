@@ -1,0 +1,45 @@
+name: Shopping watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,17,27,37,47,57 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shopping-watch-catalog
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out collection code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/shopping-watch
+            lib/shopping-watch-crypto.mjs
+            lib/shopping-memo.mjs
+            lib/shopping-dismissal.mjs
+            data/shopping-watch/catalog.json
+          sparse-checkout-cone-mode: false
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Install collection dependencies
+        run: npm ci --prefix scripts/shopping-watch --ignore-scripts --no-audit --no-fund
+      - name: Verify collectors
+        run: node --test scripts/shopping-watch/*.test.mjs
+      - name: Collect and verify encrypted cloud data
+        env:
+          R2_ENDPOINT_URL: ${{ secrets.SHOPPING_R2_ENDPOINT_URL }}
+          R2_BUCKET_NAME: ${{ secrets.SHOPPING_R2_BUCKET_NAME }}
+          R2_ACCESS_KEY_ID: ${{ secrets.SHOPPING_R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.SHOPPING_R2_SECRET_ACCESS_KEY }}
+        run: node scripts/shopping-watch/cloud-run.mjs

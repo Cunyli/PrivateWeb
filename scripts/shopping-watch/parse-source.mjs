@@ -30,6 +30,10 @@ const MERCHANT_HOSTS = new Map([
   ["halti", ["halti.fi", "www.halti.fi"]],
   ["haglofs", ["haglofs.com", "www.haglofs.com"]],
   ["norrona", ["norrona.com", "www.norrona.com"]],
+  ["bergfreunde", ["bergfreunde.fi", "www.bergfreunde.fi"]],
+  ["dreame", ["fi.dreametech.com"]],
+  ["dna", ["kauppa.dna.fi"]],
+  ["telia", ["www.telia.fi", "telia.fi"]],
 ]);
 const MERCHANT_BY_HOST = new Map(
   [...MERCHANT_HOSTS].flatMap(([merchant, hosts]) => hosts.map((host) => [host, merchant])),
@@ -75,6 +79,7 @@ function primitiveText(value) {
 }
 
 function productMatches(product, item) {
+  if (item.monitor?.gtin) return String(product.gtin13 ?? product.gtin ?? "") === String(item.monitor.gtin);
   const match = item.monitor?.match;
   if (match !== undefined && (!Array.isArray(match)
     || match.some((token) => typeof token !== "string" || !token.trim()))) {
@@ -89,12 +94,12 @@ function productMatches(product, item) {
   return tokensMatch || urlMatches;
 }
 
-function productNodes(value) {
-  if (Array.isArray(value)) return value.flatMap(productNodes);
+function productNodes(value, includeGroups = false) {
+  if (Array.isArray(value)) return value.flatMap(node => productNodes(node, includeGroups));
   if (value === null || typeof value !== "object") return [];
-  const products = schemaType(value["@type"], "Product") ? [value] : [];
+  const products = (schemaType(value["@type"], "Product") || (includeGroups && schemaType(value["@type"], "ProductGroup"))) ? [value] : [];
   // Do not recurse through ItemList, recommendations, isRelatedTo or nested offers.
-  if (Array.isArray(value["@graph"])) products.push(...value["@graph"].flatMap(productNodes));
+  if (Array.isArray(value["@graph"])) products.push(...value["@graph"].flatMap(node => productNodes(node, includeGroups)));
   return products;
 }
 
@@ -139,6 +144,7 @@ export function parseShopifyProduct(json, item) {
     throw new Error(`Shopify: expected exactly one variant ${variantId}; found ${matches.length}`);
   }
   const variant = matches[0];
+  if (item.monitor.sku && variant.sku !== item.monitor.sku) throw new Error("Shopify: exact variant SKU changed");
   const sourceCurrency = json.currency ?? product.currency;
   const currency = sourceCurrency ?? item.monitor?.currency;
   assertEuro(currency, "Shopify");
@@ -183,19 +189,34 @@ export function parseProductJsonLd(html, item) {
       if (!(error instanceof SyntaxError)) throw error;
       throw new Error(`JSON-LD: script ${scriptCount} contains invalid JSON: ${error.message}`, { cause: error });
     }
-    products.push(...productNodes(value));
+    products.push(...productNodes(value, Boolean(item.monitor?.variantSku)));
   }
   if (scriptCount === 0) throw new Error("JSON-LD: no application/ld+json script found");
-  const matches = products.filter((product) => productMatches(product, item));
+  const matches = products.filter((product) => productMatches(product, item)
+    && (!item.monitor?.variantSku || Array.isArray(product.hasVariant)));
   if (matches.length !== 1) {
     throw new Error(`JSON-LD: expected one matching top-level Product; found ${matches.length}`);
   }
-  const product = matches[0];
+  let product = matches[0];
+  if (item.monitor?.variantSku) {
+    const variants = Array.isArray(product.hasVariant) ? product.hasVariant : [];
+    const selected = variants.filter(variant => schemaType(variant["@type"], "Product") && String(variant.sku) === item.monitor.variantSku);
+    if (selected.length !== 1) throw new Error("JSON-LD: exact variant SKU missing or ambiguous");
+    product = selected[0];
+    for (const field of ["color", "size"]) {
+      if (item.monitor[field] && product[field] !== item.monitor[field]) throw new Error(`JSON-LD: exact variant ${field} changed`);
+    }
+  }
   if (schemaType(product["@type"], "ProductGroup")
     || product.hasVariant !== undefined || product.variesBy !== undefined) {
     throw new Error("JSON-LD: multi-variant Product / ProductGroup is not an exact purchasable variant");
   }
-  const offers = Array.isArray(product.offers) ? product.offers : [product.offers];
+  let offers = Array.isArray(product.offers) ? product.offers : [product.offers];
+  if (item.monitor?.seller) {
+    if (!item.monitor.gtin) throw new Error("JSON-LD: a seller selection requires an exact GTIN");
+    offers = offers.filter(offer => offer?.seller?.name === item.monitor.seller
+      && offer?.availableAtOrFrom?.name === item.monitor.seller);
+  }
   if (offers.length !== 1 || !offers[0] || typeof offers[0] !== "object") {
     throw new Error("JSON-LD: expected a single Offer; multiple offers or missing offers are ambiguous");
   }
@@ -210,9 +231,39 @@ export function parseProductJsonLd(html, item) {
   return {
     price,
     ...offerStock(offer.availability),
+    ...(item.monitor?.seller ? { stockNote: `${item.monitor.seller}具名门店的精确GTIN报价和可售标记；配送地址和最终费用仍待结账确认。` } : {}),
     ...(image ? { image } : {}),
-    evidenceNote: "官方商品页欧元报价；商品身份与所选款一致，未采用推荐商品或集合起价。",
+    evidenceNote: `官方商品页欧元报价；${item.monitor?.variantSku ? `精确SKU ${item.monitor.variantSku}；` : ""}${item.monitor?.seller ? `GTIN ${item.monitor.gtin}、${item.monitor.seller}；` : ""}未采用推荐商品、会员推算价或集合起价。`,
   };
+}
+
+function attributes(tag) {
+  return Object.fromEntries([...tag.matchAll(/([\w:-]+)\s*=\s*["']([^"']*)["']/g)]
+    .map(([, key, value]) => [key.toLowerCase(), value]));
+}
+
+/** Helsinki Outlet exposes each exact color/size price and stock in keyed HTML. */
+export function parseSyliusVariant(html, item) {
+  const monitor = item.monitor;
+  const title = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.toLowerCase() ?? "";
+  if (!monitor.match?.length || !monitor.match.every(token => title.includes(token.toLowerCase()))) throw new Error("Sylius: product title changed");
+  if (!monitor.colorCode || !monitor.sizeCode || !monitor.color || !monitor.size) throw new Error("Sylius: exact color and size configuration required");
+  const colors = [...html.matchAll(/<div\b[^>]*data-color-code[^>]*>/gi)].map(([tag]) => attributes(tag));
+  if (!colors.some(a => a["data-color-code"] === monitor.colorCode && a["data-color-translation"] === monitor.color)) throw new Error("Sylius: color identity changed");
+  const sizes = [...html.matchAll(/<option\b([^>]*)>([^<]*)<\/option>/gi)];
+  if (!sizes.some(([, tag, text]) => attributes(tag).value === monitor.sizeCode && text.trim() === monitor.size)) throw new Error("Sylius: size identity changed");
+  const exact = a => a["data-couleur"] === monitor.colorCode && a["data-taille"] === monitor.sizeCode;
+  const prices = [...html.matchAll(/<div\b[^>]*data-price\s*=[^>]*>/gi)].map(([tag]) => attributes(tag)).filter(exact);
+  if (prices.length !== 1 || !/^\d+$/.test(prices[0]["data-price"]) || !prices[0]["data-value"]?.includes("€")) throw new Error("Sylius: exact variant EUR price missing or ambiguous");
+  const stocks = [...html.matchAll(/<div\b([^>]*class=["'][^"']*few-in-stock[^"']*["'][^>]*)>([\s\S]*?)<\/div>/gi)]
+    .filter(([, tag]) => exact(attributes(tag)));
+  if (stocks.length !== 1) throw new Error("Sylius: exact variant stock missing or ambiguous");
+  const count = stocks[0][2].match(/Vain\s+(\d+)\s+jäljellä varastossa/);
+  if (!count) throw new Error("Sylius: stock format changed");
+  const price = positivePrice(Number(prices[0]["data-price"]) / 100, "Sylius");
+  return { price, stockStatus: Number(count[1]) > 0 ? "in_stock" : "out_of_stock",
+    stockNote: `${monitor.color} / ${monitor.size}：商家精确变体库存${count[1]}件；合身和最终配送费用待确认。`,
+    evidenceNote: `商家HTML中同一颜色代码与尺码代码对应的EUR价格及库存；不采用默认变体或款式最低价。` };
 }
 
 function approvedUrl(value, merchant) {
@@ -266,7 +317,7 @@ function hasAccessChallenge(html) {
 export async function fetchObservation(item) {
   const kind = item.monitor?.kind ?? item.monitor?.type;
   if (kind === "manual" || !kind) throw new Error("Manual source: automatic observation is unavailable; check the merchant page manually");
-  if (!["shopify", "jsonld"].includes(kind)) throw new Error(`Unsupported monitor kind: ${kind}`);
+  if (!["shopify", "jsonld", "sylius"].includes(kind)) throw new Error(`Unsupported monitor kind: ${kind}`);
   const productUrl = approvedUrl(item.url);
   let current = approvedUrl(item.monitor.endpoint ?? item.url, productUrl.merchant).url;
   const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
@@ -298,6 +349,10 @@ export async function fetchObservation(item) {
     const text = await limitedResponseText(response);
     if (hasAccessChallenge(text)) throw new Error("Source access challenge / CAPTCHA detected; no bypass attempted");
     if (kind === "jsonld") return parseProductJsonLd(text, item);
+    if (kind === "sylius") {
+      if (productUrl.merchant !== "helsinkioutlet") throw new Error("Sylius: merchant is not supported");
+      return parseSyliusVariant(text, item);
+    }
     let json;
     try {
       json = JSON.parse(text);
