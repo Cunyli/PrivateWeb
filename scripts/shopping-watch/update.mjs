@@ -3,6 +3,7 @@ import { existsSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { collectItems } from "./collect.mjs"
+import { discoverProducts } from "./discover.mjs"
 import { createStorage } from "./storage.mjs"
 import { campaignSourceHash } from "./campaign-source.mjs"
 
@@ -96,7 +97,8 @@ try {
           if (/HTTP (403|429)|CAPTCHA|access challenge/i.test(campaign.observation.error)) campaign.observation.retryAfter = new Date(Date.now() + 6 * 3600000).toISOString()
         }
       }
-      catalog.run = { attempted: results.length, succeeded: results.filter(result => result.ok).length, failed: results.filter(result => !result.ok).length, changed: results.filter(result => result.changed).map(result => result.id), campaignChanges }
+      const discovery = await discoverProducts(catalog, { at: now })
+      catalog.run = { attempted: results.length, succeeded: results.filter(result => result.ok).length, failed: results.filter(result => !result.ok).length, changed: results.filter(result => result.changed).map(result => result.id), campaignChanges, discovery }
       catalog.lastAttemptAt = now
       if (catalog.run.succeeded) catalog.lastSuccessAt = now
     }

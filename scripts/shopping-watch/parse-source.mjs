@@ -10,7 +10,7 @@ const MERCHANT_HOSTS = new Map([
   ["masku", ["masku.com", "www.masku.com"]],
   ["jysk", ["jysk.fi", "www.jysk.fi"]],
   ["ikea", ["ikea.com", "www.ikea.com"]],
-  ["verkkokauppa", ["verkkokauppa.com", "www.verkkokauppa.com"]],
+  ["verkkokauppa", ["verkkokauppa.com", "www.verkkokauppa.com", "search.service.verkkokauppa.com"]],
   ["gigantti", ["gigantti.fi", "www.gigantti.fi"]],
   ["power", ["power.fi", "www.power.fi"]],
   ["proshop", ["proshop.fi", "www.proshop.fi"]],
@@ -242,6 +242,37 @@ function attributes(tag) {
     .map(([, key, value]) => [key.toLowerCase(), value]));
 }
 
+/** Varuste's cart microdata is usable only after every property is selected. */
+export function parseVarusteVariant(html, item) {
+  const monitor = item.monitor;
+  if (!/^\d+$/.test(String(monitor.productId)) || !monitor.properties || !Object.keys(monitor.properties).length) throw new Error("Varuste: exact product and property IDs required");
+  const title = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.toLowerCase() ?? "";
+  if (!monitor.match?.length || !monitor.match.every(token => title.includes(token.toLowerCase()))) throw new Error("Varuste: product identity changed");
+  const clean = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+  const carts = [...clean.matchAll(/<div\b[^>]*id=["']cart_box\d+["'][^>]*>/gi)];
+  if (carts.length !== 1) throw new Error("Varuste: cart scope missing or ambiguous");
+  const start = carts[0].index;
+  const end = clean.indexOf(`<div id="vapaana${monitor.productId}"`, start);
+  if (end < 0) throw new Error("Varuste: selected variant availability scope missing");
+  const cart = clean.slice(start, end);
+  const inputs = [...cart.matchAll(/<input\b[^>]*>/gi)].map(([tag]) => attributes(tag));
+  const productIds = inputs.filter(a => a.name === "_tuoteid");
+  if (productIds.length !== 1 || productIds[0].value !== String(monitor.productId)) throw new Error("Varuste: cart product ID changed");
+  const options = inputs.filter(a => a.name === "_omin[]");
+  if (options.length !== Object.keys(monitor.properties).length || !options.every(a => {
+    const property = a.id?.match(/_property_type_(\d+)$/)?.[1];
+    return property && a.value && a.value === String(monitor.properties[property]);
+  })) throw new Error("Varuste: every exact color/size property must be selected; style price rejected");
+  const meta = [...cart.matchAll(/<(?:meta|link)\b[^>]*>/gi)].map(([tag]) => attributes(tag));
+  const values = name => [...new Set(meta.filter(a => a.itemprop === name).map(a => a.content ?? a.href))];
+  const prices = values("price"), currencies = values("priceCurrency"), stocks = values("availability");
+  if (prices.length !== 1 || currencies.length !== 1 || stocks.length !== 1) throw new Error("Varuste: exact cart price/currency/stock missing or ambiguous");
+  assertEuro(currencies[0], "Varuste");
+  return { price: positivePrice(prices[0], "Varuste"), ...offerStock(stocks[0]),
+    stockNote: `${monitor.variantLabel || "所选变体"}的商家可售标记；最终运费和交期待确认。`,
+    evidenceNote: "Varuste商品ID及全部已选属性与配置一致；价格和库存仅取当前采购表单，不采用款式起价或推荐商品。" };
+}
+
 /** Helsinki Outlet exposes each exact color/size price and stock in keyed HTML. */
 export function parseSyliusVariant(html, item) {
   const monitor = item.monitor;
@@ -313,13 +344,10 @@ function hasAccessChallenge(html) {
     || /<h[12]\b[^>]*>\s*(?:verify (?:you are|that you are) human|complete the captcha|access denied)/i.test(html);
 }
 
-/** Fetch one allowlisted public product source without bypassing access challenges. */
-export async function fetchObservation(item) {
-  const kind = item.monitor?.kind ?? item.monitor?.type;
-  if (kind === "manual" || !kind) throw new Error("Manual source: automatic observation is unavailable; check the merchant page manually");
-  if (!["shopify", "jsonld", "sylius"].includes(kind)) throw new Error(`Unsupported monitor kind: ${kind}`);
-  const productUrl = approvedUrl(item.url);
-  let current = approvedUrl(item.monitor.endpoint ?? item.url, productUrl.merchant).url;
+/** Shared bounded transport for curated products and public discovery sources. */
+export async function fetchMerchantText(url, endpoint = url, json = false) {
+  const productUrl = approvedUrl(url);
+  let current = approvedUrl(endpoint, productUrl.merchant).url;
   const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
   for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects += 1) {
     const response = await fetch(current, {
@@ -327,7 +355,7 @@ export async function fetchObservation(item) {
       signal,
       headers: {
         "User-Agent": "FinlandShoppingWatch/1.0 (personal product price monitor)",
-        Accept: kind === "shopify" ? "application/json" : "text/html,application/xhtml+xml",
+        Accept: json ? "application/json" : "text/html,application/xhtml+xml",
       },
     });
     if (REDIRECT_STATUSES.has(response.status)) {
@@ -348,19 +376,26 @@ export async function fetchObservation(item) {
     }
     const text = await limitedResponseText(response);
     if (hasAccessChallenge(text)) throw new Error("Source access challenge / CAPTCHA detected; no bypass attempted");
-    if (kind === "jsonld") return parseProductJsonLd(text, item);
-    if (kind === "sylius") {
-      if (productUrl.merchant !== "helsinkioutlet") throw new Error("Sylius: merchant is not supported");
-      return parseSyliusVariant(text, item);
-    }
-    let json;
-    try {
-      json = JSON.parse(text);
-    } catch (error) {
-      if (!(error instanceof SyntaxError)) throw error;
-      throw new Error(`Shopify: response is not valid JSON: ${error.message}`, { cause: error });
-    }
-    return parseShopifyProduct(json, item);
+    return text;
   }
   throw new Error("Source redirect limit exceeded");
+}
+
+/** Fetch one allowlisted public product source without bypassing access challenges. */
+export async function fetchObservation(item) {
+  const kind = item.monitor?.kind ?? item.monitor?.type;
+  if (kind === "manual" || !kind) throw new Error("Manual source: automatic observation is unavailable; check the merchant page manually");
+  if (!["shopify", "jsonld", "sylius", "varuste"].includes(kind)) throw new Error(`Unsupported monitor kind: ${kind}`);
+  const merchant = approvedUrl(item.url).merchant;
+  const text = await fetchMerchantText(item.url, item.monitor.endpoint ?? item.url, kind === "shopify");
+  if (kind === "jsonld") return parseProductJsonLd(text, item);
+  if (kind === "sylius") {
+    if (merchant !== "helsinkioutlet") throw new Error("Sylius: merchant is not supported");
+    return parseSyliusVariant(text, item);
+  }
+  if (kind === "varuste") {
+    if (merchant !== "varuste") throw new Error("Varuste: merchant is not supported");
+    return parseVarusteVariant(text, item);
+  }
+  return parseShopifyProduct(JSON.parse(text), item);
 }
