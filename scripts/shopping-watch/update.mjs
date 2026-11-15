@@ -1,7 +1,8 @@
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises"
+import { existsSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { fetchObservation } from "./parse-source.mjs"
+import { collectItems } from "./collect.mjs"
 import { createStorage } from "./storage.mjs"
 import { campaignSourceHash } from "./campaign-source.mjs"
 
@@ -9,7 +10,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const args = process.argv.slice(2)
 const option = name => { const index = args.indexOf(name); return index < 0 ? null : args[index + 1] }
 const envPath = option("--env") || resolve(root, ".env")
-process.loadEnvFile(envPath)
+// Cloud runners receive only the required storage secrets through the environment.
+if (option("--env") || existsSync(envPath)) process.loadEnvFile(envPath)
 const now = new Date().toISOString()
 const storage = createStorage()
 const noWrite = args.includes("--dry-run")
@@ -79,41 +81,11 @@ try {
       else delete catalog.dismissals
       catalog.curatedAt = now
     } else {
-      const results = [], pending = [...catalog.items]
-      // Three workers bound traffic and keep the whole run well below ten minutes.
-      await Promise.all(Array.from({ length: 3 }, async () => {
-        while (pending.length) {
-          const item = pending.shift()
-          if (item.monitor.kind === "manual") {
-            item.observation = { status: "manual", attemptedAt: now }
-            continue
-          }
-          if (item.observation?.retryAfter && Date.parse(item.observation.retryAfter) > Date.now()) continue
-          try {
-            const observation = await fetchObservation(item)
-            if (item.price !== null && (observation.price < item.price * .4 || observation.price > item.price * 2.5)) throw new Error("价格变动超出自动采信范围，需复核型号、货币或规格")
-            const changed = item.price !== observation.price
-            if (changed) {
-              item.history.push({ at: now, price: observation.price, source: item.monitor.endpoint || item.url })
-              item.judgment = "wait"
-              item.reason = `新观察价 ${observation.price.toFixed(2)} EUR；价格已变化，需结合到手价与规格重新判断。`
-            }
-            item.history = item.history.slice(-120)
-            if (new URL(item.url).hostname.endsWith("ikea.com")) {
-              observation.stockStatus = "unknown"
-              observation.stockNote = "国家商品页可售标记；具体地址与门店库存待确认。"
-            }
-            Object.assign(item, observation, { checkedAt: now, priceVerifiedAt: now, sourceKind: item.monitor.kind === "shopify" ? "official_api" : "official_page", observation: { status: "ok", attemptedAt: now } })
-            results.push({ id: item.id, ok: true, changed })
-          } catch (error) {
-            item.observation = { status: "error", attemptedAt: now, error: error instanceof Error ? error.message.slice(0, 240) : String(error) }
-            if (/HTTP (403|429)|CAPTCHA|access challenge/i.test(item.observation.error)) item.observation.retryAfter = new Date(Date.now() + 6 * 3600000).toISOString()
-            results.push({ id: item.id, ok: false, error: item.observation.error })
-          }
-        }
-      }))
+      const results = await collectItems(catalog, { at: now })
       const campaignChanges = []
       for (const campaign of catalog.campaigns) {
+        if (campaign.observation?.retryAfter && Date.parse(campaign.observation.retryAfter) > Date.now()) continue
+        if (catalog.sourceBackoffs?.[new URL(campaign.url).hostname]?.retryAfter && Date.parse(catalog.sourceBackoffs[new URL(campaign.url).hostname].retryAfter) > Date.now()) continue
         try {
           const hash = await campaignObservation(campaign)
           const changed = Boolean(campaign.observation?.version === 2 && campaign.observation.hash !== hash)
@@ -121,18 +93,24 @@ try {
           if (changed) campaignChanges.push(campaign.id)
         } catch (error) {
           campaign.observation = { ...campaign.observation, attemptedAt: now, status: "error", error: error instanceof Error ? error.message.slice(0, 200) : String(error) }
+          if (/HTTP (403|429)|CAPTCHA|access challenge/i.test(campaign.observation.error)) campaign.observation.retryAfter = new Date(Date.now() + 6 * 3600000).toISOString()
         }
       }
       catalog.run = { attempted: results.length, succeeded: results.filter(result => result.ok).length, failed: results.filter(result => !result.ok).length, changed: results.filter(result => result.changed).map(result => result.id), campaignChanges }
       catalog.lastAttemptAt = now
       if (catalog.run.succeeded) catalog.lastSuccessAt = now
     }
+    if (args.includes("--cloud")) {
+      if (process.env.GITHUB_ACTIONS !== "true" || !/^\d+$/.test(process.env.GITHUB_RUN_ID || "") || process.env.GITHUB_REPOSITORY !== "Cunyli/PrivateWeb") throw new Error("Cloud execution context is missing or unexpected")
+      catalog.execution = { provider: "github_actions", at: now,
+        runUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` }
+    }
     catalog.updatedAt = now
     validate(catalog)
     if (!noWrite) {
       await storage.write(catalog, current.etag)
       const persisted = await storage.read()
-      if (persisted.catalog?.updatedAt !== now) throw new Error("Storage readback did not match the completed update")
+      if (JSON.stringify(persisted.catalog) !== JSON.stringify(catalog)) throw new Error("Storage readback did not match the completed update")
     }
     const summary = { at: now, dryRun: noWrite, persisted: !noWrite, items: catalog.items.length, ...catalog.run }
     await mkdir(resolve(root, "logs/shopping-watch"), { recursive: true })

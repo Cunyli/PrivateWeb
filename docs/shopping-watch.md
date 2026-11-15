@@ -21,7 +21,24 @@ node scripts/shopping-watch/update.mjs --apply-curation tmp/shopping-current.jso
 
 `--env /absolute/path/to/.env` can select the configured local environment. Never print that file or copy credentials into the catalog. Writes use the read ETag and fail on concurrent modification. Every write is read back. `--apply-curation` also rejects a file exported before a newer catalog update. Ordinary runs update data without deploying the website.
 
-The local Codex heartbeat is intended to run every ten minutes while the Mac and Codex are available. The page polls its authenticated API every minute while visible. Polling does not itself fetch merchants. Every item has its own successful price check time; the run time is not substituted for it. Failed and manual sources keep their prior quotation and are shown as requiring review. HTTP 403/429/challenges get a six-hour backoff, without bypasses. A late or unavailable run remains visible in the status line.
+The production collector runs on GitHub Actions in `.github/workflows/shopping-watch.yml`, with a target interval of ten minutes and a manual dispatch option. It runs plain Node code on a standard Ubuntu runner, requires neither a Mac nor Codex, and makes no LLM calls. GitHub schedule events can be delayed or dropped under load; in a public repository they are automatically disabled after 60 days without repository activity. The page exposes the actual last successful collection time, so a stale collector is visible. See [GitHub schedule behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+
+Only the four existing R2 values are stored as repository Actions secrets, with names prefixed `SHOPPING_`. They are injected into the collection step only, after dependency installation and tests. The workflow has read-only repository permissions, pinned official checkout/setup actions, a locked collection-only dependency file, an eight-minute job timeout and a four-minute collection timeout. A single concurrency group prevents overlapping cloud collectors. Conditional R2 writes and complete readback preserve concurrent user edits.
+
+`cloud-run.mjs` prints aggregate counts only. Decrypted working files, per-item IDs, personal memos and child-process diagnostic output are never uploaded as workflow artifacts or printed into public logs. The encrypted catalog records the actual cloud execution URL. New-product discovery remains a separate user-requested task; the script follows configured candidates.
+
+The macOS LaunchAgent `com.cunyli.shopping-watch` is a fallback and is disabled after the first verified cloud run. Do not run both schedulers routinely. To restore local collection, first disable the GitHub workflow and then reinstall the fallback:
+
+```sh
+SHOPPING_NODE_PATH=/opt/homebrew/bin/node node scripts/shopping-watch/install-scheduler.mjs
+launchctl print gui/$(id -u)/com.cunyli.shopping-watch
+# Stop local collection:
+launchctl bootout gui/$(id -u)/com.cunyli.shopping-watch
+```
+
+The fallback plist contains paths only, never credentials. It runs while the Mac is awake and the user is logged in. Its receipt is `outputs/shopping-watch/scheduler-status.json`; local scheduler logs rotate at about 2 MiB and daily summaries are retained for 30 days. A process-level success means the collector completed its cloud write/readback, not that every merchant was accessible.
+
+The page polls its authenticated API every minute while visible. Polling does not itself fetch merchants. Exact product/variant prices and named-store GTIN offers are supported; ambiguous pages retain their old quote. Per-source intervals can be longer than the ten-minute scheduler cadence. Manual skips preserve the prior observation and do not refresh quote timestamps. HTTP 403/429/challenges impose a six-hour merchant-host backoff, including when a manual source is newly enabled. Missing shipping and 30-day low information remain unknown or retain their original separate verification date. A price change clears any old freight assumption and returns the candidate to review. Every cloud write is conditionally applied and fully read back. A late or unavailable run remains visible in the status line.
 
 `outputs/shopping-watch/latest-catalog.json` contains private local working data, including cloud memos; `logs/shopping-watch/` holds bounded run summaries. These files are ignored by Git. Never publish decrypted working data or credentials.
 
